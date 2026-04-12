@@ -1,0 +1,39 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+/* 
+bg-neutral-800 #262626
+text-zinc-500 #71717A
+*/
+html,
+body {
+    height: 100vh;
+    color: #71717A;
+    background-color: #000000;
+    overflow: hidden;
+}
+
+/*
+live view wraps the render function with a <div data-phx-main ...
+ */
+[data-phx-main] {
+    height: 100vh;
+}
+
+/*
+workaround for the WPE first render empty rectangle bug
+ */
+@keyframes fade-in {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+body {
+    animation: fade-in 0.2s ease-in forwards;
+}

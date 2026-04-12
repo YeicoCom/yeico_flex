@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "heroicons": "^2.2.0",
+    "install": "^0.13.0",
+    "topbar": "^3.0.0"
+  }
+}

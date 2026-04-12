@@ -1,0 +1,6 @@
+applets/*/package-lock.json
+applets/*/node_modules/
+applets/static/*.css
+applets/static/*.js
+applets/static/*/
+applets/secret
