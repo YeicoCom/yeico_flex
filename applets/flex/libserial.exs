@@ -28,6 +28,8 @@ use Terminal
 #   nc -l 8001
 #   nc localhost 8001
 
+dms = 2_000
+
 list = fn ->
   (Path.wildcard("/dev/tty.usbserial*") ++
      Path.wildcard("/dev/tty.usbmodem*") ++
@@ -40,7 +42,12 @@ list = fn ->
   |> Enum.sort()
 end
 
-check_tty = fn %{tty: tty} ->
+log = fn id, level, msg ->
+  dt = NaiveDateTime.utc_now()
+  Bus.broadcast!("flex:serial:logs", %{id: id, dt: dt, level: level, msg: msg})
+end
+
+check_tty = fn id, %{tty: tty} ->
   # otherwise tty device gets created by socat under sudo
   case File.lstat(tty) do
     {:ok, stat = %File.Stat{type: :device}} ->
@@ -57,10 +64,12 @@ check_tty = fn %{tty: tty} ->
         true
       else
         result ->
+          log.(id, :error, inspect(result))
           raise("Invalid #{tty}: #{inspect(result)}")
       end
 
     result ->
+      log.(id, :error, inspect(result))
       raise("Invalid #{tty}: #{inspect(result)}")
   end
 end
@@ -79,7 +88,7 @@ build_cmd = fn %{tty: tty, bauds: bauds, ip: ip, port: port} ->
       "socat TCP-LISTEN:#{port},bind=#{ip},reuseaddr #{tty},b#{bauds},raw,echo=0"
 
     {:unix, :darwin} ->
-      "socat TCP-LISTEN:#{port},bind=#{ip},reuseadd #{tty},ispeed=#{bauds},ospeed=#{bauds},clocal=1,nonblock=1,raw,echo=0"
+      "socat TCP-LISTEN:#{port},bind=#{ip},reuseaddr #{tty},ispeed=#{bauds},ospeed=#{bauds},clocal=1,nonblock=1,raw,echo=0"
   end
 end
 
@@ -102,15 +111,17 @@ run_cmd = fn %{tty: tty}, cmd ->
   port
 end
 
-runner_loop = fn state = %{loop: loop, port: port, export: %{tty: tty}} ->
+runner_loop = fn state = %{loop: loop, port: port, id: id, export: %{tty: tty}} ->
   receive do
     # both :eol and :noeol treated as full line
     {^port, {:data, {type, data}}} ->
       Api.trace(tty: tty, type: type, data: data)
+      log.(id, :error, data)
       loop.(state)
 
     {^port, {:data, data}} ->
       Api.trace(tty: tty, data: data)
+      log.(id, :error, data)
       loop.(state)
 
     unexpected ->
@@ -119,8 +130,9 @@ runner_loop = fn state = %{loop: loop, port: port, export: %{tty: tty}} ->
 end
 
 runner_setup = fn %{id: id, export: export} ->
-  Api.sleep(1_000)
-  check_tty.(export)
+  Api.sleep(dms)
+  log.(id, :trace, "Starting...")
+  check_tty.(id, export)
   cmd = build_cmd.(export)
   cmd = sudo_cmd.(cmd)
   port = run_cmd.(export, cmd)
@@ -136,7 +148,7 @@ end
 run_export = fn id, export ->
   task =
     case export.status do
-      :enabled -> Api.loop(2_000, runner_setup, %{id: id, export: export})
+      :enabled -> Api.loop(dms, runner_setup, %{id: id, export: export})
       _ -> nil
     end
 
@@ -198,7 +210,7 @@ master_setup = fn %{cubdb: cubdb} ->
 end
 
 {:ok, cubdb} = CubDB.start_link(data_dir: path)
-Api.loop(2_000, master_setup, %{cubdb: cubdb})
+Api.loop(dms, master_setup, %{cubdb: cubdb})
 
 fn
   :list -> list.()

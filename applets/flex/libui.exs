@@ -20,18 +20,18 @@ frame = fn assigns ->
 
   ~H"""
   <div id="main_frame" class="flex flex-col gap-4 p-4 h-screen" phx-window-keydown="modal:close" phx-key="Escape">
-     <div class="flex gap-4 p-4 center-items bg-zinc-800 rounded">
+     <div class="flex gap-4 p-4 items-center bg-zinc-800 rounded">
       <div class="relative group text-white content-center">
         <button class="px-4 py-2 bg-zinc-500 rounded hover:bg-lime-500 hero-bars-3 size-10"></button>
-        <div class="absolute hidden group-hover:block w-48 bg-zinc-700 rounded shadow-xl mt-1">
+        <div class="absolute top-3/4 hidden group-hover:block w-48 bg-zinc-700 rounded shadow-xl mt-1">
           <a href="/flex/serial-exports" class="block px-4 py-2 hover:bg-lime-500">Serial Exports</a>
-          <a href="/flex/serial-terminal" class="block px-4 py-2 hover:bg-lime-500">Serial Terminal</a>
+          <a href="/flex/socket-terminal" class="block px-4 py-2 hover:bg-lime-500">Socket Terminal</a>
           <a href="/flex/modbus-master" class="block px-4 py-2 hover:bg-lime-500">Modbus Master</a>
         </div>
       </div>
-      <div class="text-5xl text-white">{@title}</div>
+      <div class="text-[2em] text-white">{@title}</div>
       <div class="flex-grow"></div>
-      <image src="/applets/logo.svg" class="h-12"/>
+      <image src="/applets/logo.svg" class="h-10"/>
     </div>
     <div class="flex flex-grow gap-4 text-base">
       {render_slot(@inner_block)}
@@ -168,7 +168,6 @@ link = fn assigns ->
   <div
   {@phx_attribs}
   class={[
-    "text-neutral-400",
     @disabled || "hover:cursor-pointer #{@hover}",
     @disabled && "cursor-default pointer-events-none",
     @class

@@ -3,19 +3,27 @@ use Terminal.Live
 view = fn assigns ->
   ~H"""
   <.fui fun={@ui.frame} title="Serial Exports">
-    <div class="flex flex-col gap-2 w-full">
-      <.fui fun={@ui.link} phx-click="click:add" class="flex center-items gap-2"><div class="hero-plus"/>Add</.fui>
-      <div :for={{id, export} <- @exports} class="flex flex-col">
+    <div class="flex flex-col w-full text-neutral-300">
+      <.fui fun={@ui.link} phx-click="click:add" class="flex center-items gap-2 p-2 hover:rounded hover:bg-zinc-800">
+        <div class="hero-plus"/>Add
+      </.fui>
+      <div :for={{id, export} <- @exports} class="flex flex-col p-2 hover:rounded hover:bg-zinc-800">
         <.fui fun={@ui.link} phx-click="click:edit" phx-value-id={id}>
-          {export.tty},{export.bauds},{export.ip}:{export.port},{export.status}
+          {export.tty},{export.bauds}@{export.bits},{export.ip}:{export.port},{export.status}
         </.fui>
         <div class="flex gap-2">
+          <.fui fun={@ui.link} phx-click="click:edit" phx-value-id={id}>Edit</.fui>
           <.fui fun={@ui.link} phx-click="click:action" phx-value-id={id} phx-value-action="enable">Enable</.fui>
           <.fui fun={@ui.link} phx-click="click:action" phx-value-id={id} phx-value-action="disable">Disable</.fui>
           <.fui fun={@ui.link} phx-click="click:action" phx-value-id={id} phx-value-action="local">Local</.fui>
           <.fui fun={@ui.link} phx-click="click:action" phx-value-id={id} phx-value-action="remote">Remote</.fui>
           <div class="flex-grow"></div>
           <.fui fun={@ui.link} phx-click="click:delete" phx-value-id={id} type="danger">Delete</.fui>
+        </div>
+        <div :if={@logs[id]}>
+          <div :for={%{level: level, msg: msg} <- @logs[id]}>
+            {level} {msg}
+          </div>
         </div>
       </div>
     </div>
@@ -27,6 +35,8 @@ view = fn assigns ->
         <div class="grid grid-cols-2 gap-2 items-center min-w-[12em]">
           <div>Bauds</div>
           <.fui fun={@ui.select} name="bauds" value={@input.bauds} values={@options.bauds} required/>
+          <div>Bits</div>
+          <.fui fun={@ui.select} name="bits" value={@input.bits} values={@options.bits} required/>
           <div>IP</div>
           <.fui fun={@ui.select} name="ip" value={@input.ip} values={@options.ips} required/>
           <div>Port</div>
@@ -41,19 +51,30 @@ view = fn assigns ->
   """
 end
 
-new = %{tty: "/dev/ttyUSB0", bauds: 115_200, port: 4000, ip: "127.0.0.1", status: :enabled}
+new = %{
+  tty: "/dev/ttyUSB0",
+  bauds: 115_200,
+  bits: "8n1",
+  port: 4000,
+  ip: "127.0.0.1",
+  status: :enabled
+}
+
 ips = ["127.0.0.1", "0.0.0.0"]
 bauds = [9600, 115_200]
+bits = ["8n1"]
 status = [:enabled, :disabled]
-options = %{status: status, bauds: bauds, ips: ips}
+options = %{status: status, bauds: bauds, bits: bits, ips: ips}
 
 handler = fn
   {:mount, socket, state} ->
+    Bus.subscribe!("flex:serial:logs")
     socket = assign(socket, applet_css: "/applets/flex.css")
     socket = assign(socket, applet_js: "/applets/flex.js")
     socket = assign(socket, page_title: "Serial Exports")
     socket = assign(socket, page_suffix: " · Flex")
     state = Map.put(state, :exports, Api.subget!("flex:serial:exports"))
+    state = Map.put(state, :logs, %{})
     state = Map.put(state, :modal, nil)
     state = Map.put(state, :ui, ui)
     {socket, state}
@@ -133,10 +154,21 @@ handler = fn
     Api.trace(view: path, event: event, params: params)
     {socket, state}
 
-  {:info, socket, state, event = {"flex:serial:" <> key, _, value}} ->
+  {:info, socket, state = %{logs: logs},
+   event = {"flex:serial:logs", _, %{id: id, dt: dt, level: level, msg: msg}}} ->
     Api.trace(view: path, info: event)
-    key = String.to_atom(key)
-    state = Map.put(state, key, value)
+    list = Map.get(logs, id, []) |> Enum.reverse()
+    list = [%{dt: dt, level: level, msg: msg} | list] |> Enum.take(5)
+    logs = Map.put(logs, id, list |> Enum.reverse())
+    state = Map.put(state, :logs, logs)
+    {socket, state}
+
+  {:info, socket, state = %{logs: logs}, event = {"flex:serial:exports", _, exports}} ->
+    Api.trace(view: path, info: event)
+    ids = Enum.map(exports, fn {k, _} -> k end)
+    logs = Map.take(logs, ids)
+    state = Map.put(state, :logs, logs)
+    state = Map.put(state, :exports, exports)
     {socket, state}
 
   {:info, socket, state, event} ->
