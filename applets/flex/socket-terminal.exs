@@ -14,6 +14,10 @@ view = fn assigns ->
         <div class="grow"/>
         <.fui :if={@conn.on} fun={@ui.link} phx-click="click:disconnect" type="danger">Disconnect</.fui>
       </div>
+      <form :if={@conn.on} phx-submit="input:submit" class="flex px-1 py-2 gap-2">
+        <.fui fun={@ui.input} name="line" type="text" class="grow"/>
+        <.fui fun={@ui.button} type="submit">Send</.fui>
+      </form>
       <div :if={@count > 0} phx-update="stream" id="logs" phx-hook="AutoScroll"
         class="p-2 grow flex flex-col overflow-y-scroll font-mono rounded bg-zinc-800">
         <div :for={{id, %{dt: dt, style: style, line: line}} <- @streams.logs}
@@ -41,6 +45,15 @@ loop = fn loop, parent, conn = %{socket: socket} ->
       send(parent, {:socket, self(), :input, data})
       loop.(loop, parent, conn)
 
+    {:write, data} ->
+      with :ok <- Tcp.write(conn, data) do
+        loop.(loop, parent, conn)
+      else
+        {:error, error} ->
+          send(parent, {:socket, self(), :error, error: error})
+          Api.warn(error: error)
+      end
+
     unexpected ->
       send(parent, {:socket, self(), :error, unexpected: unexpected})
       Api.warn(unexpected: unexpected)
@@ -62,7 +75,7 @@ style = fn
   :error -> "text-red-500"
   :success -> "text-lime-500"
   :input -> "text-blue-500"
-  :output -> "text-teal-400"
+  :output -> "text-purple-500"
 end
 
 append = fn socket, state = %{id: id, tzoffset: tzoffset}, type, line ->
@@ -84,7 +97,7 @@ handler = fn
     socket = assign(socket, page_title: "Socket Terminal")
     socket = assign(socket, page_suffix: " · Flex")
     socket = stream(socket, :logs, [])
-    state = Map.put(state, :input, %{port: 4040, ip: "127.0.0.1"})
+    state = Map.put(state, :input, %{port: 4401, ip: "127.0.0.1"})
     state = Map.put(state, :tzoffset, tzoffset)
     state = Map.put(state, :conn, %{task: nil, params: nil, on: false})
     state = Map.put(state, :modal, %{title: title})
@@ -105,6 +118,12 @@ handler = fn
     Api.trace(view: path, event: event, params: params)
     state = Map.put(state, :modal, nil)
     {socket, state}
+
+  {:event, socket, state = %{conn: %{task: %{pid: pid}}}, event = "input:submit",
+   params = %{"line" => line}} ->
+    Api.trace(view: path, event: event, params: params)
+    send(pid, {:write, [line, "\n"]})
+    append.(socket, state, :output, line)
 
   {:event, socket, state = %{conn: %{task: task}}, event = "modal:submit", params} ->
     Api.trace(view: path, event: event, params: params)

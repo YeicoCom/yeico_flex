@@ -56,7 +56,7 @@ new = %{
   tty: "/dev/ttyUSB0",
   bauds: 115_200,
   bits: "8n1",
-  port: 4000,
+  port: 4401,
   ip: "127.0.0.1",
   status: :enabled
 }
