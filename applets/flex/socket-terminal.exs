@@ -1,20 +1,21 @@
 use Terminal.Live
 
 # https://stackoverflow.com/questions/5284147/validating-ipv4-addresses-with-regexp
+# scrolling in nested flex requires h-full parent and overflow-hidden grand parent and h-screen on flex root.
 view = fn assigns ->
   ~H"""
   <.fui fun={@ui.frame} title="Socket Terminal">
-    <div class="flex flex-col w-full text-neutral-300">
+    <div class="flex flex-col w-full h-full text-neutral-300">
       <.fui fun={@ui.link} phx-click="click:connect" class="flex center-items gap-2 p-2 hover:rounded hover:bg-zinc-800">
         <div class="hero-plus"/>Connect
       </.fui>
-      <div :if={@conn.params} class="pt-2 flex">
+      <div :if={@conn.params} class="pt-2 px-2 flex">
         <div>{@conn.params.ip}:{@conn.params.port}</div>
         <div class="grow"/>
         <.fui :if={@conn.on} fun={@ui.link} phx-click="click:disconnect" type="danger">Disconnect</.fui>
       </div>
       <div :if={@count > 0} phx-update="stream" id="logs" phx-hook="AutoScroll"
-        class="p-4 grow flex flex-col overflow-y-auto font-mono rounded bg-zinc-800">
+        class="p-2 grow flex flex-col overflow-y-scroll font-mono rounded bg-zinc-800">
         <div :for={{id, %{dt: dt, style: style, line: line}} <- @streams.logs}
           id={id} class={[style, "break-all"]}>{dt} {line}</div>
       </div>
@@ -73,6 +74,8 @@ append = fn socket, state = %{id: id, tzoffset: tzoffset}, type, line ->
   {socket, state}
 end
 
+title = "Connection Settings"
+
 handler = fn
   {:mount, socket, state} ->
     tzoffset = socket.assigns.tzoffset || 0
@@ -84,7 +87,7 @@ handler = fn
     state = Map.put(state, :input, %{port: 4040, ip: "127.0.0.1"})
     state = Map.put(state, :tzoffset, tzoffset)
     state = Map.put(state, :conn, %{task: nil, params: nil, on: false})
-    state = Map.put(state, :modal, nil)
+    state = Map.put(state, :modal, %{title: title})
     state = Map.put(state, :count, 0)
     state = Map.put(state, :id, 0)
     state = Map.put(state, :ui, ui)
@@ -118,7 +121,7 @@ handler = fn
 
   {:event, socket, state, event = "click:connect", params} ->
     Api.trace(view: path, event: event, params: params)
-    state = Map.put(state, :modal, %{title: "conn Settings"})
+    state = Map.put(state, :modal, %{title: title})
     {socket, state}
 
   {:event, socket, state = %{conn: %{task: task}}, event = "click:disconnect", params} ->

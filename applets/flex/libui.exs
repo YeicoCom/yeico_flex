@@ -20,7 +20,7 @@ frame = fn assigns ->
 
   ~H"""
   <div id="main_frame" class="flex flex-col gap-4 p-4 h-screen" phx-window-keydown="modal:close" phx-key="Escape">
-     <div class="flex gap-4 p-4 items-center bg-zinc-800 rounded">
+    <div class="flex gap-4 p-4 items-center bg-zinc-800 rounded">
       <div class="relative group text-white content-center">
         <button class="px-4 py-2 bg-zinc-500 rounded hover:bg-lime-500 hero-bars-3 size-10"></button>
         <div class="absolute top-3/4 hidden group-hover:block w-48 bg-zinc-700 rounded shadow-xl mt-1">
@@ -33,9 +33,7 @@ frame = fn assigns ->
       <div class="grow"></div>
       <image src="/applets/logo.svg" class="h-10"/>
     </div>
-    <div class="grow text-base">
-      {render_slot(@inner_block)}
-    </div>
+    <div class="grow text-base overflow-hidden">{render_slot(@inner_block)}</div>
   </div>
   """
 end
