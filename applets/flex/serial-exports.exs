@@ -3,7 +3,7 @@ use Terminal.Live
 view = fn assigns ->
   ~H"""
   <.fui fun={@ui.frame} title="Serial Exports">
-    <div class="flex flex-col w-full text-neutral-300">
+    <div class="flex flex-col w-full h-full overflow-y-auto">
       <.fui fun={@ui.link} phx-click="click:add" class="flex center-items gap-2 p-2 hover:rounded hover:bg-zinc-800">
         <div class="hero-plus"/>Add
       </.fui>
@@ -24,7 +24,7 @@ view = fn assigns ->
         <% log = @logs[id] %>
         <div :if={export.status==:enabled and log} class={[
           log.level == :error && "text-red-500",
-          log.level == :error || "text-neutral-700",
+          log.level == :error || "text-neutral-500",
         ]}>{log.dt} {log.msg}</div>
       </div>
     </div>

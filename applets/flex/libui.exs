@@ -33,7 +33,7 @@ frame = fn assigns ->
       <div class="grow"></div>
       <image src="/applets/logo.svg" class="h-10"/>
     </div>
-    <div class="grow text-base overflow-hidden">{render_slot(@inner_block)}</div>
+    <div class="grow text-base text-neutral-300 overflow-hidden">{render_slot(@inner_block)}</div>
   </div>
   """
 end

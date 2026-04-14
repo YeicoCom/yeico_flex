@@ -5,7 +5,7 @@ use Terminal.Live
 view = fn assigns ->
   ~H"""
   <.fui fun={@ui.frame} title="Socket Terminal">
-    <div class="flex flex-col w-full h-full text-neutral-300">
+    <div class="flex flex-col w-full h-full">
       <.fui fun={@ui.link} phx-click="click:connect" class="flex center-items gap-2 p-2 hover:rounded hover:bg-zinc-800">
         <div class="hero-plus"/>Connect
       </.fui>
