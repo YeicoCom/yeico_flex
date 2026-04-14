@@ -28,8 +28,6 @@ use Terminal
 #   nc -l 8001
 #   nc localhost 8001
 
-wrap = Api.wrapper()
-
 list = fn ->
   (Path.wildcard("/dev/tty.usbserial*") ++
      Path.wildcard("/dev/tty.usbmodem*") ++
