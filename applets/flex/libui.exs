@@ -30,10 +30,10 @@ frame = fn assigns ->
         </div>
       </div>
       <div class="text-[2em] text-white">{@title}</div>
-      <div class="flex-grow"></div>
+      <div class="grow"></div>
       <image src="/applets/logo.svg" class="h-10"/>
     </div>
-    <div class="flex flex-grow gap-4 text-base">
+    <div class="grow text-base">
       {render_slot(@inner_block)}
     </div>
   </div>
@@ -111,6 +111,8 @@ input = fn assigns ->
   assigns = Map.put_new(assigns, :step, nil)
   assigns = Map.put_new(assigns, :min, nil)
   assigns = Map.put_new(assigns, :max, nil)
+  # text type
+  assigns = Map.put_new(assigns, :pattern, nil)
 
   ~H"""
   <input
@@ -118,6 +120,7 @@ input = fn assigns ->
   name={@name}
   value={@value}
   disabled={@disabled}
+  pattern={@pattern}
   step={@step}
   min={@min}
   max={@max}
