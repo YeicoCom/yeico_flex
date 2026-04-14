@@ -2,10 +2,8 @@ use Terminal.Live
 
 view = fn assigns ->
   ~H"""
-  <div class="flex flex-col items-center justify-center h-screen gap-4">
-    <image src="/images/logo.svg" class="w-[12em]"/>
-    <div class="text-4xl">FLEX</div>
-  </div>
+  <.fui fun={@ui.frame}>
+  </.fui>
   """
 end
 
@@ -13,7 +11,9 @@ handler = fn
   {:mount, socket, state} ->
     socket = assign(socket, applet_css: "/applets/flex.css")
     socket = assign(socket, applet_js: "/applets/flex.js")
-    socket = assign(socket, page_title: "Flex")
+    socket = assign(socket, page_suffix: " · Flex")
+    socket = assign(socket, page_title: "Home")
+    state = Map.put(state, :ui, ui)
     {socket, state}
 
   {:params, socket, state, params, uri} ->
