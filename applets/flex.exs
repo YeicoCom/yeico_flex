@@ -1,6 +1,7 @@
 use Terminal
 
 Api.putcast!("flex:serial:exports", [])
+Api.putcast!("flex:serial:logs", %{})
 
 {serial, _} = Api.evalf("flex/libserial.exs", path: Terminal.dpath("@home/flex.cubdb/serial"))
 

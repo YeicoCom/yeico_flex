@@ -7,7 +7,8 @@ view = fn assigns ->
       <.fui fun={@ui.link} phx-click="click:add" class="flex center-items gap-2 p-2 hover:rounded hover:bg-zinc-800">
         <div class="hero-plus"/>Add
       </.fui>
-      <div :for={{id, export} <- @exports} class="flex flex-col p-2 hover:rounded hover:bg-zinc-800">
+      <div :for={id <- @index} class="flex flex-col p-2 hover:rounded hover:bg-zinc-800">
+        <% export = @exports[id] %>
         <.fui fun={@ui.link} phx-click="click:edit" phx-value-id={id}>
           {export.tty},{export.bauds}@{export.bits},{export.ip}:{export.port},{export.status}
         </.fui>
@@ -20,11 +21,11 @@ view = fn assigns ->
           <div class="flex-grow"></div>
           <.fui fun={@ui.link} phx-click="click:delete" phx-value-id={id} type="danger">Delete</.fui>
         </div>
-        <div :if={@logs[id]}>
-          <div :for={%{level: level, msg: msg} <- @logs[id]}>
-            {level} {msg}
-          </div>
-        </div>
+        <% log = @logs[id] %>
+        <div :if={export.status==:enabled and log} class={[
+          log.level == :error && "text-red-500",
+          log.level == :error || "text-neutral-700",
+        ]}>{log.dt} {log.msg}</div>
       </div>
     </div>
   </.fui>
@@ -66,15 +67,36 @@ bits = ["8n1"]
 status = [:enabled, :disabled]
 options = %{status: status, bauds: bauds, bits: bits, ips: ips}
 
+shift_one = fn tzoffset, log = %{dt: dt} ->
+  dt = NaiveDateTime.shift(dt, hour: tzoffset)
+  dt = NaiveDateTime.to_time(dt)
+  %{log | dt: dt}
+end
+
+shift_all = fn tzoffset, logs ->
+  logs
+  |> Enum.map(fn {k, v} -> {k, shift_one.(tzoffset, v)} end)
+  |> Enum.into(%{})
+end
+
+index = fn pairs -> Enum.map(pairs, fn {k, _} -> k end) end
+
 handler = fn
   {:mount, socket, state} ->
-    Bus.subscribe!("flex:serial:logs")
+    tzoffset = socket.assigns.tzoffset || 0
+    logs = Api.subget!("flex:serial:logs")
+    logs = shift_all.(tzoffset, logs)
+    exports = Api.subget!("flex:serial:exports")
+    index = index.(exports)
+    exports = Enum.into(exports, %{})
     socket = assign(socket, applet_css: "/applets/flex.css")
     socket = assign(socket, applet_js: "/applets/flex.js")
     socket = assign(socket, page_title: "Serial Exports")
     socket = assign(socket, page_suffix: " · Flex")
-    state = Map.put(state, :exports, Api.subget!("flex:serial:exports"))
-    state = Map.put(state, :logs, %{})
+    state = Map.put(state, :tzoffset, tzoffset)
+    state = Map.put(state, :exports, exports)
+    state = Map.put(state, :index, index)
+    state = Map.put(state, :logs, logs)
     state = Map.put(state, :modal, nil)
     state = Map.put(state, :ui, ui)
     {socket, state}
@@ -154,21 +176,17 @@ handler = fn
     Api.trace(view: path, event: event, params: params)
     {socket, state}
 
-  {:info, socket, state = %{logs: logs},
-   event = {"flex:serial:logs", _, %{id: id, dt: dt, level: level, msg: msg}}} ->
+  {:info, socket, state, event = {"flex:serial:exports", _, exports}} ->
     Api.trace(view: path, info: event)
-    list = Map.get(logs, id, []) |> Enum.reverse()
-    list = [%{dt: dt, level: level, msg: msg} | list] |> Enum.take(5)
-    logs = Map.put(logs, id, list |> Enum.reverse())
-    state = Map.put(state, :logs, logs)
+    index = index.(exports)
+    exports = Enum.into(exports, %{})
+    state = Map.put(state, :exports, exports)
+    state = Map.put(state, :index, index)
     {socket, state}
 
-  {:info, socket, state = %{logs: logs}, event = {"flex:serial:exports", _, exports}} ->
+  {:info, socket, state = %{tzoffset: tzoffset}, event = {"flex:serial:logs", _, logs}} ->
     Api.trace(view: path, info: event)
-    ids = Enum.map(exports, fn {k, _} -> k end)
-    logs = Map.take(logs, ids)
-    state = Map.put(state, :logs, logs)
-    state = Map.put(state, :exports, exports)
+    state = Map.put(state, :logs, shift_all.(tzoffset, logs))
     {socket, state}
 
   {:info, socket, state, event} ->
