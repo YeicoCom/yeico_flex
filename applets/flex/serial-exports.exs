@@ -3,7 +3,7 @@ use Terminal.Live
 view = fn assigns ->
   ~H"""
   <.fui fun={@ui.frame} title="Serial Exports">
-    <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-2 w-full">
       <.fui fun={@ui.link} phx-click="click:add" class="flex center-items gap-2"><div class="hero-plus"/>Add</.fui>
       <div :for={{id, export} <- @exports} class="flex flex-col">
         <.fui fun={@ui.link} phx-click="click:edit" phx-value-id={id}>
