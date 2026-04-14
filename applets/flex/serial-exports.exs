@@ -3,10 +3,20 @@ use Terminal.Live
 view = fn assigns ->
   ~H"""
   <.fui fun={@ui.frame} title="Serial Exports">
-    <div class="flex flex-col gap-4">
-      <div phx-click="click:add" class="flex center-items gap-2 hover:cursor-pointer hover:text-lime-500"><div class="hero-plus"/>Add</div>
-      <div :for={{id, export} <- @exports} phx-click="click:edit" phx-value-id={id} class="hover:cursor-pointer hover:text-lime-500">
-      {export.tty},{export.bauds},{export.ip}:{export.port},{export.status}
+    <div class="flex flex-col gap-2">
+      <.fui fun={@ui.link} phx-click="click:add" class="flex center-items gap-2"><div class="hero-plus"/>Add</.fui>
+      <div :for={{id, export} <- @exports} class="flex flex-col">
+        <.fui fun={@ui.link} phx-click="click:edit" phx-value-id={id}>
+          {export.tty},{export.bauds},{export.ip}:{export.port},{export.status}
+        </.fui>
+        <div class="flex gap-2">
+          <.fui fun={@ui.link} phx-click="click:action" phx-value-id={id} phx-value-action="enable">Enable</.fui>
+          <.fui fun={@ui.link} phx-click="click:action" phx-value-id={id} phx-value-action="disable">Disable</.fui>
+          <.fui fun={@ui.link} phx-click="click:action" phx-value-id={id} phx-value-action="local">Local</.fui>
+          <.fui fun={@ui.link} phx-click="click:action" phx-value-id={id} phx-value-action="remote">Remote</.fui>
+          <div class="flex-grow"></div>
+          <.fui fun={@ui.link} phx-click="click:delete" phx-value-id={id} type="danger">Delete</.fui>
+        </div>
       </div>
     </div>
   </.fui>
@@ -76,6 +86,27 @@ handler = fn
 
     state = Map.drop(state, [:input, :options])
     state = Map.put(state, :modal, nil)
+    {socket, state}
+
+  {:event, socket, state, event = "click:delete", params = %{"id" => id}} ->
+    Api.trace(view: path, event: event, params: params)
+    Bus.broadcast!("flex:serial:delete", id)
+    {socket, state}
+
+  {:event, socket, state, event = "click:action", params = %{"id" => id, "action" => action}} ->
+    Api.trace(view: path, event: event, params: params)
+    exports = state.exports |> Enum.into(%{})
+    export = exports[id]
+
+    export =
+      case action do
+        "enable" -> Map.put(export, :status, :enabled)
+        "disable" -> Map.put(export, :status, :disabled)
+        "local" -> Map.put(export, :ip, "127.0.0.1")
+        "remote" -> Map.put(export, :ip, "0.0.0.0")
+      end
+
+    Bus.broadcast!("flex:serial:update", {id, export})
     {socket, state}
 
   {:event, socket, state, event = "click:add", params} ->

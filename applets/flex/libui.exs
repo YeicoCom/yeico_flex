@@ -24,9 +24,9 @@ frame = fn assigns ->
       <div class="relative group text-white content-center">
         <button class="px-4 py-2 bg-zinc-500 rounded hover:bg-lime-500 hero-bars-3 size-10"></button>
         <div class="absolute hidden group-hover:block w-48 bg-zinc-700 rounded shadow-xl mt-1">
-          <a href="/serial-exports" class="block px-4 py-2 hover:bg-lime-500">Serial Exports</a>
-          <a href="/serial-terminal" class="block px-4 py-2 hover:bg-lime-500">Serial Terminal</a>
-          <a href="/modbus-master" class="block px-4 py-2 hover:bg-lime-500">Modbus Master</a>
+          <a href="/flex/serial-exports" class="block px-4 py-2 hover:bg-lime-500">Serial Exports</a>
+          <a href="/flex/serial-terminal" class="block px-4 py-2 hover:bg-lime-500">Serial Terminal</a>
+          <a href="/flex/modbus-master" class="block px-4 py-2 hover:bg-lime-500">Modbus Master</a>
         </div>
       </div>
       <div class="text-5xl text-white">{@title}</div>
@@ -150,10 +150,37 @@ button = fn assigns ->
   """
 end
 
+link = fn assigns ->
+  assigns = phx_attribs.(assigns)
+  assigns = Map.put_new(assigns, :class, nil)
+  assigns = Map.put_new(assigns, :disabled, nil)
+  assigns = Map.put_new(assigns, :type, "normal")
+
+  hover =
+    case assigns.type do
+      "danger" -> "hover:text-orange-500"
+      _ -> "hover:text-lime-500"
+    end
+
+  assigns = Map.put_new(assigns, :hover, hover)
+
+  ~H"""
+  <div
+  {@phx_attribs}
+  class={[
+    "text-neutral-400",
+    @disabled || "hover:cursor-pointer #{@hover}",
+    @disabled && "cursor-default pointer-events-none",
+    @class
+  ]}>{render_slot(@inner_block)}</div>
+  """
+end
+
 %{
   frame: frame,
   modal: modal,
   select: select,
   input: input,
-  button: button
+  button: button,
+  link: link
 }

@@ -166,6 +166,15 @@ master_loop = fn state = %{cubdb: cubdb, loop: loop, runners: runners} ->
       state = Map.put(state, :runners, runners)
       loop.(state)
 
+    {"flex:serial:delete", _, id} ->
+      CubDB.delete(cubdb, id)
+      publish_exports.(cubdb)
+      task = runners[id][:task]
+      if task, do: Api.kill(task)
+      runners = Map.delete(runners, id)
+      state = Map.put(state, :runners, runners)
+      loop.(state)
+
     {:DOWN, _, :process, _, :killed} ->
       loop.(state)
 
@@ -194,6 +203,5 @@ end
 Api.loop(2_000, master_setup, %{cubdb: cubdb})
 
 fn
-  :list ->
-    list.()
+  :list -> list.()
 end
