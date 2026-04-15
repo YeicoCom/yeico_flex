@@ -141,7 +141,7 @@ runner_loop = fn state = %{loop: loop, port: port, id: id, export: %{tty: tty}} 
       loop.(state)
 
     unexpected ->
-      log.(id, :trace, "Closed")
+      log.(id, :trace?, "Closed")
       Api.warn(tty: tty, unexpected: unexpected)
   end
 end
@@ -205,9 +205,15 @@ master_loop = fn state = %{cubdb: cubdb, loop: loop, runners: runners, logs: log
       state = Map.put(state, :runners, runners)
       loop.(state)
 
-    {"flex:serial:log", _, log = %{id: id}} ->
+    {"flex:serial:log", _, log = %{id: id, level: level}} ->
       log = Map.drop(log, [:id])
-      logs = Map.put(logs, id, log)
+
+      logs =
+        case {level, logs[id][:level]} do
+          {:trace?, :error} -> logs
+          {_, _} -> Map.put(logs, id, log)
+        end
+
       ids = Map.keys(runners)
       logs = Map.take(logs, ids)
       Api.putcast!("flex:serial:logs", logs)

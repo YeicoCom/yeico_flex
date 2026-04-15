@@ -72,6 +72,8 @@ modal = fn assigns ->
 end
 
 select = fn assigns ->
+  assigns = phx_attribs.(assigns)
+  assigns = Map.put_new(assigns, :id, nil)
   assigns = Map.put_new(assigns, :class, nil)
   assigns = Map.put_new(assigns, :name, nil)
   assigns = Map.put_new(assigns, :size, nil)
@@ -81,9 +83,11 @@ select = fn assigns ->
 
   ~H"""
   <select
+  id={@id}
   name={@name}
   size={@size}
   required={@required}
+  {@phx_attribs}
   class={[
     "p-2.5 rounded-lg border-0 ring-1 hover:ring-1",
     "bg-zinc-600 ring-zinc-600 text-neutral-400 focus:ring-lime-500",
@@ -99,7 +103,9 @@ select = fn assigns ->
 end
 
 input = fn assigns ->
+  assigns = phx_attribs.(assigns)
   # wont honor focus ring color if type nil
+  assigns = Map.put_new(assigns, :id, nil)
   assigns = Map.put_new(assigns, :class, nil)
   assigns = Map.put_new(assigns, :type, "text")
   assigns = Map.put_new(assigns, :name, nil)
@@ -114,6 +120,7 @@ input = fn assigns ->
 
   ~H"""
   <input
+  id={@id}
   type={@type}
   name={@name}
   value={@value}
@@ -122,6 +129,7 @@ input = fn assigns ->
   step={@step}
   min={@min}
   max={@max}
+  {@phx_attribs}
   class={[
     "p-2.5 border-0 rounded-lg",
     "bg-zinc-600 ring-zinc-600 text-neutral-400 focus:ring-lime-500",
@@ -131,6 +139,7 @@ input = fn assigns ->
 end
 
 button = fn assigns ->
+  assigns = phx_attribs.(assigns)
   assigns = Map.put_new(assigns, :id, nil)
   assigns = Map.put_new(assigns, :class, nil)
   assigns = Map.put_new(assigns, :type, nil)
@@ -141,7 +150,7 @@ button = fn assigns ->
   <button
   id={@id}
   type={@type}
-  phx-click={@event}
+  {@phx_attribs}
   class={[
     "px-5 py-2.5 rounded-lg border-0 ring-1 hover:ring-1",
     @disabled || "bg-zinc-700 text-neutral-400 ring-neutral-600 hover:bg-lime-500 hover:text-white hover:ring-white hover:cursor-pointer",
@@ -153,6 +162,7 @@ end
 
 link = fn assigns ->
   assigns = phx_attribs.(assigns)
+  assigns = Map.put_new(assigns, :id, nil)
   assigns = Map.put_new(assigns, :class, nil)
   assigns = Map.put_new(assigns, :disabled, nil)
   assigns = Map.put_new(assigns, :type, "normal")
@@ -167,6 +177,7 @@ link = fn assigns ->
 
   ~H"""
   <div
+  id={@id}
   {@phx_attribs}
   class={[
     @disabled || "hover:cursor-pointer #{@hover}",

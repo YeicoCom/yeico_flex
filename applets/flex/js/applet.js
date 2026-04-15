@@ -15,12 +15,23 @@ function initialParams() {
     }
 }
 
+function setFocus(el) {
+    el.focus()
+    // number input does not support selection
+    // submit buttons get detached from form
+    if (el.setSelectionRange) {
+        const type = el.type
+        el.type = "text"
+        const end = el.value.length
+        el.setSelectionRange(end, end)
+        el.type = type
+    }
+}
+
 const Hooks = {
     AutoFocus: {
         mounted() {
-            this.el.focus()
-            // selects all the text in an input or textarea
-            if (this.el.select) this.el.select()
+            setFocus(this.el)
         }
     },
     AutoScroll: {
@@ -34,6 +45,25 @@ const Hooks = {
             //confirmed to work with tailwind break-all multi line logs
             if (lastChild && bottomExcess <= lastChild.clientHeight) {
                 this.el.scrollTo(0, this.el.scrollHeight)
+            }
+        }
+    },
+    EnterNavigation: {
+        mounted() {
+            const elements = this.el.elements
+            for (let i = 0; i < elements.length; i++) {
+                const el = elements[i]
+                const isSelect = el instanceof HTMLSelectElement
+                const isInput = el instanceof HTMLInputElement
+                const isSubmit = el.type === "submit"
+                if (isSelect || (isInput && !isSubmit)) {
+                    el.addEventListener('keydown', (event) => {
+                        if (event.key === 'Enter') {
+                            event.preventDefault();
+                            setFocus(elements[i + 1])
+                        }
+                    })
+                }
             }
         }
     },

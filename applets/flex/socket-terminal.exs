@@ -12,10 +12,11 @@ view = fn assigns ->
         <div class="grow"/>
         <.fui :if={@conn.on} fun={@ui.link} phx-click="click:disconnect" type="danger">Disconnect</.fui>
       </div>
-      <form :if={@conn.on} phx-submit="output:submit" phx-change="output:change" class="flex px-1 py-2 gap-2">
+      <form id="output_form" :if={@conn.on} phx-submit="output:submit" phx-change="output:change"
+        class="flex px-1 py-2 gap-2" phx-hook="EnterNavigation">
         <.fui fun={@ui.select} name="omode" value={@output[:omode]} values={@options.omode} required title="Output Mode"/>
         <.fui fun={@ui.select} name="imode" value={@output[:imode]} values={@options.imode} required title="Input Mode"/>
-        <.fui fun={@ui.input} name="line" value={@output[:line]} type="text" class="grow"/>
+        <.fui fun={@ui.input} name="line" value={@output[:line]} type="text" class="grow" id="output_form_line" phx-hook="AutoFocus"/>
         <.fui fun={@ui.button} type="submit">Send</.fui>
       </form>
       <div :if={@count > 0} phx-update="stream" id="logs" phx-hook="AutoScroll"
@@ -27,10 +28,11 @@ view = fn assigns ->
   </.fui>
   <.fui fun={@ui.modal} :if={@modal} title={@modal.title} class="min-w-[360px]">
     <% input = @modal.input %>
-    <form phx-submit="modal:submit" class="flex flex-col gap-4">
+    <form id="modal_form" phx-submit="modal:submit" class="flex flex-col gap-4" phx-hook="EnterNavigation" phx-update="ignore">
       <div class="grid grid-cols-2 gap-2 items-center min-w-[12em]">
         <div>IP</div>
-        <.fui fun={@ui.input} name="ip" value={input.ip} type="text" required pattern="^(((?!25?[6-9])[12]\d|[1-9])?\d\.?\b){4}$"/>
+        <.fui fun={@ui.input} name="ip" value={input.ip} type="text" required pattern="^(((?!25?[6-9])[12]\d|[1-9])?\d\.?\b){4}$"
+          id="modal_form_ip" phx-hook="AutoFocus"/>
         <div>Port</div>
         <.fui fun={@ui.input} name="port" value={input.port} type="number" step="1" min="1" max="65535" required/>
       </div>
