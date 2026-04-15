@@ -4,7 +4,7 @@ view = fn assigns ->
   ~H"""
   <.fui fun={@ui.frame} title="Serial Exports">
     <div class="flex flex-col w-full h-full overflow-y-auto">
-      <.fui fun={@ui.link} phx-click="click:add" class="flex center-items gap-2 p-2 hover:rounded hover:bg-zinc-800">
+      <.fui fun={@ui.link} phx-click="click:add" class="flex items-center gap-2 p-2 hover:rounded hover:bg-zinc-800">
         <div class="hero-plus"/>Add
       </.fui>
       <div :for={id <- @index} class="flex flex-col p-2 hover:rounded hover:bg-zinc-800">
@@ -30,23 +30,21 @@ view = fn assigns ->
     </div>
   </.fui>
   <.fui fun={@ui.modal} :if={@modal} title={@modal.title} class="min-w-[360px]">
-    <form phx-submit="modal:submit" class="flex mt-4 gap-4">
+    <form phx-submit="modal:submit" class="flex flex-col mt-4 gap-4">
       <.fui fun={@ui.select} name="tty" value={@input.tty} values={@options.ttys} class="min-w-[120px] overflow-x-auto" size="4" required/>
-      <div class="flex flex-col gap-2 justify-between">
-        <div class="grid grid-cols-2 gap-2 items-center min-w-[12em]">
-          <div>Bauds</div>
-          <.fui fun={@ui.select} name="bauds" value={@input.bauds} values={@options.bauds} required/>
-          <div>Bits</div>
-          <.fui fun={@ui.select} name="bits" value={@input.bits} values={@options.bits} required/>
-          <div>IP</div>
-          <.fui fun={@ui.select} name="ip" value={@input.ip} values={@options.ips} required/>
-          <div>Port</div>
-          <.fui fun={@ui.input} name="port" value={@input.port} type="number" step="1" min="1024" max="65535" required/>
-          <div>Status</div>
-          <.fui fun={@ui.select} name="status" value={@input.status} values={@options.status} required/>
-        </div>
-        <.fui fun={@ui.button} type="submit" class="col-span-2">Accept</.fui>
+      <div class="grid grid-cols-2 gap-2 items-center min-w-[12em]">
+        <div>Bauds</div>
+        <.fui fun={@ui.select} name="bauds" value={@input.bauds} values={@options.bauds} required/>
+        <div>Bits</div>
+        <.fui fun={@ui.select} name="bits" value={@input.bits} values={@options.bits} required/>
+        <div>IP</div>
+        <.fui fun={@ui.select} name="ip" value={@input.ip} values={@options.ips} required/>
+        <div>Port</div>
+        <.fui fun={@ui.input} name="port" value={@input.port} type="number" step="1" min="1024" max="65535" required/>
+        <div>Status</div>
+        <.fui fun={@ui.select} name="status" value={@input.status} values={@options.status} required/>
       </div>
+      <.fui fun={@ui.button} type="submit" class="col-span-2">Accept</.fui>
     </form>
   </.fui>
   """
@@ -61,9 +59,9 @@ new = %{
   status: :enabled
 }
 
-ips = ["127.0.0.1", "0.0.0.0"]
-bauds = [9600, 115_200]
 bits = ["8n1"]
+bauds = [9600, 115_200]
+ips = ["127.0.0.1", "0.0.0.0"]
 status = [:enabled, :disabled]
 options = %{status: status, bauds: bauds, bits: bits, ips: ips}
 

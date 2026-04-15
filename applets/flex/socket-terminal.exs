@@ -1,12 +1,10 @@
 use Terminal.Live
 
-# https://stackoverflow.com/questions/5284147/validating-ipv4-addresses-with-regexp
-# scrolling in nested flex requires h-full parent and overflow-hidden grand parent and h-screen on flex root.
 view = fn assigns ->
   ~H"""
   <.fui fun={@ui.frame} title="Socket Terminal">
     <div class="flex flex-col w-full h-full">
-      <.fui fun={@ui.link} phx-click="click:connect" class="flex center-items gap-2 p-2 hover:rounded hover:bg-zinc-800">
+      <.fui fun={@ui.link} phx-click="click:connect" class="flex items-center gap-2 p-2 hover:rounded hover:bg-zinc-800">
         <div class="hero-plus"/>Connect
       </.fui>
       <div :if={@conn.params} class="pt-2 px-2 flex">
@@ -73,9 +71,9 @@ end
 
 style = fn
   :error -> "text-red-500"
-  :success -> "text-lime-500"
   :input -> "text-blue-500"
   :output -> "text-purple-500"
+  :success -> "text-lime-500"
 end
 
 append = fn socket, state = %{id: id, tzoffset: tzoffset}, type, line ->

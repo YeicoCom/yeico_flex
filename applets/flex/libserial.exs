@@ -28,7 +28,7 @@ use Terminal
 #   nc -l 8001
 #   nc localhost 8001
 
-dms = 2_000
+dms = 1_000
 
 list = fn ->
   (Path.wildcard("/dev/tty.usbserial*") ++
@@ -54,6 +54,14 @@ log = fn
   id, level, msg -> post_log.(id, level, inspect(msg))
 end
 
+sudo_cmd = fn cmd ->
+  # sudo creates two processes
+  case Terminal.user() do
+    "root" -> cmd
+    _ -> "sudo #{cmd}"
+  end
+end
+
 check_tty = fn id, %{tty: tty} ->
   # otherwise tty device gets created by socat under sudo
   case File.lstat(tty) do
@@ -75,17 +83,18 @@ check_tty = fn id, %{tty: tty} ->
           raise("Invalid #{tty}: #{inspect(result)}")
       end
 
+    # socat creates tty if not found
+    # socat wont open tty until connection
+    # tty may be removed while waiting for connection
+    result = {:ok, %File.Stat{type: :regular}} ->
+      cmd = sudo_cmd.("rm -f #{tty}")
+      System.shell(cmd, stderr_to_stdout: true)
+      log.(id, :error, result)
+      raise("Invalid #{tty}: #{inspect(result)}")
+
     result ->
       log.(id, :error, result)
       raise("Invalid #{tty}: #{inspect(result)}")
-  end
-end
-
-sudo_cmd = fn cmd ->
-  # sudo creates two processes
-  case Terminal.user() do
-    "root" -> cmd
-    _ -> "sudo #{cmd}"
   end
 end
 
@@ -132,6 +141,7 @@ runner_loop = fn state = %{loop: loop, port: port, id: id, export: %{tty: tty}} 
       loop.(state)
 
     unexpected ->
+      log.(id, :trace, "Closed")
       Api.warn(tty: tty, unexpected: unexpected)
   end
 end
@@ -190,16 +200,16 @@ master_loop = fn state = %{cubdb: cubdb, loop: loop, runners: runners, logs: log
       publish_exports.(cubdb)
       task = runners[id][:task]
       if task, do: Api.kill(task)
+      log.(id, :trace, "Deleted")
       runners = Map.delete(runners, id)
       state = Map.put(state, :runners, runners)
-      logs = Map.drop(logs, [id])
-      Api.putcast!("flex:serial:logs", logs)
-      state = Map.put(state, :logs, logs)
       loop.(state)
 
     {"flex:serial:log", _, log = %{id: id}} ->
       log = Map.drop(log, [:id])
       logs = Map.put(logs, id, log)
+      ids = Map.keys(runners)
+      logs = Map.take(logs, ids)
       Api.putcast!("flex:serial:logs", logs)
       state = Map.put(state, :logs, logs)
       loop.(state)
