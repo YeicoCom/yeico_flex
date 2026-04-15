@@ -134,19 +134,10 @@ omode = ["Append CR+NL", "Append CR", "Append NL", "Append None", "Hexadecimal",
 imode = ["Packet NL", "Packet CR", "Stream"]
 options = %{omode: omode, imode: imode}
 
-ending = fn
+toeol = fn
   "Packet NL" -> "\n"
   "Packet CR" -> "\r"
   "Stream" -> nil
-end
-
-suffix = fn
-  "Append CR+NL" -> "\r\n"
-  "Append CR" -> "\r"
-  "Append NL" -> "\n"
-  "Append None" -> ""
-  "Hexadecimal" -> ""
-  "Mixed" -> ""
 end
 
 hex2bin = fn line ->
@@ -195,9 +186,9 @@ mix2bin = fn line ->
 end
 
 transform = fn
-  "Append CR+NL", line -> line
-  "Append CR", line -> line
-  "Append NL", line -> line
+  "Append CR+NL", line -> line <> "\r\n"
+  "Append CR", line -> line <> "\r"
+  "Append NL", line -> line <> "\n"
   "Append None", line -> line
   "Hexadecimal", line -> hex2bin.(line)
   "Mixed", line -> mix2bin.(line)
@@ -241,7 +232,7 @@ handler = fn
   {:event, socket, state = %{output: output, conn: %{task: %{pid: pid}}}, event = "output:change",
    params = %{"line" => line, "omode" => omode, "imode" => imode, "_target" => targets}} ->
     Api.trace(view: path, event: event, params: params)
-    if "imode" in targets, do: send(pid, {:eol, ending.(imode)})
+    if "imode" in targets, do: send(pid, {:eol, toeol.(imode)})
     output = Map.put(output, :line, line)
     output = Map.put(output, :omode, omode)
     output = Map.put(output, :imode, imode)
@@ -251,7 +242,6 @@ handler = fn
   {:event, socket, state = %{conn: %{task: %{pid: pid}}}, event = "output:submit",
    params = %{"line" => line, "omode" => omode}} ->
     Api.trace(view: path, event: event, params: params)
-    line = IO.iodata_to_binary([line, suffix.(omode)])
     line = transform.(omode, line)
     send(pid, {:write, line})
     append.(socket, state, :output, line)
@@ -263,7 +253,7 @@ handler = fn
     params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
     params = Enum.into(params, %{})
     if task, do: Api.kill(task)
-    task = Api.async(setup, {self(), params, ending.(imode)})
+    task = Api.async(setup, {self(), params, toeol.(imode)})
     conn = %{input: params, task: task, on: true}
     state = Map.put(state, :conn, conn)
     state = Map.put(state, :modal, nil)
