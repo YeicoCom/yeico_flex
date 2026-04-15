@@ -18,3 +18,5 @@ terminal dev flex.exs
 - [x] Socat creates tty if not found, and it wont open it until there is a tcp client connection, it may be removed mean while
 - [x] IP pattern from https://stackoverflow.com/questions/5284147/validating-ipv4-addresses-with-regexp
 - [x] Scrolling in nested flex requires h-full parent and overflow-hidden grand parent and h-screen on flex root.
+- [x] Using [0102] instead of \x0102 allows to differenciate bitween [01]a and \x01a
+- [x] Printable groups control chars
