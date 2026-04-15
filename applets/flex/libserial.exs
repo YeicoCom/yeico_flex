@@ -108,6 +108,14 @@ build_cmd = fn %{tty: tty, bauds: bauds, ip: ip, port: port} ->
   end
 end
 
+pid_path = fn pid ->
+  # @run has side effects on dev machine reboot
+  dir = "/var/run/flex/serial-exports"
+  cmd = sudo_cmd.("mkdir -p #{dir}")
+  System.shell(cmd, stderr_to_stdout: true)
+  "#{dir}/#{pid}"
+end
+
 run_cmd = fn %{tty: tty}, cmd ->
   Api.trace(tty: tty, cmd: cmd)
   port = Port.open({:spawn, cmd}, [:binary, :line, :stderr_to_stdout])
@@ -115,12 +123,14 @@ run_cmd = fn %{tty: tty}, cmd ->
   _ref = Port.monitor(port)
   {:os_pid, pid} = Port.info(port, :os_pid)
   Api.debug(tty: tty, cmd: cmd, port: port, pid: pid)
+  cmd = sudo_cmd.("touch #{pid_path.(pid)}")
+  System.shell(cmd, stderr_to_stdout: true)
 
   Api.defer(fn ->
     # using -9 prevents sudo from cascading the kill to socat
     cmd = sudo_cmd.("kill #{pid}")
-    Api.trace(tty: tty, cmd: cmd)
     System.shell(cmd, stderr_to_stdout: true)
+    Api.trace(tty: tty, cmd: cmd)
     # Port.close(port) argument error
   end)
 
@@ -229,8 +239,14 @@ master_loop = fn state = %{cubdb: cubdb, loop: loop, runners: runners, logs: log
 end
 
 master_setup = fn %{cubdb: cubdb} ->
-  cmd = sudo_cmd.("killall socat")
-  System.shell(cmd, stderr_to_stdout: true)
+  for p <- pid_path.("*") |> Path.wildcard() do
+    n = Path.basename(p)
+    # using -9 prevents sudo from cascading the kill to socat
+    cmd = sudo_cmd.("kill #{n}")
+    System.shell(cmd, stderr_to_stdout: true)
+    cmd = sudo_cmd.("rm -fr #{p}")
+    System.shell(cmd, stderr_to_stdout: true)
+  end
 
   Bus.subscribe!("flex:serial:insert", nil)
   Bus.subscribe!("flex:serial:update", nil)
