@@ -51,16 +51,26 @@ const Hooks = {
     EnterNavigation: {
         mounted() {
             const elements = this.el.elements
-            for (let i = 0; i < elements.length; i++) {
+            const len = elements.length
+            for (let i = 0; i < len; i++) {
                 const el = elements[i]
                 const isSelect = el instanceof HTMLSelectElement
                 const isInput = el instanceof HTMLInputElement
                 const isSubmit = el.type === "submit"
-                if (isSelect || (isInput && !isSubmit)) {
+                if (isSelect || isInput) {
                     el.addEventListener('keydown', (event) => {
                         if (event.key === 'Enter') {
-                            event.preventDefault();
-                            setFocus(elements[i + 1])
+                            if (!isSubmit || el.disabled) {
+                                event.preventDefault();
+                                for (let j = 1; j < len; j++) {
+                                    const ni = (i + j) % len;
+                                    const nel = elements[ni]
+                                    if (nel.disabled) continue
+                                    setFocus(nel)
+                                    if (el === document.activeElement) continue
+                                    break
+                                }
+                            }
                         }
                     })
                 }

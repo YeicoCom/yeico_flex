@@ -23,10 +23,11 @@ frame = fn assigns ->
     <div class="flex gap-4 p-4 items-center bg-zinc-800 rounded">
       <div class="relative group text-white content-center">
         <button class="px-4 py-2 bg-zinc-500 rounded hover:bg-lime-500 hero-bars-3 size-10"></button>
-        <div class="absolute top-3/4 hidden group-hover:block w-48 bg-zinc-700 rounded shadow-xl mt-1">
+        <div class="absolute top-3/4 hidden z-9998 group-hover:block w-48 bg-zinc-700 rounded shadow-xl mt-1">
           <a href="/flex/serial-exports" class="block px-4 py-2 hover:bg-lime-500">Serial Exports</a>
           <a href="/flex/socket-terminal" class="block px-4 py-2 hover:bg-lime-500">Socket Terminal</a>
           <a href="/flex/modbus-master" class="block px-4 py-2 hover:bg-lime-500">Modbus Master</a>
+          <a :if={Terminal.dev?()} href="/flex/ui-tester" class="block px-4 py-2 hover:bg-lime-500">UI Tester</a>
         </div>
       </div>
       <div class="text-[2em] text-white">{@title}</div>
@@ -47,7 +48,7 @@ modal = fn assigns ->
   ~H"""
   <div
     class={[
-      "fixed top-0 left-0 z-50 w-screen h-screen",
+      "fixed top-0 left-0 z-9999 w-screen h-screen",
       "bg-neutral-200/50"
     ]}
   >
@@ -80,6 +81,7 @@ select = fn assigns ->
   assigns = Map.put_new(assigns, :value, nil)
   assigns = Map.put_new(assigns, :values, [])
   assigns = Map.put_new(assigns, :required, nil)
+  assigns = Map.put_new(assigns, :disabled, nil)
 
   ~H"""
   <select
@@ -87,10 +89,15 @@ select = fn assigns ->
   name={@name}
   size={@size}
   required={@required}
+  disabled={@disabled}
   {@phx_attribs}
   class={[
-    "p-2.5 rounded-lg border-0 ring-1 hover:ring-1",
-    "bg-zinc-600 ring-zinc-600 text-neutral-400 focus:ring-lime-500",
+    "px-2 py-1 border-0 rounded-lg ring-1 outline-none text-base",
+    "bg-zinc-600 text-neutral-200 ring-zinc-600 cursor-pointer",
+    "disabled:cursor-default disabled:pointer-events-none",
+    "disabled:bg-zinc-700 disabled:text-neutral-500 disabled:ring-zinc-500",
+    "focus:ring-lime-500",
+    "hover:ring-lime-500",
     @class
   ]}>
   <option :for={value <- @values} value={value}
@@ -131,8 +138,12 @@ input = fn assigns ->
   max={@max}
   {@phx_attribs}
   class={[
-    "p-2.5 border-0 rounded-lg",
-    "bg-zinc-600 ring-zinc-600 text-neutral-400 focus:ring-lime-500",
+    "px-2 py-1 border-0 rounded-lg ring-1 outline-none text-base",
+    "bg-zinc-600 text-neutral-200 ring-zinc-600 cursor-pointer",
+    "disabled:cursor-default disabled:pointer-events-none",
+    "disabled:bg-zinc-700 disabled:text-neutral-500 disabled:ring-zinc-500",
+    "focus:ring-lime-500",
+    "hover:ring-lime-500",
     @class
   ]}/>
   """
@@ -143,18 +154,21 @@ button = fn assigns ->
   assigns = Map.put_new(assigns, :id, nil)
   assigns = Map.put_new(assigns, :class, nil)
   assigns = Map.put_new(assigns, :type, nil)
-  assigns = Map.put_new(assigns, :event, nil)
   assigns = Map.put_new(assigns, :disabled, nil)
 
   ~H"""
   <button
   id={@id}
   type={@type}
+  disabled={@disabled}
   {@phx_attribs}
   class={[
-    "px-5 py-2.5 rounded-lg border-0 ring-1 hover:ring-1",
-    @disabled || "bg-zinc-700 text-neutral-400 ring-neutral-600 hover:bg-lime-500 hover:text-white hover:ring-white hover:cursor-pointer",
-    @disabled && "cursor-default pointer-events-none bg-neutral-800 text-neutral-600 ring-neutral-600",
+    "px-2 py-1 border-0 rounded-lg ring-1 outline-none text-base",
+    "bg-zinc-600 text-neutral-200 ring-zinc-600 cursor-pointer",
+    "disabled:cursor-default disabled:pointer-events-none",
+    "disabled:bg-zinc-700 disabled:text-neutral-500 disabled:ring-zinc-500",
+    "focus:ring-lime-500 focus:text-white focus:bg-lime-500",
+    "hover:ring-lime-500 hover:text-white hover:bg-lime-500",
     @class
   ]}>{render_slot(@inner_block)}</button>
   """
@@ -178,10 +192,11 @@ link = fn assigns ->
   ~H"""
   <div
   id={@id}
+  disabled={@disabled}
   {@phx_attribs}
   class={[
-    @disabled || "hover:cursor-pointer #{@hover}",
-    @disabled && "cursor-default pointer-events-none",
+    @disabled || "text-neutral-200 hover:cursor-pointer #{@hover}",
+    @disabled && "text-neutral-500 cursor-default pointer-events-none",
     @class
   ]}>{render_slot(@inner_block)}</div>
   """

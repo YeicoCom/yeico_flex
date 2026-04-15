@@ -12,7 +12,13 @@ terminal dev flex.exs
   - Laurel https://www.laurels.com/downloadfiles/serialcom.pdf
   - Laurel continuous mode *1A0<cr>[<nl>]
   - Laurel command mode *1A1<cr>[<nl>]
-- [ ] Ugly focused button ring
+- [x] Disabled selects show on top of menu: opacity: 1
+- [x] Disabled selects darker than inputs: opacity: 1
+- [x] Ugly focused button ring: outline-none
+- [x] Select and button text too dim
+- [x] Form elements look too big: check padding
+- [-] Use tailwind disabled: marker (link requires conditional)
+- [x] Standardize form styling: disabled > focus > hover > normal
 - [x] Enter navigates forms until submit button
 - [x] Form fields get reset if page updates while open: use phx-update="ignore"
 - [-] No serial number in some serial by id path 
