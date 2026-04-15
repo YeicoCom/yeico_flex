@@ -80,13 +80,16 @@ style = fn
 end
 
 printable = fn line ->
-  String.graphemes(line)
-  |> Enum.map(
-    &if(String.match?(&1, ~r/^[[:graph:]]+$/),
-      do: &1,
-      else: ["[", :binary.encode_hex(&1), "]"]
-    )
-  )
+  line
+  |> String.split(~r/[[:graph:]]+/, include_captures: true)
+  |> Enum.with_index()
+  |> Enum.map(fn {chunk, i} ->
+    case {rem(i, 2), chunk} do
+      {0, ""} -> ""
+      {0, chunk} -> ["[", :binary.encode_hex(chunk), "]"]
+      {1, _} -> chunk
+    end
+  end)
   |> Enum.join("")
 end
 
@@ -221,8 +224,8 @@ handler = fn
   {:event, socket, state = %{conn: %{task: %{pid: pid}}}, event = "output:submit",
    params = %{"line" => line, "omode" => omode}} ->
     Api.trace(view: path, event: event, params: params)
-    line = IO.iodata_to_binary([line, suffix.(omode)]) |> Api.warn()
-    line = transform.(omode, line) |> Api.warn()
+    line = IO.iodata_to_binary([line, suffix.(omode)])
+    line = transform.(omode, line)
     send(pid, {:write, line})
     append.(socket, state, :output, line)
 
