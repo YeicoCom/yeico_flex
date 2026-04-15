@@ -14,10 +14,11 @@ view = fn assigns ->
         </.fui>
       </div>
       <form id="output_form" :if={@conn.on} phx-submit="output:submit" phx-change="output:change"
-        class="flex pt-2 px-1 gap-2" phx-hook="EnterNavigation">
+        class="flex pt-2 px-1 gap-2" phx-hook="EnterNavigation" autocomplete="off">
         <.fui fun={@ui.select} name="omode" value={@output[:omode]} values={@options.omode} required title="Output Mode"/>
         <.fui fun={@ui.select} name="imode" value={@output[:imode]} values={@options.imode} required title="Input Mode"/>
-        <.fui fun={@ui.input} name="line" value={@output[:line]} type="text" class="grow" id="output_form_line" phx-hook="AutoFocus"/>
+        <.fui fun={@ui.input} name="line" value={@output[:line]} type="text" class="grow" id="output_form_line"
+          phx-hook="LineHistory" data-key="socket-terminal"/>
         <.fui fun={@ui.button} type="submit">Send</.fui>
       </form>
       <div :if={@count > 0} phx-update="stream" id="logs" phx-hook="AutoScroll"
@@ -29,7 +30,8 @@ view = fn assigns ->
   </.fui>
   <.fui fun={@ui.modal} :if={@modal} title={@modal.title} class="min-w-[360px]">
     <% input = @modal.input %>
-    <form id="modal_form" phx-submit="modal:submit" class="flex flex-col gap-4" phx-hook="EnterNavigation" phx-update="ignore">
+    <form id="modal_form" phx-submit="modal:submit" class="flex flex-col gap-4" phx-hook="EnterNavigation" phx-update="ignore"
+      autocomplete="off">
       <div class="grid grid-cols-2 gap-2 items-center min-w-[12em]">
         <div>IP</div>
         <.fui fun={@ui.input} name="ip" value={input.ip} type="text" required pattern="^(((?!25?[6-9])[12]\d|[1-9])?\d\.?\b){4}$"
@@ -239,12 +241,15 @@ handler = fn
     state = Map.put(state, :output, output)
     {socket, state}
 
-  {:event, socket, state = %{conn: %{task: %{pid: pid}}}, event = "output:submit",
+  {:event, socket, state = %{output: output, conn: %{task: %{pid: pid}}}, event = "output:submit",
    params = %{"line" => line, "omode" => omode}} ->
     Api.trace(view: path, event: event, params: params)
-    line = transform.(omode, line)
-    send(pid, {:write, line})
-    append.(socket, state, :output, line)
+    transformed = transform.(omode, line)
+    send(pid, {:write, transformed})
+    output = Map.put(output, :line, nil)
+    state = Map.put(state, :output, output)
+    socket = push_event(socket, "history:append", %{line: line})
+    append.(socket, state, :output, transformed)
 
   {:event, socket, state = %{conn: %{task: task}, output: %{imode: imode}},
    event = "modal:submit", params} ->

@@ -14,10 +14,10 @@ view = fn assigns ->
         </.fui>
       </div>
       <form id="output_form" :if={@conn.on} phx-submit="output:submit" phx-change="output:change"
-        class="flex pt-2 px-1 gap-2" phx-hook="EnterNavigation">
-        <.fui fun={@ui.select} name="omode" value={@output[:omode]} values={@options.omode} required title="Output Mode"/>
-        <.fui fun={@ui.select} name="imode" value={@output[:imode]} values={@options.imode} required title="Input Mode"/>
-        <.fui fun={@ui.input} name="line" value={@output[:line]} type="text" class="grow" id="output_form_line" phx-hook="AutoFocus"/>
+        class="flex pt-2 px-1 gap-2" phx-hook="EnterNavigation" autocomplete="off">
+        <.fui fun={@ui.select} name="proto" value={@output[:proto]} values={@options.proto} required title="Protocol"/>
+        <.fui fun={@ui.input} name="line" value={@output[:line]} type="text" class="grow" id="output_form_line"
+          phx-hook="LineHistory" data-key="modbus-terminal" title={@help}/>
         <.fui fun={@ui.button} type="submit">Send</.fui>
       </form>
       <div :if={@count > 0} phx-update="stream" id="logs" phx-hook="AutoScroll"
@@ -25,11 +25,13 @@ view = fn assigns ->
         <div :for={{id, %{dt: dt, style: style, line: line}} <- @streams.logs}
           id={id} class={[style, "break-all"]}>{dt} {line}</div>
       </div>
+      <div :if={@conn.on}>s=Slave,a=Address,c=[ri,rir,fc,rc,phr,rhr],d=Data,f=Format#Comment</div>
     </div>
   </.fui>
   <.fui fun={@ui.modal} :if={@modal} title={@modal.title} class="min-w-[360px]">
     <% input = @modal.input %>
-    <form id="modal_form" phx-submit="modal:submit" class="flex flex-col gap-4" phx-hook="EnterNavigation" phx-update="ignore">
+    <form id="modal_form" phx-submit="modal:submit" class="flex flex-col gap-4" phx-hook="EnterNavigation" phx-update="ignore"
+      autocomplete="off">
       <div class="grid grid-cols-2 gap-2 items-center min-w-[12em]">
         <div>IP</div>
         <.fui fun={@ui.input} name="ip" value={input.ip} type="text" required pattern="^(((?!25?[6-9])[12]\d|[1-9])?\d\.?\b){4}$"
@@ -43,32 +45,55 @@ view = fn assigns ->
   """
 end
 
+help = """
+Values are decimal by default and can be prefixed with:
+  h for hexadecimal
+  d for decimal
+  b for binary
+
+s: Slave
+a: Address
+c: Code
+  ri to read input
+  rir to read input register
+  fc to force coil
+  rc to read coil
+  phr to preset holding register
+  rhr to read holding register
+d: Data to output or read count
+f: Format FIXME
+#: Name or comments
+
+s=1,a=4,c=fc,d=1 # turn on 1 digital output at address 4 of slave 1
+s=1,a=4,c=fc,d=0 # turn off 1 digital output at address 4 of slave 1
+s=1,a=4,c=rc,d=1 # read 1 digital output at address 4 of slave 1
+"""
+
 isend = fn parent, data ->
   send(parent, {:socket, self(), :input, data})
 end
 
-loop = fn loop, parent, conn = %{socket: socket}, eol, buffer ->
+loop = fn loop, parent, conn = %{socket: socket}, proto, buffer ->
   receive do
     {:tcp, ^socket, data} ->
-      if eol do
+      if proto do
         buffer = buffer <> data
-        parts = String.split(buffer, eol)
+        parts = String.split(buffer, proto)
         max = length(parts) - 1
         indexed = Enum.with_index(parts)
-        Enum.each(indexed, fn {data, i} -> if(i < max, do: isend.(parent, data <> eol)) end)
-        loop.(loop, parent, conn, eol, Enum.at(parts, max))
+        Enum.each(indexed, fn {data, i} -> if(i < max, do: isend.(parent, data <> proto)) end)
+        loop.(loop, parent, conn, proto, Enum.at(parts, max))
       else
         isend.(parent, buffer <> data)
-        loop.(loop, parent, conn, eol, "")
+        loop.(loop, parent, conn, proto, "")
       end
 
-    {:eol, eol} ->
-      if byte_size(buffer) > 0, do: isend.(parent, buffer)
-      loop.(loop, parent, conn, eol, "")
+    {:proto, proto} ->
+      loop.(loop, parent, conn, proto, "")
 
     {:write, data} ->
       with :ok <- Tcp.write(conn, data) do
-        loop.(loop, parent, conn, eol, buffer)
+        loop.(loop, parent, conn, proto, buffer)
       else
         {:error, error} ->
           send(parent, {:socket, self(), :error, error: error})
@@ -81,10 +106,10 @@ loop = fn loop, parent, conn = %{socket: socket}, eol, buffer ->
   end
 end
 
-setup = fn {parent, %{ip: ip, port: port}, eol} ->
+setup = fn {parent, %{ip: ip, port: port}, proto} ->
   with {:ok, conn} <- Tcp.connect(ip, port, toms: 4_000, line: false, active: true) do
     send(parent, {:socket, self(), :success, "Connected to #{ip}:#{port}"})
-    loop.(loop, parent, conn, eol, "")
+    loop.(loop, parent, conn, proto, "")
   else
     {:error, error} ->
       send(parent, {:socket, self(), :error, error: error})
@@ -130,86 +155,15 @@ append = fn socket, state = %{id: id, tzoffset: tzoffset}, type, line ->
 end
 
 title = "Connection Settings"
-omode = ["Append CR+NL", "Append CR", "Append NL", "Append None", "Hexadecimal", "Mixed"]
-imode = ["Packet NL", "Packet CR", "Stream"]
-options = %{omode: omode, imode: imode}
-
-ending = fn
-  "Packet NL" -> "\n"
-  "Packet CR" -> "\r"
-  "Stream" -> nil
-end
-
-suffix = fn
-  "Append CR+NL" -> "\r\n"
-  "Append CR" -> "\r"
-  "Append NL" -> "\n"
-  "Append None" -> ""
-  "Hexadecimal" -> ""
-  "Mixed" -> ""
-end
-
-hex2bin = fn line ->
-  line
-  |> String.split(~r/[[:xdigit:]]+/, include_captures: true)
-  |> Enum.with_index()
-  |> Enum.map(fn {chunk, i} ->
-    case rem(i, 2) do
-      0 ->
-        ""
-
-      1 ->
-        len = String.length(chunk)
-        len = if rem(len, 2) == 1, do: len + 1, else: len
-        chunk = String.pad_leading(chunk, len, "0")
-        chunk = String.upcase(chunk)
-        Base.decode16!(chunk)
-    end
-  end)
-  |> Enum.join("")
-end
-
-mix2bin = fn line ->
-  line
-  |> String.split(~r/\[[[:xdigit:]]+]/, include_captures: true)
-  |> Enum.with_index()
-  |> Enum.map(fn {chunk, i} ->
-    case rem(i, 2) do
-      0 ->
-        chunk
-
-      1 ->
-        chunk
-        |> String.trim_leading("[")
-        |> String.trim_trailing("]")
-        |> (fn chunk ->
-              len = String.length(chunk)
-              len = if rem(len, 2) == 1, do: len + 1, else: len
-              String.pad_leading(chunk, len, "0")
-            end).()
-        |> String.upcase()
-        |> Base.decode16!()
-    end
-  end)
-  |> Enum.join("")
-end
-
-transform = fn
-  "Append CR+NL", line -> line
-  "Append CR", line -> line
-  "Append NL", line -> line
-  "Append None", line -> line
-  "Hexadecimal", line -> hex2bin.(line)
-  "Mixed", line -> mix2bin.(line)
-end
+proto = ["TCP", "RTU"]
+options = %{proto: proto}
 
 handler = fn
   {:mount, socket, state} ->
     tzoffset = socket.assigns.tzoffset || 0
     initial = %{port: 4401, ip: "127.0.0.1"}
-    [ifirst | _] = imode
-    [ofirst | _] = omode
-    output = %{imode: ifirst, omode: ofirst, line: ""}
+    [pfirst | _] = proto
+    output = %{proto: pfirst, line: ""}
     socket = assign(socket, applet_css: "/applets/flex.css")
     socket = assign(socket, applet_js: "/applets/flex.js")
     socket = assign(socket, page_title: "Modbus Terminal")
@@ -220,6 +174,7 @@ handler = fn
     state = Map.put(state, :modal, %{title: title, input: initial})
     state = Map.put(state, :options, options)
     state = Map.put(state, :output, output)
+    state = Map.put(state, :help, help)
     state = Map.put(state, :count, 0)
     state = Map.put(state, :id, 0)
     state = Map.put(state, :ui, ui)
@@ -239,31 +194,31 @@ handler = fn
     {socket, state}
 
   {:event, socket, state = %{output: output, conn: %{task: %{pid: pid}}}, event = "output:change",
-   params = %{"line" => line, "omode" => omode, "imode" => imode, "_target" => targets}} ->
+   params = %{"line" => line, "proto" => proto, "_target" => targets}} ->
     Api.trace(view: path, event: event, params: params)
-    if "imode" in targets, do: send(pid, {:eol, ending.(imode)})
+    if "proto" in targets, do: send(pid, {:proto, proto})
     output = Map.put(output, :line, line)
-    output = Map.put(output, :omode, omode)
-    output = Map.put(output, :imode, imode)
+    output = Map.put(output, :proto, proto)
     state = Map.put(state, :output, output)
     {socket, state}
 
-  {:event, socket, state = %{conn: %{task: %{pid: pid}}}, event = "output:submit",
-   params = %{"line" => line, "omode" => omode}} ->
+  {:event, socket, state = %{output: output, conn: %{task: %{pid: pid}}}, event = "output:submit",
+   params = %{"line" => line}} ->
     Api.trace(view: path, event: event, params: params)
-    line = IO.iodata_to_binary([line, suffix.(omode)])
-    line = transform.(omode, line)
     send(pid, {:write, line})
+    output = Map.put(output, :line, nil)
+    state = Map.put(state, :output, output)
+    socket = push_event(socket, "history:append", %{line: line})
     append.(socket, state, :output, line)
 
-  {:event, socket, state = %{conn: %{task: task}, output: %{imode: imode}},
+  {:event, socket, state = %{conn: %{task: task}, output: %{proto: proto}},
    event = "modal:submit", params} ->
     Api.trace(view: path, event: event, params: params)
     params = Map.update!(params, "port", &String.to_integer/1)
     params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
     params = Enum.into(params, %{})
     if task, do: Api.kill(task)
-    task = Api.async(setup, {self(), params, ending.(imode)})
+    task = Api.async(setup, {self(), params, proto})
     conn = %{input: params, task: task, on: true}
     state = Map.put(state, :conn, conn)
     state = Map.put(state, :modal, nil)

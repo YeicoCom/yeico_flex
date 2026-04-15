@@ -6,8 +6,9 @@ phx_attribs = fn assigns ->
     :phx_attribs,
     for {k, v} <- assigns, reduce: %{} do
       acc ->
-        case String.starts_with?("#{k}", "phx-") do
-          true -> Map.put(acc, k, v)
+        case {String.starts_with?("#{k}", "phx-"), String.starts_with?("#{k}", "data-")} do
+          {true, _} -> Map.put(acc, k, v)
+          {_, true} -> Map.put(acc, k, v)
           _ -> acc
         end
     end
@@ -119,6 +120,7 @@ input = fn assigns ->
   assigns = Map.put_new(assigns, :name, nil)
   assigns = Map.put_new(assigns, :value, nil)
   assigns = Map.put_new(assigns, :disabled, nil)
+  assigns = Map.put_new(assigns, :title, nil)
   # number type
   assigns = Map.put_new(assigns, :step, nil)
   assigns = Map.put_new(assigns, :min, nil)
@@ -134,6 +136,7 @@ input = fn assigns ->
   value={@value}
   disabled={@disabled}
   pattern={@pattern}
+  title={@title}
   step={@step}
   min={@min}
   max={@max}

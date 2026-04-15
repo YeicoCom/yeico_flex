@@ -77,6 +77,56 @@ const Hooks = {
             }
         }
     },
+    LineHistory: {
+        mounted() {
+            setFocus(this.el)
+            const key = `history-${this.el.dataset.key}`
+            this.handleEvent("history:append", (params) => {
+                let { line, lines } = this.el.history
+                lines[0] = params.line
+                // Set is ordered by insertion
+                lines = ["", ...new Set(lines)]
+                this.el.value = ""
+                this.el.history = { line: 0, lines }
+                localStorage.setItem(key, JSON.stringify(lines))
+                setFocus(this.el)
+            })
+            let lines = JSON.parse(localStorage.getItem(key) || "[0]")
+            lines[0] = this.el.value
+            this.el.history = { line: 0, lines: lines }
+            this.el.addEventListener('keydown', (event) => {
+                let { line, lines } = this.el.history
+                let len = 0
+                switch (event.key) {
+                    case "ArrowUp":
+                        event.preventDefault() //moves to start and end of line
+                        line = Math.min(line + 1, lines.length - 1)
+                        this.el.value = lines[line]
+                        this.el.history = { line, lines }
+                        len = this.el.value.length
+                        this.el.setSelectionRange(len, len)
+                        break;
+                    case "ArrowDown":
+                        event.preventDefault() //moves to start and end of line
+                        line = Math.max(line - 1, 0)
+                        this.el.value = lines[line]
+                        this.el.history = { line, lines }
+                        len = this.el.value.length
+                        this.el.setSelectionRange(len, len)
+                        break;
+                }
+            })
+            //user typing
+            this.el.addEventListener('input', (event) => {
+                let { line, lines } = this.el.history
+                lines[0] = this.el.value
+                this.el.history = { line: 0, lines }
+            })
+        },
+        updated() {
+            setFocus(this.el)
+        }
+    },
 }
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
