@@ -89,7 +89,7 @@ const Hooks = {
                 this.el.value = ""
                 this.el.history = { line: 0, lines }
                 localStorage.setItem(key, JSON.stringify(lines))
-                setFocus(this.el)
+                setTimeout(() => setFocus(this.el), 0)
             })
             let lines = JSON.parse(localStorage.getItem(key) || "[0]")
             lines[0] = this.el.value
@@ -123,9 +123,6 @@ const Hooks = {
                 this.el.history = { line: 0, lines }
             })
         },
-        updated() {
-            setFocus(this.el)
-        }
     },
 }
 
