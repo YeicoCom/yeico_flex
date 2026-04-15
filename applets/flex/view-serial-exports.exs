@@ -70,6 +70,13 @@ ips = ["127.0.0.1", "0.0.0.0"]
 status = [:enabled, :disabled]
 options = %{status: status, bauds: bauds, bits: bits, ips: ips}
 
+new_modal = fn state ->
+  options = Map.put(options, :ttys, serial.(:list))
+  modal = %{title: "New Serial Export", input: new}
+  state = Map.put(state, :modal, modal)
+  Map.put(state, :options, options)
+end
+
 shift_one = fn tzoffset, log = %{dt: dt} ->
   dt = NaiveDateTime.shift(dt, hour: tzoffset)
   dt = NaiveDateTime.to_time(dt)
@@ -102,6 +109,7 @@ handler = fn
     state = Map.put(state, :logs, logs)
     state = Map.put(state, :modal, nil)
     state = Map.put(state, :ui, ui)
+    state = if length(index) > 0, do: state, else: new_modal.(state)
     {socket, state}
 
   {:params, socket, state, params, uri} ->
@@ -155,10 +163,7 @@ handler = fn
 
   {:event, socket, state, event = "click:add", params} ->
     Api.trace(view: path, event: event, params: params)
-    options = Map.put(options, :ttys, serial.(:list))
-    modal = %{title: "New Serial Export", input: new}
-    state = Map.put(state, :modal, modal)
-    state = Map.put(state, :options, options)
+    state = new_modal.(state)
     {socket, state}
 
   {:event, socket, state, event = "click:edit", params = %{"id" => id}} ->
