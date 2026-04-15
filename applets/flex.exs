@@ -7,8 +7,9 @@ Api.putcast!("flex:serial:logs", %{})
 
 {ui, _} = Api.evalf("flex/libui.exs")
 Api.evalf("flex/view.exs", path: "/flex", ui: ui)
-Api.evalf("flex/serial-exports.exs", path: "/flex/serial-exports", ui: ui, serial: serial)
-Api.evalf("flex/socket-terminal.exs", path: "/flex/socket-terminal", ui: ui)
-Api.evalf("flex/ui-tester.exs", path: "/flex/ui-tester", ui: ui)
+Api.evalf("flex/view-serial-exports.exs", path: "/flex/serial-exports", ui: ui, serial: serial)
+Api.evalf("flex/view-socket-terminal.exs", path: "/flex/socket-terminal", ui: ui)
+Api.evalf("flex/view-modbus-terminal.exs", path: "/flex/modbus-terminal", ui: ui)
+Api.evalf("flex/view-ui-tester.exs", path: "/flex/ui-tester", ui: ui)
 
 :ok
