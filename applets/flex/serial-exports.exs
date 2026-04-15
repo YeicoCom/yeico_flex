@@ -30,19 +30,20 @@ view = fn assigns ->
     </div>
   </.fui>
   <.fui fun={@ui.modal} :if={@modal} title={@modal.title} class="min-w-[360px]">
+    <% input = @modal.input %>
     <form phx-submit="modal:submit" class="flex flex-col mt-4 gap-4">
-      <.fui fun={@ui.select} name="tty" value={@input.tty} values={@options.ttys} class="min-w-[120px] overflow-x-auto" size="4" required/>
+      <.fui fun={@ui.select} name="tty" value={input.tty} values={@options.ttys} class="min-w-[120px] overflow-x-auto" size="4" required/>
       <div class="grid grid-cols-2 gap-2 items-center min-w-[12em]">
         <div>Bauds</div>
-        <.fui fun={@ui.select} name="bauds" value={@input.bauds} values={@options.bauds} required/>
+        <.fui fun={@ui.select} name="bauds" value={input.bauds} values={@options.bauds} required/>
         <div>Bits</div>
-        <.fui fun={@ui.select} name="bits" value={@input.bits} values={@options.bits} required/>
+        <.fui fun={@ui.select} name="bits" value={input.bits} values={@options.bits} required/>
         <div>IP</div>
-        <.fui fun={@ui.select} name="ip" value={@input.ip} values={@options.ips} required/>
+        <.fui fun={@ui.select} name="ip" value={input.ip} values={@options.ips} required/>
         <div>Port</div>
-        <.fui fun={@ui.input} name="port" value={@input.port} type="number" step="1" min="1024" max="65535" required/>
+        <.fui fun={@ui.input} name="port" value={input.port} type="number" step="1" min="1024" max="65535" required/>
         <div>Status</div>
-        <.fui fun={@ui.select} name="status" value={@input.status} values={@options.status} required/>
+        <.fui fun={@ui.select} name="status" value={input.status} values={@options.status} required/>
       </div>
       <.fui fun={@ui.button} type="submit" class="col-span-2">Accept</.fui>
     </form>
@@ -108,7 +109,6 @@ handler = fn
 
   {:event, socket, state, event = "modal:close", params} ->
     Api.trace(view: path, event: event, params: params)
-    state = Map.drop(state, [:input, :options])
     state = Map.put(state, :modal, nil)
     {socket, state}
 
@@ -125,7 +125,6 @@ handler = fn
       id -> Bus.broadcast!("flex:serial:update", {id, params})
     end
 
-    state = Map.drop(state, [:input, :options])
     state = Map.put(state, :modal, nil)
     {socket, state}
 
@@ -153,8 +152,8 @@ handler = fn
   {:event, socket, state, event = "click:add", params} ->
     Api.trace(view: path, event: event, params: params)
     options = Map.put(options, :ttys, serial.(:list))
-    state = Map.put(state, :modal, %{title: "New Serial Export"})
-    state = Map.put(state, :input, new)
+    modal = %{title: "New Serial Export", input: new}
+    state = Map.put(state, :modal, modal)
     state = Map.put(state, :options, options)
     {socket, state}
 
@@ -163,10 +162,10 @@ handler = fn
     exports = state.exports |> Enum.into(%{})
     export = exports[id]
     ttys = [export.tty | serial.(:list)] |> Enum.uniq()
-    state = Map.put(state, :modal, %{title: "Edit Serial Export"})
+    modal = %{title: "Edit Serial Export", input: export}
+    state = Map.put(state, :modal, modal)
     options = Map.put(options, :ttys, ttys)
     options = Map.put(options, :id, id)
-    state = Map.put(state, :input, export)
     state = Map.put(state, :options, options)
     {socket, state}
 
