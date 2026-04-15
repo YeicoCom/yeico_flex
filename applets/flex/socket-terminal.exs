@@ -40,15 +40,32 @@ view = fn assigns ->
   """
 end
 
-loop = fn loop, parent, conn = %{socket: socket} ->
+isend = fn parent, data ->
+  send(parent, {:socket, self(), :input, data})
+end
+
+loop = fn loop, parent, conn = %{socket: socket}, eol, buffer ->
   receive do
     {:tcp, ^socket, data} ->
-      send(parent, {:socket, self(), :input, data})
-      loop.(loop, parent, conn)
+      if eol do
+        buffer = buffer <> data
+        parts = String.split(buffer, eol)
+        max = length(parts) - 1
+        indexed = Enum.with_index(parts)
+        Enum.each(indexed, fn {data, i} -> if(i < max, do: isend.(parent, data <> eol)) end)
+        loop.(loop, parent, conn, eol, Enum.at(parts, max))
+      else
+        isend.(parent, buffer <> data)
+        loop.(loop, parent, conn, eol, "")
+      end
+
+    {:eol, eol} ->
+      if byte_size(buffer) > 0, do: isend.(parent, buffer)
+      loop.(loop, parent, conn, eol, "")
 
     {:write, data} ->
       with :ok <- Tcp.write(conn, data) do
-        loop.(loop, parent, conn)
+        loop.(loop, parent, conn, eol, buffer)
       else
         {:error, error} ->
           send(parent, {:socket, self(), :error, error: error})
@@ -61,10 +78,10 @@ loop = fn loop, parent, conn = %{socket: socket} ->
   end
 end
 
-setup = fn {parent, %{ip: ip, port: port}} ->
+setup = fn {parent, %{ip: ip, port: port}, eol} ->
   with {:ok, conn} <- Tcp.connect(ip, port, toms: 4_000, line: false, active: true) do
     send(parent, {:socket, self(), :success, "Connected to #{ip}:#{port}"})
-    loop.(loop, parent, conn)
+    loop.(loop, parent, conn, eol, "")
   else
     {:error, error} ->
       send(parent, {:socket, self(), :error, error: error})
@@ -113,6 +130,12 @@ title = "Connection Settings"
 omode = ["Append CR+NL", "Append CR", "Append NL", "Append None", "Hexadecimal", "Mixed"]
 imode = ["Packet NL", "Packet CR", "Stream"]
 options = %{omode: omode, imode: imode}
+
+ending = fn
+  "Packet NL" -> "\n"
+  "Packet CR" -> "\r"
+  "Stream" -> nil
+end
 
 suffix = fn
   "Append CR+NL" -> "\r\n"
@@ -212,9 +235,10 @@ handler = fn
     state = Map.put(state, :modal, nil)
     {socket, state}
 
-  {:event, socket, state = %{output: output}, event = "output:change",
-   params = %{"line" => line, "omode" => omode, "imode" => imode}} ->
+  {:event, socket, state = %{output: output, conn: %{task: %{pid: pid}}}, event = "output:change",
+   params = %{"line" => line, "omode" => omode, "imode" => imode, "_target" => targets}} ->
     Api.trace(view: path, event: event, params: params)
+    if "imode" in targets, do: send(pid, {:eol, ending.(imode)})
     output = Map.put(output, :line, line)
     output = Map.put(output, :omode, omode)
     output = Map.put(output, :imode, imode)
@@ -229,13 +253,14 @@ handler = fn
     send(pid, {:write, line})
     append.(socket, state, :output, line)
 
-  {:event, socket, state = %{conn: %{task: task}}, event = "modal:submit", params} ->
+  {:event, socket, state = %{conn: %{task: task}, output: %{imode: imode}},
+   event = "modal:submit", params} ->
     Api.trace(view: path, event: event, params: params)
     params = Map.update!(params, "port", &String.to_integer/1)
     params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
     params = Enum.into(params, %{})
     if task, do: Api.kill(task)
-    task = Api.async(setup, {self(), params})
+    task = Api.async(setup, {self(), params, ending.(imode)})
     conn = %{input: params, task: task, on: true}
     state = Map.put(state, :conn, conn)
     state = Map.put(state, :modal, nil)
