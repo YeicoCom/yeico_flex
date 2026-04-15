@@ -4,23 +4,24 @@ view = fn assigns ->
   ~H"""
   <.fui fun={@ui.frame} title="Socket Terminal">
     <div class="flex flex-col w-full h-full">
-      <.fui fun={@ui.link} phx-click="click:connect" class="flex items-center gap-2 p-2 hover:rounded hover:bg-zinc-800">
-        <div class="hero-plus"/>Connect
-      </.fui>
-      <div :if={@conn.input} class="pt-2 px-2 flex">
-        <div>{@conn.input.ip}:{@conn.input.port}</div>
+      <div class="pt-2 px-2 flex">
+        <.fui fun={@ui.link} phx-click="click:connect">
+          <div class="hero-link"/>Connect
+        </.fui>
         <div class="grow"/>
-        <.fui :if={@conn.on} fun={@ui.link} phx-click="click:disconnect" type="danger">Disconnect</.fui>
+        <.fui :if={@conn.on} fun={@ui.link} phx-click="click:disconnect" type="danger">
+          <div class="hero-x-mark"/>Disconnect from {@conn.input.ip}:{@conn.input.port}
+        </.fui>
       </div>
       <form id="output_form" :if={@conn.on} phx-submit="output:submit" phx-change="output:change"
-        class="flex px-1 py-2 gap-2" phx-hook="EnterNavigation">
+        class="flex pt-2 px-1 gap-2" phx-hook="EnterNavigation">
         <.fui fun={@ui.select} name="omode" value={@output[:omode]} values={@options.omode} required title="Output Mode"/>
         <.fui fun={@ui.select} name="imode" value={@output[:imode]} values={@options.imode} required title="Input Mode"/>
         <.fui fun={@ui.input} name="line" value={@output[:line]} type="text" class="grow" id="output_form_line" phx-hook="AutoFocus"/>
         <.fui fun={@ui.button} type="submit">Send</.fui>
       </form>
       <div :if={@count > 0} phx-update="stream" id="logs" phx-hook="AutoScroll"
-        class="p-2 grow flex flex-col overflow-y-scroll font-mono rounded bg-zinc-800">
+        class="mt-2 p-2 grow flex flex-col overflow-y-scroll font-mono rounded bg-zinc-800">
         <div :for={{id, %{dt: dt, style: style, line: line}} <- @streams.logs}
           id={id} class={[style, "break-all"]}>{dt} {line}</div>
       </div>

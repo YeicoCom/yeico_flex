@@ -229,6 +229,9 @@ master_loop = fn state = %{cubdb: cubdb, loop: loop, runners: runners, logs: log
 end
 
 master_setup = fn %{cubdb: cubdb} ->
+  cmd = sudo_cmd.("killall socat")
+  System.shell(cmd, stderr_to_stdout: true)
+
   Bus.subscribe!("flex:serial:insert", nil)
   Bus.subscribe!("flex:serial:update", nil)
   Bus.subscribe!("flex:serial:delete", nil)

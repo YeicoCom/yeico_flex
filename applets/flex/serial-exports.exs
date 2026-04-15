@@ -4,9 +4,12 @@ view = fn assigns ->
   ~H"""
   <.fui fun={@ui.frame} title="Serial Exports">
     <div class="flex flex-col w-full h-full overflow-y-auto">
-      <.fui fun={@ui.link} phx-click="click:add" class="flex items-center gap-2 p-2 hover:rounded hover:bg-zinc-800">
-        <div class="hero-plus"/>Add
-      </.fui>
+      <div class="p-2 flex">
+        <.fui fun={@ui.link} phx-click="click:add">
+        <div class="hero-plus"/>Add Serial Export
+        </.fui>
+        <div class="grow"/>
+      </div>
       <div :for={id <- @index} class="flex flex-col p-2 hover:rounded hover:bg-zinc-800">
         <% export = @exports[id] %>
         <.fui fun={@ui.link} phx-click="click:edit" phx-value-id={id}>

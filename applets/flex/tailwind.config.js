@@ -44,6 +44,7 @@ module.exports = {
             "background-color": "currentColor",
             "vertical-align": "middle",
             "display": "inline-block",
+            "z-index": -1,
             "width": size,
             "height": size
           }

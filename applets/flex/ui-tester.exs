@@ -3,6 +3,12 @@ use Terminal.Live
 view = fn assigns ->
   ~H"""
   <.fui fun={@ui.frame} title="UI Tester">
+    <.fui fun={@ui.link} phx-click="click:link1">
+      <div class="hero-plus"/>Link1
+    </.fui>
+    <.fui fun={@ui.link} phx-click="click:link2" disabled>
+      <div class="hero-plus"/>Link2
+    </.fui>
     <form id="form1" phx-submit="form:submit" phx-change="form:change"
       class="flex px-1 py-2 gap-2" phx-hook="EnterNavigation">
       <.fui fun={@ui.select} name="select1" value={@input[:select1]} values={@options.select} required/>
@@ -21,8 +27,6 @@ view = fn assigns ->
       <.fui fun={@ui.button} type="submit" disabled>Send1</.fui>
       <.fui fun={@ui.button} type="submit">Send2</.fui>
     </form>
-    <.fui fun={@ui.link} phx-click="click:link1">Link1</.fui>
-    <.fui fun={@ui.link} phx-click="click:link2" disabled>Link2</.fui>
   </.fui>
   """
 end

@@ -195,6 +195,7 @@ link = fn assigns ->
   disabled={@disabled}
   {@phx_attribs}
   class={[
+    "flex items-center gap-1",
     @disabled || "text-neutral-200 hover:cursor-pointer #{@hover}",
     @disabled && "text-neutral-500 cursor-default pointer-events-none",
     @class

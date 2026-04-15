@@ -12,6 +12,7 @@ terminal dev flex.exs
   - Laurel https://www.laurels.com/downloadfiles/serialcom.pdf
   - Laurel continuous mode *1A0<cr>[<nl>]
   - Laurel command mode *1A1<cr>[<nl>]
+- [x] Hero icons show on top of menu: z-index: -1 on tailwind config
 - [x] Disabled selects show on top of menu: opacity: 1
 - [x] Disabled selects darker than inputs: opacity: 1
 - [x] Ugly focused button ring: outline-none
