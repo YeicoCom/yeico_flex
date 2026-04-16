@@ -116,6 +116,8 @@ printable = fn line ->
 end
 
 append = fn socket, state = %{id: id, tzoffset: tzoffset}, type, line ->
+  line = if is_binary(line), do: line, else: inspect(line)
+
   line =
     case type do
       :input -> printable.(line)
@@ -279,13 +281,8 @@ handler = fn
     Api.trace(view: path, event: event, params: params)
     {socket, state}
 
-  {:info, socket, state = %{conn: %{task: %{pid: pid}}}, event = {:socket, pid, :input, data}} ->
-    Api.trace(view: path, info: event)
-    append.(socket, state, :input, data)
-
   {:info, socket, state = %{conn: %{task: %{pid: pid}}}, event = {:socket, pid, type, data}} ->
     Api.trace(view: path, info: event)
-    data = if is_binary(data), do: data, else: inspect(data)
     append.(socket, state, type, data)
 
   {:info, socket, state = %{conn: conn = %{task: %{pid: pid}}},

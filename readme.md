@@ -4,6 +4,28 @@
 terminal dev flex.exs
 
 # open your browser at http://localhost:4080/
+
+# https://github.com/samuelventura/modbus
+
+s=1,a=7,c=fc,d=1 # Opto22 LC - Turn On Outside Light
+s=1,a=7,c=fc,d=0 # Opto22 LC - Turn Off Outside Light
+s=1,a=7,c=rc,d=1 # Opto22 LC - Read Outside Light
+
+s=1,a=6,c=fc,d=1 # Opto22 LC - Turn On Inside Light
+s=1,a=6,c=fc,d=0 # Opto22 LC - Turn Off Inside Light
+s=1,a=6,c=rc,d=1 # Opto22 LC - Read Inside Light
+
+s=1,a=5,c=fc,d=1 # Opto22 LC - Turn On Freezer Door Status
+s=1,a=5,c=fc,d=0 # Opto22 LC - Turn Off Freezer Door Status
+s=1,a=5,c=rc,d=1 # Opto22 LC - Read Freezer Door Status
+
+s=1,a=4,c=fc,d=1 # Opto22 LC - Turn On Alarm
+s=1,a=4,c=fc,d=0 # Opto22 LC - Turn Off Alarm
+s=1,a=4,c=rc,d=1 # Opto22 LC - Read Alarm
+
+s=1,a=4,c=fc,d=1111 # Opto22 LC - Turn On All Digital Outputs
+s=1,a=4,c=fc,d=0000 # Opto22 LC - Turn Off All Digital Outputs
+s=1,a=4,c=rc,d=4 # Opto22 LC - Turn Read All Digital Outputs
 ```
 
 ## Fixme
@@ -12,6 +34,10 @@ terminal dev flex.exs
   - Laurel https://www.laurels.com/downloadfiles/serialcom.pdf
   - Laurel continuous mode *1A0<cr>[<nl>]
   - Laurel command mode *1A1<cr>[<nl>]
+- [ ] Modbus parse values
+- [ ] Modbus float formating
+- [ ] Modbus be/le formating
+- [ ] Modbus enforce data and count ranges
 - [x] Hero icons with z-index -1 wont show on modal: add z-0
 - [x] Hero icons show on top of menu: z-index: -1 on tailwind config
 - [x] Disabled selects show on top of menu: opacity: 1

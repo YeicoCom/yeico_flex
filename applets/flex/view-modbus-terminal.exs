@@ -10,15 +10,14 @@ view = fn assigns ->
         </.fui>
         <div class="grow"/>
         <.fui :if={@conn.on} fun={@ui.link} phx-click="click:disconnect" type="danger">
-          <div class="hero-x-mark"/>Disconnect from {@conn.input.ip}:{@conn.input.port}
+          <div class="hero-x-mark"/>Disconnect from {@conn.input.proto}:{@conn.input.ip}:{@conn.input.port}
         </.fui>
       </div>
       <form id="output_form" :if={@conn.on} phx-submit="output:submit" phx-change="output:change"
         class="flex pt-2 px-1 gap-2" phx-hook="EnterNavigation" autocomplete="off">
-        <.fui fun={@ui.select} name="proto" value={@output[:proto]} values={@options.proto} required title="Protocol"/>
         <.fui fun={@ui.input} name="line" value={@output[:line]} type="text" class="grow" id="output_form_line"
           phx-hook="LineHistory" data-key="modbus-terminal" title={@help}/>
-        <.fui fun={@ui.button} type="submit">Send</.fui>
+        <.fui fun={@ui.button} type="submit">Execute</.fui>
       </form>
       <div :if={@count > 0} phx-update="stream" id="logs" phx-hook="AutoScroll"
         class="mt-2 p-2 grow flex flex-col overflow-y-scroll font-mono rounded bg-zinc-800">
@@ -38,6 +37,8 @@ view = fn assigns ->
           id="modal_form_ip" phx-hook="AutoFocus"/>
         <div>Port</div>
         <.fui fun={@ui.input} name="port" value={input.port} type="number" step="1" min="1" max="65535" required/>
+        <div>Protocol</div>
+        <.fui fun={@ui.select} name="proto" value={input.proto} values={@options.proto} required/>
       </div>
       <.fui fun={@ui.button} type="submit" class="col-span-2">Accept</.fui>
     </form>
@@ -69,35 +70,30 @@ s=1,a=4,c=fc,d=0 # turn off 1 digital output at address 4 of slave 1
 s=1,a=4,c=rc,d=1 # read 1 digital output at address 4 of slave 1
 """
 
-isend = fn parent, data ->
-  send(parent, {:socket, self(), :input, data})
-end
+loop = fn loop, parent, conn ->
+  tracer = fn type, data ->
+    send(parent, {:socket, self(), type, data})
+    :ok
+  end
 
-loop = fn loop, parent, conn = %{socket: socket}, proto, buffer ->
   receive do
-    {:tcp, ^socket, data} ->
-      if proto do
-        buffer = buffer <> data
-        parts = String.split(buffer, proto)
-        max = length(parts) - 1
-        indexed = Enum.with_index(parts)
-        Enum.each(indexed, fn {data, i} -> if(i < max, do: isend.(parent, data <> proto)) end)
-        loop.(loop, parent, conn, proto, Enum.at(parts, max))
-      else
-        isend.(parent, buffer <> data)
-        loop.(loop, parent, conn, proto, "")
-      end
+    {:exec, cmd} ->
+      case modbus.master.({:exec, conn, cmd, tracer: tracer}) do
+        {:ok, conn} ->
+          send(parent, {:socket, self(), :success, :ok})
+          loop.(loop, parent, conn)
 
-    {:proto, proto} ->
-      loop.(loop, parent, conn, proto, "")
+        {:ok, conn, values} ->
+          send(parent, {:socket, self(), :success, values: values})
+          loop.(loop, parent, conn)
 
-    {:write, data} ->
-      with :ok <- Tcp.write(conn, data) do
-        loop.(loop, parent, conn, proto, buffer)
-      else
-        {:error, error} ->
+        {:error, _conn, error = :closed} ->
           send(parent, {:socket, self(), :error, error: error})
           Api.warn(error: error)
+
+        {:error, conn, error} ->
+          send(parent, {:socket, self(), :error, error: error})
+          loop.(loop, parent, conn)
       end
 
     unexpected ->
@@ -106,10 +102,15 @@ loop = fn loop, parent, conn = %{socket: socket}, proto, buffer ->
   end
 end
 
+toproto = fn
+  "TCP" -> modbus.tcp_proto
+  "RTU" -> modbus.rtu_proto
+end
+
 setup = fn {parent, %{ip: ip, port: port}, proto} ->
-  with {:ok, conn} <- Tcp.connect(ip, port, toms: 4_000, line: false, active: true) do
-    send(parent, {:socket, self(), :success, "Connected to #{ip}:#{port}"})
-    loop.(loop, parent, conn, proto, "")
+  with {:ok, conn} <- modbus.master.({:open, ip: ip, port: port, proto: toproto.(proto)}) do
+    send(parent, {:socket, self(), :success, "Connected to #{proto}:#{ip}:#{port}"})
+    loop.(loop, parent, conn)
   else
     {:error, error} ->
       send(parent, {:socket, self(), :error, error: error})
@@ -118,6 +119,7 @@ setup = fn {parent, %{ip: ip, port: port}, proto} ->
 end
 
 style = fn
+  :trace -> "text-gray-200"
   :error -> "text-red-500"
   :input -> "text-blue-500"
   :output -> "text-purple-500"
@@ -139,6 +141,8 @@ printable = fn line ->
 end
 
 append = fn socket, state = %{id: id, tzoffset: tzoffset}, type, line ->
+  line = if is_binary(line), do: line, else: inspect(line)
+
   line =
     case type do
       :input -> printable.(line)
@@ -154,14 +158,14 @@ append = fn socket, state = %{id: id, tzoffset: tzoffset}, type, line ->
   {socket, state}
 end
 
-title = "Connection Settings"
+title = "Master Settings"
 proto = ["TCP", "RTU"]
 options = %{proto: proto}
 
 handler = fn
   {:mount, socket, state} ->
     tzoffset = socket.assigns.tzoffset || 0
-    initial = %{port: 4401, ip: "127.0.0.1"}
+    initial = %{port: 502, ip: "10.77.0.10", proto: "TCP"}
     [pfirst | _] = proto
     output = %{proto: pfirst, line: ""}
     socket = assign(socket, applet_css: "/applets/flex.css")
@@ -193,23 +197,27 @@ handler = fn
     state = Map.put(state, :modal, nil)
     {socket, state}
 
-  {:event, socket, state = %{output: output, conn: %{task: %{pid: pid}}}, event = "output:change",
-   params = %{"line" => line, "proto" => proto, "_target" => targets}} ->
+  {:event, socket, state = %{output: output}, event = "output:change", params = %{"line" => line}} ->
     Api.trace(view: path, event: event, params: params)
-    if "proto" in targets, do: send(pid, {:proto, proto})
     output = Map.put(output, :line, line)
-    output = Map.put(output, :proto, proto)
     state = Map.put(state, :output, output)
     {socket, state}
 
   {:event, socket, state = %{output: output, conn: %{task: %{pid: pid}}}, event = "output:submit",
    params = %{"line" => line}} ->
     Api.trace(view: path, event: event, params: params)
-    send(pid, {:write, line})
-    output = Map.put(output, :line, nil)
-    state = Map.put(state, :output, output)
-    socket = push_event(socket, "history:append", %{line: line})
-    append.(socket, state, :output, line)
+
+    case modbus.parse.(line) do
+      {:ok, cmd} ->
+        send(pid, {:exec, cmd})
+        output = Map.put(output, :line, nil)
+        state = Map.put(state, :output, output)
+        socket = push_event(socket, "history:append", %{line: line})
+        append.(socket, state, :trace, line)
+
+      {:error, error} ->
+        append.(socket, state, :error, error)
+    end
 
   {:event, socket, state = %{conn: %{task: task}, output: %{proto: proto}},
    event = "modal:submit", params} ->
@@ -239,13 +247,8 @@ handler = fn
     Api.trace(view: path, event: event, params: params)
     {socket, state}
 
-  {:info, socket, state = %{conn: %{task: %{pid: pid}}}, event = {:socket, pid, :input, data}} ->
-    Api.trace(view: path, info: event)
-    append.(socket, state, :input, data)
-
   {:info, socket, state = %{conn: %{task: %{pid: pid}}}, event = {:socket, pid, type, data}} ->
     Api.trace(view: path, info: event)
-    data = if is_binary(data), do: data, else: inspect(data)
     append.(socket, state, type, data)
 
   {:info, socket, state = %{conn: conn = %{task: %{pid: pid}}},
