@@ -55,47 +55,48 @@ view = fn assigns ->
   """
 end
 
-new = %{
-  tty: "/dev/ttyUSB0",
-  bauds: 115_200,
-  bits: "8n1",
-  port: 4401,
-  ip: "127.0.0.1",
-  status: :enabled
-}
-
-bits = ["8n1"]
-bauds = [9600, 115_200]
-ips = ["127.0.0.1", "0.0.0.0"]
-status = [:enabled, :disabled]
-options = %{status: status, bauds: bauds, bits: bits, ips: ips}
-
 new_modal = fn state ->
-  options = Map.put(options, :ttys, serial.(:list))
-  modal = %{title: "New Serial Export", input: new}
+  options = serial.options
+  options = Map.put(options, :ttys, serial.list.())
+  modal = %{title: "New Serial Export", input: serial.new}
   state = Map.put(state, :modal, modal)
   Map.put(state, :options, options)
 end
 
-shift_one = fn tzoffset, log = %{dt: dt} ->
-  dt = NaiveDateTime.shift(dt, hour: tzoffset)
-  dt = NaiveDateTime.to_time(dt)
-  %{log | dt: dt}
-end
-
-shift_all = fn tzoffset, logs ->
-  logs
-  |> Enum.map(fn {k, v} -> {k, shift_one.(tzoffset, v)} end)
-  |> Enum.into(%{})
+edit_modal = fn state, id, export = %{tty: tty} ->
+  options = serial.options
+  ttys = [tty | serial.list.()] |> Enum.uniq()
+  options = Map.put(options, :ttys, ttys)
+  modal = %{title: "Edit Serial Export", input: export}
+  state = Map.put(state, :modal, modal)
+  state = Map.put(state, :id, id)
+  Map.put(state, :options, options)
 end
 
 index = fn pairs -> Enum.map(pairs, fn {k, _} -> k end) end
+
+apply = fn export, action ->
+  case action do
+    "enable" -> Map.put(export, :status, :enabled)
+    "disable" -> Map.put(export, :status, :disabled)
+    "local" -> Map.put(export, :ip, "127.0.0.1")
+    "remote" -> Map.put(export, :ip, "0.0.0.0")
+  end
+end
+
+parse = fn params ->
+  params = Map.update!(params, "status", &String.to_atom/1)
+  params = Map.update!(params, "bauds", &String.to_integer/1)
+  params = Map.update!(params, "port", &String.to_integer/1)
+  params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
+  Enum.into(params, %{})
+end
 
 handler = fn
   {:mount, socket, state} ->
     tzoffset = socket.assigns.tzoffset || 0
     logs = Api.subget!("flex:serial:logs")
-    logs = shift_all.(tzoffset, logs)
+    logs = serial.shift.(tzoffset, logs)
     exports = Api.subget!("flex:serial:exports")
     index = index.(exports)
     exports = Enum.into(exports, %{})
@@ -109,6 +110,7 @@ handler = fn
     state = Map.put(state, :logs, logs)
     state = Map.put(state, :modal, nil)
     state = Map.put(state, :ui, ui)
+    state = Map.put(state, :id, nil)
     state = if length(index) > 0, do: state, else: new_modal.(state)
     {socket, state}
 
@@ -124,20 +126,17 @@ handler = fn
     state = Map.put(state, :modal, nil)
     {socket, state}
 
-  {:event, socket, state, event = "modal:submit", params} ->
+  {:event, socket, state = %{id: nil}, event = "modal:submit", params} ->
     Api.trace(view: path, event: event, params: params)
-    params = Map.update!(params, "status", &String.to_atom/1)
-    params = Map.update!(params, "bauds", &String.to_integer/1)
-    params = Map.update!(params, "port", &String.to_integer/1)
-    params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
-    params = Enum.into(params, %{})
-
-    case state[:options][:id] do
-      nil -> Bus.broadcast!("flex:serial:insert", params)
-      id -> Bus.broadcast!("flex:serial:update", {id, params})
-    end
-
+    Bus.broadcast!("flex:serial:insert", parse.(params))
     state = Map.put(state, :modal, nil)
+    {socket, state}
+
+  {:event, socket, state = %{id: id}, event = "modal:submit", params} ->
+    Api.trace(view: path, event: event, params: params)
+    Bus.broadcast!("flex:serial:update", {id, parse.(params)})
+    state = Map.put(state, :modal, nil)
+    state = Map.put(state, :id, nil)
     {socket, state}
 
   {:event, socket, state, event = "click:delete", params = %{"id" => id}} ->
@@ -145,20 +144,10 @@ handler = fn
     Bus.broadcast!("flex:serial:delete", id)
     {socket, state}
 
-  {:event, socket, state, event = "click:action", params = %{"id" => id, "action" => action}} ->
+  {:event, socket, state = %{exports: exports}, event = "click:action",
+   params = %{"id" => id, "action" => action}} ->
     Api.trace(view: path, event: event, params: params)
-    exports = state.exports |> Enum.into(%{})
-    export = exports[id]
-
-    export =
-      case action do
-        "enable" -> Map.put(export, :status, :enabled)
-        "disable" -> Map.put(export, :status, :disabled)
-        "local" -> Map.put(export, :ip, "127.0.0.1")
-        "remote" -> Map.put(export, :ip, "0.0.0.0")
-      end
-
-    Bus.broadcast!("flex:serial:update", {id, export})
+    Bus.broadcast!("flex:serial:update", {id, apply.(exports[id], action)})
     {socket, state}
 
   {:event, socket, state, event = "click:add", params} ->
@@ -166,16 +155,9 @@ handler = fn
     state = new_modal.(state)
     {socket, state}
 
-  {:event, socket, state, event = "click:edit", params = %{"id" => id}} ->
+  {:event, socket, state = %{exports: exports}, event = "click:edit", params = %{"id" => id}} ->
     Api.trace(view: path, event: event, params: params)
-    exports = state.exports |> Enum.into(%{})
-    export = exports[id]
-    ttys = [export.tty | serial.(:list)] |> Enum.uniq()
-    modal = %{title: "Edit Serial Export", input: export}
-    state = Map.put(state, :modal, modal)
-    options = Map.put(options, :ttys, ttys)
-    options = Map.put(options, :id, id)
-    state = Map.put(state, :options, options)
+    state = edit_modal.(state, id, exports[id])
     {socket, state}
 
   {:event, socket, state, event, params} ->
@@ -192,7 +174,7 @@ handler = fn
 
   {:info, socket, state = %{tzoffset: tzoffset}, event = {"flex:serial:logs", _, logs}} ->
     Api.trace(view: path, info: event)
-    state = Map.put(state, :logs, shift_all.(tzoffset, logs))
+    state = Map.put(state, :logs, serial.shift.(tzoffset, logs))
     {socket, state}
 
   {:info, socket, state, event} ->

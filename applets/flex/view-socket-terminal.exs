@@ -198,10 +198,15 @@ transform = fn
   "Mixed", line -> mix2bin.(line)
 end
 
+new = fn
+  true -> %{port: 4401, ip: "127.0.0.1"}
+  false -> %{port: 502, ip: "10.77.0.10"}
+end
+
 handler = fn
   {:mount, socket, state} ->
     tzoffset = socket.assigns.tzoffset || 0
-    initial = %{port: 4401, ip: "127.0.0.1"}
+    initial = new.(Terminal.dev?())
     [ifirst | _] = imode
     [ofirst | _] = omode
     output = %{imode: ifirst, omode: ofirst, line: ""}
