@@ -45,54 +45,7 @@ view = fn assigns ->
   """
 end
 
-isend = fn parent, data ->
-  send(parent, {:socket, self(), :input, data})
-end
-
-loop = fn loop, parent, conn = %{socket: socket}, eol, buffer ->
-  receive do
-    {:tcp, ^socket, data} ->
-      if eol do
-        buffer = buffer <> data
-        parts = String.split(buffer, eol)
-        max = length(parts) - 1
-        indexed = Enum.with_index(parts)
-        Enum.each(indexed, fn {data, i} -> if(i < max, do: isend.(parent, data <> eol)) end)
-        loop.(loop, parent, conn, eol, Enum.at(parts, max))
-      else
-        isend.(parent, buffer <> data)
-        loop.(loop, parent, conn, eol, "")
-      end
-
-    {:eol, eol} ->
-      if byte_size(buffer) > 0, do: isend.(parent, buffer)
-      loop.(loop, parent, conn, eol, "")
-
-    {:write, data} ->
-      with :ok <- Tcp.write(conn, data) do
-        loop.(loop, parent, conn, eol, buffer)
-      else
-        {:error, error} ->
-          send(parent, {:socket, self(), :error, error: error})
-          Api.warn(error: error)
-      end
-
-    unexpected ->
-      send(parent, {:socket, self(), :error, unexpected: unexpected})
-      Api.warn(unexpected: unexpected)
-  end
-end
-
-setup = fn {parent, %{ip: ip, port: port}, eol} ->
-  with {:ok, conn} <- Tcp.connect(ip, port, toms: 4_000, line: false, active: true) do
-    send(parent, {:socket, self(), :success, "Connected to #{ip}:#{port}"})
-    loop.(loop, parent, conn, eol, "")
-  else
-    {:error, error} ->
-      send(parent, {:socket, self(), :error, error: error})
-      Api.warn(error: error)
-  end
-end
+title = "Connection Settings"
 
 style = fn
   :error -> "text-red-500"
@@ -101,114 +54,31 @@ style = fn
   :success -> "text-lime-500"
 end
 
-printable = fn line ->
-  line
-  |> String.split(~r/[[:graph:]]+/, include_captures: true)
-  |> Enum.with_index()
-  |> Enum.map(fn {chunk, i} ->
-    case {rem(i, 2), chunk} do
-      {0, ""} -> ""
-      {0, chunk} -> ["[", :binary.encode_hex(chunk), "]"]
-      {1, _} -> chunk
-    end
-  end)
-  |> Enum.join("")
-end
-
 append = fn socket, state = %{id: id, tzoffset: tzoffset}, type, line ->
   line = if is_binary(line), do: line, else: inspect(line)
 
   line =
     case type do
-      :input -> printable.(line)
-      :output -> printable.(line)
+      :input -> term.printable.(line)
+      :output -> term.printable.(line)
       _ -> line
     end
 
-  dt = NaiveDateTime.utc_now() |> NaiveDateTime.shift(hour: tzoffset) |> NaiveDateTime.to_time()
+  dt = NaiveDateTime.utc_now()
   log = %{id: id, dt: dt, style: style.(type), line: line}
+  log = term.shift.(tzoffset, log)
   socket = stream(socket, :logs, [log])
   state = Map.update!(state, :count, &(&1 + 1))
   state = Map.update!(state, :id, &(&1 + 1))
   {socket, state}
 end
 
-title = "Connection Settings"
-omode = ["Append CR+NL", "Append CR", "Append NL", "Append None", "Hexadecimal", "Mixed"]
-imode = ["Packet NL", "Packet CR", "Stream"]
-options = %{omode: omode, imode: imode}
-
-toeol = fn
-  "Packet NL" -> "\n"
-  "Packet CR" -> "\r"
-  "Stream" -> nil
-end
-
-hex2bin = fn line ->
-  line
-  |> String.split(~r/[[:xdigit:]]+/, include_captures: true)
-  |> Enum.with_index()
-  |> Enum.map(fn {chunk, i} ->
-    case rem(i, 2) do
-      0 ->
-        ""
-
-      1 ->
-        len = String.length(chunk)
-        len = if rem(len, 2) == 1, do: len + 1, else: len
-        chunk = String.pad_leading(chunk, len, "0")
-        chunk = String.upcase(chunk)
-        Base.decode16!(chunk)
-    end
-  end)
-  |> Enum.join("")
-end
-
-mix2bin = fn line ->
-  line
-  |> String.split(~r/\[[[:xdigit:]]+]/, include_captures: true)
-  |> Enum.with_index()
-  |> Enum.map(fn {chunk, i} ->
-    case rem(i, 2) do
-      0 ->
-        chunk
-
-      1 ->
-        chunk
-        |> String.trim_leading("[")
-        |> String.trim_trailing("]")
-        |> (fn chunk ->
-              len = String.length(chunk)
-              len = if rem(len, 2) == 1, do: len + 1, else: len
-              String.pad_leading(chunk, len, "0")
-            end).()
-        |> String.upcase()
-        |> Base.decode16!()
-    end
-  end)
-  |> Enum.join("")
-end
-
-transform = fn
-  "Append CR+NL", line -> line <> "\r\n"
-  "Append CR", line -> line <> "\r"
-  "Append NL", line -> line <> "\n"
-  "Append None", line -> line
-  "Hexadecimal", line -> hex2bin.(line)
-  "Mixed", line -> mix2bin.(line)
-end
-
-new = fn
-  true -> %{port: 4401, ip: "127.0.0.1"}
-  false -> %{port: 502, ip: "10.77.0.10"}
-end
-
 handler = fn
   {:mount, socket, state} ->
     tzoffset = socket.assigns.tzoffset || 0
-    initial = new.(Terminal.dev?())
-    [ifirst | _] = imode
-    [ofirst | _] = omode
+    initial = term.new.(Terminal.dev?())
+    [ifirst | _] = term.imode
+    [ofirst | _] = term.omode
     output = %{imode: ifirst, omode: ofirst, line: ""}
     socket = assign(socket, applet_css: "/applets/flex.css")
     socket = assign(socket, applet_js: "/applets/flex.js")
@@ -218,7 +88,7 @@ handler = fn
     state = Map.put(state, :tzoffset, tzoffset)
     state = Map.put(state, :conn, %{task: nil, input: initial, on: false})
     state = Map.put(state, :modal, %{title: title, input: initial})
-    state = Map.put(state, :options, options)
+    state = Map.put(state, :options, term.options)
     state = Map.put(state, :output, output)
     state = Map.put(state, :count, 0)
     state = Map.put(state, :id, 0)
@@ -241,7 +111,7 @@ handler = fn
   {:event, socket, state = %{output: output, conn: %{task: %{pid: pid}}}, event = "output:change",
    params = %{"line" => line, "omode" => omode, "imode" => imode, "_target" => targets}} ->
     Api.trace(view: path, event: event, params: params)
-    if "imode" in targets, do: send(pid, {:eol, toeol.(imode)})
+    if "imode" in targets, do: send(pid, {:eol, term.toeol.(imode)})
     output = Map.put(output, :line, line)
     output = Map.put(output, :omode, omode)
     output = Map.put(output, :imode, imode)
@@ -251,7 +121,7 @@ handler = fn
   {:event, socket, state = %{output: output, conn: %{task: %{pid: pid}}}, event = "output:submit",
    params = %{"line" => line, "omode" => omode}} ->
     Api.trace(view: path, event: event, params: params)
-    transformed = transform.(omode, line)
+    transformed = term.transform.(omode, line)
     send(pid, {:write, transformed})
     output = Map.put(output, :line, nil)
     state = Map.put(state, :output, output)
@@ -265,7 +135,7 @@ handler = fn
     params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
     params = Enum.into(params, %{})
     if task, do: Api.kill(task)
-    task = Api.async(setup, {self(), params, toeol.(imode)})
+    task = Api.async(term.setup, {self(), params, term.toeol.(imode)})
     conn = %{input: params, task: task, on: true}
     state = Map.put(state, :conn, conn)
     state = Map.put(state, :modal, nil)
