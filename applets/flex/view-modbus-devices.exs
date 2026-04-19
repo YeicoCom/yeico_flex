@@ -76,6 +76,7 @@ apply = fn moddev, action ->
 end
 
 parse = fn params ->
+  params = Map.update!(params, "status", &String.to_atom/1)
   params = Map.update!(params, "port", &String.to_integer/1)
   params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
   Enum.into(params, %{})
