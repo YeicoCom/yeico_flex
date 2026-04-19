@@ -3,8 +3,8 @@ use Terminal.Live
 view = fn assigns ->
   ~H"""
   <.fui fun={@ui.frame} title="Modbus Terminal">
-    <div class="flex flex-col w-full h-full">
-      <div class="pt-2 px-2 flex">
+    <div class="flex flex-col w-full h-full gap-2">
+      <div class="px-2 flex">
         <.fui fun={@ui.link} phx-click="click:connect">
           <div class="hero-link"/>Connect
         </.fui>
@@ -13,18 +13,18 @@ view = fn assigns ->
           <div class="hero-x-mark"/>Disconnect from {@conn.input.proto}:{@conn.input.ip}:{@conn.input.port}
         </.fui>
       </div>
+      <div :if={@count > 0} phx-update="stream" id="logs" phx-hook="AutoScroll"
+        class="p-2 grow flex flex-col overflow-y-scroll font-mono rounded bg-zinc-800">
+        <div :for={{id, %{dt: dt, style: style, line: line}} <- @streams.logs}
+          id={id} class={[style, "break-all"]}>{dt} {line}</div>
+      </div>
       <form id="output_form" :if={@conn.on} phx-submit="output:submit" phx-change="output:change"
-        class="flex pt-2 px-1 gap-2" phx-hook="EnterNavigation" autocomplete="off">
+        class="flex px-1 gap-2" phx-hook="EnterNavigation" autocomplete="off">
         <.fui fun={@ui.input} name="line" value={@output[:line]} type="text" class="grow" id="output_form_line"
           phx-hook="LineHistory" data-key="modbus-terminal" title={@help}/>
         <.fui fun={@ui.button} type="submit">Execute</.fui>
       </form>
-      <div :if={@count > 0} phx-update="stream" id="logs" phx-hook="AutoScroll"
-        class="mt-2 p-2 grow flex flex-col overflow-y-scroll font-mono rounded bg-zinc-800">
-        <div :for={{id, %{dt: dt, style: style, line: line}} <- @streams.logs}
-          id={id} class={[style, "break-all"]}>{dt} {line}</div>
-      </div>
-      <div :if={@conn.on}>s=Slave,a=Address,c=[ri,rir,fc,rc,phr,rhr],d=Data,f=Format#Comment</div>
+      <div :if={@conn.on} class="px-2">s=Slave,a=Address,c=[ri,rir,fc,rc,phr,rhr],d=Data,f=Format#Comment</div>
     </div>
   </.fui>
   <.fui fun={@ui.modal} :if={@modal} title={@modal.title} class="min-w-[360px]">

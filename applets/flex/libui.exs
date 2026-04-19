@@ -48,12 +48,7 @@ modal = fn assigns ->
   assigns = Map.put_new(assigns, :close, "modal:close")
 
   ~H"""
-  <div
-    class={[
-      "fixed top-0 left-0 z-9999 w-screen h-screen",
-      "bg-neutral-200/50"
-    ]}
-  >
+  <div class="fixed top-0 left-0 z-9999 w-screen h-screen bg-neutral-200/50">
     <div class="flex justify-center items-center h-screen">
       <div class={["p-8 rounded-md bg-neutral-800", @class]} phx-click-away={@close}>
         <div class="pb-2 gap-20 flex justify-between items-center text-gray-400">
