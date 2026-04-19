@@ -631,11 +631,11 @@ master = fn
 end
 
 parse_n = fn value ->
-  cond do
-    String.starts_with?(value, "d") -> Integer.parse(String.slice(value, 1..-1//1), 10)
-    String.starts_with?(value, "h") -> Integer.parse(String.slice(value, 1..-1//1), 16)
-    String.starts_with?(value, "b") -> Integer.parse(String.slice(value, 1..-1//1), 2)
-    true -> Integer.parse(value, 10)
+  case String.first(value) do
+    "d" -> Integer.parse(String.slice(value, 1..-1//1), 10)
+    "h" -> Integer.parse(String.slice(value, 1..-1//1), 16)
+    "b" -> Integer.parse(String.slice(value, 1..-1//1), 2)
+    _ -> Integer.parse(value, 10)
   end
 end
 
@@ -663,6 +663,17 @@ parse_dc = fn value ->
     {v, ""} -> v
     _ -> throw("Invalid data param")
   end
+end
+
+check_max = fn
+  v, max when is_integer(v) ->
+    if v <= 0 or v > max, do: throw("Invalid data range")
+    v
+
+  v, max when is_list(v) ->
+    n = length(v)
+    if n <= 0 or n > max, do: throw("Invalid data range")
+    v
 end
 
 parse_p = fn line ->
@@ -711,12 +722,12 @@ parse_p = fn line ->
 
   d =
     case c do
-      :ri -> parse_dc.(d)
-      :fc -> parse_dd.(d)
-      :rc -> parse_dc.(d)
-      :rir -> parse_dc.(d)
-      :phr -> parse_dr.(d)
-      :rhr -> parse_dc.(d)
+      :ri -> parse_dc.(d) |> check_max.(8 * 255)
+      :fc -> parse_dd.(d) |> check_max.(8 * 255)
+      :rc -> parse_dc.(d) |> check_max.(8 * 255)
+      :rir -> parse_dc.(d) |> check_max.(254 / 2)
+      :phr -> parse_dr.(d) |> check_max.(254 / 2)
+      :rhr -> parse_dc.(d) |> check_max.(254 / 2)
     end
 
   {c, s, a, d}
