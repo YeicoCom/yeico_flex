@@ -6,7 +6,7 @@ view = fn assigns ->
     <div class="flex flex-col w-full h-full gap-2">
       <div class="px-2 flex">
         <.fui fun={@ui.link} phx-click="click:connect">
-          <div class="hero-link"/>Connect
+          <div class="hero-link"/>Connect to Socket
         </.fui>
         <div class="grow"/>
         <.fui :if={@conn.on} fun={@ui.link} phx-click="click:disconnect" type="danger">
@@ -45,7 +45,7 @@ view = fn assigns ->
   """
 end
 
-title = "Connection Settings"
+title = "Socket Connection"
 
 style = fn
   :error -> "text-red-500"

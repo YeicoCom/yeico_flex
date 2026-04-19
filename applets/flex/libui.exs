@@ -28,8 +28,8 @@ frame = fn assigns ->
           <a href="/flex" class="block px-4 py-2 hover:bg-lime-500">Flex Home</a>
           <a href="/flex/modbus-devices" class="block px-4 py-2 hover:bg-lime-500">Modbus Devices</a>
           <a href="/flex/modbus-terminal" class="block px-4 py-2 hover:bg-lime-500">Modbus Terminal</a>
-          <a href="/flex/serial-exports" class="block px-4 py-2 hover:bg-lime-500">Serial Exports</a>
           <a href="/flex/socket-terminal" class="block px-4 py-2 hover:bg-lime-500">Socket Terminal</a>
+          <a href="/flex/serial-exports" class="block px-4 py-2 hover:bg-lime-500">Serial Exports</a>
           <a :if={Terminal.dev?()} href="/flex/ui-tester" class="block px-4 py-2 hover:bg-lime-500">UI Tester</a>
         </div>
       </div>

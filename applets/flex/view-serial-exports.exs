@@ -11,9 +11,9 @@ view = fn assigns ->
         <div class="grow"/>
       </div>
       <div :for={id <- @index} class="flex flex-col p-2 hover:rounded hover:bg-zinc-800">
-        <% export = @exports[id] %>
+        <% item = @exports[id] %>
         <.fui fun={@ui.link} phx-click="click:edit" phx-value-id={id}>
-          {export.tty},{export.bauds}@{export.bits},{export.ip}:{export.port},{export.status}
+          {item.tty},{item.bauds}@{item.bits},{item.ip}:{item.port},{item.status}
         </.fui>
         <div class="flex gap-2">
           <.fui fun={@ui.link} phx-click="click:edit" phx-value-id={id}>Edit</.fui>
@@ -25,7 +25,7 @@ view = fn assigns ->
           <.fui fun={@ui.link} phx-click="click:delete" phx-value-id={id} type="danger">Delete</.fui>
         </div>
         <% log = @logs[id] %>
-        <div :if={export.status==:enabled and log} class={[
+        <div :if={item.status==:enabled and log} class={[
           log.level == :error && "text-red-500",
           log.level == :error || "text-neutral-500",
         ]}>{log.dt} {log.msg}</div>

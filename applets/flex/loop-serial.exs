@@ -2,7 +2,7 @@ use Terminal
 
 # Arguments
 #
-# path: to cudb folder
+# path: to cubdb folder
 #
 # Requirements
 #
@@ -160,14 +160,23 @@ publish_exports = fn cubdb ->
   exports
 end
 
-run_export = fn id, export ->
-  task =
-    case export.status do
-      :enabled -> Api.loop(dms, runner_setup, %{id: id, export: export})
-      _ -> nil
-    end
+run_enabled = fn id, export ->
+  case export.status do
+    :enabled -> Api.loop(dms, runner_setup, %{id: id, export: export})
+    _ -> nil
+  end
+end
 
+run_export = fn id, export ->
+  task = run_enabled.(id, export)
   %{export: export, task: task}
+end
+
+replace_log = fn logs, log = %{id: id, level: level} ->
+  case {level, logs[id][:level]} do
+    {:trace?, :error} -> logs
+    {_, _} -> Map.put(logs, id, Map.drop(log, [:id]))
+  end
 end
 
 master_loop = fn state = %{cubdb: cubdb, loop: loop, runners: runners, logs: logs} ->
@@ -203,15 +212,8 @@ master_loop = fn state = %{cubdb: cubdb, loop: loop, runners: runners, logs: log
       state = Map.put(state, :runners, runners)
       loop.(state)
 
-    {"flex:serial:log", _, log = %{id: id, level: level}} ->
-      log = Map.drop(log, [:id])
-
-      logs =
-        case {level, logs[id][:level]} do
-          {:trace?, :error} -> logs
-          {_, _} -> Map.put(logs, id, log)
-        end
-
+    {"flex:serial:log", _, log} ->
+      logs = replace_log.(logs, log)
       ids = Map.keys(runners)
       logs = Map.take(logs, ids)
       Api.putcast!("flex:serial:logs", logs)

@@ -6,14 +6,14 @@ view = fn assigns ->
     <div class="flex flex-col w-full h-full gap-2">
       <div class="px-2 flex">
         <.fui fun={@ui.link} phx-click="click:connect">
-          <div class="hero-link"/>Connect
+          <div class="hero-link"/>Connect to Modbus Device
         </.fui>
         <div class="grow"/>
         <.fui :if={@conn.on} fun={@ui.link} phx-click="click:disconnect" type="danger">
           <div class="hero-x-mark"/>Disconnect from {@conn.input.proto}:{@conn.input.ip}:{@conn.input.port}
         </.fui>
       </div>
-      <div :if={@count > 0} phx-update="stream" id="logs" phx-hook="AutoScroll"
+      <div :if={@conn.on or @count > 0} phx-update="stream" id="logs" phx-hook="AutoScroll"
         class="p-2 grow flex flex-col overflow-y-scroll font-mono rounded bg-zinc-800">
         <div :for={{id, %{dt: dt, style: style, line: line}} <- @streams.logs}
           id={id} class={[style, "break-all"]}>{dt} {line}</div>
@@ -38,7 +38,7 @@ view = fn assigns ->
         <div>Port</div>
         <.fui fun={@ui.input} name="port" value={input.port} type="number" step="1" min="1" max="65535" required/>
         <div>Protocol</div>
-        <.fui fun={@ui.select} name="proto" value={input.proto} values={@options.proto} required/>
+        <.fui fun={@ui.select} name="proto" value={input.proto} values={@options.protos} required/>
       </div>
       <.fui fun={@ui.button} type="submit" class="col-span-2">Accept</.fui>
     </form>
@@ -78,7 +78,7 @@ loop = fn loop, parent, conn ->
 
   receive do
     {:exec, cmd} ->
-      case modbus.master.({:exec, conn, cmd, tracer: tracer}) do
+      case moddev.master.({:exec, conn, cmd, tracer: tracer}) do
         {:ok, conn} ->
           send(parent, {:socket, self(), :success, :ok})
           loop.(loop, parent, conn)
@@ -102,13 +102,8 @@ loop = fn loop, parent, conn ->
   end
 end
 
-toproto = fn
-  "TCP" -> modbus.tcp_proto
-  "RTU" -> modbus.rtu_proto
-end
-
 setup = fn {parent, %{ip: ip, port: port}, proto} ->
-  with {:ok, conn} <- modbus.master.({:open, ip: ip, port: port, proto: toproto.(proto)}) do
+  with {:ok, conn} <- moddev.open.(ip, port, proto) do
     send(parent, {:socket, self(), :success, "Connected to #{proto}:#{ip}:#{port}"})
     loop.(loop, parent, conn)
   else
@@ -126,27 +121,13 @@ style = fn
   :success -> "text-lime-500"
 end
 
-printable = fn line ->
-  line
-  |> String.split(~r/[[:graph:]]+/, include_captures: true)
-  |> Enum.with_index()
-  |> Enum.map(fn {chunk, i} ->
-    case {rem(i, 2), chunk} do
-      {0, ""} -> ""
-      {0, chunk} -> ["[", :binary.encode_hex(chunk), "]"]
-      {1, _} -> chunk
-    end
-  end)
-  |> Enum.join("")
-end
-
 append = fn socket, state = %{id: id, tzoffset: tzoffset}, type, line ->
   line = if is_binary(line), do: line, else: inspect(line)
 
   line =
     case type do
-      :input -> printable.(line)
-      :output -> printable.(line)
+      :input -> moddev.printable.(line)
+      :output -> moddev.printable.(line)
       _ -> line
     end
 
@@ -158,16 +139,15 @@ append = fn socket, state = %{id: id, tzoffset: tzoffset}, type, line ->
   {socket, state}
 end
 
-title = "Master Settings"
-proto = ["TCP", "RTU"]
-options = %{proto: proto}
+title = "Modbus Connection"
+options = %{protos: moddev.protos}
 
 handler = fn
   {:mount, socket, state} ->
     tzoffset = socket.assigns.tzoffset || 0
-    initial = %{port: 502, ip: "10.77.0.10", proto: "TCP"}
-    pfirst = List.first(proto)
+    pfirst = List.first(moddev.protos)
     output = %{proto: pfirst, line: ""}
+    initial = %{port: 502, ip: "10.77.0.10", proto: pfirst}
     socket = assign(socket, applet_css: "/applets/flex.css")
     socket = assign(socket, applet_js: "/applets/flex.js")
     socket = assign(socket, page_title: "Modbus Terminal")
@@ -207,7 +187,7 @@ handler = fn
    params = %{"line" => line}} ->
     Api.trace(view: path, event: event, params: params)
 
-    case modbus.parse.(line) do
+    case moddev.parse.(line) do
       {:ok, cmd} ->
         send(pid, {:exec, cmd})
         output = Map.put(output, :line, nil)
