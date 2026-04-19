@@ -10,23 +10,30 @@ view = fn assigns ->
         </.fui>
         <div class="grow"/>
       </div>
-      <div :for={id <- @index} class="flex flex-col p-2 hover:rounded hover:bg-zinc-800">
+      <div :for={id <- @index} class="flex flex-col p-2">
         <% item = @devices[id] %>
-        <.fui fun={@ui.link} phx-click="click:edit" phx-value-id={id}>
-          {item.proto},{item.ip}:{item.port},{item.status}:{item.name}
-        </.fui>
-        <div class="flex gap-2">
-          <.fui fun={@ui.link} phx-click="click:edit" phx-value-id={id}>Edit</.fui>
-          <.fui fun={@ui.link} phx-click="click:action" phx-value-id={id} phx-value-action="enable">Enable</.fui>
-          <.fui fun={@ui.link} phx-click="click:action" phx-value-id={id} phx-value-action="disable">Disable</.fui>
-          <div class="grow"></div>
-          <.fui fun={@ui.link} phx-click="click:delete" phx-value-id={id} type="danger">Delete</.fui>
+        <div class="flex flex-col p-2 hover:rounded hover:bg-zinc-800">
+          <.fui fun={@ui.link} phx-click="click:edit" phx-value-id={id}>
+            {item.proto},{item.ip}:{item.port},{item.status},{item.name}
+          </.fui>
+          <div class="flex gap-2">
+            <.fui fun={@ui.link} phx-click="click:edit" phx-value-id={id}>Edit</.fui>
+            <.fui fun={@ui.link} phx-click="click:action" phx-value-id={id} phx-value-action="enable">Enable</.fui>
+            <.fui fun={@ui.link} phx-click="click:action" phx-value-id={id} phx-value-action="disable">Disable</.fui>
+            <div class="grow"></div>
+            <.fui fun={@ui.link} phx-click="click:delete" phx-value-id={id} type="danger">Delete</.fui>
+          </div>
+          <% log = @logs[id] %>
+          <div :if={item.status==:enabled and log} class={[
+            log.level == :error && "text-red-500",
+            log.level == :error || "text-neutral-500",
+          ]}>{log.dt} {log.msg}</div>
         </div>
-        <% log = @logs[id] %>
-        <div :if={item.status==:enabled and log} class={[
-          log.level == :error && "text-red-500",
-          log.level == :error || "text-neutral-500",
-        ]}>{log.dt} {log.msg}</div>
+        <div :if={item.status==:disabled}>
+          <.fui fun={@ui.link} phx-click="click:add:point" phx-value-id={id}><div class="hero-plus"/>Add Point</.fui>
+          <div :for={point <- item.points} class="flex flex-col p-1">
+          </div>
+        </div>
       </div>
     </div>
   </.fui>
@@ -52,10 +59,11 @@ view = fn assigns ->
 end
 
 modal = fn
-  {state, id, device} ->
+  {state, id, device = %{points: points}} ->
     options = moddev.options
     modal = %{title: "Edit Modbus Device", input: device}
     state = Map.put(state, :modal, modal)
+    state = Map.put(state, :points, points)
     state = Map.put(state, :id, id)
     Map.put(state, :options, options)
 
@@ -75,11 +83,11 @@ apply = fn moddev, action ->
   end
 end
 
-parse = fn params ->
+parse = fn params, points ->
   params = Map.update!(params, "status", &String.to_atom/1)
   params = Map.update!(params, "port", &String.to_integer/1)
   params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
-  Enum.into(params, %{})
+  Enum.into(params, %{points: points})
 end
 
 handler = fn
@@ -101,6 +109,7 @@ handler = fn
     state = Map.put(state, :modal, nil)
     state = Map.put(state, :ui, ui)
     state = Map.put(state, :id, nil)
+    state = Map.put(state, :points, nil)
     state = if length(index) > 0, do: state, else: modal.(state)
     {socket, state}
 
@@ -118,14 +127,15 @@ handler = fn
 
   {:event, socket, state = %{id: nil}, event = "modal:submit", params} ->
     Api.trace(view: path, event: event, params: params)
-    Bus.broadcast!("flex:modbus:insert", parse.(params))
+    Bus.broadcast!("flex:modbus:insert", parse.(params, []))
     state = Map.put(state, :modal, nil)
     {socket, state}
 
-  {:event, socket, state = %{id: id}, event = "modal:submit", params} ->
+  {:event, socket, state = %{id: id, points: points}, event = "modal:submit", params} ->
     Api.trace(view: path, event: event, params: params)
-    Bus.broadcast!("flex:modbus:update", {id, parse.(params)})
+    Bus.broadcast!("flex:modbus:update", {id, parse.(params, points)})
     state = Map.put(state, :modal, nil)
+    state = Map.put(state, :points, nil)
     state = Map.put(state, :id, nil)
     {socket, state}
 

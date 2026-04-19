@@ -22,7 +22,8 @@ new = fn ->
         proto: "TCP",
         port: 502,
         ip: "10.77.0.10",
-        status: :disabled
+        status: :disabled,
+        points: []
       }
 
     false ->
@@ -31,7 +32,8 @@ new = fn ->
         proto: "RTU",
         port: 4401,
         ip: "127.0.0.1",
-        status: :disabled
+        status: :disabled,
+        points: []
       }
   end
 end
@@ -67,5 +69,9 @@ end
   options: options,
   parse: modcmd.parse,
   master: modbus.master,
-  printable: printable
+  printable: printable,
+  points: %{
+    types: ["di", "do"],
+    new: %{type: "di", slave: 0, address: 0, count: 1, names: %{0 => ""}}
+  }
 }
