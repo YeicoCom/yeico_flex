@@ -20,11 +20,11 @@ view = fn assigns ->
       </div>
       <form id="output_form" :if={@conn.on} phx-submit="output:submit" phx-change="output:change"
         class="flex pb-1 px-1 gap-2" phx-hook="EnterNavigation" autocomplete="off">
-        <.fui fun={@ui.select} name="omode" value={@output[:omode]} values={@options.omode} required title="Output Mode"/>
-        <.fui fun={@ui.select} name="imode" value={@output[:imode]} values={@options.imode} required title="Input Mode"/>
         <.fui fun={@ui.input} name="line" value={@output[:line]} type="text" class="grow" id="output_form_line"
           phx-hook="LineHistory" data-key="socket-terminal"/>
         <.fui fun={@ui.button} type="submit">Send</.fui>
+        <.fui fun={@ui.select} name="omode" value={@output[:omode]} values={@options.omode} required title="Output Mode"/>
+        <.fui fun={@ui.select} name="imode" value={@output[:imode]} values={@options.imode} required title="Input Mode"/>
       </form>
     </div>
   </.fui>
