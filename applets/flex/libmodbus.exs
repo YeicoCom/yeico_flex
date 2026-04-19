@@ -677,7 +677,7 @@ check_max = fn
 end
 
 parse_p = fn line ->
-  [line | _] = String.split(line, "#")
+  line = line |> String.split("#") |> List.first()
 
   params =
     String.split(line, ",", trim: true)

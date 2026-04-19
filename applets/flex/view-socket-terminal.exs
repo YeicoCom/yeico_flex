@@ -77,8 +77,8 @@ handler = fn
   {:mount, socket, state} ->
     tzoffset = socket.assigns.tzoffset || 0
     initial = term.new.(Terminal.dev?())
-    [ifirst | _] = term.imode
-    [ofirst | _] = term.omode
+    ifirst = List.first(term.imode)
+    ofirst = List.first(term.omode)
     output = %{imode: ifirst, omode: ofirst, line: ""}
     socket = assign(socket, applet_css: "/applets/flex.css")
     socket = assign(socket, applet_js: "/applets/flex.js")

@@ -166,7 +166,7 @@ handler = fn
   {:mount, socket, state} ->
     tzoffset = socket.assigns.tzoffset || 0
     initial = %{port: 502, ip: "10.77.0.10", proto: "TCP"}
-    [pfirst | _] = proto
+    pfirst = List.first(proto)
     output = %{proto: pfirst, line: ""}
     socket = assign(socket, applet_css: "/applets/flex.css")
     socket = assign(socket, applet_js: "/applets/flex.js")
