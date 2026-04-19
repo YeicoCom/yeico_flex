@@ -55,22 +55,22 @@ view = fn assigns ->
   """
 end
 
-new_modal = fn state ->
-  options = serial.options
-  options = Map.put(options, :ttys, serial.list.())
-  modal = %{title: "New Serial Export", input: serial.new}
-  state = Map.put(state, :modal, modal)
-  Map.put(state, :options, options)
-end
+modal = fn
+  {state, id, export = %{tty: tty}} ->
+    options = serial.options
+    ttys = [tty | serial.list.()] |> Enum.uniq()
+    options = Map.put(options, :ttys, ttys)
+    modal = %{title: "Edit Serial Export", input: export}
+    state = Map.put(state, :modal, modal)
+    state = Map.put(state, :id, id)
+    Map.put(state, :options, options)
 
-edit_modal = fn state, id, export = %{tty: tty} ->
-  options = serial.options
-  ttys = [tty | serial.list.()] |> Enum.uniq()
-  options = Map.put(options, :ttys, ttys)
-  modal = %{title: "Edit Serial Export", input: export}
-  state = Map.put(state, :modal, modal)
-  state = Map.put(state, :id, id)
-  Map.put(state, :options, options)
+  state ->
+    options = serial.options
+    options = Map.put(options, :ttys, serial.list.())
+    modal = %{title: "New Serial Export", input: serial.new}
+    state = Map.put(state, :modal, modal)
+    Map.put(state, :options, options)
 end
 
 index = fn pairs -> Enum.map(pairs, fn {k, _} -> k end) end
@@ -111,7 +111,7 @@ handler = fn
     state = Map.put(state, :modal, nil)
     state = Map.put(state, :ui, ui)
     state = Map.put(state, :id, nil)
-    state = if length(index) > 0, do: state, else: new_modal.(state)
+    state = if length(index) > 0, do: state, else: modal.(state)
     {socket, state}
 
   {:params, socket, state, params, uri} ->
@@ -152,12 +152,12 @@ handler = fn
 
   {:event, socket, state, event = "click:add", params} ->
     Api.trace(view: path, event: event, params: params)
-    state = new_modal.(state)
+    state = modal.(state)
     {socket, state}
 
   {:event, socket, state = %{exports: exports}, event = "click:edit", params = %{"id" => id}} ->
     Api.trace(view: path, event: event, params: params)
-    state = edit_modal.(state, id, exports[id])
+    state = modal.({state, id, exports[id]})
     {socket, state}
 
   {:event, socket, state, event, params} ->

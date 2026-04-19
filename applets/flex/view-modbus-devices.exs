@@ -51,19 +51,19 @@ view = fn assigns ->
   """
 end
 
-new_modal = fn state ->
-  options = moddev.options
-  modal = %{title: "New Modbus Device", input: moddev.new.()}
-  state = Map.put(state, :modal, modal)
-  Map.put(state, :options, options)
-end
+modal = fn
+  {state, id, device} ->
+    options = moddev.options
+    modal = %{title: "Edit Modbus Device", input: device}
+    state = Map.put(state, :modal, modal)
+    state = Map.put(state, :id, id)
+    Map.put(state, :options, options)
 
-edit_modal = fn state, id, device ->
-  options = moddev.options
-  modal = %{title: "Edit Modbus Device", input: device}
-  state = Map.put(state, :modal, modal)
-  state = Map.put(state, :id, id)
-  Map.put(state, :options, options)
+  state ->
+    options = moddev.options
+    modal = %{title: "New Modbus Device", input: moddev.new.()}
+    state = Map.put(state, :modal, modal)
+    Map.put(state, :options, options)
 end
 
 index = fn pairs -> Enum.map(pairs, fn {k, _} -> k end) end
@@ -101,7 +101,7 @@ handler = fn
     state = Map.put(state, :modal, nil)
     state = Map.put(state, :ui, ui)
     state = Map.put(state, :id, nil)
-    state = if length(index) > 0, do: state, else: new_modal.(state)
+    state = if length(index) > 0, do: state, else: modal.(state)
     {socket, state}
 
   {:params, socket, state, params, uri} ->
@@ -142,12 +142,12 @@ handler = fn
 
   {:event, socket, state, event = "click:add", params} ->
     Api.trace(view: path, event: event, params: params)
-    state = new_modal.(state)
+    state = modal.(state)
     {socket, state}
 
   {:event, socket, state = %{devices: devices}, event = "click:edit", params = %{"id" => id}} ->
     Api.trace(view: path, event: event, params: params)
-    state = edit_modal.(state, id, devices[id])
+    state = modal.({state, id, devices[id]})
     {socket, state}
 
   {:event, socket, state, event, params} ->
