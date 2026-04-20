@@ -26,7 +26,8 @@ end
 
 protos = ["TCP", "RTU"]
 status = [:disabled, :enabled]
-options = %{status: status, protos: protos}
+points = %{types: ["DI", "DO"]}
+options = %{status: status, protos: protos, points: points}
 
 shift = fn tzoffset, logs ->
   logs
@@ -51,9 +52,8 @@ end
   new: new,
   shift: shift,
   options: options,
-  open: open
-  # points: %{
-  #   types: ["di", "do"],
-  #   new: %{type: "di", slave: 0, address: 0, count: 1, names: %{0 => ""}}
-  # }
+  open: open,
+  points: %{
+    new: %{type: "DI", slave: 1, address: 0, names: ""}
+  }
 }

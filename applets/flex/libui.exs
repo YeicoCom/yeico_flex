@@ -47,19 +47,16 @@ modal = fn assigns ->
   assigns = Map.put_new(assigns, :class, nil)
   assigns = Map.put_new(assigns, :title, nil)
   assigns = Map.put_new(assigns, :close, "modal:close")
+  assigns = Map.put_new(assigns, :away, nil)
 
   ~H"""
   <div class="fixed top-0 left-0 z-9999 w-screen h-screen bg-neutral-200/50">
     <div class="flex justify-center items-center h-screen">
-      <div class={["p-8 rounded-md bg-neutral-800", @class]} phx-click-away={@close}>
+      <div class={["p-8 rounded-md bg-neutral-800", @class]} phx-click-away={@away || @close}>
         <div class="pb-2 gap-20 flex justify-between items-center text-gray-400">
           <div class="text-lg font-semibold">{@title}</div>
-          <button
-            type="button"
-            title="Close"
-            phx-click={@close}
-            class="hover:bg-gray-600 hover:text-white rounded-lg w-8 h-8 inline-flex justify-center items-center"
-          >
+          <button type="button" title="Close" phx-click={@close}
+            class="hover:bg-gray-600 hover:text-white rounded-lg w-8 h-8 inline-flex justify-center items-center">
             <span class="hero-x-mark-solid z-0" />
           </button>
         </div>
@@ -117,6 +114,7 @@ input = fn assigns ->
   assigns = Map.put_new(assigns, :value, nil)
   assigns = Map.put_new(assigns, :disabled, nil)
   assigns = Map.put_new(assigns, :title, nil)
+  assigns = Map.put_new(assigns, :required, nil)
   # number type
   assigns = Map.put_new(assigns, :step, nil)
   assigns = Map.put_new(assigns, :min, nil)
@@ -131,6 +129,7 @@ input = fn assigns ->
   name={@name}
   value={@value}
   disabled={@disabled}
+  required={@required}
   pattern={@pattern}
   title={@title}
   step={@step}
@@ -195,7 +194,7 @@ link = fn assigns ->
   disabled={@disabled}
   {@phx_attribs}
   class={[
-    "flex items-center gap-1",
+    "flex items-center gap-1 select-none",
     @disabled || "text-neutral-200 hover:cursor-pointer #{@hover}",
     @disabled && "text-neutral-500 cursor-default pointer-events-none",
     @class

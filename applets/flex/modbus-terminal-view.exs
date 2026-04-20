@@ -37,7 +37,7 @@ view = fn assigns ->
           <div class="hero-x-mark"/>Disconnect from {@conn.input.proto}:{@conn.input.ip}:{@conn.input.port}
         </.fui>
       </div>
-      <div :if={@conn.on or @count > 0} phx-update="stream" id="logs" phx-hook="AutoScroll"
+      <div phx-update="stream" id="logs" phx-hook="AutoScroll"
         class="p-2 grow flex flex-col overflow-y-scroll font-mono rounded bg-zinc-800">
         <div :for={{id, %{dt: dt, style: style, line: line}} <- @streams.logs}
           id={id} class={[style, "break-all"]}>{dt} {line}</div>
@@ -84,15 +84,14 @@ encode = fn
   _, line -> line
 end
 
-append = fn socket, state = %{id: id, tzoffset: tzoffset}, type, line ->
+append = fn socket, state = %{logid: logid, tzoffset: tzoffset}, type, line ->
   line = if is_binary(line), do: line, else: inspect(line)
   line = encode.(type, line)
   dt = NaiveDateTime.utc_now()
-  log = %{id: id, dt: dt, style: style.(type), line: line}
+  log = %{id: logid, dt: dt, style: style.(type), line: line}
   log = lib.shift.(tzoffset, log)
   socket = stream(socket, :logs, [log])
-  state = Map.update!(state, :count, &(&1 + 1))
-  state = Map.update!(state, :id, &(&1 + 1))
+  state = Map.update!(state, :logid, &(&1 + 1))
   {socket, state}
 end
 
@@ -114,8 +113,7 @@ handler = fn
     state = Map.put(state, :options, lib.options)
     state = Map.put(state, :output, %{line: nil})
     state = Map.put(state, :help, help)
-    state = Map.put(state, :count, 0)
-    state = Map.put(state, :id, 0)
+    state = Map.put(state, :logid, 0)
     state = Map.put(state, :ui, ui)
     {socket, state}
 
