@@ -13,16 +13,16 @@ use Terminal
 
 dms = 2_000
 
-post_log = fn id, level, msg ->
+post_log = fn id, error?, msg ->
   dt = NaiveDateTime.utc_now()
-  Bus.broadcast!("flex:serial:log", %{id: id, dt: dt, level: level, msg: msg})
+  Bus.broadcast!("flex:serial:log", %{id: id, dt: dt, error?: error?, msg: msg})
 end
 
 log_event = fn
-  id, level, msg when is_binary(msg) -> post_log.(id, level, msg)
-  id, level, {:error, msg} when is_binary(msg) -> post_log.(id, level, msg)
-  id, level, {:error, msg} -> post_log.(id, level, inspect(msg))
-  id, level, msg -> post_log.(id, level, inspect(msg))
+  id, error?, msg when is_binary(msg) -> post_log.(id, error?, msg)
+  id, error?, {:error, msg} when is_binary(msg) -> post_log.(id, error?, msg)
+  id, error?, {:error, msg} -> post_log.(id, error?, inspect(msg))
+  id, error?, msg -> post_log.(id, error?, inspect(msg))
 end
 
 sudo_cmd = fn cmd ->
@@ -50,7 +50,7 @@ check_tty = fn id, %{tty: tty} ->
         true
       else
         result ->
-          log_event.(id, :error, result)
+          log_event.(id, true, result)
           raise("Invalid #{tty}: #{inspect(result)}")
       end
 
@@ -60,11 +60,11 @@ check_tty = fn id, %{tty: tty} ->
     result = {:ok, %File.Stat{type: :regular}} ->
       cmd = sudo_cmd.("rm -f #{tty}")
       System.shell(cmd, stderr_to_stdout: true)
-      log_event.(id, :error, result)
+      log_event.(id, true, result)
       raise("Invalid #{tty}: #{inspect(result)}")
 
     result ->
-      log_event.(id, :error, result)
+      log_event.(id, true, result)
       raise("Invalid #{tty}: #{inspect(result)}")
   end
 end
@@ -120,16 +120,16 @@ runner_loop = fn state = %{loop: loop, port: port, id: id, export: %{tty: tty}} 
     # both :eol and :noeol treated as full line
     {^port, {:data, {type, data}}} ->
       Api.trace(tty: tty, type: type, data: data)
-      log_event.(id, :error, data)
+      log_event.(id, true, data)
       loop.(state)
 
     {^port, {:data, data}} ->
       Api.trace(tty: tty, data: data)
-      log_event.(id, :error, data)
+      log_event.(id, true, data)
       loop.(state)
 
     unexpected ->
-      log_event.(id, :trace?, "Closed")
+      log_event.(id, false, "Closed")
       Api.warn(tty: tty, unexpected: unexpected)
   end
 end
@@ -144,7 +144,8 @@ runner_setup = fn %{id: id, export: export} ->
     end
   end
 
-  log_event.(id, :trace, "Started")
+  # nil to reset
+  log_event.(id, nil, "Started")
   check_tty.(id, export)
   cmd = build_cmd.(export)
   cmd = sudo_cmd.(cmd)
@@ -170,9 +171,9 @@ run_export = fn id, export ->
   %{export: export, task: task}
 end
 
-replace_log = fn logs, log = %{id: id, level: level} ->
-  case {level, logs[id][:level]} do
-    {:trace?, :error} -> logs
+replace_log = fn logs, log = %{id: id, error?: error?} ->
+  case {error?, logs[id][:error?]} do
+    {false, true} -> logs
     {_, _} -> Map.put(logs, id, Map.drop(log, [:id]))
   end
 end
@@ -183,7 +184,7 @@ master_loop = fn state = %{cubdb: cubdb, loop: loop, runners: runners, logs: log
       id = UUID.uuid1() |> ShortUUID.encode!()
       CubDB.put(cubdb, id, params)
       publish_exports.(cubdb)
-      log_event.(id, :trace, "Created")
+      log_event.(id, false, "Created")
       runner = run_export.(id, params)
       runners = Map.put(runners, id, runner)
       state = Map.put(state, :runners, runners)
@@ -194,7 +195,7 @@ master_loop = fn state = %{cubdb: cubdb, loop: loop, runners: runners, logs: log
       publish_exports.(cubdb)
       task = runners[id][:task]
       if task, do: Api.kill(task)
-      log_event.(id, :trace, "Updated")
+      log_event.(id, false, "Updated")
       runner = run_export.(id, params)
       runners = Map.put(runners, id, runner)
       state = Map.put(state, :runners, runners)
@@ -205,7 +206,7 @@ master_loop = fn state = %{cubdb: cubdb, loop: loop, runners: runners, logs: log
       publish_exports.(cubdb)
       task = runners[id][:task]
       if task, do: Api.kill(task)
-      log_event.(id, :trace, "Deleted")
+      log_event.(id, false, "Deleted")
       runners = Map.delete(runners, id)
       state = Map.put(state, :runners, runners)
       loop.(state)

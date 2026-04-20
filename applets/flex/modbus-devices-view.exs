@@ -25,8 +25,8 @@ view = fn assigns ->
           </div>
           <% log = @logs[id] %>
           <div :if={item.status==:enabled and log} class={[
-            log.level == :error && "text-red-500",
-            log.level == :error || "text-neutral-500",
+            log.error? && "text-red-500",
+            log.error? || "text-neutral-500",
           ]}>{log.dt} {log.msg}</div>
         </div>
         <div :if={item.status==:disabled}>

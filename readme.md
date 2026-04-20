@@ -73,7 +73,7 @@ s=1,a=32,c=rhr,d=2 # Opto22 LC - Read Fuel Level as Output Register
 - [ ] Modbus float formatting: F for float_be and f for float_le
 - [ ] Modbus enforce data and count ranges
 - [ ] Modbus log input/output as full hex: [00]![00000006010200030001]
-- [ ] Loop logs type should be just error? true|false
+- [x] Loop logs type should be just error? true|false
 - [x] Avoid serial loop run delay by explicit pid killing on restart
 - [x] Hero icons with z-index -1 wont show on modal: add z-0
 - [x] Hero icons show on top of menu: z-index: -1 on tailwind config

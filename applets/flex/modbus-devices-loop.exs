@@ -2,16 +2,16 @@ use Terminal
 
 dms = 1_000
 
-post_log = fn id, level, msg ->
+post_log = fn id, error?, msg ->
   dt = NaiveDateTime.utc_now()
-  Bus.broadcast!("flex:modbus:log", %{id: id, dt: dt, level: level, msg: msg})
+  Bus.broadcast!("flex:modbus:log", %{id: id, dt: dt, error?: error?, msg: msg})
 end
 
 log_event = fn
-  id, level, msg when is_binary(msg) -> post_log.(id, level, msg)
-  id, level, {:error, msg} when is_binary(msg) -> post_log.(id, level, msg)
-  id, level, {:error, msg} -> post_log.(id, level, inspect(msg))
-  id, level, msg -> post_log.(id, level, inspect(msg))
+  id, error?, msg when is_binary(msg) -> post_log.(id, error?, msg)
+  id, error?, {:error, msg} when is_binary(msg) -> post_log.(id, error?, msg)
+  id, error?, {:error, msg} -> post_log.(id, error?, inspect(msg))
+  id, error?, msg -> post_log.(id, error?, inspect(msg))
 end
 
 runner_loop = fn state = %{loop: loop, conn: _conn, id: _id, device: %{name: _name}} ->
@@ -21,10 +21,11 @@ end
 
 runner_setup = fn %{id: id, device: device = %{ip: ip, port: port, proto: proto}} ->
   with {:ok, conn} <- lib.open.(ip, port, proto) do
-    log_event.(id, :trace, "Started")
+    # nil to reset
+    log_event.(id, nil, "Started")
     runner_loop.(%{id: id, device: device, loop: runner_loop, conn: conn})
   else
-    {:error, error} -> log_event.(id, :error, error)
+    {:error, error} -> log_event.(id, true, error)
   end
 end
 
@@ -46,9 +47,9 @@ run_device = fn id, device ->
   %{device: device, task: task}
 end
 
-replace_log = fn logs, log = %{id: id, level: level} ->
-  case {level, logs[id][:level]} do
-    {:trace?, :error} -> logs
+replace_log = fn logs, log = %{id: id, error?: error?} ->
+  case {error?, logs[id][:error?]} do
+    {false, true} -> logs
     {_, _} -> Map.put(logs, id, Map.drop(log, [:id]))
   end
 end
@@ -59,7 +60,7 @@ master_loop = fn state = %{cubdb: cubdb, loop: loop, runners: runners, logs: log
       id = UUID.uuid1() |> ShortUUID.encode!()
       CubDB.put(cubdb, id, params)
       publish_devices.(cubdb)
-      log_event.(id, :trace, "Created")
+      log_event.(id, false, "Created")
       runner = run_device.(id, params)
       runners = Map.put(runners, id, runner)
       state = Map.put(state, :runners, runners)
@@ -70,7 +71,7 @@ master_loop = fn state = %{cubdb: cubdb, loop: loop, runners: runners, logs: log
       publish_devices.(cubdb)
       task = runners[id][:task]
       if task, do: Api.kill(task)
-      log_event.(id, :trace, "Updated")
+      log_event.(id, false, "Updated")
       runner = run_device.(id, params)
       runners = Map.put(runners, id, runner)
       state = Map.put(state, :runners, runners)
@@ -81,7 +82,7 @@ master_loop = fn state = %{cubdb: cubdb, loop: loop, runners: runners, logs: log
       publish_devices.(cubdb)
       task = runners[id][:task]
       if task, do: Api.kill(task)
-      log_event.(id, :trace, "Deleted")
+      log_event.(id, false, "Deleted")
       runners = Map.delete(runners, id)
       state = Map.put(state, :runners, runners)
       loop.(state)
