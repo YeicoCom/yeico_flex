@@ -1,10 +1,5 @@
 use Terminal
 
-# Arguments
-#
-# path: to cubdb folder
-#
-
 dms = 1_000
 
 post_log = fn id, level, msg ->

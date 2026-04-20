@@ -1,6 +1,6 @@
 use Terminal
 
-toms = 4000
+toms = 4_000
 
 hi_array =
   """

@@ -6,7 +6,6 @@ Api.putcast!("flex:serial:logs", %{})
 Api.putcast!("flex:modbus:devices", [])
 Api.putcast!("flex:modbus:logs", %{})
 
-{serial, _} = Api.evalf("flex/libserial.exs")
 {modbus, _} = Api.evalf("flex/libmodbus.exs")
 {modcmd, _} = Api.evalf("flex/libmodcmd.exs")
 

@@ -68,7 +68,7 @@ modal = fn
   state ->
     options = lib.options
     options = Map.put(options, :ttys, lib.list.())
-    modal = %{title: "New Serial Export", input: lib.new}
+    modal = %{title: "Add Serial Export", input: lib.new}
     state = Map.put(state, :modal, modal)
     Map.put(state, :options, options)
 end

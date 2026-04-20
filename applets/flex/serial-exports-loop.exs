@@ -1,22 +1,5 @@
 use Terminal
 
-# Arguments
-#
-# path: to cubdb folder
-#
-# Requirements
-#
-# - socat
-# - passwordless sudo or dialout user (not needed)
-#
-# Features
-#
-# - socat exits when stdio closes (pkill/muontrap not needed)
-# - pkill not available in nerves buildroot
-# - socat exits when socket client disconnects
-# - socat exits when usb serial port removed
-# - socat opens tty until socket client connects
-
 # /dev/tty.usbserial FTDI usb serial adapter on macos
 # /dev/tty.usbmodem Honeywell Voyager XP 1472G Lector de Código de Barras Omnidireccional 1D/2D
 # /dev/ttyACM cm4 serial ports seeed cm4 edgebox rpi 200
@@ -28,7 +11,7 @@ use Terminal
 #   nc -l 8001
 #   nc localhost 8001
 
-dms = 1_000
+dms = 2_000
 
 post_log = fn id, level, msg ->
   dt = NaiveDateTime.utc_now()
@@ -104,20 +87,27 @@ pid_path = fn pid ->
   "#{dir}/#{pid}"
 end
 
-run_cmd = fn %{tty: tty}, cmd ->
+kill_pid = fn path, pid ->
+  # using -9 prevents sudo from cascading the kill to socat
+  cmd = sudo_cmd.("kill #{pid}")
+  System.shell(cmd, stderr_to_stdout: true)
+  cmd = sudo_cmd.("rm -fr #{path}")
+  System.shell(cmd, stderr_to_stdout: true)
+end
+
+run_cmd = fn %{tty: tty}, id, cmd ->
   Api.trace(tty: tty, cmd: cmd)
   port = Port.open({:spawn, cmd}, [:binary, :line, :stderr_to_stdout])
   Api.trace(tty: tty, cmd: cmd, port: port)
   _ref = Port.monitor(port)
   {:os_pid, pid} = Port.info(port, :os_pid)
   Api.debug(tty: tty, cmd: cmd, port: port, pid: pid)
-  cmd = sudo_cmd.("touch #{pid_path.(pid)}")
+  path = pid_path.(pid)
+  cmd = sudo_cmd.("echo '#{id}' > #{path}")
   System.shell(cmd, stderr_to_stdout: true)
 
   Api.defer(fn ->
-    # using -9 prevents sudo from cascading the kill to socat
-    cmd = sudo_cmd.("kill #{pid}")
-    System.shell(cmd, stderr_to_stdout: true)
+    kill_pid.(path, pid)
     Api.trace(tty: tty, cmd: cmd)
     # Port.close(port) argument error
   end)
@@ -145,12 +135,20 @@ runner_loop = fn state = %{loop: loop, port: port, id: id, export: %{tty: tty}} 
 end
 
 runner_setup = fn %{id: id, export: export} ->
-  Api.sleep(dms)
+  # avoid duplicated socat on same tty
+  # this does not allow immediate reconnection
+  for path <- pid_path.("*") |> Path.wildcard() do
+    if id == File.read!(path) |> String.trim() do
+      pid = Path.basename(path)
+      kill_pid.(path, pid)
+    end
+  end
+
   log_event.(id, :trace, "Started")
   check_tty.(id, export)
   cmd = build_cmd.(export)
   cmd = sudo_cmd.(cmd)
-  port = run_cmd.(export, cmd)
+  port = run_cmd.(export, id, cmd)
   runner_loop.(%{id: id, export: export, loop: runner_loop, cmd: cmd, port: port})
 end
 
@@ -229,13 +227,9 @@ master_loop = fn state = %{cubdb: cubdb, loop: loop, runners: runners, logs: log
 end
 
 master_setup = fn %{cubdb: cubdb} ->
-  for p <- pid_path.("*") |> Path.wildcard() do
-    n = Path.basename(p)
-    # using -9 prevents sudo from cascading the kill to socat
-    cmd = sudo_cmd.("kill #{n}")
-    System.shell(cmd, stderr_to_stdout: true)
-    cmd = sudo_cmd.("rm -fr #{p}")
-    System.shell(cmd, stderr_to_stdout: true)
+  for path <- pid_path.("*") |> Path.wildcard() do
+    pid = Path.basename(path)
+    kill_pid.(path, pid)
   end
 
   Bus.subscribe!("flex:serial:insert", nil)
