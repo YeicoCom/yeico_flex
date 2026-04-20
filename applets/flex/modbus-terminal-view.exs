@@ -1,5 +1,29 @@
 use Terminal.Live
 
+help = """
+Values are decimal by default and can be prefixed with:
+  h for hexadecimal
+  d for decimal
+  b for binary
+
+s: Slave
+a: Address
+c: Code
+  ri to read input point(s)
+  rir to read input register(s)
+  fc to force discrete coil(s)
+  rc to read discrete coil(s)
+  phr to preset holding register(s)
+  rhr to read holding register(s)
+d: Data to output or read count
+f: Format FIXME
+#: Name or comments
+
+s=1,a=4,c=fc,d=1 # turn on 1 digital output at address 4 of slave 1
+s=1,a=4,c=fc,d=0 # turn off 1 digital output at address 4 of slave 1
+s=1,a=4,c=rc,d=1 # read 1 digital output at address 4 of slave 1
+"""
+
 view = fn assigns ->
   ~H"""
   <.fui fun={@ui.frame} title="Modbus Terminal">
@@ -20,7 +44,7 @@ view = fn assigns ->
       </div>
       <form id="output_form" :if={@conn.on} phx-submit="output:submit" phx-change="output:change"
         class="flex px-1 gap-2" phx-hook="EnterNavigation" autocomplete="off">
-        <.fui fun={@ui.input} name="line" value={@output[:line]} type="text" class="grow" id="output_form_line"
+        <.fui fun={@ui.input} name="line" value={@output.line} type="text" class="grow" id="output_form_line"
           phx-hook="LineHistory" data-key="modbus-terminal" title={@help}/>
         <.fui fun={@ui.button} type="submit">Execute</.fui>
       </form>
@@ -46,73 +70,6 @@ view = fn assigns ->
   """
 end
 
-help = """
-Values are decimal by default and can be prefixed with:
-  h for hexadecimal
-  d for decimal
-  b for binary
-
-s: Slave
-a: Address
-c: Code
-  ri to read input
-  rir to read input register
-  fc to force coil
-  rc to read coil
-  phr to preset holding register
-  rhr to read holding register
-d: Data to output or read count
-f: Format FIXME
-#: Name or comments
-
-s=1,a=4,c=fc,d=1 # turn on 1 digital output at address 4 of slave 1
-s=1,a=4,c=fc,d=0 # turn off 1 digital output at address 4 of slave 1
-s=1,a=4,c=rc,d=1 # read 1 digital output at address 4 of slave 1
-"""
-
-loop = fn loop, parent, conn ->
-  tracer = fn type, data ->
-    send(parent, {:socket, self(), type, data})
-    :ok
-  end
-
-  receive do
-    {:exec, cmd} ->
-      case moddev.master.({:exec, conn, cmd, tracer: tracer}) do
-        {:ok, conn} ->
-          send(parent, {:socket, self(), :success, :ok})
-          loop.(loop, parent, conn)
-
-        {:ok, conn, values} ->
-          send(parent, {:socket, self(), :success, values: values})
-          loop.(loop, parent, conn)
-
-        {:error, _conn, error = :closed} ->
-          send(parent, {:socket, self(), :error, error: error})
-          Api.warn(error: error)
-
-        {:error, conn, error} ->
-          send(parent, {:socket, self(), :error, error: error})
-          loop.(loop, parent, conn)
-      end
-
-    unexpected ->
-      send(parent, {:socket, self(), :error, unexpected: unexpected})
-      Api.warn(unexpected: unexpected)
-  end
-end
-
-setup = fn {parent, %{ip: ip, port: port}, proto} ->
-  with {:ok, conn} <- moddev.open.(ip, port, proto) do
-    send(parent, {:socket, self(), :success, "Connected to #{proto}:#{ip}:#{port}"})
-    loop.(loop, parent, conn)
-  else
-    {:error, error} ->
-      send(parent, {:socket, self(), :error, error: error})
-      Api.warn(error: error)
-  end
-end
-
 style = fn
   :trace -> "text-gray-200"
   :error -> "text-red-500"
@@ -121,18 +78,18 @@ style = fn
   :success -> "text-lime-500"
 end
 
+encode = fn
+  :input, line -> lib.printable.(line)
+  :output, line -> lib.printable.(line)
+  _, line -> line
+end
+
 append = fn socket, state = %{id: id, tzoffset: tzoffset}, type, line ->
   line = if is_binary(line), do: line, else: inspect(line)
-
-  line =
-    case type do
-      :input -> moddev.printable.(line)
-      :output -> moddev.printable.(line)
-      _ -> line
-    end
-
-  dt = NaiveDateTime.utc_now() |> NaiveDateTime.shift(hour: tzoffset) |> NaiveDateTime.to_time()
+  line = encode.(type, line)
+  dt = NaiveDateTime.utc_now()
   log = %{id: id, dt: dt, style: style.(type), line: line}
+  log = lib.shift.(tzoffset, log)
   socket = stream(socket, :logs, [log])
   state = Map.update!(state, :count, &(&1 + 1))
   state = Map.update!(state, :id, &(&1 + 1))
@@ -140,13 +97,11 @@ append = fn socket, state = %{id: id, tzoffset: tzoffset}, type, line ->
 end
 
 title = "Modbus Connection"
-options = %{protos: moddev.protos}
 
 handler = fn
   {:mount, socket, state} ->
     tzoffset = socket.assigns.tzoffset || 0
-    pfirst = List.first(moddev.protos)
-    output = %{proto: pfirst, line: ""}
+    pfirst = List.first(lib.options.protos)
     initial = %{port: 502, ip: "10.77.0.10", proto: pfirst}
     socket = assign(socket, applet_css: "/applets/flex.css")
     socket = assign(socket, applet_js: "/applets/flex.js")
@@ -156,8 +111,8 @@ handler = fn
     state = Map.put(state, :tzoffset, tzoffset)
     state = Map.put(state, :conn, %{task: nil, input: initial, on: false})
     state = Map.put(state, :modal, %{title: title, input: initial})
-    state = Map.put(state, :options, options)
-    state = Map.put(state, :output, output)
+    state = Map.put(state, :options, lib.options)
+    state = Map.put(state, :output, %{line: nil})
     state = Map.put(state, :help, help)
     state = Map.put(state, :count, 0)
     state = Map.put(state, :id, 0)
@@ -187,7 +142,7 @@ handler = fn
    params = %{"line" => line}} ->
     Api.trace(view: path, event: event, params: params)
 
-    case moddev.parse.(line) do
+    case lib.parse.(line) do
       {:ok, cmd} ->
         send(pid, {:exec, cmd})
         output = Map.put(output, :line, nil)
@@ -199,14 +154,13 @@ handler = fn
         append.(socket, state, :error, error)
     end
 
-  {:event, socket, state = %{conn: %{task: task}, output: %{proto: proto}},
-   event = "modal:submit", params} ->
+  {:event, socket, state = %{conn: %{task: task}}, event = "modal:submit", params} ->
     Api.trace(view: path, event: event, params: params)
     params = Map.update!(params, "port", &String.to_integer/1)
     params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
     params = Enum.into(params, %{})
     if task, do: Api.kill(task)
-    task = Api.async(setup, {self(), params, proto})
+    task = Api.async(lib.setup, {self(), params})
     conn = %{input: params, task: task, on: true}
     state = Map.put(state, :conn, conn)
     state = Map.put(state, :modal, nil)

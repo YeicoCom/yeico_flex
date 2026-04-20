@@ -60,7 +60,7 @@ end
 
 modal = fn
   {state, id, device = %{points: points}} ->
-    options = moddev.options
+    options = lib.options
     modal = %{title: "Edit Modbus Device", input: device}
     state = Map.put(state, :modal, modal)
     state = Map.put(state, :points, points)
@@ -68,18 +68,18 @@ modal = fn
     Map.put(state, :options, options)
 
   state ->
-    options = moddev.options
-    modal = %{title: "New Modbus Device", input: moddev.new.()}
+    options = lib.options
+    modal = %{title: "Add Modbus Device", input: lib.new.()}
     state = Map.put(state, :modal, modal)
     Map.put(state, :options, options)
 end
 
 index = fn pairs -> Enum.map(pairs, fn {k, _} -> k end) end
 
-apply = fn moddev, action ->
+apply = fn device, action ->
   case action do
-    "enable" -> Map.put(moddev, :status, :enabled)
-    "disable" -> Map.put(moddev, :status, :disabled)
+    "enable" -> Map.put(device, :status, :enabled)
+    "disable" -> Map.put(device, :status, :disabled)
   end
 end
 
@@ -94,7 +94,7 @@ handler = fn
   {:mount, socket, state} ->
     tzoffset = socket.assigns.tzoffset || 0
     logs = Api.subget!("flex:modbus:logs")
-    logs = moddev.shift.(tzoffset, logs)
+    logs = lib.shift.(tzoffset, logs)
     devices = Api.subget!("flex:modbus:devices")
     index = index.(devices)
     devices = Enum.into(devices, %{})
@@ -174,7 +174,7 @@ handler = fn
 
   {:info, socket, state = %{tzoffset: tzoffset}, event = {"flex:modbus:logs", _, logs}} ->
     Api.trace(view: path, info: event)
-    state = Map.put(state, :logs, moddev.shift.(tzoffset, logs))
+    state = Map.put(state, :logs, lib.shift.(tzoffset, logs))
     {socket, state}
 
   {:info, socket, state, event} ->

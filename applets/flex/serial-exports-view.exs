@@ -57,8 +57,8 @@ end
 
 modal = fn
   {state, id, export = %{tty: tty}} ->
-    options = serial.options
-    ttys = [tty | serial.list.()] |> Enum.uniq()
+    options = lib.options
+    ttys = [tty | lib.list.()] |> Enum.uniq()
     options = Map.put(options, :ttys, ttys)
     modal = %{title: "Edit Serial Export", input: export}
     state = Map.put(state, :modal, modal)
@@ -66,9 +66,9 @@ modal = fn
     Map.put(state, :options, options)
 
   state ->
-    options = serial.options
-    options = Map.put(options, :ttys, serial.list.())
-    modal = %{title: "New Serial Export", input: serial.new}
+    options = lib.options
+    options = Map.put(options, :ttys, lib.list.())
+    modal = %{title: "New Serial Export", input: lib.new}
     state = Map.put(state, :modal, modal)
     Map.put(state, :options, options)
 end
@@ -96,7 +96,7 @@ handler = fn
   {:mount, socket, state} ->
     tzoffset = socket.assigns.tzoffset || 0
     logs = Api.subget!("flex:serial:logs")
-    logs = serial.shift.(tzoffset, logs)
+    logs = lib.shift.(tzoffset, logs)
     exports = Api.subget!("flex:serial:exports")
     index = index.(exports)
     exports = Enum.into(exports, %{})
@@ -174,7 +174,7 @@ handler = fn
 
   {:info, socket, state = %{tzoffset: tzoffset}, event = {"flex:serial:logs", _, logs}} ->
     Api.trace(view: path, info: event)
-    state = Map.put(state, :logs, serial.shift.(tzoffset, logs))
+    state = Map.put(state, :logs, lib.shift.(tzoffset, logs))
     {socket, state}
 
   {:info, socket, state, event} ->

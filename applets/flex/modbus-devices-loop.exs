@@ -25,7 +25,7 @@ runner_loop = fn state = %{loop: loop, conn: _conn, id: _id, device: %{name: _na
 end
 
 runner_setup = fn %{id: id, device: device = %{ip: ip, port: port, proto: proto}} ->
-  with {:ok, conn} <- moddev.open.(ip, port, proto) do
+  with {:ok, conn} <- lib.open.(ip, port, proto) do
     log_event.(id, :trace, "Started")
     runner_loop.(%{id: id, device: device, loop: runner_loop, conn: conn})
   else

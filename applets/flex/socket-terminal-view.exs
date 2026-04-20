@@ -20,11 +20,11 @@ view = fn assigns ->
       </div>
       <form id="output_form" :if={@conn.on} phx-submit="output:submit" phx-change="output:change"
         class="flex pb-1 px-1 gap-2" phx-hook="EnterNavigation" autocomplete="off">
-        <.fui fun={@ui.input} name="line" value={@output[:line]} type="text" class="grow" id="output_form_line"
+        <.fui fun={@ui.input} name="line" value={@output.line} type="text" class="grow" id="output_form_line"
           phx-hook="LineHistory" data-key="socket-terminal"/>
         <.fui fun={@ui.button} type="submit">Send</.fui>
-        <.fui fun={@ui.select} name="omode" value={@output[:omode]} values={@options.omode} required title="Output Mode"/>
-        <.fui fun={@ui.select} name="imode" value={@output[:imode]} values={@options.imode} required title="Input Mode"/>
+        <.fui fun={@ui.select} name="omode" value={@output.omode} values={@options.omode} required title="Output Mode"/>
+        <.fui fun={@ui.select} name="imode" value={@output.imode} values={@options.imode} required title="Input Mode"/>
       </form>
     </div>
   </.fui>
@@ -59,14 +59,14 @@ append = fn socket, state = %{id: id, tzoffset: tzoffset}, type, line ->
 
   line =
     case type do
-      :input -> term.printable.(line)
-      :output -> term.printable.(line)
+      :input -> lib.printable.(line)
+      :output -> lib.printable.(line)
       _ -> line
     end
 
   dt = NaiveDateTime.utc_now()
   log = %{id: id, dt: dt, style: style.(type), line: line}
-  log = term.shift.(tzoffset, log)
+  log = lib.shift.(tzoffset, log)
   socket = stream(socket, :logs, [log])
   state = Map.update!(state, :count, &(&1 + 1))
   state = Map.update!(state, :id, &(&1 + 1))
@@ -76,10 +76,10 @@ end
 handler = fn
   {:mount, socket, state} ->
     tzoffset = socket.assigns.tzoffset || 0
-    initial = term.new.(Terminal.dev?())
-    ifirst = List.first(term.imode)
-    ofirst = List.first(term.omode)
-    output = %{imode: ifirst, omode: ofirst, line: ""}
+    initial = lib.new.(Terminal.dev?())
+    ifirst = List.first(lib.options.imode)
+    ofirst = List.first(lib.options.omode)
+    output = %{imode: ifirst, omode: ofirst, line: nil}
     socket = assign(socket, applet_css: "/applets/flex.css")
     socket = assign(socket, applet_js: "/applets/flex.js")
     socket = assign(socket, page_title: "Socket Terminal")
@@ -88,7 +88,7 @@ handler = fn
     state = Map.put(state, :tzoffset, tzoffset)
     state = Map.put(state, :conn, %{task: nil, input: initial, on: false})
     state = Map.put(state, :modal, %{title: title, input: initial})
-    state = Map.put(state, :options, term.options)
+    state = Map.put(state, :options, lib.options)
     state = Map.put(state, :output, output)
     state = Map.put(state, :count, 0)
     state = Map.put(state, :id, 0)
@@ -111,7 +111,7 @@ handler = fn
   {:event, socket, state = %{output: output, conn: %{task: %{pid: pid}}}, event = "output:change",
    params = %{"line" => line, "omode" => omode, "imode" => imode, "_target" => targets}} ->
     Api.trace(view: path, event: event, params: params)
-    if "imode" in targets, do: send(pid, {:eol, term.toeol.(imode)})
+    if "imode" in targets, do: send(pid, {:eol, lib.toeol.(imode)})
     output = Map.put(output, :line, line)
     output = Map.put(output, :omode, omode)
     output = Map.put(output, :imode, imode)
@@ -121,7 +121,7 @@ handler = fn
   {:event, socket, state = %{output: output, conn: %{task: %{pid: pid}}}, event = "output:submit",
    params = %{"line" => line, "omode" => omode}} ->
     Api.trace(view: path, event: event, params: params)
-    transformed = term.transform.(omode, line)
+    transformed = lib.transform.(omode, line)
     send(pid, {:write, transformed})
     output = Map.put(output, :line, nil)
     state = Map.put(state, :output, output)
@@ -135,7 +135,7 @@ handler = fn
     params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
     params = Enum.into(params, %{})
     if task, do: Api.kill(task)
-    task = Api.async(term.setup, {self(), params, term.toeol.(imode)})
+    task = Api.async(lib.setup, {self(), params, lib.toeol.(imode)})
     conn = %{input: params, task: task, on: true}
     state = Map.put(state, :conn, conn)
     state = Map.put(state, :modal, nil)
