@@ -48,12 +48,32 @@ open = fn ip, port, proto ->
   modbus.master.({:open, ip: ip, port: port, proto: toproto.(proto)})
 end
 
+exec = fn conn, cmd, opts ->
+  modbus.master.({:exec, conn, cmd, opts})
+end
+
+names = fn str ->
+  str
+  |> String.split(",")
+  |> Enum.map(&String.trim/1)
+end
+
+toint? = fn str ->
+  case Integer.parse(str) do
+    {v, ""} -> v
+    _ -> nil
+  end
+end
+
 %{
   new: new,
   shift: shift,
   options: options,
   open: open,
+  exec: exec,
   points: %{
-    new: %{type: "DI", slave: 1, address: 0, names: ""}
+    new: %{type: "DI", slave: 1, address: 0, names: ""},
+    toint?: toint?,
+    names: names
   }
 }

@@ -14,8 +14,47 @@ log_event = fn
   id, error?, msg -> post_log.(id, error?, inspect(msg))
 end
 
-runner_loop = fn state = %{loop: loop, conn: _conn, id: _id, device: %{name: _name}} ->
-  Api.sleep(1000)
+runner_loop = fn state = %{loop: loop, conn: conn, id: id, device: device = %{points: points}} ->
+  {conn, result} =
+    for {point, pi} <- Enum.with_index(points), reduce: {conn, %{}} do
+      {conn, result} ->
+        names = lib.points.names.(point.names)
+        keys = for name <- names, do: "#{point.type}:#{name}"
+        result = Map.put(result, pi, names)
+
+        {cmd, result} =
+          case point.type do
+            "DI" ->
+              {{:ri, point.slave, point.address, length(names)}, result}
+
+            "DO" ->
+              values = for key <- keys, do: {key, Adb.get("flex:modbus:point:#{key}", 0)}
+              result = Enum.into(values, result)
+              {{:fc, point.slave, point.address, Keyword.values(values)}, result}
+          end
+
+        case lib.exec.(conn, cmd, []) do
+          {:ok, conn} ->
+            {conn, result}
+
+          {:ok, conn, values} ->
+            {_, _, captures} =
+              for _ <- keys, reduce: {keys, values, []} do
+                {[key | keys], [value | values], captures} ->
+                  Adb.put("flex:modbus:point:#{key}", value)
+                  {keys, values, [{key, value} | captures]}
+              end
+
+            result = Enum.into(captures, result)
+            {conn, result}
+
+          {:error, _conn, error} ->
+            throw(device: Map.drop(device, [:points]), error: error)
+        end
+    end
+
+  Bus.broadcast!("flex:modbus:points", {id, result})
+  state = Map.put(state, :conn, conn)
   loop.(state)
 end
 

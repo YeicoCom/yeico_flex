@@ -1,5 +1,6 @@
 use Terminal
 
+Adb.reset()
 Api.putcast!("flex:serial:exports", [])
 Api.putcast!("flex:serial:logs", %{})
 

@@ -31,8 +31,12 @@ view = fn assigns ->
           ]}>{log.dt} {log.msg}</div>
         </div>
         <div class="flex flex-col p-1">
-          <div :for={point <- item.points}>
-          {inspect(point)}
+          <div :for={{point, pi} <- Enum.with_index(item.points)}>
+
+            s:{point.slave} a:{point.address} t:{point.type}
+            <div :for={name <- @points[id][pi]}>
+              n:{name} v:{@points[id]["#{point.type}:#{name}"]}
+            </div>
           </div>
         </div>
       </div>
@@ -145,19 +149,47 @@ parse = fn params, points ->
   Enum.into(params, %{points: points})
 end
 
-toint? = fn str ->
-  case Integer.parse(str) do
-    {v, ""} -> v
-    _ -> nil
+points = fn devices ->
+  for {id, device} <- devices do
+    for point <- device.points do
+      for name <- lib.points.names.(point.names) do
+        key = "#{point.type}:#{name}"
+        {"#{id}/#{key}", Adb.get("flex:modbus:point:#{key}", 0)}
+      end
+    end
   end
+  |> List.flatten()
+  |> Enum.into(%{})
+end
+
+points = fn devices ->
+  for {id, device} <- devices do
+    {id,
+     for {point, pi} <- Enum.with_index(device.points) do
+       names = lib.points.names.(point.names)
+
+       [
+         {pi, names},
+         for name <- names do
+           key = "#{point.type}:#{name}"
+           {key, Adb.get("flex:modbus:point:#{key}", 0)}
+         end
+       ]
+     end
+     |> List.flatten()
+     |> Enum.into(%{})}
+  end
+  |> Enum.into(%{})
 end
 
 handler = fn
   {:mount, socket, state} ->
+    Bus.subscribe!("flex:modbus:points")
     tzoffset = socket.assigns.tzoffset || 0
     logs = Api.subget!("flex:modbus:logs")
     logs = lib.shift.(tzoffset, logs)
     devices = Api.subget!("flex:modbus:devices")
+    points = points.(devices)
     index = index.(devices)
     devices = Enum.into(devices, %{})
     socket = assign(socket, applet_css: "/applets/flex.css")
@@ -168,6 +200,7 @@ handler = fn
     state = Map.put(state, :devices, devices)
     state = Map.put(state, :index, index)
     state = Map.put(state, :logs, logs)
+    state = Map.put(state, :points, points)
     state = Map.put(state, :modal, nil)
     state = Map.put(state, :ui, ui)
     state = if length(index) > 0, do: state, else: modal.(state)
@@ -235,8 +268,8 @@ handler = fn
   {:event, socket, state = %{modal: %{input: %{points: points}}}, event = "modal:points:change",
    params} ->
     Api.trace(view: path, event: event, params: params)
-    slave = params["slave"] |> Enum.map(toint?)
-    address = params["address"] |> Enum.map(toint?)
+    slave = params["slave"] |> Enum.map(lib.points.toint?)
+    address = params["address"] |> Enum.map(lib.points.toint?)
     type = params["type"]
     names = params["names"]
 
@@ -264,15 +297,23 @@ handler = fn
 
   {:info, socket, state, event = {"flex:modbus:devices", _, devices}} ->
     Api.trace(view: path, info: event)
+    points = points.(devices)
     index = index.(devices)
     devices = Enum.into(devices, %{})
     state = Map.put(state, :devices, devices)
     state = Map.put(state, :index, index)
+    state = Map.put(state, :points, points)
     {socket, state}
 
   {:info, socket, state = %{tzoffset: tzoffset}, event = {"flex:modbus:logs", _, logs}} ->
     Api.trace(view: path, info: event)
     state = Map.put(state, :logs, lib.shift.(tzoffset, logs))
+    {socket, state}
+
+  {:info, socket, state = %{points: points}, event = {"flex:modbus:points", _, {id, values}}} ->
+    Api.trace(view: path, info: event)
+    points = Map.put(points, id, values)
+    state = Map.put(state, :points, points)
     {socket, state}
 
   {:info, socket, state, event} ->
