@@ -14,49 +14,50 @@ log_event = fn
   id, error?, msg -> post_log.(id, error?, inspect(msg))
 end
 
-runner_loop = fn state = %{loop: loop, conn: conn, id: id, device: device = %{points: points}} ->
-  {conn, result} =
-    for {point, pi} <- Enum.with_index(points), reduce: {conn, %{}} do
-      {conn, result} ->
-        names = lib.points.names.(point.names)
-        keys = for name <- names, do: "#{point.type}:#{name}"
-        result = Map.put(result, pi, names)
+runner_loop =
+  fn state = %{loop: loop, conn: conn, id: id, device: device = %{points: points}} ->
+    {conn, result} =
+      for {point, pi} <- Enum.with_index(points), reduce: {conn, %{}} do
+        {conn, result} ->
+          names = device.names[pi]
+          keys = device.keys[pi]
+          result = Map.put(result, pi, names)
 
-        {cmd, result} =
-          case point.type do
-            "DI" ->
-              {{:ri, point.slave, point.address, length(names)}, result}
+          {cmd, result} =
+            case point.type do
+              "DI" ->
+                {{:ri, point.slave, point.address, length(names)}, result}
 
-            "DO" ->
-              values = for key <- keys, do: {key, Adb.get("flex:modbus:point:#{key}", 0)}
-              result = Enum.into(values, result)
-              {{:fc, point.slave, point.address, Keyword.values(values)}, result}
+              "DO" ->
+                values = for key <- keys, do: {key, Adb.get("flex:modbus:point:#{key}", 0)}
+                result = Enum.into(values, result)
+                {{:fc, point.slave, point.address, Keyword.values(values)}, result}
+            end
+
+          case lib.exec.(conn, cmd, []) do
+            {:ok, conn} ->
+              {conn, result}
+
+            {:ok, conn, values} ->
+              {_, _, captures} =
+                for _ <- keys, reduce: {keys, values, []} do
+                  {[key | keys], [value | values], captures} ->
+                    Adb.put("flex:modbus:point:#{key}", value)
+                    {keys, values, [{key, value} | captures]}
+                end
+
+              result = Enum.into(captures, result)
+              {conn, result}
+
+            {:error, _conn, error} ->
+              throw(device: Map.drop(device, [:points]), error: error)
           end
+      end
 
-        case lib.exec.(conn, cmd, []) do
-          {:ok, conn} ->
-            {conn, result}
-
-          {:ok, conn, values} ->
-            {_, _, captures} =
-              for _ <- keys, reduce: {keys, values, []} do
-                {[key | keys], [value | values], captures} ->
-                  Adb.put("flex:modbus:point:#{key}", value)
-                  {keys, values, [{key, value} | captures]}
-              end
-
-            result = Enum.into(captures, result)
-            {conn, result}
-
-          {:error, _conn, error} ->
-            throw(device: Map.drop(device, [:points]), error: error)
-        end
-    end
-
-  Bus.broadcast!("flex:modbus:points", {id, result})
-  state = Map.put(state, :conn, conn)
-  loop.(state)
-end
+    Bus.broadcast!("flex:modbus:points", {id, result})
+    state = Map.put(state, :conn, conn)
+    loop.(state)
+  end
 
 runner_setup = fn %{id: id, device: device = %{ip: ip, port: port, proto: proto}} ->
   with {:ok, conn} <- lib.open.(ip, port, proto) do
@@ -68,8 +69,27 @@ runner_setup = fn %{id: id, device: device = %{ip: ip, port: port, proto: proto}
   end
 end
 
+complement_device = fn {id, device = %{points: points}} ->
+  device = Map.put(device, :names, %{})
+  device = Map.put(device, :keys, %{})
+
+  device =
+    for {point, pi} <- Enum.with_index(points), reduce: device do
+      device ->
+        names = lib.points.names.(point.names)
+        keys = for name <- names, do: "#{point.type}:#{name}"
+
+        device
+        |> put_in([:names, pi], names)
+        |> put_in([:keys, pi], keys)
+    end
+
+  {id, device}
+end
+
 publish_devices = fn cubdb ->
   devices = CubDB.select(cubdb, []) |> Enum.to_list()
+  devices = Enum.map(devices, complement_device)
   Api.putcast!("flex:modbus:devices", devices)
   devices
 end
@@ -82,6 +102,7 @@ run_enabled = fn id, device ->
 end
 
 run_device = fn id, device ->
+  {id, device} = complement_device.({id, device})
   task = run_enabled.(id, device)
   %{device: device, task: task}
 end

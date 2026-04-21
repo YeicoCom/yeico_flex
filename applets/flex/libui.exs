@@ -177,6 +177,7 @@ link = fn assigns ->
   assigns = phx_attribs.(assigns)
   assigns = Map.put_new(assigns, :id, nil)
   assigns = Map.put_new(assigns, :class, nil)
+  assigns = Map.put_new(assigns, :title, nil)
   assigns = Map.put_new(assigns, :disabled, nil)
   assigns = Map.put_new(assigns, :type, "normal")
 
@@ -191,6 +192,7 @@ link = fn assigns ->
   ~H"""
   <div
   id={@id}
+  title={@title}
   disabled={@disabled}
   {@phx_attribs}
   class={[

@@ -11,10 +11,10 @@ view = fn assigns ->
         <div class="grow"/>
       </div>
       <div :for={id <- @index} class="flex flex-col p-2">
-        <% item = @devices[id] %>
+        <% device = @devices[id] %>
         <div class="flex flex-col p-2 hover:rounded hover:bg-zinc-800">
           <.fui fun={@ui.link} phx-click="click:edit" phx-value-id={id}>
-            {item.proto},{item.ip}:{item.port},{item.status},{item.name}
+            {device.proto},{device.ip}:{device.port},{device.status},{device.name}
           </.fui>
           <div class="flex gap-2">
             <.fui fun={@ui.link} phx-click="click:edit" phx-value-id={id}>Edit</.fui>
@@ -25,18 +25,27 @@ view = fn assigns ->
             <.fui fun={@ui.link} phx-click="click:delete" phx-value-id={id} type="danger">Delete</.fui>
           </div>
           <% log = @logs[id] %>
-          <div :if={item.status==:enabled and log} class={[
+          <div :if={device.status==:enabled and log} class={[
             log.error? && "text-red-500",
             log.error? || "text-neutral-500",
           ]}>{log.dt} {log.msg}</div>
         </div>
         <div class="flex flex-col p-1">
-          <div :for={{point, pi} <- Enum.with_index(item.points)}>
-
-            s:{point.slave} a:{point.address} t:{point.type}
-            <div :for={name <- @points[id][pi]}>
-              n:{name} v:{@points[id]["#{point.type}:#{name}"]}
+          <div :for={{point, pi} <- Enum.with_index(device.points)} class="flex gap-1">
+            <div>Slave:{point.slave}</div>
+            <div>Address:{point.address}</div>
+            <div>Type:{point.type}</div>
+            <div :if={point.type=="DI"} :for={name <- @points[id][pi]}>
+              {name}:{@points[id]["#{point.type}:#{name}"]}
             </div>
+            <%= for name <- @points[id][pi] do %>
+            <% key = "#{point.type}:#{name}" %>
+            <% val = @points[id][key] %>
+            <% tval = if val>0, do: 0, else: 1 %>
+            <.fui :if={point.type=="DO"} fun={@ui.link} phx-click="click:toggle" phx-value-key={key} phx-value-val={tval}>
+              {name}:{val}
+            </.fui>
+            <% end %>
           </div>
         </div>
       </div>
@@ -72,7 +81,7 @@ view = fn assigns ->
           <div>Address</div>
           <div>Type</div>
           <div>Name(s)</div>
-          <.fui fun={@ui.link} phx-click="click:point:add" phx-value-pi={0}><div class="hero-plus z-0"/>Point</.fui>
+          <.fui fun={@ui.link} phx-click="click:point:add" phx-value-pi={0} title="Add Point"><div class="hero-plus z-0"/>Point</.fui>
         </div>
         <div class="grow overflow-y-scroll flex flex-col gap-1 p-1">
           <% pl = length(input.points) - 1 %>
@@ -83,9 +92,9 @@ view = fn assigns ->
               <.fui fun={@ui.select} name="type[]" value={point.type} values={@options.points.types} required/>
               <.fui fun={@ui.input} name="names[]" value={point.names} type="text" required pattern="^[a-zA-Z0-9_,]+$"/>
               <div class="flex gap-1">
-                <.fui fun={@ui.link} disabled={pi==0} phx-click="click:point:del" phx-value-pi={pi}><div class="hero-x-mark z-0"/></.fui>
-                <.fui fun={@ui.link} disabled={pi==0} phx-click="click:point:up" phx-value-pi={pi}><div class="hero-arrow-up z-0"/></.fui>
-                <.fui fun={@ui.link} disabled={pi==pl} phx-click="click:point:down" phx-value-pi={pi}><div class="hero-arrow-down z-0"/></.fui>
+                <.fui fun={@ui.link} disabled={pi==0} phx-click="click:point:del" phx-value-pi={pi} type="danger" title="Delete Point"><div class="hero-x-mark z-0"/></.fui>
+                <.fui fun={@ui.link} disabled={pi==0} phx-click="click:point:up" phx-value-pi={pi} title="Move Point Up"><div class="hero-arrow-up z-0"/></.fui>
+                <.fui fun={@ui.link} disabled={pi==pl} phx-click="click:point:down" phx-value-pi={pi} title="Move Point Down"><div class="hero-arrow-down z-0"/></.fui>
               </div>
             </div>
           <% end %>
@@ -151,30 +160,12 @@ end
 
 points = fn devices ->
   for {id, device} <- devices do
-    for point <- device.points do
-      for name <- lib.points.names.(point.names) do
-        key = "#{point.type}:#{name}"
-        {"#{id}/#{key}", Adb.get("flex:modbus:point:#{key}", 0)}
-      end
-    end
-  end
-  |> List.flatten()
-  |> Enum.into(%{})
-end
-
-points = fn devices ->
-  for {id, device} <- devices do
     {id,
-     for {point, pi} <- Enum.with_index(device.points) do
-       names = lib.points.names.(point.names)
-
-       [
-         {pi, names},
-         for name <- names do
-           key = "#{point.type}:#{name}"
-           {key, Adb.get("flex:modbus:point:#{key}", 0)}
-         end
-       ]
+     for pi <- 0..(length(device.points) - 1) do
+       names = device.names[pi]
+       keys = device.keys[pi]
+       pairs = for key <- keys, do: {key, Adb.get("flex:modbus:point:#{key}", 0)}
+       [{pi, names} | pairs]
      end
      |> List.flatten()
      |> Enum.into(%{})}
@@ -261,7 +252,7 @@ handler = fn
    event = "click:point:" <> action, params = %{"pi" => pi}} ->
     Api.trace(view: path, event: event, params: params)
     pi = String.to_integer(pi)
-    points = apply.({points, action, pi}) |> Api.warn()
+    points = apply.({points, action, pi})
     state = put_in(state, [:modal, :input, :points], points)
     {socket, state}
 
@@ -290,9 +281,13 @@ handler = fn
     state = Map.put(state, :modal, nil)
     {socket, state}
 
+  {:event, socket, state, event = "click:toggle", params = %{"key" => key, "val" => val}} ->
+    Api.trace(view: path, event: event, params: params)
+    Adb.put("flex:modbus:point:#{key}", String.to_integer(val))
+    {socket, state}
+
   {:event, socket, state, event, params} ->
     Api.trace(view: path, event: event, params: params)
-    Api.warn(state.modal)
     {socket, state}
 
   {:info, socket, state, event = {"flex:modbus:devices", _, devices}} ->
