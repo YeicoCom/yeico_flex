@@ -65,6 +65,14 @@ toint? = fn str ->
   end
 end
 
+get = fn key ->
+  Adb.get("flex:modbus:point:#{key}", 0)
+end
+
+put = fn key, val ->
+  Adb.put("flex:modbus:point:#{key}", val)
+end
+
 %{
   new: new,
   shift: shift,
@@ -74,6 +82,8 @@ end
   points: %{
     new: %{type: "DI", slave: 1, address: 0, names: ""},
     toint?: toint?,
-    names: names
+    names: names,
+    get: get,
+    put: put
   }
 }

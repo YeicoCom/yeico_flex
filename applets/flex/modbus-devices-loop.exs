@@ -21,7 +21,7 @@ runner_loop =
         {conn, result} ->
           names = device.names[pi]
           keys = device.keys[pi]
-          result = Map.put(result, pi, names)
+          result = Map.put(result, pi, Enum.zip(names, keys))
 
           {cmd, result} =
             case point.type do
@@ -29,7 +29,7 @@ runner_loop =
                 {{:ri, point.slave, point.address, length(names)}, result}
 
               "DO" ->
-                values = for key <- keys, do: {key, Adb.get("flex:modbus:point:#{key}", 0)}
+                values = for key <- keys, do: {key, lib.points.get.(key)}
                 result = Enum.into(values, result)
                 {{:fc, point.slave, point.address, Keyword.values(values)}, result}
             end
@@ -42,7 +42,7 @@ runner_loop =
               {_, _, captures} =
                 for _ <- keys, reduce: {keys, values, []} do
                   {[key | keys], [value | values], captures} ->
-                    Adb.put("flex:modbus:point:#{key}", value)
+                    lib.points.put.(key, value)
                     {keys, values, [{key, value} | captures]}
                 end
 

@@ -35,14 +35,13 @@ view = fn assigns ->
             <div>Slave:{point.slave}</div>
             <div>Address:{point.address}</div>
             <div>Type:{point.type}</div>
-            <div :if={point.type=="DI"} :for={name <- @points[id][pi]}>
-              {name}:{@points[id]["#{point.type}:#{name}"]}
+            <div :if={point.type=="DI"} :for={{name, key} <- @points[id][pi]}>
+              {name}:{@points[id][key]}
             </div>
-            <%= for name <- @points[id][pi] do %>
-            <% key = "#{point.type}:#{name}" %>
+            <%= for {name, key} <- @points[id][pi] do %>
             <% val = @points[id][key] %>
             <% tval = if val>0, do: 0, else: 1 %>
-            <.fui :if={point.type=="DO"} fun={@ui.link} phx-click="click:toggle" phx-value-key={key} phx-value-val={tval}>
+            <.fui :if={point.type=="DO"} fun={@ui.link} phx-click="click:put" phx-value-key={key} phx-value-val={tval}>
               {name}:{val}
             </.fui>
             <% end %>
@@ -164,8 +163,8 @@ points = fn devices ->
      for pi <- 0..(length(device.points) - 1) do
        names = device.names[pi]
        keys = device.keys[pi]
-       pairs = for key <- keys, do: {key, Adb.get("flex:modbus:point:#{key}", 0)}
-       [{pi, names} | pairs]
+       pairs = for key <- keys, do: {key, lib.points.get.(key)}
+       [{pi, Enum.zip(names, keys)} | pairs]
      end
      |> List.flatten()
      |> Enum.into(%{})}
@@ -281,9 +280,9 @@ handler = fn
     state = Map.put(state, :modal, nil)
     {socket, state}
 
-  {:event, socket, state, event = "click:toggle", params = %{"key" => key, "val" => val}} ->
+  {:event, socket, state, event = "click:put", params = %{"key" => key, "val" => val}} ->
     Api.trace(view: path, event: event, params: params)
-    Adb.put("flex:modbus:point:#{key}", String.to_integer(val))
+    lib.points.put.(key, String.to_integer(val))
     {socket, state}
 
   {:event, socket, state, event, params} ->
