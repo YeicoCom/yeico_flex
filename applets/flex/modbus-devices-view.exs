@@ -31,20 +31,25 @@ view = fn assigns ->
           ]}>{log.dt} {log.msg}</div>
         </div>
         <div class="flex flex-col p-1 font-mono">
-          <div :for={{point =%{type: type, encoding: encoding}, pi} <- Enum.with_index(device.points)}
+          <div :for={{point = %{type: type, encoding: encoding}, pi} <- Enum.with_index(device.points)}
             class="grid grid-cols-[12em_1fr] gap-1">
-            <div>{point.slave}:{point.address}:{point.type}:{point.encoding}</div>
+            <div>{point.slave}:{point.address}:{type}:{encoding}</div>
             <div :if={String.starts_with?(type, "R")} :for={{name, key} <- device.pairs[pi]}>
-              {name}:{@points[id][key]}
-            </div>
-            <div :if={type in ["WRO"]} :for={{name, key} <- device.pairs[pi]}>
               {name}:{@points[id][key]}
             </div>
             <div :if={type in ["WDO"]} class="flex gap-1">
               <%= for {name, key} <- device.pairs[pi] do %>
               <% val = @points[id][key] %>
               <% tval = if val>0, do: 0, else: 1 %>
-              <.fui fun={@ui.link} phx-click="click:put" phx-value-key={key} phx-value-val={tval}>
+              <.fui fun={@ui.link} phx-click="click:putint" phx-value-key={key} phx-value-val={tval}>
+                {name}:{val}
+              </.fui>
+              <% end %>
+            </div>
+            <div :if={type in ["WRO"]} class="flex gap-1">
+              <%= for {name, key} <- device.pairs[pi] do %>
+              <% val = @points[id][key] %>
+              <.fui fun={@ui.link} phx-click="click:capture" phx-value-key={key} phx-value-val={val}  phx-value-enc={encoding}>
                 {name}:{val}
               </.fui>
               <% end %>
@@ -54,13 +59,13 @@ view = fn assigns ->
       </div>
     </div>
   </.fui>
-  <.fui fun={@ui.modal} :if={@modal && !@modal.points?} title={@modal.title} class="min-w-[360px]">
+  <.fui fun={@ui.modal} :if={@modal[:type] == :device} title={@modal.title} class="min-w-[360px] flex flex-col gap-2">
     <% input = @modal.input %>
-    <form id="modal_form" phx-submit="modal:submit" class="flex flex-col mt-4 gap-4"
+    <form id="modal_form" phx-submit="modal:device:submit" class="flex flex-col gap-4"
       phx-hook="EnterNavigation" phx-update="ignore" autocomplete="off">
       <div class="grid grid-cols-2 gap-2 items-center min-w-[12em]">
         <div>Name</div>
-        <.fui fun={@ui.input} name="name" value={input.name} type="text" required phx-hook="AutoFocus" pattern="^[a-zA-Z0-9_,]+$"/>
+        <.fui fun={@ui.input} name="name" value={input.name} type="text" required id="modal_autofocus" phx-hook="AutoFocus" pattern="^[a-zA-Z0-9_,]+$"/>
         <div>Protocol</div>
         <.fui fun={@ui.select} name="proto" value={input.proto} values={@options.protos} required/>
         <div>IP</div>
@@ -73,7 +78,7 @@ view = fn assigns ->
       <.fui fun={@ui.button} type="submit" class="col-span-2">Accept</.fui>
     </form>
   </.fui>
-  <.fui fun={@ui.modal} :if={@modal && @modal.points?} title={@modal.title}
+  <.fui fun={@ui.modal} :if={@modal[:type] == :points} title={@modal.title}
     class="min-w-[360px] max-h-[80%] h-[80%] flex flex-col">
     <% input = @modal.input %>
     <div class="grow overflow-y-hidden">
@@ -109,27 +114,45 @@ view = fn assigns ->
       </form>
     </div>
   </.fui>
+  <.fui fun={@ui.modal} :if={@modal[:type] == :capture} title={@modal.title} class="min-w-[360px]">
+    <% %{key: key, val: val, enc: enc} = @modal.input %>
+    <form id="modal_form" phx-submit="modal:capture:submit" class="grid grid-cols-[1fr_6em] gap-2"
+      phx-update="ignore" autocomplete="off">
+      <input type="hidden" name="key" value={key}/>
+      <input type="hidden" name="enc" value={enc}/>
+      <.fui :if={enc == "none"} fun={@ui.input} name="val" value={val} type="number" step="1" min="0" max="65535" required id="modal_autofocus" phx-hook="AutoFocus"/>
+      <.fui :if={enc == "f32be"} fun={@ui.input} name="val" value={val} type="number" step="any" required id="modal_autofocus" phx-hook="AutoFocus"/>
+      <.fui :if={enc == "f32le"} fun={@ui.input} name="val" value={val} type="number" step="any" required id="modal_autofocus" phx-hook="AutoFocus"/>
+      <.fui fun={@ui.button} type="submit">Accept</.fui>
+    </form>
+  </.fui>
   """
 end
 
 modal = fn
-  {state, id, device = %{points: points}, true} ->
+  {:capture, state, key, val, enc} ->
+    input = %{key: key, val: val, enc: enc}
+    modal = %{title: "Capture Value for #{key}", input: input, type: :capture}
+    state = Map.put(state, :modal, modal)
+    Map.put(state, :options, nil)
+
+  {:points, state, id, device = %{points: points}} ->
     options = lib.options
     points = if length(points) > 0, do: points, else: points ++ [lib.points.new]
     device = Map.put(device, :points, points)
-    modal = %{title: "Edit Modbus Points", id: id, input: device, points?: true}
+    modal = %{title: "Edit Modbus Points", id: id, input: device, type: :points}
     state = Map.put(state, :modal, modal)
     Map.put(state, :options, options)
 
-  {state, id, device, false} ->
+  {:device, state, id, device} ->
     options = lib.options
-    modal = %{title: "Edit Modbus Device", id: id, input: device, points?: false}
+    modal = %{title: "Edit Modbus Device", id: id, input: device, type: :device}
     state = Map.put(state, :modal, modal)
     Map.put(state, :options, options)
 
-  state ->
+  {:device, state} ->
     options = lib.options
-    modal = %{title: "Add Modbus Device", id: nil, input: lib.new.(), points?: false}
+    modal = %{title: "Add Modbus Device", id: nil, input: lib.new.(), type: :device}
     state = Map.put(state, :modal, modal)
     Map.put(state, :options, options)
 end
@@ -198,7 +221,7 @@ handler = fn
     state = Map.put(state, :points, points)
     state = Map.put(state, :modal, nil)
     state = Map.put(state, :ui, ui)
-    state = if length(index) > 0, do: state, else: modal.(state)
+    state = if length(index) > 0, do: state, else: modal.({:device, state})
     {socket, state}
 
   {:params, socket, state, params, uri} ->
@@ -213,14 +236,14 @@ handler = fn
     state = Map.put(state, :modal, nil)
     {socket, state}
 
-  {:event, socket, state = %{modal: %{id: nil}}, event = "modal:submit", params} ->
+  {:event, socket, state = %{modal: %{id: nil}}, event = "modal:device:submit", params} ->
     Api.trace(view: path, event: event, params: params)
     Bus.broadcast!("flex:modbus:insert", parse.(params, []))
     state = Map.put(state, :modal, nil)
     {socket, state}
 
-  {:event, socket, state = %{modal: %{id: id, input: %{points: points}}}, event = "modal:submit",
-   params} ->
+  {:event, socket, state = %{modal: %{id: id, input: %{points: points}}},
+   event = "modal:device:submit", params} ->
     Api.trace(view: path, event: event, params: params)
     Bus.broadcast!("flex:modbus:update", {id, parse.(params, points)})
     state = Map.put(state, :modal, nil)
@@ -239,17 +262,17 @@ handler = fn
 
   {:event, socket, state, event = "click:add", params} ->
     Api.trace(view: path, event: event, params: params)
-    state = modal.(state)
+    state = modal.({:device, state})
     {socket, state}
 
   {:event, socket, state = %{devices: devices}, event = "click:edit", params = %{"id" => id}} ->
     Api.trace(view: path, event: event, params: params)
-    state = modal.({state, id, devices[id], false})
+    state = modal.({:device, state, id, devices[id]})
     {socket, state}
 
   {:event, socket, state = %{devices: devices}, event = "click:points", params = %{"id" => id}} ->
     Api.trace(view: path, event: event, params: params)
-    state = modal.({state, id, devices[id], true})
+    state = modal.({:points, state, id, devices[id]})
     {socket, state}
 
   {:event, socket, state = %{modal: %{input: %{points: points}}},
@@ -287,9 +310,30 @@ handler = fn
     state = Map.put(state, :modal, nil)
     {socket, state}
 
-  {:event, socket, state, event = "click:put", params = %{"key" => key, "val" => val}} ->
+  {:event, socket, state, event = "click:putint", params = %{"key" => key, "val" => val}} ->
     Api.trace(view: path, event: event, params: params)
     lib.points.put.(key, String.to_integer(val))
+    {socket, state}
+
+  {:event, socket, state, event = "click:capture",
+   params = %{"key" => key, "val" => val, "enc" => enc}} ->
+    Api.trace(view: path, event: event, params: params)
+    state = modal.({:capture, state, key, val, enc})
+    {socket, state}
+
+  {:event, socket, state, event = "modal:capture:submit",
+   params = %{"key" => key, "val" => val, "enc" => enc}} ->
+    Api.trace(view: path, event: event, params: params)
+
+    # String.to_float requires mandatory decimal point
+    {val, _} =
+      case enc do
+        "none" -> Integer.parse(val)
+        "f32be" -> Float.parse(val)
+        "f32le" -> Float.parse(val)
+      end
+
+    lib.points.put.(key, val)
     {socket, state}
 
   {:event, socket, state, event, params} ->

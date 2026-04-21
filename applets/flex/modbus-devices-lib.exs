@@ -65,6 +65,12 @@ put = fn key, val ->
   Adb.put("flex:modbus:point:#{key}", val)
 end
 
+encoder = fn
+  "f32be" -> {2, fn d -> modbus.float.({:to_be, d}) end, fn d -> modbus.float.({:from_be, d}) end}
+  "f32le" -> {2, fn d -> modbus.float.({:to_le, d}) end, fn d -> modbus.float.({:from_le, d}) end}
+  _ -> {1, & &1, & &1}
+end
+
 %{
   new: new,
   shift: shift,
@@ -72,6 +78,7 @@ end
   open: open,
   exec: exec,
   points: %{
+    encoder: modcmd.encoder,
     new: %{type: "RDI", slave: 1, address: 0, encoding: "none", names: ""},
     toint?: toint?,
     names: names,

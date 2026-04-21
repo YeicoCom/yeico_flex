@@ -32,12 +32,12 @@ view = fn assigns ->
       </div>
     </div>
   </.fui>
-  <.fui fun={@ui.modal} :if={@modal} title={@modal.title} class="min-w-[360px]">
+  <.fui fun={@ui.modal} :if={@modal} title={@modal.title} class="min-w-[360px] flex flex-col gap-2">
     <% input = @modal.input %>
-    <form id="modal_form" phx-submit="modal:submit" class="flex flex-col mt-4 gap-4"
+    <form id="modal_form" phx-submit="modal:submit" class="flex flex-col gap-4"
       phx-hook="EnterNavigation" phx-update="ignore" autocomplete="off">
       <.fui fun={@ui.select} name="tty" value={input.tty} values={@options.ttys} class="min-w-[120px] overflow-x-auto" size="4" required
-        id="modal_form_tty" phx-hook="AutoFocus"/>
+        id="modal_autofocus" phx-hook="AutoFocus"/>
       <div class="grid grid-cols-2 gap-2 items-center min-w-[12em]">
         <div>Bauds</div>
         <.fui fun={@ui.select} name="bauds" value={input.bauds} values={@options.bauds} required/>

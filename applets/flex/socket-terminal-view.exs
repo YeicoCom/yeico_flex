@@ -28,14 +28,14 @@ view = fn assigns ->
       </form>
     </div>
   </.fui>
-  <.fui fun={@ui.modal} :if={@modal} title={@modal.title} class="min-w-[360px]">
+  <.fui fun={@ui.modal} :if={@modal} title={@modal.title} class="min-w-[360px] flex flex-col gap-2">
     <% input = @modal.input %>
     <form id="modal_form" phx-submit="modal:submit" class="flex flex-col gap-4"
       phx-hook="EnterNavigation" phx-update="ignore" autocomplete="off">
       <div class="grid grid-cols-2 gap-2 items-center min-w-[12em]">
         <div>IP</div>
         <.fui fun={@ui.input} name="ip" value={input.ip} type="text" required pattern="^(((?!25?[6-9])[12]\d|[1-9])?\d\.?\b){4}$"
-          id="modal_form_ip" phx-hook="AutoFocus"/>
+          id="modal_autofocus" phx-hook="AutoFocus"/>
         <div>Port</div>
         <.fui fun={@ui.input} name="port" value={input.port} type="number" step="1" min="1" max="65535" required/>
       </div>

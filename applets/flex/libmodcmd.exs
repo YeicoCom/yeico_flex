@@ -56,6 +56,15 @@ check_max = fn
     v
 end
 
+# apparently <<d::float-32>> auto converts d to float
+# both d=1 and d=1.0 render same <<d::float-32>>
+encoder = fn
+  "f32be" -> {2, fn d -> modbus.float.({:to_be, d}) end, fn d -> modbus.float.({:from_be, d}) end}
+  "f32le" -> {2, fn d -> modbus.float.({:to_le, d}) end, fn d -> modbus.float.({:from_le, d}) end}
+  "none" -> {1, & &1, & &1}
+  e -> throw("Unsupported encoding #{e}")
+end
+
 parse_p = fn line ->
   line = line |> String.split("#") |> List.first()
 
@@ -103,7 +112,7 @@ parse_p = fn line ->
     end
 
   c =
-    case c in ["ri", "fc", "rc", "rir", "phr", "rhr"] do
+    case c in ["ri", "rc", "fc", "rir", "rhr", "phr"] do
       true -> String.to_atom(c)
       _ -> throw("Invalid code param")
     end
@@ -114,44 +123,33 @@ parse_p = fn line ->
   e = params["e"]
 
   if c in [:ri, :fc, :rc] do
-    if e, do: throw("Unsupported format param")
+    if e, do: throw("Unsupported encoding param")
   end
+
+  e = e || "none"
+
+  {f, set, get} = encoder.(e)
 
   {d, get} =
     case {c, e} do
-      {:rir, "f32be"} ->
-        d = parse_dc.(d) |> check_max.(div(254, 4))
-        {2 * d, fn d -> modbus.float.({:from_be, d}) end}
+      {:rir, _} ->
+        d = parse_dc.(d) |> check_max.(div(254, 2 * f))
+        {f * d, get}
 
-      {:phr, "f32be"} ->
+      {:rhr, _} ->
+        d = parse_dc.(d) |> check_max.(div(254, 2 * f))
+        {f * d, get}
+
+      {:phr, _} ->
         d = parse_df32.(d)
-        {modbus.float.({:to_be, d}), & &1}
+        {set.(d), & &1}
 
-      {:rhr, "f32be"} ->
-        d = parse_dc.(d) |> check_max.(div(254, 4))
-        {2 * d, fn d -> modbus.float.({:from_be, d}) end}
-
-      {:rir, "f32le"} ->
-        d = parse_dc.(d) |> check_max.(div(254, 4))
-        {2 * d, fn d -> modbus.float.({:from_le, d}) end}
-
-      {:phr, "f32le"} ->
-        d = parse_df32.(d)
-        {modbus.float.({:to_le, d}), & &1}
-
-      {:rhr, "f32le"} ->
-        d = parse_dc.(d) |> check_max.(div(254, 4))
-        {2 * d, fn d -> modbus.float.({:from_le, d}) end}
-
-      {_, nil} ->
+      {_, "none"} ->
         d =
           case c do
             :ri -> parse_dc.(d) |> check_max.(8 * 255)
-            :fc -> parse_dd.(d) |> check_max.(8 * 255)
             :rc -> parse_dc.(d) |> check_max.(8 * 255)
-            :rir -> parse_dc.(d) |> check_max.(div(254, 2))
-            :phr -> parse_dr.(d) |> check_max.(div(254, 2))
-            :rhr -> parse_dc.(d) |> check_max.(div(254, 2))
+            :fc -> parse_dd.(d) |> check_max.(8 * 255)
           end
 
         {d, & &1}
@@ -169,5 +167,6 @@ parse = fn line ->
 end
 
 %{
+  encoder: encoder,
   parse: parse
 }

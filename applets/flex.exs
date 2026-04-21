@@ -18,7 +18,7 @@ dbpath = fn name -> Terminal.dpath("@home/flex.cubdb/#{name}") end
 {ui, _} = Api.evalf("flex/libui.exs")
 Api.evalf("flex/view.exs", path: "/flex", ui: ui)
 
-{lib, _} = Api.evalf("flex/modbus-devices-lib.exs", modbus: modbus)
+{lib, _} = Api.evalf("flex/modbus-devices-lib.exs", modbus: modbus, modcmd: modcmd)
 Api.evalf("flex/modbus-devices-loop.exs", path: dbpath.("modbus"), lib: lib)
 Api.evalf("flex/modbus-devices-view.exs", path: "/flex/modbus-devices", ui: ui, lib: lib)
 

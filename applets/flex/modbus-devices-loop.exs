@@ -21,29 +21,31 @@ runner_loop =
         {conn, result} ->
           pairs = device.pairs[pi]
 
-          {cmd, result} =
-            case point.type do
-              "RDI" ->
-                {{:ri, point.slave, point.address, length(pairs)}, result}
+          {f, set, get} = lib.points.encoder.(point.encoding)
 
-              "RDO" ->
-                {{:rc, point.slave, point.address, length(pairs)}, result}
+          {cmd, result, get} =
+            case {point.type, point.encoding} do
+              {"RDI", _} ->
+                {{:ri, point.slave, point.address, length(pairs)}, result, & &1}
 
-              "WDO" ->
+              {"RDO", _} ->
+                {{:rc, point.slave, point.address, length(pairs)}, result, & &1}
+
+              {"WDO", _} ->
                 values = for {_, key} <- pairs, do: {key, lib.points.get.(key)}
                 result = Enum.into(values, result)
-                {{:fc, point.slave, point.address, Keyword.values(values)}, result}
+                {{:fc, point.slave, point.address, Keyword.values(values)}, result, & &1}
 
-              "RRI" ->
-                {{:rir, point.slave, point.address, length(pairs)}, result}
+              {"RRI", _} ->
+                {{:rir, point.slave, point.address, f * length(pairs)}, result, get}
 
-              "RRO" ->
-                {{:rhr, point.slave, point.address, length(pairs)}, result}
+              {"RRO", _} ->
+                {{:rhr, point.slave, point.address, f * length(pairs)}, result, get}
 
-              "WRO" ->
+              {"WRO", _} ->
                 values = for {_, key} <- pairs, do: {key, lib.points.get.(key)}
                 result = Enum.into(values, result)
-                {{:phr, point.slave, point.address, Keyword.values(values)}, result}
+                {{:phr, point.slave, point.address, set.(Keyword.values(values))}, result, & &1}
             end
 
           case lib.exec.(conn, cmd, []) do
@@ -52,7 +54,7 @@ runner_loop =
 
             {:ok, conn, values} ->
               {_, _, captures} =
-                for _ <- pairs, reduce: {pairs, values, []} do
+                for _ <- pairs, reduce: {pairs, get.(values), []} do
                   {[{_, key} | pairs], [value | values], captures} ->
                     lib.points.put.(key, value)
                     {pairs, values, [{key, value} | captures]}
