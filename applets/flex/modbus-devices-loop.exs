@@ -19,17 +19,15 @@ runner_loop =
     {conn, result} =
       for {point, pi} <- Enum.with_index(points), reduce: {conn, %{}} do
         {conn, result} ->
-          names = device.names[pi]
-          keys = device.keys[pi]
-          result = Map.put(result, pi, Enum.zip(names, keys))
+          pairs = device.pairs[pi]
 
           {cmd, result} =
             case point.type do
               "DI" ->
-                {{:ri, point.slave, point.address, length(names)}, result}
+                {{:ri, point.slave, point.address, length(pairs)}, result}
 
               "DO" ->
-                values = for key <- keys, do: {key, lib.points.get.(key)}
+                values = for {_, key} <- pairs, do: {key, lib.points.get.(key)}
                 result = Enum.into(values, result)
                 {{:fc, point.slave, point.address, Keyword.values(values)}, result}
             end
@@ -40,10 +38,10 @@ runner_loop =
 
             {:ok, conn, values} ->
               {_, _, captures} =
-                for _ <- keys, reduce: {keys, values, []} do
-                  {[key | keys], [value | values], captures} ->
+                for _ <- pairs, reduce: {pairs, values, []} do
+                  {[{_, key} | pairs], [value | values], captures} ->
                     lib.points.put.(key, value)
-                    {keys, values, [{key, value} | captures]}
+                    {pairs, values, [{key, value} | captures]}
                 end
 
               result = Enum.into(captures, result)
@@ -70,18 +68,14 @@ runner_setup = fn %{id: id, device: device = %{ip: ip, port: port, proto: proto}
 end
 
 complement_device = fn {id, device = %{points: points}} ->
-  device = Map.put(device, :names, %{})
-  device = Map.put(device, :keys, %{})
+  device = Map.put(device, :pairs, %{})
 
   device =
     for {point, pi} <- Enum.with_index(points), reduce: device do
       device ->
         names = lib.points.names.(point.names)
         keys = for name <- names, do: "#{point.type}:#{name}"
-
-        device
-        |> put_in([:names, pi], names)
-        |> put_in([:keys, pi], keys)
+        put_in(device, [:pairs, pi], Enum.zip(names, keys))
     end
 
   {id, device}

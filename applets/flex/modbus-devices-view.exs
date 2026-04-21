@@ -35,10 +35,10 @@ view = fn assigns ->
             <div>Slave:{point.slave}</div>
             <div>Address:{point.address}</div>
             <div>Type:{point.type}</div>
-            <div :if={point.type=="DI"} :for={{name, key} <- @points[id][pi]}>
+            <div :if={point.type=="DI"} :for={{name, key} <- device.pairs[pi]}>
               {name}:{@points[id][key]}
             </div>
-            <%= for {name, key} <- @points[id][pi] do %>
+            <%= for {name, key} <- device.pairs[pi] do %>
             <% val = @points[id][key] %>
             <% tval = if val>0, do: 0, else: 1 %>
             <.fui :if={point.type=="DO"} fun={@ui.link} phx-click="click:put" phx-value-key={key} phx-value-val={tval}>
@@ -161,10 +161,8 @@ points = fn devices ->
   for {id, device} <- devices do
     {id,
      for pi <- 0..(length(device.points) - 1) do
-       names = device.names[pi]
-       keys = device.keys[pi]
-       pairs = for key <- keys, do: {key, lib.points.get.(key)}
-       [{pi, Enum.zip(names, keys)} | pairs]
+       pairs = device.pairs[pi]
+       for {_, key} <- pairs, do: {key, lib.points.get.(key)}
      end
      |> List.flatten()
      |> Enum.into(%{})}
