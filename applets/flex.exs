@@ -32,6 +32,7 @@ Api.evalf("flex/serial-exports-view.exs", path: "/flex/serial-exports", ui: ui, 
 {lib, _} = Api.evalf("flex/socket-terminal-lib.exs")
 Api.evalf("flex/socket-terminal-view.exs", path: "/flex/socket-terminal", ui: ui, lib: lib)
 
+Api.evalf("flex/echo-server-loop.exs", ip: "127.0.0.1", port: 44000)
 Api.evalf("flex/modbus-slave-loop.exs", proto: modbus.tcp_proto, ip: "127.0.0.1", port: 44001)
 Api.evalf("flex/modbus-slave-loop.exs", proto: modbus.rtu_proto, ip: "127.0.0.1", port: 44002)
 

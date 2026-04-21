@@ -75,7 +75,7 @@ end
 handler = fn
   {:mount, socket, state} ->
     tzoffset = socket.assigns.tzoffset || 0
-    initial = lib.new.(Terminal.dev?())
+    initial = %{port: 44000, ip: "127.0.0.1"}
     ifirst = List.first(lib.options.imode)
     ofirst = List.first(lib.options.omode)
     output = %{imode: ifirst, omode: ofirst, line: nil}

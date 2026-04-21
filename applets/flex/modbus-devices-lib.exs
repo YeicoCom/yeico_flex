@@ -1,27 +1,14 @@
 use Terminal
 
 new = fn ->
-  case Terminal.dev?() do
-    true ->
-      %{
-        name: "LC",
-        proto: "TCP",
-        port: 502,
-        ip: "10.77.0.10",
-        status: :disabled,
-        points: []
-      }
-
-    false ->
-      %{
-        name: "",
-        proto: "RTU",
-        port: 4401,
-        ip: "127.0.0.1",
-        status: :disabled,
-        points: []
-      }
-  end
+  %{
+    name: "LocalSlave",
+    proto: "TCP",
+    port: 44001,
+    ip: "127.0.0.1",
+    status: :disabled,
+    points: []
+  }
 end
 
 protos = ["TCP", "RTU"]

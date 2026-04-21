@@ -133,13 +133,7 @@ transform = fn
   "Mixed", line -> mix2bin.(line)
 end
 
-new = fn
-  true -> %{port: 4401, ip: "127.0.0.1"}
-  false -> %{port: 4401, ip: "127.0.0.1"}
-end
-
 %{
-  new: new,
   shift: shift,
   toeol: toeol,
   setup: setup,

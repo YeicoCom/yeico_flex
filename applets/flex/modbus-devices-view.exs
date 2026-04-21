@@ -160,7 +160,7 @@ end
 points = fn devices ->
   for {id, device} <- devices do
     {id,
-     for pi <- 0..(length(device.points) - 1) do
+     for pi <- 0..(length(device.points) - 1)//1 do
        pairs = device.pairs[pi]
        for {_, key} <- pairs, do: {key, lib.points.get.(key)}
      end
