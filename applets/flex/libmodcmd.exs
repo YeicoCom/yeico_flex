@@ -111,14 +111,14 @@ parse_p = fn line ->
   d = params["d"]
   if !d, do: throw("Missing data param")
 
-  f = params["f"]
+  e = params["e"]
 
   if c in [:ri, :fc, :rc] do
-    if f, do: throw("Unsupported format param")
+    if e, do: throw("Unsupported format param")
   end
 
   {d, get} =
-    case {c, f} do
+    case {c, e} do
       {:rir, "f32be"} ->
         d = parse_dc.(d) |> check_max.(div(254, 4))
         {2 * d, fn d -> modbus.float.({:from_be, d}) end}

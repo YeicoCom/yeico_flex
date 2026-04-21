@@ -24,13 +24,13 @@ c: Code
 d: Read count
   or binary encoded digital data to output
   or colon separated word|register data to output
-f: Format
+e: Encoding
   f32be 32 bit big endian IEEE754 float encoding
   f32le 32 bit little endian IEEE754 float encoding
 #: Name or comment
 """
 
-tip = "s=Slave,a=Address,c=[rdi,rdo,wdo,rwi,rwo,wwo],d=Data,f=[f32be,f32le]#Comment"
+tip = "s=Slave,a=Address,c=[rdi,rdo,wdo,rwi,rwo,wwo],d=Data,e=[f32be,f32le]#Comment"
 
 view = fn assigns ->
   ~H"""
