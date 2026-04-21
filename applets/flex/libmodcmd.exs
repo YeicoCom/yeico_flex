@@ -120,7 +120,7 @@ parse_p = fn line ->
   {d, get} =
     case {c, f} do
       {:rir, "f32be"} ->
-        d = parse_dc.(d) |> check_max.(254 / 2)
+        d = parse_dc.(d) |> check_max.(div(254, 4))
         {2 * d, fn d -> modbus.float.({:from_be, d}) end}
 
       {:phr, "f32be"} ->
@@ -128,11 +128,11 @@ parse_p = fn line ->
         {modbus.float.({:to_be, d}), & &1}
 
       {:rhr, "f32be"} ->
-        d = parse_dc.(d) |> check_max.(254 / 2)
+        d = parse_dc.(d) |> check_max.(div(254, 4))
         {2 * d, fn d -> modbus.float.({:from_be, d}) end}
 
       {:rir, "f32le"} ->
-        d = parse_dc.(d) |> check_max.(254 / 2)
+        d = parse_dc.(d) |> check_max.(div(254, 4))
         {2 * d, fn d -> modbus.float.({:from_le, d}) end}
 
       {:phr, "f32le"} ->
@@ -140,7 +140,7 @@ parse_p = fn line ->
         {modbus.float.({:to_le, d}), & &1}
 
       {:rhr, "f32le"} ->
-        d = parse_dc.(d) |> check_max.(254 / 2)
+        d = parse_dc.(d) |> check_max.(div(254, 4))
         {2 * d, fn d -> modbus.float.({:from_le, d}) end}
 
       {_, nil} ->
@@ -149,9 +149,9 @@ parse_p = fn line ->
             :ri -> parse_dc.(d) |> check_max.(8 * 255)
             :fc -> parse_dd.(d) |> check_max.(8 * 255)
             :rc -> parse_dc.(d) |> check_max.(8 * 255)
-            :rir -> parse_dc.(d) |> check_max.(254 / 2)
-            :phr -> parse_dr.(d) |> check_max.(254 / 2)
-            :rhr -> parse_dc.(d) |> check_max.(254 / 2)
+            :rir -> parse_dc.(d) |> check_max.(div(254, 2))
+            :phr -> parse_dr.(d) |> check_max.(div(254, 2))
+            :rhr -> parse_dc.(d) |> check_max.(div(254, 2))
           end
 
         {d, & &1}
