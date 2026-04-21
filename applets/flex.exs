@@ -11,7 +11,7 @@ Api.putcast!("flex:modbus:devices", [])
 Api.putcast!("flex:modbus:logs", %{})
 
 {modbus, _} = Api.evalf("flex/libmodbus.exs")
-{modcmd, _} = Api.evalf("flex/libmodcmd.exs")
+{modcmd, _} = Api.evalf("flex/libmodcmd.exs", modbus: modbus)
 
 dbpath = fn name -> Terminal.dpath("@home/flex.cubdb/#{name}") end
 

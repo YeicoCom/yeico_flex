@@ -6,23 +6,31 @@ Values are decimal by default and can be prefixed with:
   d for decimal
   b for binary
 
-s: Slave
-a: Address
+s: Slave [0-255] or [h00-hFF]
+a: Address [0-65535] or [h0000-hFFFF]
 c: Code
+  rdi to read digital input(s)
+  rdo to read digital output(s)
+  wdo to write word output(s)
+  rwi to read word input(s)
+  rwo to read word output(s)
+  wwo to write word output(s)
   ri to read input point(s)
-  rir to read input register(s)
-  fc to force discrete coil(s)
   rc to read discrete coil(s)
-  phr to preset holding register(s)
+  fc to force discrete coil(s)
+  rir to read input register(s)
   rhr to read holding register(s)
-d: Data to output or read count
-f: Format FIXME
-#: Name or comments
-
-s=1,a=4,c=fc,d=1 # turn on 1 digital output at address 4 of slave 1
-s=1,a=4,c=fc,d=0 # turn off 1 digital output at address 4 of slave 1
-s=1,a=4,c=rc,d=1 # read 1 digital output at address 4 of slave 1
+  phr to preset holding register(s)
+d: Read count
+  or binary encoded digital data to output
+  or colon separated word|register data to output
+f: Format
+  f32be 32 bit big endian IEEE754 float encoding
+  f32le 32 bit little endian IEEE754 float encoding
+#: Name or comment
 """
+
+tip = "s=Slave,a=Address,c=[rdi,rdo,wdo,rwi,rwo,wwo],d=Data,f=[f32be,f32le]#Comment"
 
 view = fn assigns ->
   ~H"""
@@ -48,7 +56,7 @@ view = fn assigns ->
           phx-hook="LineHistory" data-key="modbus-terminal" title={@help}/>
         <.fui fun={@ui.button} type="submit">Execute</.fui>
       </form>
-      <div :if={@conn.on} class="px-2">s=Slave,a=Address,c=[ri,rir,fc,rc,phr,rhr],d=Data,f=Format#Comment</div>
+      <div :if={@conn.on} class="px-2">{@tip}</div>
     </div>
   </.fui>
   <.fui fun={@ui.modal} :if={@modal} title={@modal.title} class="min-w-[360px]">
@@ -114,6 +122,7 @@ handler = fn
     state = Map.put(state, :output, %{line: nil})
     state = Map.put(state, :help, help)
     state = Map.put(state, :logid, 0)
+    state = Map.put(state, :tip, tip)
     state = Map.put(state, :ui, ui)
     {socket, state}
 
@@ -141,8 +150,8 @@ handler = fn
     Api.trace(view: path, event: event, params: params)
 
     case lib.parse.(line) do
-      {:ok, cmd} ->
-        send(pid, {:exec, cmd})
+      {:ok, cmd, ff} ->
+        send(pid, {:exec, cmd, ff})
         output = Map.put(output, :line, nil)
         state = Map.put(state, :output, output)
         socket = push_event(socket, "history:append", %{line: line})

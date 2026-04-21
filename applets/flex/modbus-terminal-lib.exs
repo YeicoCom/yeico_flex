@@ -21,14 +21,14 @@ loop = fn loop, parent, conn ->
   end
 
   receive do
-    {:exec, cmd} ->
+    {:exec, cmd, get} ->
       case modbus.master.({:exec, conn, cmd, tracer: tracer}) do
         {:ok, conn} ->
           send(parent, {:socket, self(), :success, :ok})
           loop.(loop, parent, conn)
 
         {:ok, conn, values} ->
-          send(parent, {:socket, self(), :success, values: values})
+          send(parent, {:socket, self(), :success, values: get.(values)})
           loop.(loop, parent, conn)
 
         {:error, _conn, error = :closed} ->

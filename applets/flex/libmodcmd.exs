@@ -17,6 +17,16 @@ parse_dd = fn value ->
   end
 end
 
+parse_df32 = fn value ->
+  String.split(value, ":")
+  |> Enum.map(fn part ->
+    case Float.parse(part) do
+      {v, ""} -> v
+      _ -> throw("Invalid data param format")
+    end
+  end)
+end
+
 parse_dr = fn value ->
   String.split(value, ":")
   |> Enum.map(fn part ->
@@ -82,6 +92,17 @@ parse_p = fn line ->
   if !c, do: throw("Missing code param")
 
   c =
+    case c do
+      "rdi" -> "ri"
+      "rdo" -> "rc"
+      "wdo" -> "fc"
+      "rwi" -> "rir"
+      "rwo" -> "rhr"
+      "wwo" -> "phr"
+      _ -> c
+    end
+
+  c =
     case c in ["ri", "fc", "rc", "rir", "phr", "rhr"] do
       true -> String.to_atom(c)
       _ -> throw("Invalid code param")
@@ -90,22 +111,58 @@ parse_p = fn line ->
   d = params["d"]
   if !d, do: throw("Missing data param")
 
-  d =
-    case c do
-      :ri -> parse_dc.(d) |> check_max.(8 * 255)
-      :fc -> parse_dd.(d) |> check_max.(8 * 255)
-      :rc -> parse_dc.(d) |> check_max.(8 * 255)
-      :rir -> parse_dc.(d) |> check_max.(254 / 2)
-      :phr -> parse_dr.(d) |> check_max.(254 / 2)
-      :rhr -> parse_dc.(d) |> check_max.(254 / 2)
+  f = params["f"]
+
+  if c in [:ri, :fc, :rc] do
+    if f, do: throw("Unsupported format param")
+  end
+
+  {d, get} =
+    case {c, f} do
+      {:rir, "f32be"} ->
+        d = parse_dc.(d) |> check_max.(254 / 2)
+        {2 * d, fn d -> modbus.float.({:from_be, d}) end}
+
+      {:phr, "f32be"} ->
+        d = parse_df32.(d)
+        {modbus.float.({:to_be, d}), & &1}
+
+      {:rhr, "f32be"} ->
+        d = parse_dc.(d) |> check_max.(254 / 2)
+        {2 * d, fn d -> modbus.float.({:from_be, d}) end}
+
+      {:rir, "f32le"} ->
+        d = parse_dc.(d) |> check_max.(254 / 2)
+        {2 * d, fn d -> modbus.float.({:from_le, d}) end}
+
+      {:phr, "f32le"} ->
+        d = parse_df32.(d)
+        {modbus.float.({:to_le, d}), & &1}
+
+      {:rhr, "f32le"} ->
+        d = parse_dc.(d) |> check_max.(254 / 2)
+        {2 * d, fn d -> modbus.float.({:from_le, d}) end}
+
+      {_, nil} ->
+        d =
+          case c do
+            :ri -> parse_dc.(d) |> check_max.(8 * 255)
+            :fc -> parse_dd.(d) |> check_max.(8 * 255)
+            :rc -> parse_dc.(d) |> check_max.(8 * 255)
+            :rir -> parse_dc.(d) |> check_max.(254 / 2)
+            :phr -> parse_dr.(d) |> check_max.(254 / 2)
+            :rhr -> parse_dc.(d) |> check_max.(254 / 2)
+          end
+
+        {d, & &1}
     end
 
-  {c, s, a, d}
+  {{c, s, a, d}, get}
 end
 
 parse = fn line ->
   case Api.safe(parse_p, line) do
-    {:ok, cmd} -> {:ok, cmd}
+    {:ok, {cmd, ff}} -> {:ok, cmd, ff}
     {:error, %{error: error}} -> {:error, error}
     {:error, error} -> {:error, error}
   end
