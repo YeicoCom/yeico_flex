@@ -27,7 +27,7 @@ parse_df32 = fn value ->
   end)
 end
 
-parse_dr = fn value ->
+parse_dr16 = fn value ->
   String.split(value, ":")
   |> Enum.map(fn part ->
     case parse_n.(part) do
@@ -56,13 +56,18 @@ check_max = fn
     v
 end
 
+parse_dr = fn
+  d, "NONE" -> parse_dr16.(d)
+  d, "F32BE" -> parse_df32.(d)
+  d, "F32LE" -> parse_df32.(d)
+end
+
 # apparently <<d::float-32>> auto converts d to float (from integer and double)
 # both d=1 and d=1.0 render same <<d::float-32>>
 encoder = fn
-  "f32be" -> {2, fn d -> modbus.float.({:to_be, d}) end, fn d -> modbus.float.({:from_be, d}) end}
-  "f32le" -> {2, fn d -> modbus.float.({:to_le, d}) end, fn d -> modbus.float.({:from_le, d}) end}
-  "none" -> {1, & &1, & &1}
-  e -> throw("Unsupported encoding #{e}")
+  "NONE" -> {1, & &1, & &1}
+  "F32BE" -> {2, fn d -> modbus.float.({:to_be, d}) end, fn d -> modbus.float.({:from_be, d}) end}
+  "F32LE" -> {2, fn d -> modbus.float.({:to_le, d}) end, fn d -> modbus.float.({:from_le, d}) end}
 end
 
 parse_p = fn line ->
@@ -99,6 +104,7 @@ parse_p = fn line ->
 
   c = params["c"]
   if !c, do: throw("Missing code param")
+  c = String.downcase(c)
 
   c =
     case c do
@@ -127,6 +133,7 @@ parse_p = fn line ->
   end
 
   e = e || "none"
+  e = String.upcase(e)
 
   {f, set, get} = encoder.(e)
 
@@ -141,10 +148,10 @@ parse_p = fn line ->
         {f * d, get}
 
       {:phr, _} ->
-        d = parse_df32.(d)
+        d = parse_dr.(d, e)
         {set.(d), & &1}
 
-      {_, "none"} ->
+      {_, "NONE"} ->
         d =
           case c do
             :ri -> parse_dc.(d) |> check_max.(8 * 255)
@@ -160,9 +167,16 @@ end
 
 parse = fn line ->
   case Api.safe(parse_p, line) do
-    {:ok, {cmd, ff}} -> {:ok, cmd, ff}
-    {:error, %{error: error}} -> {:error, error}
-    {:error, error} -> {:error, error}
+    {:ok, {cmd, ff}} ->
+      {:ok, cmd, ff}
+
+    {:error, result = %{error: error}} ->
+      Api.warn(error: result)
+      {:error, error}
+
+    {:error, error} ->
+      Api.warn(error: error)
+      {:error, error}
   end
 end
 

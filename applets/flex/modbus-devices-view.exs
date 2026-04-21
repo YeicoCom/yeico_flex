@@ -122,9 +122,9 @@ view = fn assigns ->
       phx-update="ignore" autocomplete="off">
       <input type="hidden" name="key" value={key}/>
       <input type="hidden" name="enc" value={enc}/>
-      <.fui :if={enc == "none"} fun={@ui.input} name="val" value={val} type="number" step="1" min="0" max="65535" required id="modal_autofocus" phx-hook="AutoFocus"/>
-      <.fui :if={enc == "f32be"} fun={@ui.input} name="val" value={val} type="number" step="any" required id="modal_autofocus" phx-hook="AutoFocus"/>
-      <.fui :if={enc == "f32le"} fun={@ui.input} name="val" value={val} type="number" step="any" required id="modal_autofocus" phx-hook="AutoFocus"/>
+      <.fui :if={enc == "NONE"} fun={@ui.input} name="val" value={val} type="number" step="1" min="0" max="65535" required id="modal_autofocus" phx-hook="AutoFocus"/>
+      <.fui :if={enc == "F32BE"} fun={@ui.input} name="val" value={val} type="number" step="any" required id="modal_autofocus" phx-hook="AutoFocus"/>
+      <.fui :if={enc == "F32LE"} fun={@ui.input} name="val" value={val} type="number" step="any" required id="modal_autofocus" phx-hook="AutoFocus"/>
       <.fui fun={@ui.button} type="submit">Accept</.fui>
     </form>
   </.fui>
@@ -330,9 +330,9 @@ handler = fn
     # String.to_float requires mandatory decimal point
     {val, _} =
       case enc do
-        "none" -> Integer.parse(val)
-        "f32be" -> Float.parse(val)
-        "f32le" -> Float.parse(val)
+        "NONE" -> Integer.parse(val)
+        "F32BE" -> Float.parse(val)
+        "F32LE" -> Float.parse(val)
       end
 
     lib.points.put.(key, val)

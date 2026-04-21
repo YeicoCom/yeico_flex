@@ -16,7 +16,7 @@ status = [:disabled, :enabled]
 
 points = %{
   types: ["RDI", "RDO", "WDO", "RRI", "RRO", "WRO"],
-  encodings: ["none", "f32be", "f32le"]
+  encodings: ["NONE", "F32BE", "F32LE"]
 }
 
 options = %{status: status, protos: protos, points: points}
@@ -66,8 +66,8 @@ put = fn key, val ->
 end
 
 encoder = fn
-  "f32be" -> {2, fn d -> modbus.float.({:to_be, d}) end, fn d -> modbus.float.({:from_be, d}) end}
-  "f32le" -> {2, fn d -> modbus.float.({:to_le, d}) end, fn d -> modbus.float.({:from_le, d}) end}
+  "F32BE" -> {2, fn d -> modbus.float.({:to_be, d}) end, fn d -> modbus.float.({:from_be, d}) end}
+  "F32LE" -> {2, fn d -> modbus.float.({:to_le, d}) end, fn d -> modbus.float.({:from_le, d}) end}
   _ -> {1, & &1, & &1}
 end
 
