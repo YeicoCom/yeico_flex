@@ -1,6 +1,9 @@
 use Terminal
 
 Adb.reset()
+
+Adb.put("flex:modbus:slave:model", %{})
+
 Api.putcast!("flex:serial:exports", [])
 Api.putcast!("flex:serial:logs", %{})
 
@@ -29,6 +32,22 @@ Api.evalf("flex/serial-exports-view.exs", path: "/flex/serial-exports", ui: ui, 
 {lib, _} = Api.evalf("flex/socket-terminal-lib.exs")
 Api.evalf("flex/socket-terminal-view.exs", path: "/flex/socket-terminal", ui: ui, lib: lib)
 
-Api.evalf("flex/view-ui-tester.exs", path: "/flex/ui-tester", ui: ui)
+if Terminal.dev?() do
+  Api.evalf("flex/dev-ui-tester-view.exs", path: "/flex/dev-ui-tester", ui: ui)
+
+  Api.evalf("flex/dev-modbus-slave-loop.exs",
+    proto: modbus.tcp_proto,
+    ip: "127.0.0.1",
+    port: 44001
+  )
+
+  Api.evalf("flex/dev-modbus-slave-loop.exs",
+    proto: modbus.rtu_proto,
+    ip: "127.0.0.1",
+    port: 44002
+  )
+
+  Api.evalf("flex/dev-modbus-slave-view.exs", path: "/flex/dev-modbus-slave", ui: ui)
+end
 
 :ok

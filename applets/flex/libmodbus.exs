@@ -380,6 +380,9 @@ rtu_proto_p = fn
 end
 
 rtu_proto = fn
+  :id ->
+    "RTU"
+
   {:next, _} ->
     nil
 
@@ -414,6 +417,9 @@ tcp_proto_p = fn
 end
 
 tcp_proto = fn
+  :id ->
+    "TCP"
+
   {:next, tid} ->
     case tid do
       nil -> 0
@@ -464,102 +470,6 @@ tcp_trans = fn
 
   {:close, socket} ->
     :gen_tcp.close(socket)
-end
-
-model_p = fn
-  {self, :reads, state, {slave, type, address, count}} ->
-    case self.({self, :check_request, state, {slave, type, address, count}}) do
-      true ->
-        map = Map.fetch!(state, slave)
-        addr_end = address + count - 1
-
-        list =
-          for point <- address..addr_end do
-            Map.fetch!(map, {type, point})
-          end
-
-        {:ok, state, list}
-
-      false ->
-        {:error, state}
-    end
-
-  {self, :write, state, {slave, type, address, value}} ->
-    case self.({self, :check_request, state, {slave, type, address, 1}}) do
-      true ->
-        cmap = Map.fetch!(state, slave)
-        nmap = Map.put(cmap, {type, address}, value)
-        {:ok, Map.put(state, slave, nmap)}
-
-      false ->
-        {:error, state}
-    end
-
-  {self, :writes, state, {slave, type, address, values}} ->
-    count = length(values)
-
-    case self.({self, :check_request, state, {slave, type, address, count}}) do
-      true ->
-        cmap = Map.fetch!(state, slave)
-        addr_end = address + count
-
-        {^addr_end, nmap} =
-          Enum.reduce(values, {address, cmap}, fn value, {i, map} ->
-            {i + 1, Map.put(map, {type, i}, value)}
-          end)
-
-        {:ok, Map.put(state, slave, nmap)}
-
-      false ->
-        {:error, state}
-    end
-
-  # for testing
-  {_self, :check_request, state, {slave, type, addr, count}} ->
-    map = Map.get(state, slave)
-
-    case map do
-      nil ->
-        false
-
-      _ ->
-        addr_end = addr + count - 1
-
-        Enum.all?(addr..addr_end, fn addr ->
-          Map.has_key?(map, {type, addr})
-        end)
-    end
-end
-
-model = fn
-  {:apply, state, {:rc, slave, address, count}} when is_integer(address) and is_integer(count) ->
-    model_p.({model_p, :reads, state, {slave, :c, address, count}})
-
-  {:apply, state, {:ri, slave, address, count}} when is_integer(address) and is_integer(count) ->
-    model_p.({model_p, :reads, state, {slave, :i, address, count}})
-
-  {:apply, state, {:rhr, slave, address, count}} when is_integer(address) and is_integer(count) ->
-    model_p.({model_p, :reads, state, {slave, :hr, address, count}})
-
-  {:apply, state, {:rir, slave, address, count}} when is_integer(address) and is_integer(count) ->
-    model_p.({model_p, :reads, state, {slave, :ir, address, count}})
-
-  {:apply, state, {:fc, slave, address, value}} when is_integer(address) and not is_list(value) ->
-    model_p.({model_p, :write, state, {slave, :c, address, value}})
-
-  {:apply, state, {:fc, slave, address, values}} when is_integer(address) and is_list(values) ->
-    model_p.({model_p, :writes, state, {slave, :c, address, values}})
-
-  {:apply, state, {:phr, slave, address, value}}
-  when is_integer(address) and not is_list(value) ->
-    model_p.({model_p, :write, state, {slave, :hr, address, value}})
-
-  {:apply, state, {:phr, slave, address, values}} when is_integer(address) and is_list(values) ->
-    model_p.({model_p, :writes, state, {slave, :hr, address, values}})
-
-  # for testing
-  {:check_request, state, {slave, type, addr, count}} ->
-    model_p.({model_p, :check_request, state, {slave, type, addr, count}})
 end
 
 master_p = fn
@@ -632,7 +542,6 @@ end
 
 %{
   float: float,
-  model: model,
   master: master,
   rtu_proto: rtu_proto,
   tcp_proto: tcp_proto,

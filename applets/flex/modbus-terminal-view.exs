@@ -101,7 +101,7 @@ handler = fn
   {:mount, socket, state} ->
     tzoffset = socket.assigns.tzoffset || 0
     pfirst = List.first(lib.options.protos)
-    initial = %{port: 502, ip: "10.77.0.10", proto: pfirst}
+    initial = %{port: 44001, ip: "127.0.0.1", proto: pfirst}
     socket = assign(socket, applet_css: "/applets/flex.css")
     socket = assign(socket, applet_js: "/applets/flex.js")
     socket = assign(socket, page_title: "Modbus Terminal")

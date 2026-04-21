@@ -6,8 +6,11 @@ view = fn assigns ->
     <.fui fun={@ui.link} phx-click="click:link1">
       <div class="hero-plus"/>Link1
     </.fui>
-    <.fui fun={@ui.link} phx-click="click:link2" disabled>
+    <.fui fun={@ui.link} phx-click="click:link2" type="danger">
       <div class="hero-plus"/>Link2
+    </.fui>
+    <.fui fun={@ui.link} phx-click="click:link3" disabled>
+      <div class="hero-plus"/>Link3
     </.fui>
     <form id="form1" phx-submit="form:submit" phx-change="form:change"
       class="flex px-1 py-2 gap-2" phx-hook="EnterNavigation">
