@@ -11,10 +11,10 @@ a: Address [0-65535] or [h0000-hFFFF]
 c: Code
   rdi to read digital input(s)
   rdo to read digital output(s)
-  wdo to write word output(s)
-  rwi to read word input(s)
-  rwo to read word output(s)
-  wwo to write word output(s)
+  wdo to write digital output(s)
+  rri to read register input(s)
+  rro to read register output(s)
+  wro to write register output(s)
   ri to read input point(s)
   rc to read discrete coil(s)
   fc to force discrete coil(s)
@@ -23,14 +23,14 @@ c: Code
   phr to preset holding register(s)
 d: Read count
   or binary encoded digital data to output
-  or colon separated word|register data to output
+  or colon separated register data to output
 e: Encoding
   f32be 32 bit big endian IEEE754 float encoding
   f32le 32 bit little endian IEEE754 float encoding
 #: Name or comment
 """
 
-tip = "s=Slave,a=Address,c=[rdi,rdo,wdo,rwi,rwo,wwo],d=Data,e=[f32be,f32le]#Comment"
+tip = "s=Slave,a=Address,c=[rdi,rdo,wdo,rri,rro,wro],d=Data,e=[f32be,f32le]#Comment"
 
 view = fn assigns ->
   ~H"""
@@ -61,8 +61,8 @@ view = fn assigns ->
   </.fui>
   <.fui fun={@ui.modal} :if={@modal} title={@modal.title} class="min-w-[360px]">
     <% input = @modal.input %>
-    <form id="modal_form" phx-submit="modal:submit" class="flex flex-col gap-4" phx-hook="EnterNavigation" phx-update="ignore"
-      autocomplete="off">
+    <form id="modal_form" phx-submit="modal:submit" class="flex flex-col gap-4"
+      phx-hook="EnterNavigation" phx-update="ignore" autocomplete="off">
       <div class="grid grid-cols-2 gap-2 items-center min-w-[12em]">
         <div>IP</div>
         <.fui fun={@ui.input} name="ip" value={input.ip} type="text" required pattern="^(((?!25?[6-9])[12]\d|[1-9])?\d\.?\b){4}$"

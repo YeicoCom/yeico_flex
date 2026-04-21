@@ -30,21 +30,25 @@ view = fn assigns ->
             log.error? || "text-neutral-500",
           ]}>{log.dt} {log.msg}</div>
         </div>
-        <div class="flex flex-col p-1">
-          <div :for={{point, pi} <- Enum.with_index(device.points)} class="flex gap-1">
-            <div>Slave:{point.slave}</div>
-            <div>Address:{point.address}</div>
-            <div>Type:{point.type}</div>
-            <div :if={point.type=="DI"} :for={{name, key} <- device.pairs[pi]}>
+        <div class="flex flex-col p-1 font-mono">
+          <div :for={{point =%{type: type, encoding: encoding}, pi} <- Enum.with_index(device.points)}
+            class="grid grid-cols-[12em_1fr] gap-1">
+            <div>{point.slave}:{point.address}:{point.type}:{point.encoding}</div>
+            <div :if={String.starts_with?(type, "R")} :for={{name, key} <- device.pairs[pi]}>
               {name}:{@points[id][key]}
             </div>
-            <%= for {name, key} <- device.pairs[pi] do %>
-            <% val = @points[id][key] %>
-            <% tval = if val>0, do: 0, else: 1 %>
-            <.fui :if={point.type=="DO"} fun={@ui.link} phx-click="click:put" phx-value-key={key} phx-value-val={tval}>
-              {name}:{val}
-            </.fui>
-            <% end %>
+            <div :if={type in ["WRO"]} :for={{name, key} <- device.pairs[pi]}>
+              {name}:{@points[id][key]}
+            </div>
+            <div :if={type in ["WDO"]} class="flex gap-1">
+              <%= for {name, key} <- device.pairs[pi] do %>
+              <% val = @points[id][key] %>
+              <% tval = if val>0, do: 0, else: 1 %>
+              <.fui fun={@ui.link} phx-click="click:put" phx-value-key={key} phx-value-val={tval}>
+                {name}:{val}
+              </.fui>
+              <% end %>
+            </div>
           </div>
         </div>
       </div>
@@ -52,7 +56,8 @@ view = fn assigns ->
   </.fui>
   <.fui fun={@ui.modal} :if={@modal && !@modal.points?} title={@modal.title} class="min-w-[360px]">
     <% input = @modal.input %>
-    <form id="modal_form" phx-submit="modal:submit" class="flex flex-col mt-4 gap-4" phx-hook="EnterNavigation" phx-update="ignore">
+    <form id="modal_form" phx-submit="modal:submit" class="flex flex-col mt-4 gap-4"
+      phx-hook="EnterNavigation" phx-update="ignore" autocomplete="off">
       <div class="grid grid-cols-2 gap-2 items-center min-w-[12em]">
         <div>Name</div>
         <.fui fun={@ui.input} name="name" value={input.name} type="text" required phx-hook="AutoFocus" pattern="^[a-zA-Z0-9_,]+$"/>
@@ -69,26 +74,28 @@ view = fn assigns ->
     </form>
   </.fui>
   <.fui fun={@ui.modal} :if={@modal && @modal.points?} title={@modal.title}
-    class="min-w-[360px] max-h-[80%] h-[80%] flex flex-col" away="ignore:away">
+    class="min-w-[360px] max-h-[80%] h-[80%] flex flex-col">
     <% input = @modal.input %>
     <div class="grow overflow-y-hidden">
       <form id="modal_form" phx-submit="modal:points:submit" phx-change="modal:points:change"
-        class="h-full flex flex-col gap-1" phx-hook="EnterNavigation">
+        class="h-full flex flex-col gap-1" phx-hook="EnterNavigation" autocomplete="off">
         <div>{input.proto},{input.ip}:{input.port},{input.status},{input.name}</div>
-        <div class="grid grid-cols-[3em_4em_3em_24em_1fr] gap-1">
+        <div class="grid grid-cols-[3em_4em_4em_5em_24em_1fr] gap-1">
           <div>Slave</div>
           <div>Address</div>
           <div>Type</div>
+          <div>Encoding</div>
           <div>Name(s)</div>
           <.fui fun={@ui.link} phx-click="click:point:add" phx-value-pi={0} title="Add Point"><div class="hero-plus z-0"/>Point</.fui>
         </div>
         <div class="grow overflow-y-scroll flex flex-col gap-1 p-1">
           <% pl = length(input.points) - 1 %>
           <%= for {point, pi} <- Enum.with_index(input.points) do %>
-            <div class="grid grid-cols-[3em_4em_3em_24em_1fr] gap-1">
+            <div class="grid grid-cols-[3em_4em_4em_5em_24em_1fr] gap-1">
               <.fui fun={@ui.input} name="slave[]" value={point.slave} type="number" step="1" min="0" max="255" required/>
               <.fui fun={@ui.input} name="address[]" value={point.address} type="number" step="1" min="0" max="65535" required/>
               <.fui fun={@ui.select} name="type[]" value={point.type} values={@options.points.types} required/>
+              <.fui fun={@ui.select} name="encoding[]" value={point.encoding} values={@options.points.encodings} required/>
               <.fui fun={@ui.input} name="names[]" value={point.names} type="text" required pattern="^[a-zA-Z0-9_,]+$"/>
               <div class="flex gap-1">
                 <.fui fun={@ui.link} disabled={pi==0} phx-click="click:point:del" phx-value-pi={pi} type="danger" title="Delete Point"><div class="hero-x-mark z-0"/></.fui>
@@ -259,12 +266,14 @@ handler = fn
     slave = params["slave"] |> Enum.map(lib.points.toint?)
     address = params["address"] |> Enum.map(lib.points.toint?)
     type = params["type"]
+    encoding = params["encoding"]
     names = params["names"]
 
-    {points, _, _, _, _} =
-      for _ <- points, reduce: {[], slave, address, type, names} do
-        {points, [s | slave], [a | address], [t | type], [n | names]} ->
-          {[%{slave: s, address: a, type: t, names: n} | points], slave, address, type, names}
+    {points, _, _, _, _, _} =
+      for _ <- points, reduce: {[], slave, address, type, encoding, names} do
+        {points, [s | slave], [a | address], [t | type], [e | encoding], [n | names]} ->
+          {[%{slave: s, address: a, type: t, encoding: e, names: n} | points], slave, address,
+           type, encoding, names}
       end
 
     points = points |> Enum.reverse()

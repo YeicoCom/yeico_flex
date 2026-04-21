@@ -96,9 +96,9 @@ parse_p = fn line ->
       "rdi" -> "ri"
       "rdo" -> "rc"
       "wdo" -> "fc"
-      "rwi" -> "rir"
-      "rwo" -> "rhr"
-      "wwo" -> "phr"
+      "rri" -> "rir"
+      "rro" -> "rhr"
+      "wro" -> "phr"
       _ -> c
     end
 

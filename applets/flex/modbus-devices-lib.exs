@@ -13,7 +13,12 @@ end
 
 protos = ["TCP", "RTU"]
 status = [:disabled, :enabled]
-points = %{types: ["DI", "DO"]}
+
+points = %{
+  types: ["RDI", "RDO", "WDO", "RRI", "RRO", "WRO"],
+  encodings: ["none", "f32be", "f32le"]
+}
+
 options = %{status: status, protos: protos, points: points}
 
 shift = fn tzoffset, logs ->
@@ -67,7 +72,7 @@ end
   open: open,
   exec: exec,
   points: %{
-    new: %{type: "DI", slave: 1, address: 0, names: ""},
+    new: %{type: "RDI", slave: 1, address: 0, encoding: "none", names: ""},
     toint?: toint?,
     names: names,
     get: get,

@@ -13,7 +13,7 @@ view = fn assigns ->
       <div class="hero-plus"/>Link3
     </.fui>
     <form id="form1" phx-submit="form:submit" phx-change="form:change"
-      class="flex px-1 py-2 gap-2" phx-hook="EnterNavigation">
+      class="flex px-1 py-2 gap-2" phx-hook="EnterNavigation" autocomplete="off">
       <.fui fun={@ui.select} name="select1" value={@input[:select1]} values={@options.select} required/>
       <.fui fun={@ui.select} name="select2" value={@input[:select2]} values={@options.select} required disabled/>
       <.fui fun={@ui.input} name="text1" value={@input[:text1]} type="text" class="grow" id="autofocus1" phx-hook="AutoFocus"/>
@@ -22,7 +22,7 @@ view = fn assigns ->
       <.fui fun={@ui.button} type="submit" disabled>Send1</.fui>
     </form>
     <form id="form2" phx-submit="form:submit" phx-change="form:change"
-      class="flex px-1 py-2 gap-2" phx-hook="EnterNavigation">
+      class="flex px-1 py-2 gap-2" phx-hook="EnterNavigation" autocomplete="off">
       <.fui fun={@ui.select} name="select1" value={@input[:select1]} values={@options.select} required/>
       <.fui fun={@ui.select} name="select2" value={@input[:select2]} values={@options.select} required disabled/>
       <.fui fun={@ui.input} name="text1" value={@input[:text1]} type="text" class="grow"/>

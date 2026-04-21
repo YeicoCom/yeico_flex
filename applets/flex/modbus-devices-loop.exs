@@ -23,13 +23,27 @@ runner_loop =
 
           {cmd, result} =
             case point.type do
-              "DI" ->
+              "RDI" ->
                 {{:ri, point.slave, point.address, length(pairs)}, result}
 
-              "DO" ->
+              "RDO" ->
+                {{:rc, point.slave, point.address, length(pairs)}, result}
+
+              "WDO" ->
                 values = for {_, key} <- pairs, do: {key, lib.points.get.(key)}
                 result = Enum.into(values, result)
                 {{:fc, point.slave, point.address, Keyword.values(values)}, result}
+
+              "RRI" ->
+                {{:rir, point.slave, point.address, length(pairs)}, result}
+
+              "RRO" ->
+                {{:rhr, point.slave, point.address, length(pairs)}, result}
+
+              "WRO" ->
+                values = for {_, key} <- pairs, do: {key, lib.points.get.(key)}
+                result = Enum.into(values, result)
+                {{:phr, point.slave, point.address, Keyword.values(values)}, result}
             end
 
           case lib.exec.(conn, cmd, []) do
