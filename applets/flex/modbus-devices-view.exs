@@ -41,7 +41,8 @@ view = fn assigns ->
               <%= for {name, key} <- device.pairs[pi] do %>
               <% val = @points[id][key] %>
               <% tval = if val>0, do: 0, else: 1 %>
-              <.fui fun={@ui.link} phx-click="click:putint" phx-value-key={key} phx-value-val={tval}>
+              <.fui fun={@ui.link} phx-click="click:putint" phx-value-key={key} phx-value-val={tval}
+                title="Toggle">
                 {name}:{val}
               </.fui>
               <% end %>
@@ -49,7 +50,8 @@ view = fn assigns ->
             <div :if={type in ["WRO"]} class="flex gap-1">
               <%= for {name, key} <- device.pairs[pi] do %>
               <% val = @points[id][key] %>
-              <.fui fun={@ui.link} phx-click="click:capture" phx-value-key={key} phx-value-val={val}  phx-value-enc={encoding}>
+              <.fui fun={@ui.link} phx-click="click:capture" phx-value-key={key} phx-value-val={val}  phx-value-enc={encoding}
+                title="Capture Value">
                 {name}:{val}
               </.fui>
               <% end %>

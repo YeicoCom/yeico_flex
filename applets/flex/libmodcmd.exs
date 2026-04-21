@@ -56,7 +56,7 @@ check_max = fn
     v
 end
 
-# apparently <<d::float-32>> auto converts d to float
+# apparently <<d::float-32>> auto converts d to float (from integer and double)
 # both d=1 and d=1.0 render same <<d::float-32>>
 encoder = fn
   "f32be" -> {2, fn d -> modbus.float.({:to_be, d}) end, fn d -> modbus.float.({:from_be, d}) end}
