@@ -87,7 +87,7 @@ view = fn assigns ->
       <form id="modal_form" phx-submit="modal:points:submit" phx-change="modal:points:change"
         class="h-full flex flex-col gap-1" phx-hook="EnterNavigation" autocomplete="off">
         <div>{input.proto},{input.ip}:{input.port},{input.status},{input.name}</div>
-        <div class="grid grid-cols-[3em_4em_4em_5em_24em_1fr] gap-1">
+        <div class="grid grid-cols-[3em_4em_4em_5em_12em_1fr] md:grid-cols-[3em_4em_4em_5em_20em_1fr] lg:grid-cols-[3em_4em_4em_5em_32em_1fr] gap-1">
           <div>Slave</div>
           <div>Address</div>
           <div>Type</div>
@@ -98,7 +98,7 @@ view = fn assigns ->
         <div class="grow overflow-y-scroll flex flex-col gap-1 p-1">
           <% pl = length(input.points) - 1 %>
           <%= for {point, pi} <- Enum.with_index(input.points) do %>
-            <div class="grid grid-cols-[3em_4em_4em_5em_24em_1fr] gap-1">
+            <div class="grid grid-cols-[3em_4em_4em_5em_12em_1fr] md:grid-cols-[3em_4em_4em_5em_20em_1fr] lg:grid-cols-[3em_4em_4em_5em_32em_1fr] gap-1">
               <.fui fun={@ui.input} name="slave[]" value={point.slave} type="number" step="1" min="0" max="255" required/>
               <.fui fun={@ui.input} name="address[]" value={point.address} type="number" step="1" min="0" max="65535" required/>
               <.fui fun={@ui.select} name="type[]" value={point.type} values={@options.points.types} required/>

@@ -78,8 +78,9 @@ s=1,a=34,c=rri,d=1,e=f32be # Opto22 LC - Read from AIV ch2
   - Laurel https://www.laurels.com/downloadfiles/serialcom.pdf
   - Laurel continuous mode *1A0<cr>[<nl>]
   - Laurel command mode *1A1<cr>[<nl>]
+- [ ] Make flex pages password protected: use put cookie as regular login
 - [ ] Modbus log input/output as full hex: [00]![00000006010200030001]
-- [ ] Make enter-navigation work on dynamic points editor
+- [x] Make enter-navigation work on dynamic points editor
 - [-] Test multi connections to socat serial listener: second connection rejected
 - [x] Modbus terminal parse dhb values
 - [x] Modbus float formatting: F for float_be and f for float_le

@@ -28,6 +28,40 @@ function setFocus(el) {
     }
 }
 
+function enterNavigate(el) {
+    const elements = el.elements
+    const len = elements.length
+    for (let i = 0; i < len; i++) {
+        const el = elements[i]
+        const isSelect = el instanceof HTMLSelectElement
+        const isInput = el instanceof HTMLInputElement
+        const isSubmit = el.type === "submit"
+        if (isSelect || isInput) {
+            const listener = (event) => {
+                if (event.key === 'Enter') {
+                    if (!isSubmit || el.disabled) {
+                        event.preventDefault();
+                        for (let j = 1; j < len; j++) {
+                            const ni = (i + j) % len;
+                            const nel = elements[ni]
+                            if (nel.disabled) continue
+                            setFocus(nel)
+                            if (el === document.activeElement) continue
+                            break
+                        }
+                    }
+                }
+            }
+            if (el.previousListener) {
+                // listeners preserved on update
+                el.removeEventListener('keydown', el.previousListener)
+            }
+            el.previousListener = listener
+            el.addEventListener('keydown', listener)
+        }
+    }
+}
+
 const Hooks = {
     AutoFocus: {
         mounted() {
@@ -50,31 +84,11 @@ const Hooks = {
     },
     EnterNavigation: {
         mounted() {
-            const elements = this.el.elements
-            const len = elements.length
-            for (let i = 0; i < len; i++) {
-                const el = elements[i]
-                const isSelect = el instanceof HTMLSelectElement
-                const isInput = el instanceof HTMLInputElement
-                const isSubmit = el.type === "submit"
-                if (isSelect || isInput) {
-                    el.addEventListener('keydown', (event) => {
-                        if (event.key === 'Enter') {
-                            if (!isSubmit || el.disabled) {
-                                event.preventDefault();
-                                for (let j = 1; j < len; j++) {
-                                    const ni = (i + j) % len;
-                                    const nel = elements[ni]
-                                    if (nel.disabled) continue
-                                    setFocus(nel)
-                                    if (el === document.activeElement) continue
-                                    break
-                                }
-                            }
-                        }
-                    })
-                }
-            }
+            enterNavigate(this.el)
+        },
+        updated() {
+            // point editor is dynamic
+            enterNavigate(this.el)
         }
     },
     LineHistory: {
