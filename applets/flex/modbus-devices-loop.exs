@@ -74,6 +74,8 @@ runner_loop =
   end
 
 runner_setup = fn %{id: id, device: device = %{ip: ip, port: port, proto: proto}} ->
+  if length(device.points) == 0, do: Api.sleep()
+
   with {:ok, conn} <- lib.open.(ip, port, proto) do
     # nil to reset
     log_event.(id, nil, "Started")

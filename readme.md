@@ -74,7 +74,7 @@ s=1,a=32,c=rhr,d=2 # Opto22 LC - Read Fuel Level as Output Register
   - Laurel command mode *1A1<cr>[<nl>]
 - [ ] Modbus log input/output as full hex: [00]![00000006010200030001]
 - [ ] Make enter-navigation work on dynamic points editor
-- [ ] Test multi connections to socat serial listener
+- [-] Test multi connections to socat serial listener: second connection rejected
 - [x] Modbus terminal parse dhb values
 - [x] Modbus float formatting: F for float_be and f for float_le
 - [x] Modbus enforce data and count ranges
