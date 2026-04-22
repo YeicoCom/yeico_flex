@@ -76,10 +76,15 @@ s=1,a=34,c=rri,d=1,e=f32be # Opto22 LC - Read from AIV ch2
 # Turck vibration and temp sensor CMVT-QR20-IOLX3-H1141
 # https://www.turck.com.mx/datasheet/_en/edb_100016543_gbr_en.pdf
 s=1,a=49,c=rri,d=1,e=u16le # Turck - Read Temp
+s=1,a=50,c=rri,d=1,e=u16le # Turck - Read Magnitud
 s=1,a=51,c=rri,d=1,e=u16le # Turck - Read Z
-s=1,a=52,c=rri,d=1,e=u16le # Turck - Read X
-s=1,a=53,c=rri,d=1,e=u16le # Turck - Read Y
+s=1,a=52,c=rri,d=1,e=u16le # Turck - Read Y
+s=1,a=53,c=rri,d=1,e=u16le # Turck - Read Z
 s=1,a=49,c=rri,d=5,e=u16le # Turck - Read All
+
+# Modbus Devices
+# TCP,192.168.1.5:502,disabled,Turck
+# 1:49:RRI:U16LE Temp,Sum,Z,Y,X
 ```
 
 ## Fixme

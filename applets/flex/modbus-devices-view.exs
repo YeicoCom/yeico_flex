@@ -34,8 +34,10 @@ view = fn assigns ->
           <div :for={{point = %{type: type, encoding: encoding}, pi} <- Enum.with_index(device.points)}
             class="grid grid-cols-[12em_1fr] gap-1">
             <div>{point.slave}:{point.address}:{type}:{encoding}</div>
-            <div :if={String.starts_with?(type, "R")} :for={{name, key} <- device.pairs[pi]}>
-              {name}:{@points[id][key]}
+            <div :if={String.starts_with?(type, "R")} class="flex gap-1">
+              <div :for={{name, key} <- device.pairs[pi]}>
+                {name}:{@points[id][key]}
+              </div>
             </div>
             <div :if={type in ["WDO"]} class="flex gap-1">
               <%= for {name, key} <- device.pairs[pi] do %>
