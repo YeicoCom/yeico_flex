@@ -122,9 +122,8 @@ view = fn assigns ->
       phx-update="ignore" autocomplete="off">
       <input type="hidden" name="key" value={key}/>
       <input type="hidden" name="enc" value={enc}/>
-      <.fui :if={enc == "NONE"} fun={@ui.input} name="val" value={val} type="number" step="1" min="0" max="65535" required id="modal_autofocus" phx-hook="AutoFocus"/>
-      <.fui :if={enc == "F32BE"} fun={@ui.input} name="val" value={val} type="number" step="any" required id="modal_autofocus" phx-hook="AutoFocus"/>
-      <.fui :if={enc == "F32LE"} fun={@ui.input} name="val" value={val} type="number" step="any" required id="modal_autofocus" phx-hook="AutoFocus"/>
+      <.fui :if={enc in ["NONE", "U16BE", "U16LE"]} fun={@ui.input} name="val" value={val} type="number" step="1" min="0" max="65535" required id="modal_autofocus" phx-hook="AutoFocus"/>
+      <.fui :if={enc in ["F32BE", "F32LE"]} fun={@ui.input} name="val" value={val} type="number" step="any" required id="modal_autofocus" phx-hook="AutoFocus"/>
       <.fui fun={@ui.button} type="submit">Accept</.fui>
     </form>
   </.fui>
@@ -326,15 +325,7 @@ handler = fn
   {:event, socket, state, event = "modal:capture:submit",
    params = %{"key" => key, "val" => val, "enc" => enc}} ->
     Api.trace(view: path, event: event, params: params)
-
-    # String.to_float requires mandatory decimal point
-    {val, _} =
-      case enc do
-        "NONE" -> Integer.parse(val)
-        "F32BE" -> Float.parse(val)
-        "F32LE" -> Float.parse(val)
-      end
-
+    [val] = lib.points.encoder.(enc).parse.(val)
     lib.points.put.(key, val)
     {socket, state}
 

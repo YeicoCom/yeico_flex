@@ -21,7 +21,7 @@ runner_loop =
         {conn, result} ->
           pairs = device.pairs[pi]
 
-          {f, set, get} = lib.points.encoder.(point.encoding)
+          %{rf: rf, set: set, get: get} = lib.points.encoder.(point.encoding)
 
           {cmd, result, get} =
             case {point.type, point.encoding} do
@@ -37,10 +37,10 @@ runner_loop =
                 {{:fc, point.slave, point.address, Keyword.values(values)}, result, & &1}
 
               {"RRI", _} ->
-                {{:rir, point.slave, point.address, f * length(pairs)}, result, get}
+                {{:rir, point.slave, point.address, rf * length(pairs)}, result, get}
 
               {"RRO", _} ->
-                {{:rhr, point.slave, point.address, f * length(pairs)}, result, get}
+                {{:rhr, point.slave, point.address, rf * length(pairs)}, result, get}
 
               {"WRO", _} ->
                 values = for {_, key} <- pairs, do: {key, lib.points.get.(key)}

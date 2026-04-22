@@ -150,8 +150,8 @@ handler = fn
     Api.trace(view: path, event: event, params: params)
 
     case lib.parse.(line) do
-      {:ok, cmd, ff} ->
-        send(pid, {:exec, cmd, ff})
+      {:ok, res} ->
+        send(pid, {:exec, res})
         output = Map.put(output, :line, nil)
         state = Map.put(state, :output, output)
         socket = push_event(socket, "history:append", %{line: line})

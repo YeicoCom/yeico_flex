@@ -16,7 +16,7 @@ status = [:disabled, :enabled]
 
 points = %{
   types: ["RDI", "RDO", "WDO", "RRI", "RRO", "WRO"],
-  encodings: ["NONE", "F32BE", "F32LE"]
+  encodings: ["NONE", "F32BE", "F32LE", "U16BE", "U16LE"]
 }
 
 options = %{status: status, protos: protos, points: points}
@@ -63,12 +63,6 @@ end
 
 put = fn key, val ->
   Adb.put("flex:modbus:point:#{key}", val)
-end
-
-encoder = fn
-  "F32BE" -> {2, fn d -> modbus.float.({:to_be, d}) end, fn d -> modbus.float.({:from_be, d}) end}
-  "F32LE" -> {2, fn d -> modbus.float.({:to_le, d}) end, fn d -> modbus.float.({:from_le, d}) end}
-  _ -> {1, & &1, & &1}
 end
 
 %{

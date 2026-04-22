@@ -27,7 +27,7 @@ parse_df32 = fn value ->
   end)
 end
 
-parse_dr16 = fn value ->
+parse_du16 = fn value ->
   String.split(value, ":")
   |> Enum.map(fn part ->
     case parse_n.(part) do
@@ -56,22 +56,63 @@ check_max = fn
     v
 end
 
-parse_dr = fn
-  d, "NONE" -> parse_dr16.(d)
-  d, "F32BE" -> parse_df32.(d)
-  d, "F32LE" -> parse_df32.(d)
+# https://erlang.org/euc/00/bit_syntax.html (6.4 Defaults)
+# Erlang defaults to big-endian, unsigned, integer.
+reg16_switch = fn value ->
+  <<b0::8, b1::8>> = <<value::size(16)>>
+  <<value::size(16)>> = <<b1::8, b0::8>>
+  value
 end
 
 # apparently <<d::float-32>> auto converts d to float (from integer and double)
 # both d=1 and d=1.0 render same <<d::float-32>>
 encoder = fn
-  "NONE" -> {1, & &1, & &1}
-  "F32BE" -> {2, fn d -> modbus.float.({:to_be, d}) end, fn d -> modbus.float.({:from_be, d}) end}
-  "F32LE" -> {2, fn d -> modbus.float.({:to_le, d}) end, fn d -> modbus.float.({:from_le, d}) end}
+  "NONE" ->
+    %{
+      rf: 1,
+      set: & &1,
+      get: & &1,
+      parse: parse_du16
+    }
+
+  # opto22
+  "F32BE" ->
+    %{
+      rf: 2,
+      set: fn d -> modbus.float.({:to_be, d}) end,
+      get: fn d -> modbus.float.({:from_be, d}) end,
+      parse: parse_df32
+    }
+
+  "F32LE" ->
+    %{
+      rf: 2,
+      set: fn d -> modbus.float.({:to_le, d}) end,
+      get: fn d -> modbus.float.({:from_le, d}) end,
+      parse: parse_df32
+    }
+
+  "U16BE" ->
+    %{
+      rf: 1,
+      set: & &1,
+      get: & &1,
+      parse: parse_du16
+    }
+
+  # turck vibration and temp sensor CMVT-QR20-IOLX3-H1141
+  "U16LE" ->
+    %{
+      rf: 1,
+      set: &for(v <- &1, do: reg16_switch.(v)),
+      get: &for(v <- &1, do: reg16_switch.(v)),
+      parse: parse_du16
+    }
 end
 
 parse_p = fn line ->
   line = line |> String.split("#") |> List.first()
+  line = String.downcase(line)
 
   params =
     String.split(line, ",", trim: true)
@@ -104,7 +145,6 @@ parse_p = fn line ->
 
   c = params["c"]
   if !c, do: throw("Missing code param")
-  c = String.downcase(c)
 
   c =
     case c do
@@ -135,20 +175,20 @@ parse_p = fn line ->
   e = e || "none"
   e = String.upcase(e)
 
-  {f, set, get} = encoder.(e)
+  %{rf: rf, set: set, get: get, parse: parse_dr} = encoder.(e)
 
   {d, get} =
     case {c, e} do
       {:rir, _} ->
-        d = parse_dc.(d) |> check_max.(div(254, 2 * f))
-        {f * d, get}
+        d = parse_dc.(d) |> check_max.(div(254, 2 * rf))
+        {rf * d, get}
 
       {:rhr, _} ->
-        d = parse_dc.(d) |> check_max.(div(254, 2 * f))
-        {f * d, get}
+        d = parse_dc.(d) |> check_max.(div(254, 2 * rf))
+        {rf * d, get}
 
       {:phr, _} ->
-        d = parse_dr.(d, e)
+        d = parse_dr.(d)
         {set.(d), & &1}
 
       {_, "NONE"} ->
@@ -162,13 +202,13 @@ parse_p = fn line ->
         {d, & &1}
     end
 
-  {{c, s, a, d}, get}
+  %{cmd: {c, s, a, d}, get: get}
 end
 
 parse = fn line ->
   case Api.safe(parse_p, line) do
-    {:ok, {cmd, ff}} ->
-      {:ok, cmd, ff}
+    {:ok, res} ->
+      {:ok, res}
 
     {:error, result = %{error: error}} ->
       Api.warn(error: result)

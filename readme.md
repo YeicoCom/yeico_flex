@@ -37,6 +37,8 @@ s=1,a=4,c=ri,d=1 # Opto22 LC - Read Alarm as Input
 
 s=1,a=4,c=fc,d=1111 # Opto22 LC - Turn On All Digital Outputs
 s=1,a=4,c=fc,d=0000 # Opto22 LC - Turn Off All Digital Outputs
+s=1,a=4,c=fc,d=1010 # Opto22 LC - Turn Off All Digital Outputs
+s=1,a=4,c=fc,d=0101 # Opto22 LC - Turn Off All Digital Outputs
 s=1,a=4,c=rc,d=4 # Opto22 LC - Read All Digital Outputs as Coils
 s=1,a=4,c=ri,d=4 # Opto22 LC - Read All Digital Outputs as Inputs
 
@@ -70,6 +72,14 @@ s=1,a=32,c=rhr,d=1,e=f32be # Opto22 LC - Read Fuel Level as Output Register
 s=1,a=18,c=wro,d=3.4,e=f32be # Opto22 LC - Write to AOV27 ch2
 s=1,a=18,c=wro,d=4.3,e=f32be # Opto22 LC - Write to AOV27 ch2
 s=1,a=34,c=rri,d=1,e=f32be # Opto22 LC - Read from AIV ch2
+
+# Turck vibration and temp sensor CMVT-QR20-IOLX3-H1141
+# https://www.turck.com.mx/datasheet/_en/edb_100016543_gbr_en.pdf
+s=1,a=49,c=rri,d=1,e=u16le # Turck - Read Temp
+s=1,a=51,c=rri,d=1,e=u16le # Turck - Read Z
+s=1,a=52,c=rri,d=1,e=u16le # Turck - Read X
+s=1,a=53,c=rri,d=1,e=u16le # Turck - Read Y
+s=1,a=49,c=rri,d=5,e=u16le # Turck - Read All
 ```
 
 ## Fixme
@@ -80,6 +90,7 @@ s=1,a=34,c=rri,d=1,e=f32be # Opto22 LC - Read from AIV ch2
   - Laurel command mode *1A1<cr>[<nl>]
 - [ ] Make flex pages password protected: use put cookie as regular login
 - [ ] Modbus log input/output as full hex: [00]![00000006010200030001]
+- [ ] Shaky things: browser, mountrap, socat, kill links
 - [x] Make enter-navigation work on dynamic points editor
 - [-] Test multi connections to socat serial listener: second connection rejected
 - [x] Modbus terminal parse dhb values
