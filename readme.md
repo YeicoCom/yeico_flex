@@ -12,6 +12,9 @@ terminal dev flex.exs
 # digital points increment address by 4 per module and by 1 per point
 # analog points increment address by 8 per module and by 2 per point
 
+# Emergency,POS,FreezerDoor,PhotoSensor
+# Alarm,FreezerDoorStatus,InsideLight,OutsideLight
+
 s=1,a=7,c=fc,d=1 # Opto22 LC - Turn On Outside Light
 s=1,a=7,c=fc,d=0 # Opto22 LC - Turn Off Outside Light
 s=1,a=7,c=rc,d=1 # Opto22 LC - Read Outside Light as Coil
