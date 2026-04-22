@@ -65,6 +65,11 @@ s=1,a=24,c=rhr,d=1,e=f32be # Opto22 LC - Read Store Temperature as Output Regist
 
 s=1,a=32,c=rir,d=1,e=f32be # Opto22 LC - Read Fuel Level as Input Register
 s=1,a=32,c=rhr,d=1,e=f32be # Opto22 LC - Read Fuel Level as Output Register
+
+# spare channels
+s=1,a=18,c=wro,d=3.4,e=f32be # Opto22 LC - Write to AOV27 ch2
+s=1,a=18,c=wro,d=4.3,e=f32be # Opto22 LC - Write to AOV27 ch2
+s=1,a=34,c=rri,d=1,e=f32be # Opto22 LC - Read from AIV ch2
 ```
 
 ## Fixme
