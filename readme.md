@@ -55,15 +55,16 @@ s=1,a=3,c=ri,d=1 # Opto22 LC - Read Photo Sensor as Input
 s=1,a=0,c=rc,d=4 # Opto22 LC - Read All Digital Inputs as Coils
 s=1,a=0,c=ri,d=4 # Opto22 LC - Read All Digital Inputs as Inputs
 
-# FIXME
-s=1,a=16,c=phr,d=1:2 # Opto22 LC - Write Fuel Display
-s=1,a=16,c=rir,d=2 # Opto22 LC - Read Fuel Display
+s=1,a=16,c=phr,d=2.5,e=f32be # Opto22 LC - Write Fuel Display
+s=1,a=16,c=phr,d=5.8,e=f32be # Opto22 LC - Write Fuel Display
+s=1,a=16,c=rir,d=1,e=f32be # Opto22 LC - Read Fuel Display as Input Register
+s=1,a=16,c=rhr,d=1,e=f32be # Opto22 LC - Read Fuel Display as Output Register
 
-s=1,a=24,c=rir,d=2 # Opto22 LC - Read Store Temperature as Input Register
-s=1,a=24,c=rhr,d=2 # Opto22 LC - Read Store Temperature as Output Register
+s=1,a=24,c=rir,d=1,e=f32be # Opto22 LC - Read Store Temperature as Input Register
+s=1,a=24,c=rhr,d=1,e=f32be # Opto22 LC - Read Store Temperature as Output Register
 
-s=1,a=32,c=rir,d=2 # Opto22 LC - Read Fuel Level as Input Register
-s=1,a=32,c=rhr,d=2 # Opto22 LC - Read Fuel Level as Output Register
+s=1,a=32,c=rir,d=1,e=f32be # Opto22 LC - Read Fuel Level as Input Register
+s=1,a=32,c=rhr,d=1,e=f32be # Opto22 LC - Read Fuel Level as Output Register
 ```
 
 ## Fixme
