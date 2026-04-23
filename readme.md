@@ -12,8 +12,10 @@ terminal dev flex.exs
 # digital points increment address by 4 per module and by 1 per point
 # analog points increment address by 8 per module and by 2 per point
 
-# Emergency,POS,FreezerDoor,PhotoSensor
-# Alarm,FreezerDoorStatus,InsideLight,OutsideLight
+# 1:0:RDI:NONE Emergency,POS,FreezerDoor,PhotoSensor
+# 1:4:WDO:NONE Alarm,FreezerDoorStatus,InsideLight,OutsideLight
+# 1:16:WRO:F32BE FuelDisplay,AOutput1
+# 1:32:RRI:F32BE FuelLevel,AInput1
 
 s=1,a=7,c=fc,d=1 # Opto22 LC - Turn On Outside Light
 s=1,a=7,c=fc,d=0 # Opto22 LC - Turn Off Outside Light
@@ -95,7 +97,8 @@ s=1,a=49,c=rri,d=5,e=u16le # Turck - Read All
   - Laurel command mode *1A1<cr>[<nl>]
 - [ ] Make flex pages password protected: use put cookie as regular login
 - [ ] Modbus log input/output as full hex: [00]![00000006010200030001]
-- [ ] Shaky things: browser, mountrap, socat, kill links
+- [ ] Shaky things: browser, mountrap, socat, kill links, unable to await defers
+- [ ] Modbus devices viewer slowed down to the point of modal delayed actions
 - [x] Make enter-navigation work on dynamic points editor
 - [-] Test multi connections to socat serial listener: second connection rejected
 - [x] Modbus terminal parse dhb values

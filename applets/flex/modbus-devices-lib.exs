@@ -7,6 +7,7 @@ new = fn ->
     port: 44001,
     ip: "127.0.0.1",
     status: :disabled,
+    delay: 50,
     points: []
   }
 end

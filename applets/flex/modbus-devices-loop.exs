@@ -15,7 +15,9 @@ log_event = fn
 end
 
 runner_loop =
-  fn state = %{loop: loop, conn: conn, id: id, device: device = %{points: points}} ->
+  fn state = %{loop: loop, conn: conn, id: id, device: device = %{delay: delay, points: points}} ->
+    if delay > 0, do: Api.sleep(delay)
+
     {conn, result} =
       for {point, pi} <- Enum.with_index(points), reduce: {conn, %{}} do
         {conn, result} ->

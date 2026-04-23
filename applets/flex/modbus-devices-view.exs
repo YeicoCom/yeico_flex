@@ -76,6 +76,8 @@ view = fn assigns ->
         <.fui fun={@ui.input} name="ip" value={input.ip} type="text" required pattern="^(((?!25?[6-9])[12]\d|[1-9])?\d\.?\b){4}$"/>
         <div>Port</div>
         <.fui fun={@ui.input} name="port" value={input.port} type="number" step="1" min="1" max="65535" required/>
+        <div>Delay</div>
+        <.fui fun={@ui.input} name="delay" value={input.delay} type="number" step="1" min="0" max="65535" required/>
         <div>Status</div>
         <.fui fun={@ui.select} name="status" value={input.status} values={@options.status} required/>
       </div>
@@ -186,6 +188,7 @@ end
 parse = fn params, points ->
   params = Map.update!(params, "status", &String.to_atom/1)
   params = Map.update!(params, "port", &String.to_integer/1)
+  params = Map.update!(params, "delay", &String.to_integer/1)
   params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
   Enum.into(params, %{points: points})
 end
@@ -350,8 +353,8 @@ handler = fn
     state = Map.put(state, :logs, lib.shift.(tzoffset, logs))
     {socket, state}
 
-  {:info, socket, state = %{points: points}, event = {"flex:modbus:points", _, {id, values}}} ->
-    Api.trace(view: path, info: event)
+  {:info, socket, state = %{points: points}, _event = {"flex:modbus:points", _, {id, values}}} ->
+    # Api.trace(view: path, info: event)
     points = Map.put(points, id, values)
     state = Map.put(state, :points, points)
     {socket, state}
