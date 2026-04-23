@@ -98,7 +98,11 @@ s=1,a=49,c=rri,d=5,e=u16le # Turck - Read All
 - [ ] Make flex pages password protected: use put cookie as regular login
 - [ ] Modbus log input/output as full hex: [00]![00000006010200030001]
 - [ ] Shaky things: browser, mountrap, socat, kill links, unable to await defers
-- [ ] Modbus devices viewer slowed down to the point of modal delayed actions
+- [x] Modbus devices viewer slowed down to the point of modal delayed actions
+  - Same impact expected to logic engine? <- this may be the real engineering challenge
+  - Move from event driven to polling
+  - Implement per device delay
+  - Comment out view logging
 - [x] Make enter-navigation work on dynamic points editor
 - [-] Test multi connections to socat serial listener: second connection rejected
 - [x] Modbus terminal parse dhb values

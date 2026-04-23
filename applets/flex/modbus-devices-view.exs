@@ -14,7 +14,7 @@ view = fn assigns ->
         <% device = @devices[id] %>
         <div class="flex flex-col p-2 hover:rounded hover:bg-zinc-800">
           <.fui fun={@ui.link} phx-click="click:edit" phx-value-id={id}>
-            {device.proto},{device.ip}:{device.port},{device.status},{device.name}
+            {device.proto},{device.ip}:{device.port},{device.status},{device.delay},{device.name}
           </.fui>
           <div class="flex gap-2">
             <.fui fun={@ui.link} phx-click="click:edit" phx-value-id={id}>Edit</.fui>
@@ -30,16 +30,16 @@ view = fn assigns ->
             log.error? || "text-neutral-500",
           ]}>{log.dt} {log.msg}</div>
         </div>
-        <div class="flex flex-col p-1 font-mono">
+        <div class="flex flex-col p-1 gap-2 font-mono">
           <div :for={{point = %{type: type, encoding: encoding}, pi} <- Enum.with_index(device.points)}
-            class="grid grid-cols-[12em_1fr] gap-1">
+            class="grid grid-cols-[12em_1fr] gap-1 hover:bg-zinc-800 rounded p-2">
             <div>{point.slave}:{point.address}:{type}:{encoding}</div>
-            <div :if={String.starts_with?(type, "R")} class="flex gap-1">
+            <div :if={String.starts_with?(type, "R")} class="flex flex-col gap-1">
               <div :for={{name, key} <- device.pairs[pi]}>
                 {name}:{@points[id][key]}
               </div>
             </div>
-            <div :if={type in ["WDO"]} class="flex gap-1">
+            <div :if={type in ["WDO"]} class="flex flex-col gap-1">
               <%= for {name, key} <- device.pairs[pi] do %>
               <% val = @points[id][key] %>
               <% tval = if val>0, do: 0, else: 1 %>
@@ -49,7 +49,7 @@ view = fn assigns ->
               </.fui>
               <% end %>
             </div>
-            <div :if={type in ["WRO"]} class="flex gap-1">
+            <div :if={type in ["WRO"]} class="flex flex-col gap-1">
               <%= for {name, key} <- device.pairs[pi] do %>
               <% val = @points[id][key] %>
               <.fui fun={@ui.link} phx-click="click:capture" phx-value-key={key} phx-value-val={val}  phx-value-enc={encoding}
@@ -208,7 +208,7 @@ end
 
 handler = fn
   {:mount, socket, state} ->
-    Bus.subscribe!("flex:modbus:points")
+    refresh = 100
     tzoffset = socket.assigns.tzoffset || 0
     logs = Api.subget!("flex:modbus:logs")
     logs = lib.shift.(tzoffset, logs)
@@ -222,11 +222,13 @@ handler = fn
     socket = assign(socket, page_suffix: " · Flex")
     state = Map.put(state, :tzoffset, tzoffset)
     state = Map.put(state, :devices, devices)
+    state = Map.put(state, :refresh, refresh)
     state = Map.put(state, :index, index)
     state = Map.put(state, :logs, logs)
     state = Map.put(state, :points, points)
     state = Map.put(state, :modal, nil)
     state = Map.put(state, :ui, ui)
+    Process.send_after(self(), :refresh, refresh)
     state = if length(index) > 0, do: state, else: modal.({:device, state})
     {socket, state}
 
@@ -338,6 +340,12 @@ handler = fn
     Api.trace(view: path, event: event, params: params)
     {socket, state}
 
+  {:info, socket, state = %{refresh: refresh, devices: devices}, :refresh} ->
+    # Api.trace(view: path, info: event)
+    Process.send_after(self(), :refresh, refresh)
+    state = Map.put(state, :points, points.(devices))
+    {socket, state}
+
   {:info, socket, state, event = {"flex:modbus:devices", _, devices}} ->
     Api.trace(view: path, info: event)
     points = points.(devices)
@@ -351,12 +359,6 @@ handler = fn
   {:info, socket, state = %{tzoffset: tzoffset}, event = {"flex:modbus:logs", _, logs}} ->
     Api.trace(view: path, info: event)
     state = Map.put(state, :logs, lib.shift.(tzoffset, logs))
-    {socket, state}
-
-  {:info, socket, state = %{points: points}, _event = {"flex:modbus:points", _, {id, values}}} ->
-    # Api.trace(view: path, info: event)
-    points = Map.put(points, id, values)
-    state = Map.put(state, :points, points)
     {socket, state}
 
   {:info, socket, state, event} ->
