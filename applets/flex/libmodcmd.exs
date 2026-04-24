@@ -22,7 +22,7 @@ parse_df32 = fn value ->
   |> Enum.map(fn part ->
     case Float.parse(part) do
       {v, ""} -> v
-      _ -> throw("Invalid data param format")
+      _ -> throw("Invalid data format")
     end
   end)
 end
@@ -32,8 +32,8 @@ parse_du16 = fn value ->
   |> Enum.map(fn part ->
     case parse_n.(part) do
       {v, ""} when v >= 0 and v <= 65535 -> v
-      {_, ""} -> throw("Invalid data param range")
-      _ -> throw("Invalid data param format")
+      {_, ""} -> throw("Invalid data range")
+      _ -> throw("Invalid data format")
     end
   end)
 end
@@ -129,8 +129,8 @@ parse_p = fn line ->
   s =
     case parse_n.(s) do
       {v, ""} when v >= 0 and v <= 255 -> v
-      {_, ""} -> throw("Invalid slave param range")
-      _ -> throw("Invalid slave param format")
+      {_, ""} -> throw("Invalid slave range")
+      _ -> throw("Invalid slave format")
     end
 
   a = params["a"]
@@ -139,8 +139,8 @@ parse_p = fn line ->
   a =
     case parse_n.(a) do
       {v, ""} when v >= 0 and v <= 65535 -> v
-      {_, ""} -> throw("Invalid address param range")
-      _ -> throw("Invalid address param format")
+      {_, ""} -> throw("Invalid address range")
+      _ -> throw("Invalid address format")
     end
 
   c = params["c"]
