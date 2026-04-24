@@ -55,8 +55,8 @@ device = fn ->
     for {id, device} <- devices do
       {id,
        for pi <- 0..(length(device.points) - 1)//1 do
-         pairs = device.pairs[pi]
-         for {_, key} <- pairs, do: {key, get.(key)}
+         meta = device.meta[pi]
+         for %{key: key} <- meta.points, do: {key, get.(key)}
        end
        |> List.flatten()
        |> Enum.into(%{})}
@@ -92,6 +92,11 @@ points = fn ->
       {v, ""} -> v
       _ -> nil
     end
+  end
+
+  # ensure that a relocated point wont get an unexpected value
+  key = fn type, encoding, name ->
+    "#{type}:#{encoding}:#{name}"
   end
 
   get = fn key ->
@@ -155,6 +160,7 @@ points = fn ->
     new: new,
     get: get,
     put: put,
+    key: key,
     type: type,
     apply: apply,
     names: names,

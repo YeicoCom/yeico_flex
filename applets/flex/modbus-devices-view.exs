@@ -34,29 +34,25 @@ view = fn assigns ->
           <div :for={{point = %{type: type, encoding: encoding}, pi} <- Enum.with_index(device.points)}
             class="grid grid-cols-[12em_1fr] gap-1 hover:bg-zinc-800 rounded p-2">
             <div>{point.slave}:{point.address}:{type}:{encoding}</div>
-            <div :if={String.starts_with?(type, "R")} class="flex flex-col gap-1">
-              <div :for={{name, key} <- device.pairs[pi]}>
-                {name}:{@points[id][key]}
-              </div>
-            </div>
-            <div :if={type in ["WDO"]} class="flex flex-col gap-1">
-              <%= for {name, key} <- device.pairs[pi] do %>
+            <div class="flex flex-col gap-1">
+            <%= for %{name: name, key: key} <- device.meta[pi].points do %>
               <% val = @points[id][key] %>
               <% tval = if val>0, do: 0, else: 1 %>
+              <%= cond do %>
+              <% type in ["WDO"] -> %>
               <.fui fun={@ui.link} phx-click="click:putint" phx-value-key={key} phx-value-val={tval}
                 title="Toggle">
                 {name}:{val}
               </.fui>
-              <% end %>
-            </div>
-            <div :if={type in ["WRO"]} class="flex flex-col gap-1">
-              <%= for {name, key} <- device.pairs[pi] do %>
-              <% val = @points[id][key] %>
+              <% type in ["WRO"] -> %>
               <.fui fun={@ui.link} phx-click="click:capture" phx-value-key={key} phx-value-val={val}  phx-value-enc={encoding}
                 title="Capture Value">
                 {name}:{val}
               </.fui>
+              <% true -> %>
+              <div>{name}:{@points[id][key]}</div>
               <% end %>
+            <% end %>
             </div>
           </div>
         </div>

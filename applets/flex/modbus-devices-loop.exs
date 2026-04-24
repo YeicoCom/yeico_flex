@@ -19,31 +19,31 @@ runner_loop =
     {conn, result} =
       for {point, pi} <- Enum.with_index(points), reduce: {conn, %{}} do
         {conn, result} ->
-          pairs = device.pairs[pi]
+          meta = device.meta[pi]
 
           %{rf: rf, set: set, get: get} = plib.encoder.(point.encoding)
 
           {cmd, result, get} =
             case {point.type, point.encoding} do
               {"RDI", _} ->
-                {{:ri, point.slave, point.address, length(pairs)}, result, & &1}
+                {{:ri, point.slave, point.address, meta.length}, result, & &1}
 
               {"RDO", _} ->
-                {{:rc, point.slave, point.address, length(pairs)}, result, & &1}
+                {{:rc, point.slave, point.address, meta.length}, result, & &1}
 
               {"WDO", _} ->
-                values = for {_, key} <- pairs, do: {key, plib.get.(key)}
+                values = for %{key: key} <- meta.points, do: {key, plib.get.(key)}
                 result = Enum.into(values, result)
                 {{:fc, point.slave, point.address, Keyword.values(values)}, result, & &1}
 
               {"RRI", _} ->
-                {{:rir, point.slave, point.address, rf * length(pairs)}, result, get}
+                {{:rir, point.slave, point.address, rf * meta.length}, result, get}
 
               {"RRO", _} ->
-                {{:rhr, point.slave, point.address, rf * length(pairs)}, result, get}
+                {{:rhr, point.slave, point.address, rf * meta.length}, result, get}
 
               {"WRO", _} ->
-                values = for {_, key} <- pairs, do: {key, plib.get.(key)}
+                values = for %{key: key} <- meta.points, do: {key, plib.get.(key)}
                 result = Enum.into(values, result)
                 {{:phr, point.slave, point.address, set.(Keyword.values(values))}, result, & &1}
             end
@@ -54,10 +54,10 @@ runner_loop =
 
             {:ok, conn, values} ->
               {_, _, captures} =
-                for _ <- pairs, reduce: {pairs, get.(values), []} do
-                  {[{_, key} | pairs], [value | values], captures} ->
+                for _ <- meta.points, reduce: {meta.points, get.(values), []} do
+                  {[%{key: key} | points], [value | values], captures} ->
                     plib.put.(key, value)
-                    {pairs, values, [{key, value} | captures]}
+                    {points, values, [{key, value} | captures]}
                 end
 
               result = Enum.into(captures, result)
@@ -85,14 +85,15 @@ runner_setup = fn %{id: id, device: device = %{ip: ip, port: port, proto: proto}
 end
 
 complement_device = fn {id, device = %{points: points}} ->
-  device = Map.put(device, :pairs, %{})
+  device = Map.put(device, :meta, %{})
 
   device =
     for {point, pi} <- Enum.with_index(points), reduce: device do
       device ->
         names = plib.names.(point.names)
-        keys = for name <- names, do: "#{point.type}:#{name}"
-        put_in(device, [:pairs, pi], Enum.zip(names, keys))
+        keys = for name <- names, do: plib.key.(point.type, point.encoding, name)
+        points = for {name, key} <- Enum.zip(names, keys), do: %{name: name, key: key}
+        put_in(device, [:meta, pi], %{length: length(points), points: points})
     end
 
   {id, device}
@@ -138,6 +139,7 @@ master_loop = fn state = %{cubdb: cubdb, loop: loop, runners: runners, logs: log
       loop.(state)
 
     {"flex:modbus-devices:update", _, {id, params}} ->
+      params = Map.drop(params, [:meta])
       CubDB.put(cubdb, id, params)
       publish_devices.(cubdb)
       task = runners[id][:task]
