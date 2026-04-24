@@ -87,8 +87,8 @@ style = fn
 end
 
 encode = fn
-  :input, line -> lib.printable.(line)
-  :output, line -> lib.printable.(line)
+  :input, line -> Base.encode16(line)
+  :output, line -> Base.encode16(line)
   _, line -> line
 end
 

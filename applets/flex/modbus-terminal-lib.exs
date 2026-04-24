@@ -28,15 +28,15 @@ loop = fn loop, parent, conn ->
           loop.(loop, parent, conn)
 
         {:ok, conn, values} ->
-          send(parent, {:socket, self(), :success, values: get.(values)})
+          send(parent, {:socket, self(), :success, get.(values)})
           loop.(loop, parent, conn)
 
         {:error, _conn, error = :closed} ->
-          send(parent, {:socket, self(), :error, error: error})
+          send(parent, {:socket, self(), :error, error})
           Api.warn(error: error)
 
         {:error, conn, error} ->
-          send(parent, {:socket, self(), :error, error: error})
+          send(parent, {:socket, self(), :error, error})
           loop.(loop, parent, conn)
       end
 
@@ -57,24 +57,9 @@ setup = fn {parent, %{ip: ip, port: port, proto: proto}} ->
   end
 end
 
-printable = fn line ->
-  line
-  |> String.split(~r/[[:graph:]]+/, include_captures: true)
-  |> Enum.with_index()
-  |> Enum.map(fn {chunk, i} ->
-    case {rem(i, 2), chunk} do
-      {0, ""} -> ""
-      {0, chunk} -> ["[", :binary.encode_hex(chunk), "]"]
-      {1, _} -> chunk
-    end
-  end)
-  |> Enum.join("")
-end
-
 %{
   setup: setup,
   shift: shift,
   options: options,
-  parse: modcmd.parse,
-  printable: printable
+  parse: modcmd.parse
 }

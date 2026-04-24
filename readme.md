@@ -96,8 +96,9 @@ s=1,a=49,c=rri,d=5,e=u16le # Turck - Read All
   - Laurel continuous mode *1A0<cr>[<nl>]
   - Laurel command mode *1A1<cr>[<nl>]
 - [ ] Make flex pages password protected: use put cookie as regular login
-- [ ] Modbus log input/output as full hex: [00]![00000006010200030001]
-- [ ] Shaky things: browser, mountrap, socat, kill links, unable to await defers
+- [ ] Shaky things: browser, mountrap, socat, kill links, unable to await defers, modbus lib
+- [ ] Modbus lib deterministic error detection
+- [x] Modbus log input/output as full hex: [00]![00000006010200030001]
 - [x] Modbus devices viewer slowed down to the point of modal delayed actions
   - Same impact expected to logic engine? <- this may be the real engineering challenge
   - Move from event driven to polling
