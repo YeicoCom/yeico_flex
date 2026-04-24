@@ -143,7 +143,7 @@ modal = fn
 
   {:points, state, id, device = %{points: points}} ->
     options = plib.options
-    points = if length(points) > 0, do: points, else: points ++ [plib.new]
+    points = if length(points) > 0, do: points, else: [plib.new]
     device = Map.put(device, :points, points)
     modal = %{title: "Edit Modbus Points", id: id, input: device, type: :points}
     state = Map.put(state, :modal, modal)
@@ -162,50 +162,6 @@ modal = fn
     Map.put(state, :options, options)
 end
 
-index = fn pairs -> Enum.map(pairs, fn {k, _} -> k end) end
-
-switch = fn points, pi ->
-  {prefix, [a, b | tail]} = Enum.split(points, pi) |> Api.debug()
-  prefix ++ [b, a | tail]
-end
-
-apply = fn
-  {points, action, pi} ->
-    case action do
-      "add" -> points ++ [plib.new]
-      "del" -> List.delete_at(points, pi)
-      "up" -> switch.(points, pi - 1)
-      "down" -> switch.(points, pi)
-    end
-
-  {device, action} ->
-    case action do
-      "enable" -> Map.put(device, :status, :enabled)
-      "disable" -> Map.put(device, :status, :disabled)
-    end
-end
-
-parse = fn params, points ->
-  params = Map.update!(params, "status", &String.to_atom/1)
-  params = Map.update!(params, "port", &String.to_integer/1)
-  params = Map.update!(params, "delay", &String.to_integer/1)
-  params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
-  Enum.into(params, %{points: points})
-end
-
-points = fn devices ->
-  for {id, device} <- devices do
-    {id,
-     for pi <- 0..(length(device.points) - 1)//1 do
-       pairs = device.pairs[pi]
-       for {_, key} <- pairs, do: {key, plib.get.(key)}
-     end
-     |> List.flatten()
-     |> Enum.into(%{})}
-  end
-  |> Enum.into(%{})
-end
-
 handler = fn
   {:mount, socket, state} ->
     refresh = 100
@@ -213,8 +169,8 @@ handler = fn
     logs = Api.subget!("flex:modbus-devices:logs")
     logs = dlib.shift.(tzoffset, logs)
     devices = Api.subget!("flex:modbus-devices:items")
-    points = points.(devices)
-    index = index.(devices)
+    points = dlib.points.(devices, plib.get)
+    index = dlib.index.(devices)
     devices = Enum.into(devices, %{})
     socket = assign(socket, applet_css: "/applets/flex.css")
     socket = assign(socket, applet_js: "/applets/flex.js")
@@ -229,8 +185,11 @@ handler = fn
     state = Map.put(state, :modal, nil)
     state = Map.put(state, :ui, ui)
     Process.send_after(self(), :refresh, refresh)
-    state = if length(index) > 0, do: state, else: modal.({:device, state})
-    {socket, state}
+
+    case length(index) > 0 do
+      false -> {socket, modal.({:device, state})}
+      true -> {socket, state}
+    end
 
   {:params, socket, state, params, uri} ->
     Api.trace(view: path, params: params, uri: uri)
@@ -246,14 +205,14 @@ handler = fn
 
   {:event, socket, state = %{modal: %{id: nil}}, event = "modal:device:submit", params} ->
     Api.trace(view: path, event: event, params: params)
-    Bus.broadcast!("flex:modbus-devices:insert", parse.(params, []))
+    Bus.broadcast!("flex:modbus-devices:insert", dlib.parse.(params, []))
     state = Map.put(state, :modal, nil)
     {socket, state}
 
   {:event, socket, state = %{modal: %{id: id, input: %{points: points}}},
    event = "modal:device:submit", params} ->
     Api.trace(view: path, event: event, params: params)
-    Bus.broadcast!("flex:modbus-devices:update", {id, parse.(params, points)})
+    Bus.broadcast!("flex:modbus-devices:update", {id, dlib.parse.(params, points)})
     state = Map.put(state, :modal, nil)
     {socket, state}
 
@@ -265,7 +224,7 @@ handler = fn
   {:event, socket, state = %{devices: devices}, event = "click:action",
    params = %{"id" => id, "action" => action}} ->
     Api.trace(view: path, event: event, params: params)
-    Bus.broadcast!("flex:modbus-devices:update", {id, apply.({devices[id], action})})
+    Bus.broadcast!("flex:modbus-devices:update", {id, plib.apply.({devices[id], action})})
     {socket, state}
 
   {:event, socket, state, event = "click:add", params} ->
@@ -287,7 +246,7 @@ handler = fn
    event = "click:point:" <> action, params = %{"pi" => pi}} ->
     Api.trace(view: path, event: event, params: params)
     pi = String.to_integer(pi)
-    points = apply.({points, action, pi})
+    points = plib.apply.({points, action, pi})
     state = put_in(state, [:modal, :input, :points], points)
     {socket, state}
 
@@ -343,13 +302,13 @@ handler = fn
   {:info, socket, state = %{refresh: refresh, devices: devices}, :refresh} ->
     # Api.trace(view: path, info: event)
     Process.send_after(self(), :refresh, refresh)
-    state = Map.put(state, :points, points.(devices))
+    state = Map.put(state, :points, dlib.points.(devices, plib.get))
     {socket, state}
 
   {:info, socket, state, event = {"flex:modbus-devices:items", _, devices}} ->
     Api.trace(view: path, info: event)
-    points = points.(devices)
-    index = index.(devices)
+    points = dlib.points.(devices, plib.get)
+    index = dlib.index.(devices)
     devices = Enum.into(devices, %{})
     state = Map.put(state, :devices, devices)
     state = Map.put(state, :index, index)

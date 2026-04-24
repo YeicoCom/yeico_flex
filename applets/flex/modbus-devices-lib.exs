@@ -41,10 +41,36 @@ device = fn ->
     modbus.master.({:exec, conn, cmd, opts})
   end
 
+  index = fn pairs -> Enum.map(pairs, fn {k, _} -> k end) end
+
+  parse = fn params, points ->
+    params = Map.update!(params, "status", &String.to_atom/1)
+    params = Map.update!(params, "port", &String.to_integer/1)
+    params = Map.update!(params, "delay", &String.to_integer/1)
+    params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
+    Enum.into(params, %{points: points})
+  end
+
+  points = fn devices, get ->
+    for {id, device} <- devices do
+      {id,
+       for pi <- 0..(length(device.points) - 1)//1 do
+         pairs = device.pairs[pi]
+         for {_, key} <- pairs, do: {key, get.(key)}
+       end
+       |> List.flatten()
+       |> Enum.into(%{})}
+    end
+    |> Enum.into(%{})
+  end
+
   %{
     new: new,
     shift: shift,
     options: options,
+    points: points,
+    index: index,
+    parse: parse,
     open: open,
     exec: exec
   }
@@ -104,11 +130,33 @@ points = fn ->
     |> Enum.map(&String.trim/1)
   end
 
+  switch = fn points, pi ->
+    {prefix, [a, b | tail]} = Enum.split(points, pi) |> Api.debug()
+    prefix ++ [b, a | tail]
+  end
+
+  apply = fn
+    {points, action, pi} ->
+      case action do
+        "add" -> points ++ [new]
+        "del" -> List.delete_at(points, pi)
+        "up" -> switch.(points, pi - 1)
+        "down" -> switch.(points, pi)
+      end
+
+    {device, action} ->
+      case action do
+        "enable" -> Map.put(device, :status, :enabled)
+        "disable" -> Map.put(device, :status, :disabled)
+      end
+  end
+
   %{
     new: new,
     get: get,
     put: put,
     type: type,
+    apply: apply,
     names: names,
     toint?: toint?,
     options: options,
