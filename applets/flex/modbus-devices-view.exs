@@ -64,33 +64,33 @@ view = fn assigns ->
     </div>
   </.fui>
   <.fui fun={@ui.modal} :if={@modal[:type] == :device} title={@modal.title} class="min-w-[360px] flex flex-col gap-2">
-    <% input = @modal.input %>
+    <% device = @modal.input %>
     <form id="modal_form" phx-submit="modal:device:submit" class="flex flex-col gap-4"
       phx-hook="EnterNavigation" phx-update="ignore" autocomplete="off">
       <div class="grid grid-cols-2 gap-2 items-center min-w-[12em]">
         <div>Name</div>
-        <.fui fun={@ui.input} name="name" value={input.name} type="text" required id="modal_autofocus" phx-hook="AutoFocus" pattern="^[a-zA-Z0-9_,]+$"/>
+        <.fui fun={@ui.input} name="name" value={device.name} type="text" required id="modal_autofocus" phx-hook="AutoFocus" pattern="^[a-zA-Z0-9_,]+$"/>
         <div>Protocol</div>
-        <.fui fun={@ui.select} name="proto" value={input.proto} values={@options.protos} required/>
+        <.fui fun={@ui.select} name="proto" value={device.proto} values={@options.protos} required/>
         <div>IP</div>
-        <.fui fun={@ui.input} name="ip" value={input.ip} type="text" required pattern="^(((?!25?[6-9])[12]\d|[1-9])?\d\.?\b){4}$"/>
+        <.fui fun={@ui.input} name="ip" value={device.ip} type="text" required pattern="^(((?!25?[6-9])[12]\d|[1-9])?\d\.?\b){4}$"/>
         <div>Port</div>
-        <.fui fun={@ui.input} name="port" value={input.port} type="number" step="1" min="1" max="65535" required/>
+        <.fui fun={@ui.input} name="port" value={device.port} type="number" step="1" min="1" max="65535" required/>
         <div>Delay</div>
-        <.fui fun={@ui.input} name="delay" value={input.delay} type="number" step="1" min="0" max="65535" required/>
+        <.fui fun={@ui.input} name="delay" value={device.delay} type="number" step="1" min="0" max="65535" required/>
         <div>Status</div>
-        <.fui fun={@ui.select} name="status" value={input.status} values={@options.status} required/>
+        <.fui fun={@ui.select} name="status" value={device.status} values={@options.status} required/>
       </div>
       <.fui fun={@ui.button} type="submit" class="col-span-2">Accept</.fui>
     </form>
   </.fui>
   <.fui fun={@ui.modal} :if={@modal[:type] == :points} title={@modal.title}
     class="min-w-[360px] max-h-[80%] h-[80%] flex flex-col">
-    <% input = @modal.input %>
+    <% device = @modal.input %>
     <div class="grow overflow-y-hidden">
       <form id="modal_form" phx-submit="modal:points:submit" phx-change="modal:points:change"
         class="h-full flex flex-col gap-1" phx-hook="EnterNavigation" autocomplete="off">
-        <div>{input.proto},{input.ip}:{input.port},{input.status},{input.name}</div>
+        <div>{device.proto},{device.ip}:{device.port},{device.status},{device.name}</div>
         <div class="grid grid-cols-[3em_4em_4em_5em_12em_1fr] md:grid-cols-[3em_4em_4em_5em_20em_1fr] lg:grid-cols-[3em_4em_4em_5em_32em_1fr] gap-1">
           <div>Slave</div>
           <div>Address</div>
@@ -100,13 +100,13 @@ view = fn assigns ->
           <.fui fun={@ui.link} phx-click="click:point:add" phx-value-pi={0} title="Add Point"><div class="hero-plus z-0"/>Point</.fui>
         </div>
         <div class="grow overflow-y-scroll flex flex-col gap-1 p-1">
-          <% pl = length(input.points) - 1 %>
-          <%= for {point, pi} <- Enum.with_index(input.points) do %>
+          <% pl = length(device.points) - 1 %>
+          <%= for {point, pi} <- Enum.with_index(device.points) do %>
             <div class="grid grid-cols-[3em_4em_4em_5em_12em_1fr] md:grid-cols-[3em_4em_4em_5em_20em_1fr] lg:grid-cols-[3em_4em_4em_5em_32em_1fr] gap-1">
               <.fui fun={@ui.input} name="slave[]" value={point.slave} type="number" step="1" min="0" max="255" required/>
               <.fui fun={@ui.input} name="address[]" value={point.address} type="number" step="1" min="0" max="65535" required/>
-              <.fui fun={@ui.select} name="type[]" value={point.type} values={@options.points.types} required/>
-              <.fui fun={@ui.select} name="encoding[]" value={point.encoding} values={@options.points.encodings} required/>
+              <.fui fun={@ui.select} name="type[]" value={point.type} values={@options.types} required/>
+              <.fui fun={@ui.select} name="encoding[]" value={point.encoding} values={@options.encodings} required/>
               <.fui fun={@ui.input} name="names[]" value={point.names} type="text" required pattern="^[a-zA-Z0-9_,]+$"/>
               <div class="flex gap-1">
                 <.fui fun={@ui.link} disabled={pi==0} phx-click="click:point:del" phx-value-pi={pi} type="danger" title="Delete Point"><div class="hero-x-mark z-0"/></.fui>
@@ -142,22 +142,22 @@ modal = fn
     Map.put(state, :options, nil)
 
   {:points, state, id, device = %{points: points}} ->
-    options = lib.options
-    points = if length(points) > 0, do: points, else: points ++ [lib.points.new]
+    options = plib.options
+    points = if length(points) > 0, do: points, else: points ++ [plib.new]
     device = Map.put(device, :points, points)
     modal = %{title: "Edit Modbus Points", id: id, input: device, type: :points}
     state = Map.put(state, :modal, modal)
     Map.put(state, :options, options)
 
   {:device, state, id, device} ->
-    options = lib.options
+    options = dlib.options
     modal = %{title: "Edit Modbus Device", id: id, input: device, type: :device}
     state = Map.put(state, :modal, modal)
     Map.put(state, :options, options)
 
   {:device, state} ->
-    options = lib.options
-    modal = %{title: "Add Modbus Device", id: nil, input: lib.new.(), type: :device}
+    options = dlib.options
+    modal = %{title: "Add Modbus Device", id: nil, input: dlib.new.(), type: :device}
     state = Map.put(state, :modal, modal)
     Map.put(state, :options, options)
 end
@@ -172,7 +172,7 @@ end
 apply = fn
   {points, action, pi} ->
     case action do
-      "add" -> points ++ [lib.points.new]
+      "add" -> points ++ [plib.new]
       "del" -> List.delete_at(points, pi)
       "up" -> switch.(points, pi - 1)
       "down" -> switch.(points, pi)
@@ -198,7 +198,7 @@ points = fn devices ->
     {id,
      for pi <- 0..(length(device.points) - 1)//1 do
        pairs = device.pairs[pi]
-       for {_, key} <- pairs, do: {key, lib.points.get.(key)}
+       for {_, key} <- pairs, do: {key, plib.get.(key)}
      end
      |> List.flatten()
      |> Enum.into(%{})}
@@ -211,7 +211,7 @@ handler = fn
     refresh = 100
     tzoffset = socket.assigns.tzoffset || 0
     logs = Api.subget!("flex:modbus-devices:logs")
-    logs = lib.shift.(tzoffset, logs)
+    logs = dlib.shift.(tzoffset, logs)
     devices = Api.subget!("flex:modbus-devices:items")
     points = points.(devices)
     index = index.(devices)
@@ -294,8 +294,8 @@ handler = fn
   {:event, socket, state = %{modal: %{input: %{points: points}}}, event = "modal:points:change",
    params} ->
     Api.trace(view: path, event: event, params: params)
-    slave = params["slave"] |> Enum.map(lib.points.toint?)
-    address = params["address"] |> Enum.map(lib.points.toint?)
+    slave = params["slave"] |> Enum.map(plib.toint?)
+    address = params["address"] |> Enum.map(plib.toint?)
     type = params["type"]
     encoding = params["encoding"]
     names = params["names"]
@@ -320,7 +320,7 @@ handler = fn
 
   {:event, socket, state, event = "click:putint", params = %{"key" => key, "val" => val}} ->
     Api.trace(view: path, event: event, params: params)
-    lib.points.put.(key, String.to_integer(val))
+    plib.put.(key, String.to_integer(val))
     {socket, state}
 
   {:event, socket, state, event = "click:capture",
@@ -332,8 +332,8 @@ handler = fn
   {:event, socket, state, event = "modal:capture:submit",
    params = %{"key" => key, "val" => val, "enc" => enc}} ->
     Api.trace(view: path, event: event, params: params)
-    [val] = lib.points.encoder.(enc).parse.(val)
-    lib.points.put.(key, val)
+    [val] = plib.encoder.(enc).parse.(val)
+    plib.put.(key, val)
     {socket, state}
 
   {:event, socket, state, event, params} ->
@@ -358,7 +358,7 @@ handler = fn
 
   {:info, socket, state = %{tzoffset: tzoffset}, event = {"flex:modbus-devices:logs", _, logs}} ->
     Api.trace(view: path, info: event)
-    state = Map.put(state, :logs, lib.shift.(tzoffset, logs))
+    state = Map.put(state, :logs, dlib.shift.(tzoffset, logs))
     {socket, state}
 
   {:info, socket, state, event} ->

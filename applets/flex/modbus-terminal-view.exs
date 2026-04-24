@@ -27,10 +27,12 @@ d: Read count
 e: Encoding
   f32be 32 bit big endian IEEE754 float encoding
   f32le 32 bit little endian IEEE754 float encoding
+  u16be 16 bit big endian unsigned integer
+  u16le 16 bit little endian unsigned integer
 #: Name or comment
 """
 
-tip = "s=Slave,a=Address,c=[rdi,rdo,wdo,rri,rro,wro],d=Data,e=[f32be,f32le]#Comment"
+tip = "s=Slave,a=Address,c=[rdi,rdo,wdo,rri,rro,wro],d=Data,e=[f32be,f32le,u16be,u16le]#Comment"
 
 view = fn assigns ->
   ~H"""

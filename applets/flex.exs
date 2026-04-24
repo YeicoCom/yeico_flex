@@ -13,8 +13,22 @@ Api.evalf("flex/view.exs", path: "/flex", ui: ui)
 Api.putcast!("flex:modbus-devices:items", [])
 Api.putcast!("flex:modbus-devices:logs", %{})
 {lib, _} = Api.evalf("flex/modbus-devices-lib.exs", modbus: modbus, modcmd: modcmd)
-Api.evalf("flex/modbus-devices-loop.exs", path: dbpath.("modbus-devices"), dms: 2_000, lib: lib)
-Api.evalf("flex/modbus-devices-view.exs", path: "/flex/modbus-devices", ui: ui, lib: lib)
+
+Api.evalf("flex/modbus-devices-loop.exs",
+  path: dbpath.("modbus-devices"),
+  dms: 2_000,
+  dlib: lib.device,
+  plib: lib.points
+)
+
+Api.evalf("flex/modbus-devices-view.exs",
+  path: "/flex/modbus-devices",
+  ui: ui,
+  dlib: lib.device,
+  plib: lib.points
+)
+
+Api.evalf("flex/modbus-devices-publish.exs", dlib: lib.device, plib: lib.points)
 
 {lib, _} = Api.evalf("flex/modbus-terminal-lib.exs", modbus: modbus, modcmd: modcmd)
 Api.evalf("flex/modbus-terminal-view.exs", path: "/flex/modbus-terminal", ui: ui, lib: lib)

@@ -21,7 +21,7 @@ runner_loop =
         {conn, result} ->
           pairs = device.pairs[pi]
 
-          %{rf: rf, set: set, get: get} = lib.points.encoder.(point.encoding)
+          %{rf: rf, set: set, get: get} = plib.encoder.(point.encoding)
 
           {cmd, result, get} =
             case {point.type, point.encoding} do
@@ -32,7 +32,7 @@ runner_loop =
                 {{:rc, point.slave, point.address, length(pairs)}, result, & &1}
 
               {"WDO", _} ->
-                values = for {_, key} <- pairs, do: {key, lib.points.get.(key)}
+                values = for {_, key} <- pairs, do: {key, plib.get.(key)}
                 result = Enum.into(values, result)
                 {{:fc, point.slave, point.address, Keyword.values(values)}, result, & &1}
 
@@ -43,12 +43,12 @@ runner_loop =
                 {{:rhr, point.slave, point.address, rf * length(pairs)}, result, get}
 
               {"WRO", _} ->
-                values = for {_, key} <- pairs, do: {key, lib.points.get.(key)}
+                values = for {_, key} <- pairs, do: {key, plib.get.(key)}
                 result = Enum.into(values, result)
                 {{:phr, point.slave, point.address, set.(Keyword.values(values))}, result, & &1}
             end
 
-          case lib.exec.(conn, cmd, []) do
+          case dlib.exec.(conn, cmd, []) do
             {:ok, conn} ->
               {conn, result}
 
@@ -56,7 +56,7 @@ runner_loop =
               {_, _, captures} =
                 for _ <- pairs, reduce: {pairs, get.(values), []} do
                   {[{_, key} | pairs], [value | values], captures} ->
-                    lib.points.put.(key, value)
+                    plib.put.(key, value)
                     {pairs, values, [{key, value} | captures]}
                 end
 
@@ -74,7 +74,7 @@ runner_loop =
   end
 
 runner_setup = fn %{id: id, device: device = %{ip: ip, port: port, proto: proto}} ->
-  with {:ok, conn} <- lib.open.(ip, port, proto) do
+  with {:ok, conn} <- dlib.open.(ip, port, proto) do
     # nil to reset
     log_event.(id, nil, "Started")
     if length(device.points) == 0, do: Api.sleep()
@@ -90,7 +90,7 @@ complement_device = fn {id, device = %{points: points}} ->
   device =
     for {point, pi} <- Enum.with_index(points), reduce: device do
       device ->
-        names = lib.points.names.(point.names)
+        names = plib.names.(point.names)
         keys = for name <- names, do: "#{point.type}:#{name}"
         put_in(device, [:pairs, pi], Enum.zip(names, keys))
     end
