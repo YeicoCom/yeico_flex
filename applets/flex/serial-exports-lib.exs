@@ -27,6 +27,8 @@ ips = ["127.0.0.1", "0.0.0.0"]
 status = [:enabled, :disabled]
 options = %{status: status, bauds: bauds, bits: bits, ips: ips}
 
+name = "Serial Export"
+
 shift = fn tzoffset, logs ->
   logs
   |> Enum.map(fn {k, log = %{dt: dt}} ->
@@ -37,9 +39,52 @@ shift = fn tzoffset, logs ->
   |> Enum.into(%{})
 end
 
+modal = fn
+  {:edit, state, id, item = %{tty: tty}} ->
+    ttys = [tty | list.()] |> Enum.uniq()
+    options = Map.put(options, :ttys, ttys)
+
+    Map.put(state, :modal, %{
+      title: "Edit #{name}",
+      item: item,
+      id: id,
+      opts: options
+    })
+
+  {:add, state} ->
+    options = Map.put(options, :ttys, list.())
+
+    Map.put(state, :modal, %{
+      title: "Add #{name}",
+      item: new,
+      id: nil,
+      opts: options
+    })
+end
+
+index = fn pairs -> Enum.map(pairs, fn {k, _} -> k end) end
+
+apply = fn item, action ->
+  case action do
+    "enable" -> Map.put(item, :status, :enabled)
+    "disable" -> Map.put(item, :status, :disabled)
+    "local" -> Map.put(item, :ip, "127.0.0.1")
+    "remote" -> Map.put(item, :ip, "0.0.0.0")
+  end
+end
+
+parse = fn params ->
+  params = Map.update!(params, "status", &String.to_atom/1)
+  params = Map.update!(params, "bauds", &String.to_integer/1)
+  params = Map.update!(params, "port", &String.to_integer/1)
+  params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
+  Enum.into(params, %{})
+end
+
 %{
-  new: new,
-  list: list,
+  modal: modal,
   shift: shift,
-  options: options
+  parse: parse,
+  apply: apply,
+  index: index
 }

@@ -1,7 +1,7 @@
 use Terminal
 
 get = fn slave, code, address, count ->
-  model = Adb.get("flex:modbus:slave:model")
+  model = Adb.get("flex:modbus-slave:model")
 
   for i <- 0..(count - 1) do
     Map.get(model, "#{slave}:#{code}:#{address + i}", 0)
@@ -14,8 +14,8 @@ put = fn slave, code, address, values ->
       patch -> Map.put(patch, "#{slave}:#{code}:#{address + i}", v)
     end
 
-  Adb.update("flex:modbus:slave:model", patch, &Map.merge(&1, patch))
-  Bus.broadcast!("flex:modbus:slave:model", patch)
+  Adb.update("flex:modbus-slave:model", patch, &Map.merge(&1, patch))
+  Bus.broadcast!("flex:modbus-slave:model", patch)
 
   nil
 end

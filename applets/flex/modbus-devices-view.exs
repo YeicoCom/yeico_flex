@@ -210,9 +210,9 @@ handler = fn
   {:mount, socket, state} ->
     refresh = 100
     tzoffset = socket.assigns.tzoffset || 0
-    logs = Api.subget!("flex:modbus:logs")
+    logs = Api.subget!("flex:modbus-devices:logs")
     logs = lib.shift.(tzoffset, logs)
-    devices = Api.subget!("flex:modbus:devices")
+    devices = Api.subget!("flex:modbus-devices:items")
     points = points.(devices)
     index = index.(devices)
     devices = Enum.into(devices, %{})
@@ -246,26 +246,26 @@ handler = fn
 
   {:event, socket, state = %{modal: %{id: nil}}, event = "modal:device:submit", params} ->
     Api.trace(view: path, event: event, params: params)
-    Bus.broadcast!("flex:modbus:insert", parse.(params, []))
+    Bus.broadcast!("flex:modbus-devices:insert", parse.(params, []))
     state = Map.put(state, :modal, nil)
     {socket, state}
 
   {:event, socket, state = %{modal: %{id: id, input: %{points: points}}},
    event = "modal:device:submit", params} ->
     Api.trace(view: path, event: event, params: params)
-    Bus.broadcast!("flex:modbus:update", {id, parse.(params, points)})
+    Bus.broadcast!("flex:modbus-devices:update", {id, parse.(params, points)})
     state = Map.put(state, :modal, nil)
     {socket, state}
 
   {:event, socket, state, event = "click:delete", params = %{"id" => id}} ->
     Api.trace(view: path, event: event, params: params)
-    Bus.broadcast!("flex:modbus:delete", id)
+    Bus.broadcast!("flex:modbus-devices:delete", id)
     {socket, state}
 
   {:event, socket, state = %{devices: devices}, event = "click:action",
    params = %{"id" => id, "action" => action}} ->
     Api.trace(view: path, event: event, params: params)
-    Bus.broadcast!("flex:modbus:update", {id, apply.({devices[id], action})})
+    Bus.broadcast!("flex:modbus-devices:update", {id, apply.({devices[id], action})})
     {socket, state}
 
   {:event, socket, state, event = "click:add", params} ->
@@ -314,7 +314,7 @@ handler = fn
   {:event, socket, state = %{modal: %{id: id, input: device}}, event = "modal:points:submit",
    params} ->
     Api.trace(view: path, event: event, params: params)
-    Bus.broadcast!("flex:modbus:update", {id, device})
+    Bus.broadcast!("flex:modbus-devices:update", {id, device})
     state = Map.put(state, :modal, nil)
     {socket, state}
 
@@ -346,7 +346,7 @@ handler = fn
     state = Map.put(state, :points, points.(devices))
     {socket, state}
 
-  {:info, socket, state, event = {"flex:modbus:devices", _, devices}} ->
+  {:info, socket, state, event = {"flex:modbus-devices:items", _, devices}} ->
     Api.trace(view: path, info: event)
     points = points.(devices)
     index = index.(devices)
@@ -356,7 +356,7 @@ handler = fn
     state = Map.put(state, :points, points)
     {socket, state}
 
-  {:info, socket, state = %{tzoffset: tzoffset}, event = {"flex:modbus:logs", _, logs}} ->
+  {:info, socket, state = %{tzoffset: tzoffset}, event = {"flex:modbus-devices:logs", _, logs}} ->
     Api.trace(view: path, info: event)
     state = Map.put(state, :logs, lib.shift.(tzoffset, logs))
     {socket, state}

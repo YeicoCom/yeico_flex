@@ -2,7 +2,7 @@ use Terminal
 
 post_log = fn id, error?, msg ->
   dt = NaiveDateTime.utc_now()
-  Bus.broadcast!("flex:generic-item:log", %{id: id, dt: dt, error?: error?, msg: msg})
+  Bus.broadcast!("flex:generic-items:log", %{id: id, dt: dt, error?: error?, msg: msg})
 end
 
 log_event = fn
@@ -39,13 +39,13 @@ end
 
 publish_items = fn cubdb ->
   items = CubDB.select(cubdb, []) |> Enum.to_list()
-  Api.putcast!("flex:generic-item:items", items)
+  Api.putcast!("flex:generic-items:items", items)
   items
 end
 
 master_loop = fn state = %{cubdb: cubdb, loop: loop, runners: runners, logs: logs} ->
   receive do
-    {"flex:generic-item:insert", _, params} ->
+    {"flex:generic-items:insert", _, params} ->
       id = UUID.uuid1() |> ShortUUID.encode!()
       CubDB.put(cubdb, id, params)
       publish_items.(cubdb)
@@ -55,7 +55,7 @@ master_loop = fn state = %{cubdb: cubdb, loop: loop, runners: runners, logs: log
       state = Map.put(state, :runners, runners)
       loop.(state)
 
-    {"flex:generic-item:update", _, {id, params}} ->
+    {"flex:generic-items:update", _, {id, params}} ->
       CubDB.put(cubdb, id, params)
       publish_items.(cubdb)
       task = runners[id][:task]
@@ -66,7 +66,7 @@ master_loop = fn state = %{cubdb: cubdb, loop: loop, runners: runners, logs: log
       state = Map.put(state, :runners, runners)
       loop.(state)
 
-    {"flex:generic-item:delete", _, id} ->
+    {"flex:generic-items:delete", _, id} ->
       CubDB.delete(cubdb, id)
       publish_items.(cubdb)
       task = runners[id][:task]
@@ -76,11 +76,11 @@ master_loop = fn state = %{cubdb: cubdb, loop: loop, runners: runners, logs: log
       state = Map.put(state, :runners, runners)
       loop.(state)
 
-    {"flex:generic-item:log", _, log} ->
+    {"flex:generic-items:log", _, log} ->
       logs = replace_log.(logs, log)
       ids = Map.keys(runners)
       logs = Map.take(logs, ids)
-      Api.putcast!("flex:generic-item:logs", logs)
+      Api.putcast!("flex:generic-items:logs", logs)
       state = Map.put(state, :logs, logs)
       loop.(state)
 
@@ -93,10 +93,10 @@ master_loop = fn state = %{cubdb: cubdb, loop: loop, runners: runners, logs: log
 end
 
 master_setup = fn %{cubdb: cubdb} ->
-  Bus.subscribe!("flex:generic-item:insert", nil)
-  Bus.subscribe!("flex:generic-item:update", nil)
-  Bus.subscribe!("flex:generic-item:delete", nil)
-  Bus.subscribe!("flex:generic-item:log", nil)
+  Bus.subscribe!("flex:generic-items:insert", nil)
+  Bus.subscribe!("flex:generic-items:update", nil)
+  Bus.subscribe!("flex:generic-items:delete", nil)
+  Bus.subscribe!("flex:generic-items:log", nil)
   items = publish_items.(cubdb)
 
   runners =
@@ -106,7 +106,7 @@ master_setup = fn %{cubdb: cubdb} ->
     end
 
   runners = Enum.into(runners, %{})
-  Api.putcast!("flex:generic-item:logs", %{})
+  Api.putcast!("flex:generic-items:logs", %{})
   master_loop.(%{cubdb: cubdb, loop: master_loop, runners: runners, logs: %{}})
 end
 

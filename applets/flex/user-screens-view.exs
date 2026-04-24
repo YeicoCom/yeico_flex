@@ -49,9 +49,9 @@ end
 handler = fn
   {:mount, socket, state} ->
     tzoffset = socket.assigns.tzoffset || 0
-    logs = Api.subget!("flex:user-screen:logs")
+    logs = Api.subget!("flex:user-screens:logs")
     logs = lib.shift.(tzoffset, logs)
-    items = Api.subget!("flex:user-screen:items")
+    items = Api.subget!("flex:user-screens:items")
     index = lib.index.(items)
     items = Enum.into(items, %{})
     socket = assign(socket, applet_css: "/applets/flex.css")
@@ -84,25 +84,25 @@ handler = fn
 
   {:event, socket, state = %{modal: %{id: nil}}, event = "modal:submit", params} ->
     Api.trace(view: path, event: event, params: params)
-    Bus.broadcast!("flex:user-screen:insert", lib.parse.(params))
+    Bus.broadcast!("flex:user-screens:insert", lib.parse.(params))
     state = Map.put(state, :modal, nil)
     {socket, state}
 
   {:event, socket, state = %{modal: %{id: id}}, event = "modal:submit", params} ->
     Api.trace(view: path, event: event, params: params)
-    Bus.broadcast!("flex:user-screen:update", {id, lib.parse.(params)})
+    Bus.broadcast!("flex:user-screens:update", {id, lib.parse.(params)})
     state = Map.put(state, :modal, nil)
     {socket, state}
 
   {:event, socket, state, event = "click:delete", params = %{"id" => id}} ->
     Api.trace(view: path, event: event, params: params)
-    Bus.broadcast!("flex:user-screen:delete", id)
+    Bus.broadcast!("flex:user-screens:delete", id)
     {socket, state}
 
   {:event, socket, state = %{items: items}, event = "click:action",
    params = %{"id" => id, "action" => action}} ->
     Api.trace(view: path, event: event, params: params)
-    Bus.broadcast!("flex:user-screen:update", {id, lib.apply.(items[id], action)})
+    Bus.broadcast!("flex:user-screens:update", {id, lib.apply.(items[id], action)})
     {socket, state}
 
   {:event, socket, state, event = "click:add", params} ->
@@ -119,7 +119,7 @@ handler = fn
     Api.trace(view: path, event: event, params: params)
     {socket, state}
 
-  {:info, socket, state, event = {"flex:user-screen:items", _, items}} ->
+  {:info, socket, state, event = {"flex:user-screens:items", _, items}} ->
     Api.trace(view: path, info: event)
     index = lib.index.(items)
     items = Enum.into(items, %{})
@@ -127,7 +127,7 @@ handler = fn
     state = Map.put(state, :index, index)
     {socket, state}
 
-  {:info, socket, state = %{tzoffset: tzoffset}, event = {"flex:user-screen:logs", _, logs}} ->
+  {:info, socket, state = %{tzoffset: tzoffset}, event = {"flex:user-screens:logs", _, logs}} ->
     Api.trace(view: path, info: event)
     state = Map.put(state, :logs, lib.shift.(tzoffset, logs))
     {socket, state}

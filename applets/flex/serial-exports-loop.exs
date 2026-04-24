@@ -15,7 +15,7 @@ dms = 2_000
 
 post_log = fn id, error?, msg ->
   dt = NaiveDateTime.utc_now()
-  Bus.broadcast!("flex:serial:log", %{id: id, dt: dt, error?: error?, msg: msg})
+  Bus.broadcast!("flex:serial-exports:log", %{id: id, dt: dt, error?: error?, msg: msg})
 end
 
 log_event = fn
@@ -115,7 +115,7 @@ run_cmd = fn %{tty: tty}, id, cmd ->
   port
 end
 
-runner_loop = fn state = %{loop: loop, port: port, id: id, export: %{tty: tty}} ->
+runner_loop = fn state = %{loop: loop, port: port, id: id, item: %{tty: tty}} ->
   receive do
     # both :eol and :noeol treated as full line
     {^port, {:data, {type, data}}} ->
@@ -134,7 +134,7 @@ runner_loop = fn state = %{loop: loop, port: port, id: id, export: %{tty: tty}} 
   end
 end
 
-runner_setup = fn %{id: id, export: export} ->
+runner_setup = fn %{id: id, item: item} ->
   # avoid duplicated socat on same tty
   # this does not allow immediate reconnection
   for path <- pid_path.("*") |> Path.wildcard() do
@@ -146,29 +146,23 @@ runner_setup = fn %{id: id, export: export} ->
 
   # nil to reset
   log_event.(id, nil, "Started")
-  check_tty.(id, export)
-  cmd = build_cmd.(export)
+  check_tty.(id, item)
+  cmd = build_cmd.(item)
   cmd = sudo_cmd.(cmd)
-  port = run_cmd.(export, id, cmd)
-  runner_loop.(%{id: id, export: export, loop: runner_loop, cmd: cmd, port: port})
+  port = run_cmd.(item, id, cmd)
+  runner_loop.(%{id: id, item: item, loop: runner_loop, cmd: cmd, port: port})
 end
 
-publish_exports = fn cubdb ->
-  exports = CubDB.select(cubdb, []) |> Enum.to_list()
-  Api.putcast!("flex:serial:exports", exports)
-  exports
-end
-
-run_enabled = fn id, export ->
-  case export.status do
-    :enabled -> Api.loop(dms, runner_setup, %{id: id, export: export})
+run_enabled = fn id, item ->
+  case item.status do
+    :enabled -> Api.loop(dms, runner_setup, %{id: id, item: item})
     _ -> nil
   end
 end
 
-run_export = fn id, export ->
-  task = run_enabled.(id, export)
-  %{export: export, task: task}
+run_item = fn id, item ->
+  task = run_enabled.(id, item)
+  %{item: item, task: task}
 end
 
 replace_log = fn logs, log = %{id: id, error?: error?} ->
@@ -178,32 +172,38 @@ replace_log = fn logs, log = %{id: id, error?: error?} ->
   end
 end
 
+publish_items = fn cubdb ->
+  items = CubDB.select(cubdb, []) |> Enum.to_list()
+  Api.putcast!("flex:serial-exports:items", items)
+  items
+end
+
 master_loop = fn state = %{cubdb: cubdb, loop: loop, runners: runners, logs: logs} ->
   receive do
-    {"flex:serial:insert", _, params} ->
+    {"flex:serial-exports:insert", _, params} ->
       id = UUID.uuid1() |> ShortUUID.encode!()
       CubDB.put(cubdb, id, params)
-      publish_exports.(cubdb)
+      publish_items.(cubdb)
       log_event.(id, false, "Created")
-      runner = run_export.(id, params)
+      runner = run_item.(id, params)
       runners = Map.put(runners, id, runner)
       state = Map.put(state, :runners, runners)
       loop.(state)
 
-    {"flex:serial:update", _, {id, params}} ->
+    {"flex:serial-exports:update", _, {id, params}} ->
       CubDB.put(cubdb, id, params)
-      publish_exports.(cubdb)
+      publish_items.(cubdb)
       task = runners[id][:task]
       if task, do: Api.kill(task)
       log_event.(id, false, "Updated")
-      runner = run_export.(id, params)
+      runner = run_item.(id, params)
       runners = Map.put(runners, id, runner)
       state = Map.put(state, :runners, runners)
       loop.(state)
 
-    {"flex:serial:delete", _, id} ->
+    {"flex:serial-exports:delete", _, id} ->
       CubDB.delete(cubdb, id)
-      publish_exports.(cubdb)
+      publish_items.(cubdb)
       task = runners[id][:task]
       if task, do: Api.kill(task)
       log_event.(id, false, "Deleted")
@@ -211,11 +211,11 @@ master_loop = fn state = %{cubdb: cubdb, loop: loop, runners: runners, logs: log
       state = Map.put(state, :runners, runners)
       loop.(state)
 
-    {"flex:serial:log", _, log} ->
+    {"flex:serial-exports:log", _, log} ->
       logs = replace_log.(logs, log)
       ids = Map.keys(runners)
       logs = Map.take(logs, ids)
-      Api.putcast!("flex:serial:logs", logs)
+      Api.putcast!("flex:serial-exports:logs", logs)
       state = Map.put(state, :logs, logs)
       loop.(state)
 
@@ -233,20 +233,20 @@ master_setup = fn %{cubdb: cubdb} ->
     kill_pid.(path, pid)
   end
 
-  Bus.subscribe!("flex:serial:insert", nil)
-  Bus.subscribe!("flex:serial:update", nil)
-  Bus.subscribe!("flex:serial:delete", nil)
-  Bus.subscribe!("flex:serial:log", nil)
-  exports = publish_exports.(cubdb)
+  Bus.subscribe!("flex:serial-exports:insert", nil)
+  Bus.subscribe!("flex:serial-exports:update", nil)
+  Bus.subscribe!("flex:serial-exports:delete", nil)
+  Bus.subscribe!("flex:serial-exports:log", nil)
+  items = publish_items.(cubdb)
 
   runners =
-    for {id, export} <- exports do
-      runner = run_export.(id, export)
+    for {id, item} <- items do
+      runner = run_item.(id, item)
       {id, runner}
     end
 
   runners = Enum.into(runners, %{})
-  Api.putcast!("flex:serial:logs", %{})
+  Api.putcast!("flex:serial-exports:logs", %{})
   master_loop.(%{cubdb: cubdb, loop: master_loop, runners: runners, logs: %{}})
 end
 

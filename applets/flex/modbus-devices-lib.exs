@@ -59,11 +59,11 @@ toint? = fn str ->
 end
 
 get = fn key ->
-  Adb.get("flex:modbus:point:#{key}", 0)
+  Adb.get("flex:modbus-devices:point:#{key}", 0)
 end
 
 put = fn key, val ->
-  Adb.put("flex:modbus:point:#{key}", val)
+  Adb.put("flex:modbus-devices:point:#{key}", val)
 end
 
 %{
