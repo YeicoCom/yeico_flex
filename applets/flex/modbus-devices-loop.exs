@@ -16,7 +16,7 @@ end
 
 runner_loop =
   fn state = %{loop: loop, conn: conn, id: id, device: device = %{delay: delay, points: points}} ->
-    if delay > 0, do: Api.sleep(delay)
+    Api.sleep(delay)
 
     {conn, result} =
       for {point, pi} <- Enum.with_index(points), reduce: {conn, %{}} do
@@ -76,11 +76,10 @@ runner_loop =
   end
 
 runner_setup = fn %{id: id, device: device = %{ip: ip, port: port, proto: proto}} ->
-  if length(device.points) == 0, do: Api.sleep()
-
   with {:ok, conn} <- lib.open.(ip, port, proto) do
     # nil to reset
     log_event.(id, nil, "Started")
+    if length(device.points) == 0, do: Api.sleep()
     runner_loop.(%{id: id, device: device, loop: runner_loop, conn: conn})
   else
     {:error, error} -> log_event.(id, true, error)
