@@ -66,7 +66,7 @@ printable = fn line ->
   |> Enum.map(fn {chunk, i} ->
     case {rem(i, 2), chunk} do
       {0, ""} -> ""
-      {0, chunk} -> ["[", :binary.encode_hex(chunk), "]"]
+      {0, chunk} -> String.duplicate(" ", byte_size(chunk))
       {1, _} -> chunk
     end
   end)
@@ -133,10 +133,24 @@ transform = fn
   "Mixed", line -> mix2bin.(line)
 end
 
+title = "Socket Connection"
+
+style = fn
+  :error -> "text-red-500"
+  :input -> "text-blue-500"
+  :output -> "text-purple-500"
+  :success -> "text-lime-500"
+end
+
+initial = %{port: 44000, ip: "127.0.0.1"}
+
 %{
   shift: shift,
   toeol: toeol,
   setup: setup,
+  style: style,
+  title: title,
+  initial: initial,
   options: options,
   transform: transform,
   printable: printable

@@ -13,10 +13,20 @@ view = fn assigns ->
           <div class="hero-x-mark"/>Disconnect from {@conn.input.ip}:{@conn.input.port}
         </.fui>
       </div>
+      <%!--
+      break-all do not preserve word boundaries
+      test std input: 01234567890 01234567890 01234567890 01234567890 01234567890 01234567890 01234567890 01234567890 01234567890 01234567890 01234567890
+      test hex input: 20313237322E34200D0A20313237322E34200D0A20313237322E34200D0A20313237322E34200D0A20313237322E34200D0A20313237322E34200D0A
+      auto scroll working even with multi line entries
+      fixed scrollbar on the right mistaken for padding
+      --%>
       <div phx-update="stream" id="logs" phx-hook="AutoScroll"
-        class="p-2 grow flex flex-col overflow-y-scroll font-mono rounded bg-zinc-800">
-        <div :for={{id, %{dt: dt, style: style, line: line}} <- @streams.logs}
-          id={id} class={[style, "break-all"]}>{dt} {line}</div>
+        class="py-2 grow flex flex-col overflow-y-scroll font-mono rounded bg-zinc-800">
+        <div :for={{id, %{dt: dt, style: style, text: text, hexa: hexa}} <- @streams.logs}
+          id={id} class={[style, hexa && "grid-cols-2", hexa || "grid-cols-1", "grid gap-2 px-2 hover:bg-zinc-900"]}>
+          <div class="break-all whitespace-pre-wrap">{dt} {text}</div>
+          <div :if={hexa} class="break-all">{hexa}</div>
+        </div>
       </div>
       <form id="output_form" :if={@conn.on} phx-submit="output:submit" phx-change="output:change"
         class="flex pb-1 px-1 gap-2" phx-hook="EnterNavigation" autocomplete="off">
@@ -45,27 +55,23 @@ view = fn assigns ->
   """
 end
 
-title = "Socket Connection"
-
-style = fn
-  :error -> "text-red-500"
-  :input -> "text-blue-500"
-  :output -> "text-purple-500"
-  :success -> "text-lime-500"
-end
-
 append = fn socket, state = %{logid: logid, tzoffset: tzoffset}, type, line ->
-  line = if is_binary(line), do: line, else: inspect(line)
+  hexa =
+    case type do
+      :input -> Base.encode16(line)
+      :output -> Base.encode16(line)
+      _ -> nil
+    end
 
-  line =
+  text =
     case type do
       :input -> lib.printable.(line)
       :output -> lib.printable.(line)
-      _ -> line
+      _ -> if is_binary(line), do: line, else: inspect(line)
     end
 
   dt = NaiveDateTime.utc_now()
-  log = %{id: logid, dt: dt, style: style.(type), line: line}
+  log = %{id: logid, dt: dt, style: lib.style.(type), text: text, hexa: hexa}
   log = lib.shift.(tzoffset, log)
   socket = stream(socket, :logs, [log])
   state = Map.update!(state, :logid, &(&1 + 1))
@@ -75,7 +81,6 @@ end
 handler = fn
   {:mount, socket, state} ->
     tzoffset = socket.assigns.tzoffset || 0
-    initial = %{port: 44000, ip: "127.0.0.1"}
     ifirst = List.first(lib.options.imode)
     ofirst = List.first(lib.options.omode)
     output = %{imode: ifirst, omode: ofirst, line: nil}
@@ -85,8 +90,8 @@ handler = fn
     socket = assign(socket, page_suffix: " · Flex")
     socket = stream(socket, :logs, [])
     state = Map.put(state, :tzoffset, tzoffset)
-    state = Map.put(state, :conn, %{task: nil, input: initial, on: false})
-    state = Map.put(state, :modal, %{title: title, input: initial})
+    state = Map.put(state, :conn, %{task: nil, input: lib.initial, on: false})
+    state = Map.put(state, :modal, %{title: lib.title, input: lib.initial})
     state = Map.put(state, :options, lib.options)
     state = Map.put(state, :output, output)
     state = Map.put(state, :logid, 0)
@@ -141,7 +146,7 @@ handler = fn
 
   {:event, socket, state = %{conn: %{input: input}}, event = "click:connect", params} ->
     Api.trace(view: path, event: event, params: params)
-    modal = %{title: title, input: input}
+    modal = %{title: lib.title, input: input}
     state = Map.put(state, :modal, modal)
     {socket, state}
 

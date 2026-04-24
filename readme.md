@@ -87,20 +87,23 @@ s=1,a=49,c=rri,d=5,e=u16le # Turck - Read All
 # Modbus Devices
 # TCP,192.168.1.5:502,disabled,Turck
 # 1:49:RRI:U16LE Temp,Sum,Z,Y,X
+
+# Laurel 9600,Append CR,Packet CR
+# https://www.laurels.com/downloadfiles/serialcom.pdf
+# continuous mode *1A0<cr>[<nl>]
+# command mode *1A1<cr>[<nl>]
+# read command *1B0<cr>[<nl>]
 ```
 
 ## Fixme
 
-- [ ] Socket terminal modes
-  - Laurel https://www.laurels.com/downloadfiles/serialcom.pdf
-  - Laurel continuous mode *1A0<cr>[<nl>]
-  - Laurel command mode *1A1<cr>[<nl>]
 - [ ] Document live view life cycle
 - [ ] Make flex pages password protected: use put cookie as regular login
 - [ ] Shaky things: browser, mountrap, socat, kill links, unable to await defers, modbus lib
 - [ ] Modbus lib deterministic error detection
 - [ ] Modbus rtu over tcp packet fragmentation
 - [ ] Standardize serial-exports/modbus-devices/user-screens to generic-items lib/loop/view template
+- [x] Socket terminal split hex and printable view
 - [x] Modbus log input/output as full hex: [00]![00000006010200030001]
 - [x] Modbus devices viewer slowed down to the point of modal delayed actions
   - Same impact expected to logic engine? <- this may be the real engineering challenge
