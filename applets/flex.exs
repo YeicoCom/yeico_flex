@@ -41,6 +41,10 @@ Api.evalf("flex/modbus-slave-loop.exs", proto: modbus.tcp_proto, ip: "127.0.0.1"
 Api.evalf("flex/modbus-slave-loop.exs", proto: modbus.rtu_proto, ip: "127.0.0.1", port: 44002)
 
 if Terminal.dev?() do
+  {lib, _} = Api.evalf("flex/generic-items-lib.exs")
+  Api.evalf("flex/generic-items-loop.exs", path: dbpath.("items"), dms: 2_000)
+  Api.evalf("flex/generic-items-view.exs", path: "/flex/generic-items", ui: ui, lib: lib)
+
   Api.evalf("flex/dev-ui-tester-view.exs", path: "/flex/dev-ui-tester", ui: ui)
 end
 

@@ -1,5 +1,7 @@
 use Terminal
 
+name = "User Screen"
+
 shift = fn tzoffset, logs ->
   logs
   |> Enum.map(fn {k, log = %{dt: dt}} ->
@@ -11,7 +13,7 @@ shift = fn tzoffset, logs ->
 end
 
 new = %{
-  name: "User Screen",
+  name: name,
   status: :disabled
 }
 
@@ -21,7 +23,7 @@ options = %{status: status}
 modal = fn
   {:edit, state, id, item} ->
     Map.put(state, :modal, %{
-      title: "Edit User Screen",
+      title: "Edit #{name}",
       item: item,
       id: id,
       opts: options
@@ -29,7 +31,7 @@ modal = fn
 
   {:add, state} ->
     Map.put(state, :modal, %{
-      title: "Add User Screen",
+      title: "Add #{name}",
       item: new,
       id: nil,
       opts: options
