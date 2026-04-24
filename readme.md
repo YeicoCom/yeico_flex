@@ -95,6 +95,7 @@ s=1,a=49,c=rri,d=5,e=u16le # Turck - Read All
   - Laurel https://www.laurels.com/downloadfiles/serialcom.pdf
   - Laurel continuous mode *1A0<cr>[<nl>]
   - Laurel command mode *1A1<cr>[<nl>]
+- [ ] Document live view life cycle
 - [ ] Make flex pages password protected: use put cookie as regular login
 - [ ] Shaky things: browser, mountrap, socat, kill links, unable to await defers, modbus lib
 - [ ] Modbus lib deterministic error detection

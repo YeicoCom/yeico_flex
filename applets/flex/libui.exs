@@ -206,11 +206,36 @@ link = fn assigns ->
   """
 end
 
+href = fn assigns ->
+  assigns = phx_attribs.(assigns)
+  assigns = Map.put_new(assigns, :id, nil)
+  assigns = Map.put_new(assigns, :class, nil)
+  assigns = Map.put_new(assigns, :title, nil)
+  assigns = Map.put_new(assigns, :disabled, nil)
+  assigns = Map.put_new(assigns, :href, nil)
+
+  ~H"""
+  <a
+  id={@id}
+  href={@href}
+  title={@title}
+  disabled={@disabled}
+  {@phx_attribs}
+  class={[
+    "flex items-center gap-1 select-none",
+    @disabled || "text-neutral-200 hover:cursor-pointer hover:text-lime-500",
+    @disabled && "text-neutral-500 cursor-default pointer-events-none",
+    @class
+  ]}>{render_slot(@inner_block)}</a>
+  """
+end
+
 %{
   frame: frame,
   modal: modal,
   select: select,
   input: input,
   button: button,
-  link: link
+  link: link,
+  href: href
 }
