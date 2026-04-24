@@ -98,6 +98,8 @@ s=1,a=49,c=rri,d=5,e=u16le # Turck - Read All
 - [ ] Make flex pages password protected: use put cookie as regular login
 - [ ] Shaky things: browser, mountrap, socat, kill links, unable to await defers, modbus lib
 - [ ] Modbus lib deterministic error detection
+- [ ] Modbus rtu over tcp packet fragmentation
+- [ ] Standardize serial-exports and modbus-devices to user-screen lib/loop/view template
 - [x] Modbus log input/output as full hex: [00]![00000006010200030001]
 - [x] Modbus devices viewer slowed down to the point of modal delayed actions
   - Same impact expected to logic engine? <- this may be the real engineering challenge

@@ -29,6 +29,10 @@ Api.evalf("flex/modbus-terminal-view.exs", path: "/flex/modbus-terminal", ui: ui
 Api.evalf("flex/serial-exports-loop.exs", path: dbpath.("serial"))
 Api.evalf("flex/serial-exports-view.exs", path: "/flex/serial-exports", ui: ui, lib: lib)
 
+{lib, _} = Api.evalf("flex/user-screens-lib.exs")
+Api.evalf("flex/user-screens-loop.exs", path: dbpath.("screen"), dms: 2_000)
+Api.evalf("flex/user-screens-view.exs", path: "/flex/user-screens", ui: ui, lib: lib)
+
 {lib, _} = Api.evalf("flex/socket-terminal-lib.exs")
 Api.evalf("flex/socket-terminal-view.exs", path: "/flex/socket-terminal", ui: ui, lib: lib)
 
