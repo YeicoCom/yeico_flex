@@ -1,7 +1,5 @@
 use Terminal
 
-toms = 4_000
-
 hi_array =
   """
   [

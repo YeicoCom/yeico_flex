@@ -39,7 +39,7 @@ loop = fn loop, parent, conn = %{socket: socket}, eol, buffer ->
 end
 
 setup = fn {parent, %{ip: ip, port: port}, eol} ->
-  with {:ok, conn} <- Tcp.connect(ip, port, toms: 4_000, line: false, active: true) do
+  with {:ok, conn} <- Tcp.connect(ip, port, toms: toms, line: false, active: true) do
     send(parent, {:socket, self(), :success, "Connected to #{ip}:#{port}"})
     loop.(loop, parent, conn, eol, "")
   else

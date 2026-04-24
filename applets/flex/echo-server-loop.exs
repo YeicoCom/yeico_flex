@@ -25,6 +25,6 @@ listen = fn ->
   accept.(accept, socket)
 end
 
-Api.loop(1_000, listen)
+Api.loop(dms, listen)
 
 :ok

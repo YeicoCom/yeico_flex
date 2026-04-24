@@ -1,7 +1,5 @@
 use Terminal
 
-dms = 1_000
-
 post_log = fn id, error?, msg ->
   dt = NaiveDateTime.utc_now()
   Bus.broadcast!("flex:modbus-devices:log", %{id: id, dt: dt, error?: error?, msg: msg})

@@ -11,8 +11,6 @@ use Terminal
 #   nc -l 8001
 #   nc localhost 8001
 
-dms = 2_000
-
 post_log = fn id, error?, msg ->
   dt = NaiveDateTime.utc_now()
   Bus.broadcast!("flex:serial-exports:log", %{id: id, dt: dt, error?: error?, msg: msg})
