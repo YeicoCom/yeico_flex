@@ -1,33 +1,71 @@
 use Terminal.Live
 
 new = %{
-  fit: "All",
+  id: nil,
+  name: nil,
   items: [
     %{x: 0, y: 100, w: 800, h: 10},
     %{x: 100, y: 0, w: 10, h: 600}
   ],
-  port: %{x: 0, y: 0, w: 800, h: 600},
   size: %{w: 800, h: 600}
 }
 
-fit = fn
-  {type, frame, port} ->
-    s =
-      case type do
-        "All" -> min(frame.w / port.w, frame.h / port.h)
-        "Width" -> frame.w / port.w
-        "Height" -> frame.h / port.h
-      end
+vp = fn %{size: %{w: w, h: h}} ->
+  %{
+    fit: "All",
+    x: 0,
+    y: 0,
+    w: w,
+    h: h,
+    frame: nil,
+    port: nil,
+    panel: nil
+  }
+end
 
-    w = s * port.w
-    h = s * port.h
-    x = (frame.w - w) / 2
-    y = (frame.h - h) / 2
-    %{s: s, x: x, y: y, w: w, h: h}
+# frame:resize -> updates frame w,h -> recalculates
+# cmd:fit -> updates screen fit and resets vp view -> recalculates
 
-  {port = %{x: x, y: y}, %{w: w, h: h}} ->
-    s = port.w / w
-    %{s: s, x: -x, y: -y, w: w, h: h}
+port = fn fit, fw, fh, vw, vh ->
+  s =
+    case fit do
+      "All" -> min(fw / vw, fh / vh)
+      "Width" -> fw / vw
+      "Height" -> fh / vh
+    end
+
+  w = s * vw
+  h = s * vh
+  x = (fw - w) / 2
+  y = (fh - h) / 2
+  %{s: s, x: x, y: y, w: w, h: h}
+end
+
+calc = fn state = %{screen: _screen, vp: vp} ->
+  %{fit: fit, w: vw, h: vh, frame: %{w: fw, h: fh}} = vp
+  state = put_in(state, [:vp, :port], %{s: s} = port.(fit, fw, fh, vw, vh))
+  state = put_in(state, [:vp, :panel], %{s: s, x: 0, y: 0, w: vw, h: vh})
+  state
+end
+
+apply = fn
+  state, :init, _ ->
+    state = Map.put(state, :screen, new)
+    state = Map.put(state, :vp, vp.(new))
+    state
+
+  state = %{screen: screen, vp: %{frame: nil}}, :fit, fit ->
+    state = Map.put(state, :vp, vp.(screen))
+    state = put_in(state, [:vp, :fit], fit)
+    state
+
+  state, :fit, fit ->
+    state = put_in(state, [:vp, :fit], fit)
+    calc.(state)
+
+  state, :resize, {fw, fh} ->
+    state = put_in(state, [:vp, :frame], %{w: fw, h: fh})
+    calc.(state)
 end
 
 phx_attribs = fn assigns ->
@@ -104,8 +142,7 @@ item = fn assigns ->
 end
 
 %{
-  new: new,
-  fit: fit,
+  apply: apply,
   menu: menu,
   item: item
 }
