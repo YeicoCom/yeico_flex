@@ -62,6 +62,15 @@ function enterNavigate(el) {
     }
 }
 
+const resizeObserver = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+        const target = entry.target
+        if (target.resizeListener) {
+            target.resizeListener(target)
+        }
+    }
+})
+
 const hooks = {
     AutoFocus: {
         mounted() {
@@ -138,19 +147,46 @@ const hooks = {
             })
         },
     },
+    DesignFrame: {
+        mounted() {
+            const pushSize = (el) => {
+                const width = el.clientWidth
+                const height = el.clientHeight
+                this.pushEvent("frame:resize", { width, height })
+            }
+            this.el.resizeListener = pushSize
+            resizeObserver.observe(this.el)
+            pushSize(this.el)
+            this.el.addEventListener("click", (e) => {
+                const port = document.getElementById("design_port")
+                const src = e.srcElement
+                if (src == this.el) {
+                    const x = e.offsetX
+                    const y = e.offsetY
+                    this.pushEvent("frame:click", { x, y })
+                }
+                if (src == port) {
+                    const rect = this.el.getBoundingClientRect()
+                    const x = e.clientX - rect.x
+                    const y = e.clientY - rect.y
+                    this.pushEvent("frame:click", { x, y })
+                }
+            })
+        }
+    },
 }
 
-const click = (e, el) => {
-    return {
-        offsetX: e.offsetX,
-        offsetY: e.offsetY
-    }
-}
+// const click = (e, el) => {
+//     return {
+//         offsetX: e.offsetX,
+//         offsetY: e.offsetY
+//     }
+// }
 
-const metadata = { click }
+// const metadata = { click }
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const params = { _csrf_token: csrfToken, ...initialParams() }
-let liveSocket = new LiveSocket("/live", Socket, { hooks, params, metadata })
+let liveSocket = new LiveSocket("/live", Socket, { hooks, params })
 topbar.config({ barColors: { 0: "#84cc16" }, shadowColor: "rgba(0, 0, 0, .3)" })
 window.addEventListener("phx:page-loading-start", _info => topbar.show(300))
 window.addEventListener("phx:page-loading-stop", _info => topbar.hide())

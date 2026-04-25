@@ -2,9 +2,24 @@ use Terminal.Live
 
 new = %{
   fit: "All",
-  view: %{x: 0, y: 0, width: 640, height: 480},
-  size: %{width: 640, height: 480}
+  port: %{x: 0, y: 0, width: 800, height: 600},
+  size: %{width: 800, height: 600}
 }
+
+fit = fn type, size, view ->
+  mr =
+    case type do
+      "All" -> min(size.width / view.width, size.height / view.height)
+      "Width" -> size.width / view.width
+      "Height" -> size.height / view.height
+    end
+
+  w = mr * view.width
+  h = mr * view.height
+  x = (size.width - w) / 2
+  y = (size.height - h) / 2
+  %{x: x, y: y, width: w, height: h}
+end
 
 phx_attribs = fn assigns ->
   Map.put_new(
@@ -28,7 +43,7 @@ option = fn assigns ->
   <div
   {@phx_attribs}
   class={[
-    "flex items-center gap-1 select-none text-white cursor-default",
+    "flex items-center gap-1 select-none text-nowrap text-white cursor-default",
     "hover:cursor-pointer hover:text-lime-500",
     ]}>
     {render_slot(@inner_block)}
@@ -47,14 +62,14 @@ menu = fn assigns ->
   <div
   id={@id}
   {@phx_attribs}
-  style={"position: absolute; left: #{@x}px; top: #{@y}px;"}
+  style={"left: #{@x}px; top: #{@y}px;"}
   class={[
-    "flex flex-col p-2 bg-black",
+    "absolute flex flex-col p-2 bg-black",
     "border border-1 border-solid border-white rounded-lg",
     ]}>
-    <.fui fun={@option} phx-click="cmd:fit-all">Fit All</.fui>
-    <.fui fun={@option} phx-click="cmd:fit-width">Fit Width</.fui>
-    <.fui fun={@option} phx-click="cmd:fit-height">Fit Height</.fui>
+    <.fui fun={@option} phx-click="cmd:fit" phx-value-fit="All">Fit All</.fui>
+    <.fui fun={@option} phx-click="cmd:fit" phx-value-fit="Width">Fit Width</.fui>
+    <.fui fun={@option} phx-click="cmd:fit" phx-value-fit="Height">Fit Height</.fui>
   </div>
   """
 end
@@ -73,6 +88,7 @@ end
 
 %{
   new: new,
+  fit: fit,
   menu: menu,
   item: item
 }
