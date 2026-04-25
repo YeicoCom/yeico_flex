@@ -4,18 +4,19 @@ view = fn assigns ->
   ~H"""
   <.fui fun={@ui.frame} title="Screen Designer" label={@screen.name}>
     <div id="design_frame" class="relative h-full w-full bg-zinc-800 rounded" phx-hook="DesignFrame">
-      <div id="design_port" :if={@vp.port} class="absolute bg-zinc-900"
+      <div id="design_port" :if={@vp.port} class="absolute bg-blue-900"
         style={[
           "left: #{@vp.port.x}px; top: #{@vp.port.y}px;",
           "width: #{@vp.port.w}px;height: #{@vp.port.h}px;",
         ]}>
-        <div id="design_panel" :if={@vp.panel} class="absolute bg-zinc-700"
+        <div id="design_panel" :if={@vp.panel} class="absolute bg-orange-700"
           style={[
             "transform-origin: 0 0;scale: #{@vp.panel.s};",
             "left: #{@vp.panel.x}px; top: #{@vp.panel.y}px;",
             "width: #{@vp.panel.w}px;height: #{@vp.panel.h}px;"
           ]}>
-          <.fui :for={item <- @screen.items} fun={@sd.item} x={item.x} y={item.y} w={item.w} h={item.h}/>
+          <.fui :for={item <- @screen.items} fun={@sd.item}
+            x={item.x} y={item.y} w={item.w} h={item.h} bg={item.bg}/>
         </div>
       </div>
       <.fui id="frame_menu" :if={@menu} fun={@sd.menu} x={@menu.x} y={@menu.y}/>
@@ -71,6 +72,12 @@ handler = fn
     Api.trace(view: path, event: event, params: params)
     state = Map.put(state, :menu, nil)
     {socket, sd.apply.(state, :wheel, {x, y, dx, dy})}
+
+  {:event, socket, state, event = "frame:drag",
+   params = %{"mx" => mx, "my" => my, "ox" => ox, "oy" => oy, "e" => e, "m" => m}} ->
+    Api.trace(view: path, event: event, params: params)
+    state = Map.put(state, :menu, nil)
+    {socket, sd.apply.(state, :drag, {mx, my, ox, oy, e, m})}
 
   {:event, socket, state, event = "frame:resize", params = %{"width" => w, "height" => h}} ->
     Api.trace(view: path, event: event, params: params)

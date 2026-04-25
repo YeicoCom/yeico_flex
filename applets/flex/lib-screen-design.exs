@@ -4,17 +4,20 @@ new = %{
   id: nil,
   name: nil,
   items: [
-    %{x: 0, y: 100, w: 800, h: 10},
-    %{x: 100, y: 0, w: 10, h: 600}
+    %{x: 0, y: 0, w: 800, h: 600, bg: "white"},
+    %{x: 0, y: 100, w: 800, h: 10, bg: "red"},
+    %{x: 100, y: 0, w: 10, h: 600, bg: "red"}
   ],
   size: %{w: 800, h: 600}
 }
 
 vp = %{
-  fit: "All",
   x: 0,
   y: 0,
-  s: 1.0,
+  s: 1,
+  dx: 0,
+  dy: 0,
+  fit: "All",
   frame: nil,
   port: nil,
   panel: nil
@@ -39,11 +42,13 @@ port = fn fit, fw, fh, vw, vh ->
 end
 
 calc = fn state = %{screen: %{size: %{w: sw, h: sh}}, vp: vp} ->
-  %{fit: fit, s: vs, frame: %{w: fw, h: fh}} = vp
+  %{s: vs, x: x, y: y, dx: dx, dy: dy, fit: fit, frame: %{w: fw, h: fh}} = vp
+  x = x + dx
+  y = y + dy
   vw = vs * sw
   vh = vs * sh
   state = put_in(state, [:vp, :port], %{s: s} = port.(fit, fw, fh, vw, vh))
-  state = put_in(state, [:vp, :panel], %{s: s, x: 0, y: 0, w: vw, h: vh})
+  state = put_in(state, [:vp, :panel], %{s: s, x: x, y: y, w: vw, h: vh})
   state
 end
 
@@ -53,21 +58,35 @@ apply = fn
     state = Map.put(state, :vp, vp)
     state
 
-  state = %{vp: %{frame: nil}}, :fit, fit ->
-    state = Map.put(state, :vp, %{vp | fit: fit})
+  state, :resize, {fw, fh} ->
+    state = put_in(state, [:vp, :frame], %{w: fw, h: fh})
+    calc.(state)
+
+  state = %{vp: %{frame: nil}}, _, _ ->
     state
 
   state = %{vp: %{frame: frame}}, :fit, fit ->
     state = Map.put(state, :vp, %{vp | frame: frame, fit: fit})
     calc.(state)
 
-  state, :resize, {fw, fh} ->
-    state = put_in(state, [:vp, :frame], %{w: fw, h: fh})
+  state = %{vp: vp}, :wheel, {x, y, _dx, dy} ->
+    %{s: s, x: vx, y: vy, port: port, panel: panel} = vp
+    f = if dy > 0, do: 1.1, else: if(dy < 0, do: 1 / 1.1, else: 1)
+    # px = vx - port.x
+    # py = vy - port.y
+    state = Map.put(state, :vp, %{vp | s: f * s, x: vx, y: vy})
     calc.(state)
 
-  state = %{vp: vp = %{s: s, x: vx, y: vy}}, :wheel, {x, y, _dx, dy} ->
-    sf = if dy > 0, do: 1.1, else: if(dy < 0, do: 1 / 1.1, else: 1)
-    state = Map.put(state, :vp, %{vp | s: sf * s, x: vx, y: vy})
+  state = %{vp: vp = %{s: s, x: x, y: y}}, :drag, {mx, my, ox, oy, "up", moved?} ->
+    x = x + if moved?, do: s * (mx - ox), else: 0
+    y = y + if moved?, do: s * (my - oy), else: 0
+    state = Map.put(state, :vp, %{vp | x: x, y: y, dx: 0, dy: 0})
+    calc.(state)
+
+  state = %{vp: vp = %{s: s}}, :drag, {mx, my, ox, oy, _event, _moved?} ->
+    dx = s * (mx - ox)
+    dy = s * (my - oy)
+    state = Map.put(state, :vp, %{vp | dx: dx, dy: dy})
     calc.(state)
 end
 
@@ -132,12 +151,13 @@ item = fn assigns ->
   assigns = Map.put_new(assigns, :y, nil)
   assigns = Map.put_new(assigns, :w, nil)
   assigns = Map.put_new(assigns, :h, nil)
+  assigns = Map.put_new(assigns, :bg, nil)
 
   ~H"""
   <div
   id={@id}
   {@phx_attribs}
-  style={"left: #{@x}px; top: #{@y}px;width: #{@w}px;height: #{@h}px;"}
+  style={"left: #{@x}px; top: #{@y}px;width: #{@w}px;height: #{@h}px;background-color: #{@bg};"}
   class={[
     "absolute bg-red-500",
     ]}/>
