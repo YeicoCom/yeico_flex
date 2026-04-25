@@ -2,23 +2,32 @@ use Terminal.Live
 
 new = %{
   fit: "All",
-  port: %{x: 0, y: 0, width: 800, height: 600},
-  size: %{width: 800, height: 600}
+  items: [
+    %{x: 0, y: 100, w: 800, h: 10},
+    %{x: 100, y: 0, w: 10, h: 600}
+  ],
+  port: %{x: 0, y: 0, w: 800, h: 600},
+  size: %{w: 800, h: 600}
 }
 
-fit = fn type, size, view ->
-  mr =
-    case type do
-      "All" -> min(size.width / view.width, size.height / view.height)
-      "Width" -> size.width / view.width
-      "Height" -> size.height / view.height
-    end
+fit = fn
+  {type, frame, port} ->
+    s =
+      case type do
+        "All" -> min(frame.w / port.w, frame.h / port.h)
+        "Width" -> frame.w / port.w
+        "Height" -> frame.h / port.h
+      end
 
-  w = mr * view.width
-  h = mr * view.height
-  x = (size.width - w) / 2
-  y = (size.height - h) / 2
-  %{x: x, y: y, width: w, height: h}
+    w = s * port.w
+    h = s * port.h
+    x = (frame.w - w) / 2
+    y = (frame.h - h) / 2
+    %{s: s, x: x, y: y, w: w, h: h}
+
+  {port = %{x: x, y: y}, %{w: w, h: h}} ->
+    s = port.w / w
+    %{s: s, x: -x, y: -y, w: w, h: h}
 end
 
 phx_attribs = fn assigns ->
@@ -70,6 +79,7 @@ menu = fn assigns ->
     <.fui fun={@option} phx-click="cmd:fit" phx-value-fit="All">Fit All</.fui>
     <.fui fun={@option} phx-click="cmd:fit" phx-value-fit="Width">Fit Width</.fui>
     <.fui fun={@option} phx-click="cmd:fit" phx-value-fit="Height">Fit Height</.fui>
+    <.fui fun={@option} phx-click="cmd:add">Add Item</.fui>
   </div>
   """
 end
@@ -77,12 +87,19 @@ end
 item = fn assigns ->
   assigns = phx_attribs.(assigns)
   assigns = Map.put_new(assigns, :id, nil)
+  assigns = Map.put_new(assigns, :x, nil)
+  assigns = Map.put_new(assigns, :y, nil)
+  assigns = Map.put_new(assigns, :w, nil)
+  assigns = Map.put_new(assigns, :h, nil)
 
   ~H"""
   <div
   id={@id}
   {@phx_attribs}
-  class={[]}>{render_slot(@inner_block)}</div>
+  style={"left: #{@x}px; top: #{@y}px;width: #{@w}px;height: #{@h}px;"}
+  class={[
+    "absolute bg-red-500",
+    ]}/>
   """
 end
 

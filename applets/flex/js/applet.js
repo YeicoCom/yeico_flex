@@ -158,15 +158,11 @@ const hooks = {
             resizeObserver.observe(this.el)
             pushSize(this.el)
             this.el.addEventListener("click", (e) => {
+                const rect = this.el.getBoundingClientRect()
                 const port = document.getElementById("design_port")
+                const panel = document.getElementById("design_panel")
                 const src = e.srcElement
-                if (src == this.el) {
-                    const x = e.offsetX
-                    const y = e.offsetY
-                    this.pushEvent("frame:click", { x, y })
-                }
-                if (src == port) {
-                    const rect = this.el.getBoundingClientRect()
+                if ([this.el, port, panel].includes(src)) {
                     const x = e.clientX - rect.x
                     const y = e.clientY - rect.y
                     this.pushEvent("frame:click", { x, y })
