@@ -3,7 +3,7 @@ use Terminal
 device = fn ->
   new = fn ->
     %{
-      name: "LocalSlave",
+      name: "Local Slave",
       proto: "TCP",
       port: 44001,
       ip: "127.0.0.1",
@@ -44,6 +44,7 @@ device = fn ->
   index = fn pairs -> Enum.map(pairs, fn {k, _} -> k end) end
 
   parse = fn params, points ->
+    params = Map.update!(params, "name", &(String.replace(&1, ~r/ +/, " ") |> String.trim()))
     params = Map.update!(params, "status", &String.to_atom/1)
     params = Map.update!(params, "port", &String.to_integer/1)
     params = Map.update!(params, "delay", &String.to_integer/1)

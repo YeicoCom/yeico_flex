@@ -37,7 +37,7 @@ view = fn assigns ->
       phx-hook="EnterNavigation" phx-update="ignore" autocomplete="off">
       <div class="grid grid-cols-2 gap-2 items-center min-w-[12em]">
         <div>Name</div>
-        <.fui fun={@ui.input} name="name" value={item.name} required id="modal_autofocus" phx-hook="AutoFocus"/>
+        <.fui fun={@ui.input} name="name" value={item.name} required id="modal_autofocus" phx-hook="AutoFocus" pattern="^[ ]*[a-zA-Z]+[a-zA-Z0-9 ]*$"/>
         <div>Status</div>
         <.fui fun={@ui.select} name="status" value={item.status} values={opts.status} required/>
       </div>

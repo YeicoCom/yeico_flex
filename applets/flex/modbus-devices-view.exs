@@ -65,7 +65,7 @@ view = fn assigns ->
       phx-hook="EnterNavigation" phx-update="ignore" autocomplete="off">
       <div class="grid grid-cols-2 gap-2 items-center min-w-[12em]">
         <div>Name</div>
-        <.fui fun={@ui.input} name="name" value={device.name} type="text" required id="modal_autofocus" phx-hook="AutoFocus" pattern="^[a-zA-Z0-9_,]+$"/>
+        <.fui fun={@ui.input} name="name" value={device.name} type="text" required id="modal_autofocus" phx-hook="AutoFocus" pattern="^[ ]*[a-zA-Z]+[a-zA-Z0-9 ]*$"/>
         <div>Protocol</div>
         <.fui fun={@ui.select} name="proto" value={device.proto} values={@options.protos} required/>
         <div>IP</div>
@@ -103,7 +103,8 @@ view = fn assigns ->
               <.fui fun={@ui.input} name="address[]" value={point.address} type="number" step="1" min="0" max="65535" required/>
               <.fui fun={@ui.select} name="type[]" value={point.type} values={@options.types} required/>
               <.fui fun={@ui.select} name="encoding[]" value={point.encoding} values={@options.encodings} required/>
-              <.fui fun={@ui.input} name="names[]" value={point.names} type="text" required pattern="^[a-zA-Z0-9_,]+$"/>
+              <%!-- Force name even for unused because they look ugly on the point table and require a placeholder anyway --%>
+              <.fui fun={@ui.input} name="names[]" value={point.names} type="text" required pattern="^[ ]*[a-zA-Z]+[a-zA-Z0-9 ]*(,[ ]*[a-zA-Z]+[a-zA-Z0-9 ]*)*$"/>
               <div class="flex gap-1">
                 <.fui fun={@ui.link} disabled={pi==0} phx-click="click:point:del" phx-value-pi={pi} type="danger" title="Delete Point"><div class="hero-x-mark z-0"/></.fui>
                 <.fui fun={@ui.link} disabled={pi==0} phx-click="click:point:up" phx-value-pi={pi} title="Move Point Up"><div class="hero-arrow-up z-0"/></.fui>
@@ -249,11 +250,16 @@ handler = fn
   {:event, socket, state = %{modal: %{input: %{points: points}}}, event = "modal:points:change",
    params} ->
     Api.trace(view: path, event: event, params: params)
-    slave = params["slave"] |> Enum.map(plib.toint?)
-    address = params["address"] |> Enum.map(plib.toint?)
     type = params["type"]
     encoding = params["encoding"]
-    names = params["names"]
+    slave = params["slave"] |> Enum.map(plib.toint?)
+    address = params["address"] |> Enum.map(plib.toint?)
+
+    names =
+      params["names"]
+      |> Enum.map(fn names ->
+        String.split(names, ",") |> Enum.map(&String.trim/1) |> Enum.join(",")
+      end)
 
     {points, _, _, _, _, _} =
       for _ <- points, reduce: {[], slave, address, type, encoding, names} do
