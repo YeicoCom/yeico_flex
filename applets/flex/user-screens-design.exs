@@ -4,7 +4,7 @@ view = fn assigns ->
   ~H"""
   <.fui fun={@ui.frame} title="Screen Designer" label={@screen.name}>
     <div id="design_frame" class="relative h-full w-full bg-zinc-800 rounded" phx-hook="DesignFrame">
-      <div id="design_port" :if={@vp.port} class="absolute bg-blue-900"
+      <div id="design_port" :if={@vp.port} class="absolute overflow-hidden bg-blue-900"
         style={[
           "left: #{@vp.port.x}px; top: #{@vp.port.y}px;",
           "width: #{@vp.port.w}px;height: #{@vp.port.h}px;",

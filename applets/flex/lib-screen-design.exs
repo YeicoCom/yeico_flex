@@ -4,7 +4,7 @@ new = %{
   id: nil,
   name: nil,
   items: [
-    %{x: 0, y: 0, w: 800, h: 600, bg: "white"},
+    %{x: 10, y: 10, w: 800 - 20, h: 600 - 20, bg: "white"},
     %{x: 0, y: 100, w: 800, h: 10, bg: "red"},
     %{x: 100, y: 0, w: 10, h: 600, bg: "red"}
   ],
@@ -48,7 +48,8 @@ calc = fn state = %{screen: %{size: %{w: sw, h: sh}}, vp: vp} ->
   vw = vs * sw
   vh = vs * sh
   state = put_in(state, [:vp, :port], %{s: s} = port.(fit, fw, fh, vw, vh))
-  state = put_in(state, [:vp, :panel], %{s: s, x: x, y: y, w: vw, h: vh})
+  state = put_in(state, [:vp, :panel], %{s: s, x: x, y: y, w: sw, h: sh})
+  Api.debug(state.vp)
   state
 end
 
