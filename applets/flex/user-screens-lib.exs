@@ -54,6 +54,7 @@ parse = fn params ->
 end
 
 %{
+  new: new,
   modal: modal,
   shift: shift,
   parse: parse,

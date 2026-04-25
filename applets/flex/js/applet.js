@@ -62,7 +62,7 @@ function enterNavigate(el) {
     }
 }
 
-const Hooks = {
+const hooks = {
     AutoFocus: {
         mounted() {
             setFocus(this.el)
@@ -140,8 +140,17 @@ const Hooks = {
     },
 }
 
+const click = (e, el) => {
+    return {
+        offsetX: e.offsetX,
+        offsetY: e.offsetY
+    }
+}
+
+const metadata = { click }
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
-let liveSocket = new LiveSocket("/live", Socket, { hooks: Hooks, params: { _csrf_token: csrfToken, ...initialParams() } })
+const params = { _csrf_token: csrfToken, ...initialParams() }
+let liveSocket = new LiveSocket("/live", Socket, { hooks, params, metadata })
 topbar.config({ barColors: { 0: "#84cc16" }, shadowColor: "rgba(0, 0, 0, .3)" })
 window.addEventListener("phx:page-loading-start", _info => topbar.show(300))
 window.addEventListener("phx:page-loading-stop", _info => topbar.hide())

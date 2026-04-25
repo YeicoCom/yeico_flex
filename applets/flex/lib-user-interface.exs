@@ -17,6 +17,8 @@ end
 
 frame = fn assigns ->
   assigns = Map.put_new(assigns, :id, nil)
+  assigns = Map.put_new(assigns, :label, nil)
+  assigns = Map.put_new(assigns, :class, nil)
   assigns = Map.put_new(assigns, :title, "Flex")
 
   ~H"""
@@ -37,9 +39,10 @@ frame = fn assigns ->
       </div>
       <div class="text-[2em] text-white">{@title}</div>
       <div class="grow"></div>
+      <div :if={@label} class="text-[1.5em] text-white">{@label}</div>
       <image src="/applets/logo.svg" class="h-10"/>
     </div>
-    <div class="grow text-base text-neutral-300 overflow-hidden">{render_slot(@inner_block)}</div>
+    <div class={["grow text-base text-neutral-300 overflow-hidden", @class]}>{render_slot(@inner_block)}</div>
   </div>
   """
 end

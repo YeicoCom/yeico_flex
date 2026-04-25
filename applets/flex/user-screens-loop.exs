@@ -40,6 +40,7 @@ end
 publish_items = fn cubdb ->
   items = CubDB.select(cubdb, []) |> Enum.to_list()
   Api.putcast!("flex:user-screens:items", items)
+  for {id, item} <- items, do: Api.putcast!("flex:user-screens:item:#{id}", item)
   items
 end
 
