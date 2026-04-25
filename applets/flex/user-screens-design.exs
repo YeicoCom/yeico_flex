@@ -30,7 +30,7 @@ handler = fn
     socket = assign(socket, applet_js: "/applets/flex.js")
     socket = assign(socket, page_title: "Screen Designer")
     socket = assign(socket, page_suffix: " · Flex")
-    state = Map.put(state, :screen, nil)
+    state = Map.put(state, :screen, %{})
     state = Map.put(state, :menu, nil)
     state = Map.put(state, :vp, nil)
     state = Map.put(state, :sd, sd)
@@ -65,6 +65,12 @@ handler = fn
     Api.trace(view: path, event: event, params: params)
     state = Map.put(state, :menu, %{x: x, y: y})
     {socket, state}
+
+  {:event, socket, state, event = "frame:wheel",
+   params = %{"x" => x, "y" => y, "dx" => dx, "dy" => dy}} ->
+    Api.trace(view: path, event: event, params: params)
+    state = Map.put(state, :menu, nil)
+    {socket, sd.apply.(state, :wheel, {x, y, dx, dy})}
 
   {:event, socket, state, event = "frame:resize", params = %{"width" => w, "height" => h}} ->
     Api.trace(view: path, event: event, params: params)

@@ -159,27 +159,27 @@ const hooks = {
             pushSize(this.el)
             this.el.addEventListener("click", (e) => {
                 const rect = this.el.getBoundingClientRect()
-                const port = document.getElementById("design_port")
-                const panel = document.getElementById("design_panel")
-                const src = e.srcElement
-                if ([this.el, port, panel].includes(src)) {
-                    const x = e.clientX - rect.x
-                    const y = e.clientY - rect.y
-                    this.pushEvent("frame:click", { x, y })
-                }
+                const x = e.clientX - rect.x
+                const y = e.clientY - rect.y
+                this.pushEvent("frame:click", { x, y, ...params })
             })
+            this.el.addEventListener("wheel", (e) => {
+                const rect = this.el.getBoundingClientRect()
+                const x = e.clientX - rect.x
+                const y = e.clientY - rect.y
+                const dx = e.deltaX
+                const dy = e.deltaY
+                this.pushEvent("frame:wheel", { x, y, dx, dy })
+            })
+        },
+        reconnected() {
+            const width = this.el.clientWidth
+            const height = this.el.clientHeight
+            this.pushEvent("frame:resize", { width, height })
         }
     },
 }
 
-// const click = (e, el) => {
-//     return {
-//         offsetX: e.offsetX,
-//         offsetY: e.offsetY
-//     }
-// }
-
-// const metadata = { click }
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const params = { _csrf_token: csrfToken, ...initialParams() }
 let liveSocket = new LiveSocket("/live", Socket, { hooks, params })
