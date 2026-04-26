@@ -48,7 +48,7 @@ view = fn assigns ->
         </.fui>
       </div>
       <div phx-update="stream" id="logs" phx-hook="AutoScroll"
-        class="p-2 grow flex flex-col overflow-y-scroll font-mono rounded bg-zinc-800">
+        class="p-2 grow flex flex-col overflow-y-scroll select-text font-mono rounded bg-zinc-800">
         <div :for={{id, %{dt: dt, style: style, line: line}} <- @streams.logs}
           id={id} class={[style, "break-all"]}>{dt} {line}</div>
       </div>

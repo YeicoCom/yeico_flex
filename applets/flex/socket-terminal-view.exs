@@ -21,7 +21,7 @@ view = fn assigns ->
       fixed scrollbar on the right mistaken for padding
       --%>
       <div phx-update="stream" id="logs" phx-hook="AutoScroll"
-        class="py-2 grow flex flex-col overflow-y-scroll font-mono rounded bg-zinc-800">
+        class="py-2 grow flex flex-col overflow-y-scroll select-text font-mono rounded bg-zinc-800">
         <div :for={{id, %{dt: dt, style: style, text: text, hexa: hexa}} <- @streams.logs}
           id={id} class={[style, hexa && "grid-cols-2", hexa || "grid-cols-1", "grid gap-2 px-2 hover:bg-zinc-900"]}>
           <div class="break-all whitespace-pre-wrap">{dt} {text}</div>
