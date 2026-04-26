@@ -76,11 +76,12 @@ apply = fn
     state |> clean.() |> calc.()
 
   state = %{vp: vp}, :wheel, {x, y, _dx, dy} ->
-    %{s: s, x: vx, y: vy, port: port, panel: panel} = vp
+    %{s: vs, x: vx, y: vy, panel: %{x: px, y: py}} = vp
     f = if dy > 0, do: 1.1, else: if(dy < 0, do: 1 / 1.1, else: 1)
-    # px = vx - port.x
-    # py = vy - port.y
-    state = Map.put(state, :vp, %{vp | s: f * s, x: vx, y: vy})
+    dx = (f - 1) * (x - px)
+    dy = (f - 1) * (y - py)
+    Api.debug(x: x, y: y, px: px, py: py, dx: dx, dy: dy)
+    state = Map.put(state, :vp, %{vp | s: f * vs, x: vx + dx, y: vy + dy})
     state |> clean.() |> calc.()
 
   state = %{vp: vp = %{x: x, y: y}}, :drag, {mx, my, ox, oy, "up", moved?} ->
