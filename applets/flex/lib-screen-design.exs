@@ -77,11 +77,11 @@ apply = fn
 
   state = %{vp: vp}, :wheel, {x, y, _dx, dy} ->
     %{s: vs, x: vx, y: vy, panel: %{x: px, y: py}} = vp
-    f = if dy > 0, do: 1.1, else: if(dy < 0, do: 1 / 1.1, else: 1)
-    dx = (f - 1) * (x - px)
-    dy = (f - 1) * (y - py)
-    Api.debug(x: x, y: y, px: px, py: py, dx: dx, dy: dy)
-    state = Map.put(state, :vp, %{vp | s: f * vs, x: vx + dx, y: vy + dy})
+    sf = if dy > 0, do: 1.1, else: if(dy < 0, do: 1 / 1.1, else: 1)
+    df = 1 - 1 / sf
+    dx = df * (x - px)
+    dy = df * (y - py)
+    state = Map.put(state, :vp, %{vp | s: sf * vs, x: vx + dx, y: vy + dy})
     state |> clean.() |> calc.()
 
   state = %{vp: vp = %{x: x, y: y}}, :drag, {mx, my, ox, oy, "up", moved?} ->
