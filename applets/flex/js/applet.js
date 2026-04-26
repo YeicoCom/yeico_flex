@@ -153,6 +153,10 @@ const hooks = {
             const pushSize = (el) => {
                 const width = el.clientWidth
                 const height = el.clientHeight
+                const prev = el.sizeState || {}
+                // updates from server trigger the event even if same size
+                if (width == prev.width && height == prev.height) return
+                el.sizeState = { width, height }
                 this.pushEvent("frame:resize", { width, height })
             }
             frame.ignoreClickUntil = Date.now()
@@ -163,49 +167,49 @@ const hooks = {
                 const y = e.clientY - rect.y
                 this.pushEvent("frame:click", { x, y })
             })
-            frame.addEventListener("wheel", (e) => {
-                frame.wheelState = frame.wheelState || { dx: 0, dy: 0 }
-                const rect = frame.getBoundingClientRect()
-                const x = e.clientX - rect.x
-                const y = e.clientY - rect.y
-                const dx = e.deltaX + frame.wheelState.dx
-                const dy = e.deltaY + frame.wheelState.dy
-                frame.wheelState.dx = dx
-                frame.wheelState.dy = dy
-                const { timer } = frame.wheelState
-                frame.wheelState.pending = () => {
-                    this.pushEvent("frame:wheel", { x, y, dx, dy })
-                }
-                if (!timer) {
-                    frame.wheelState.timer = setTimeout(() => {
-                        const { pending } = frame.wheelState
-                        if (pending) pending()
-                        frame.wheelState = null
-                    }, 100)
-                }
-            })
             frame.resizeListener = pushSize
             resizeObserver.observe(frame)
             pushSize(frame)
         },
         updated() {
             const frame = this.el
-            if (frame.dragSetup) return
+            if (frame.childrenSetup) return
             const panel = document.getElementById("design_panel")
             const port = document.getElementById("design_port")
             if (!panel) return
             if (!port) return
-            port.addEventListener("pointerdown", (e) => {
-                if (panel.contains(e.srcElement)) {
-                    const rect = port.getBoundingClientRect()
-                    const ox = e.clientX - rect.x
-                    const oy = e.clientY - rect.y
-                    const pid = e.pointerId
-                    const moved = false
-                    port.dragState = { ox, oy, pid, moved }
-                    port.setPointerCapture(pid)
-                    this.pushEvent("frame:drag", { mx: ox, my: oy, ox, oy, e: "down", m: moved })
+            port.addEventListener("wheel", (e) => {
+                if (!panel.contains(e.srcElement)) return
+                port.wheelState = port.wheelState || { dx: 0, dy: 0 }
+                const rect = port.getBoundingClientRect()
+                const x = e.clientX - rect.x
+                const y = e.clientY - rect.y
+                const dx = e.deltaX + port.wheelState.dx
+                const dy = e.deltaY + port.wheelState.dy
+                port.wheelState.dx = dx
+                port.wheelState.dy = dy
+                const { timer } = port.wheelState
+                port.wheelState.pending = () => {
+                    this.pushEvent("frame:wheel", { x, y, dx, dy })
                 }
+                if (!timer) {
+                    port.wheelState.timer = setTimeout(() => {
+                        const { pending } = port.wheelState
+                        if (pending) pending()
+                        port.wheelState = null
+                    }, 100)
+                }
+            })
+            port.addEventListener("pointerdown", (e) => {
+                if (!panel.contains(e.srcElement)) return
+                const rect = port.getBoundingClientRect()
+                const ox = e.clientX - rect.x
+                const oy = e.clientY - rect.y
+                const pid = e.pointerId
+                const moved = false
+                port.dragState = { ox, oy, pid, moved }
+                port.setPointerCapture(pid)
+                this.pushEvent("frame:drag", { mx: ox, my: oy, ox, oy, e: "down", m: moved })
             })
             port.addEventListener("mousemove", (e) => {
                 if (port.dragState) {
@@ -240,7 +244,7 @@ const hooks = {
                     port.dragState = null
                 }
             })
-            frame.dragSetup = true
+            frame.childrenSetup = true
         },
         reconnected() {
             const frame = this.el
