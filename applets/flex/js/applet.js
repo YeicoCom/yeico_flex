@@ -188,14 +188,12 @@ const hooks = {
                 const dy = e.deltaY + port.wheelState.dy
                 port.wheelState.dx = dx
                 port.wheelState.dy = dy
-                const { timer } = port.wheelState
                 port.wheelState.pending = () => {
                     this.pushEvent("frame:wheel", { x, y, dx, dy })
                 }
-                if (!timer) {
+                if (!port.wheelState.timer) {
                     port.wheelState.timer = setTimeout(() => {
-                        const { pending } = port.wheelState
-                        if (pending) pending()
+                        if (port.wheelState.pending) port.wheelState.pending()
                         port.wheelState = null
                     }, 100)
                 }
@@ -217,14 +215,13 @@ const hooks = {
                     const mx = e.clientX - rect.x
                     const my = e.clientY - rect.y
                     port.dragState.moved = true
-                    const { ox, oy, moved, timer } = port.dragState
+                    const { ox, oy, moved } = port.dragState
                     port.dragState.pending = () => {
                         this.pushEvent("frame:drag", { mx, my, ox, oy, e: "move", m: moved })
                     }
-                    if (!timer) {
+                    if (!port.dragState.timer) {
                         port.dragState.timer = setTimeout(() => {
-                            const { pending } = port.dragState
-                            if (pending) pending()
+                            if (port.dragState.pending) port.dragState.pending()
                             port.dragState.timer = null
                             port.dragState.pending = null
                         }, 100)
@@ -233,8 +230,8 @@ const hooks = {
             })
             port.addEventListener("pointerup", (e) => {
                 if (port.dragState) {
-                    const { ox, oy, pid, moved, timer } = port.dragState
-                    if (timer) clearTimeout(timer)
+                    const { ox, oy, pid, moved } = port.dragState
+                    if (port.dragState.timer) clearTimeout(port.dragState.timer)
                     if (moved) frame.ignoreClickUntil = Date.now() + 100
                     const rect = port.getBoundingClientRect()
                     const mx = e.clientX - rect.x

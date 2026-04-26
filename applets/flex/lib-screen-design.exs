@@ -42,14 +42,19 @@ port = fn fit, fw, fh, vw, vh ->
 end
 
 calc = fn state = %{screen: %{size: %{w: sw, h: sh}}, vp: vp} ->
-  %{s: vs, x: x, y: y, dx: dx, dy: dy, fit: fit, frame: %{w: fw, h: fh}} = vp
-  x = x + dx
-  y = y + dy
+  %{s: vs, x: vx, y: vy, dx: dx, dy: dy, fit: fit, frame: %{w: fw, h: fh}} = vp
+  px = vx + dx
+  py = vy + dy
   vw = vs * sw
   vh = vs * sh
-  state = put_in(state, [:vp, :port], %{s: s} = port.(fit, fw, fh, vw, vh))
-  state = put_in(state, [:vp, :panel], %{s: s, x: x, y: y, w: sw, h: sh})
-  Api.debug(state.vp)
+  state = put_in(state, [:vp, :port], %{s: ps} = port.(fit, fw, fh, vw, vh))
+  state = put_in(state, [:vp, :panel], %{s: ps, x: px, y: py, w: sw, h: sh})
+  state
+end
+
+clean = fn state ->
+  state = put_in(state, [:vp, :dx], 0)
+  state = put_in(state, [:vp, :dy], 0)
   state
 end
 
@@ -61,14 +66,14 @@ apply = fn
 
   state, :resize, {fw, fh} ->
     state = put_in(state, [:vp, :frame], %{w: fw, h: fh})
-    calc.(state)
+    state |> clean.() |> calc.()
 
   state = %{vp: %{frame: nil}}, _, _ ->
     state
 
   state = %{vp: %{frame: frame}}, :fit, fit ->
     state = Map.put(state, :vp, %{vp | frame: frame, fit: fit})
-    calc.(state)
+    state |> clean.() |> calc.()
 
   state = %{vp: vp}, :wheel, {x, y, _dx, dy} ->
     %{s: s, x: vx, y: vy, port: port, panel: panel} = vp
@@ -76,19 +81,19 @@ apply = fn
     # px = vx - port.x
     # py = vy - port.y
     state = Map.put(state, :vp, %{vp | s: f * s, x: vx, y: vy})
-    calc.(state)
+    state |> clean.() |> calc.()
 
-  state = %{vp: vp = %{s: s, x: x, y: y}}, :drag, {mx, my, ox, oy, "up", moved?} ->
-    x = x + if moved?, do: s * (mx - ox), else: 0
-    y = y + if moved?, do: s * (my - oy), else: 0
-    state = Map.put(state, :vp, %{vp | x: x, y: y, dx: 0, dy: 0})
-    calc.(state)
+  state = %{vp: vp = %{x: x, y: y}}, :drag, {mx, my, ox, oy, "up", moved?} ->
+    x = x + if moved?, do: mx - ox, else: 0
+    y = y + if moved?, do: my - oy, else: 0
+    state = Map.put(state, :vp, %{vp | x: x, y: y})
+    state |> clean.() |> calc.()
 
-  state = %{vp: vp = %{s: s}}, :drag, {mx, my, ox, oy, _event, _moved?} ->
-    dx = s * (mx - ox)
-    dy = s * (my - oy)
+  state = %{vp: vp}, :drag, {mx, my, ox, oy, _event, _moved?} ->
+    dx = mx - ox
+    dy = my - oy
     state = Map.put(state, :vp, %{vp | dx: dx, dy: dy})
-    calc.(state)
+    state |> calc.()
 end
 
 phx_attribs = fn assigns ->
