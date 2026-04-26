@@ -7,7 +7,7 @@ new = %{
   id: nil,
   name: nil,
   items: [
-    %{x: 10, y: 10, w: 800 - 20, h: 600 - 20, bg: "white"},
+    # %{x: 10, y: 10, w: 800 - 20, h: 600 - 20, bg: "white"},
     %{x: 0, y: 100, w: 800, h: 10, bg: "red"},
     %{x: 100, y: 0, w: 10, h: 600, bg: "red"}
   ],
@@ -20,7 +20,7 @@ vp = %{
   s: 1,
   dx: 0,
   dy: 0,
-  fit: "All",
+  fit: "Auto",
   frame: nil,
   port: nil,
   panel: nil
@@ -33,12 +33,13 @@ port = fn fit, fw, fh, vw, vh ->
   s =
     case fit do
       "All" -> min(fw / vw, fh / vh)
+      "Auto" -> max(fw / vw, fh / vh)
       "Width" -> fw / vw
       "Height" -> fh / vh
     end
 
-  w = s * vw
-  h = s * vh
+  w = min(fw, s * vw)
+  h = min(fh, s * vh)
   x = (fw - w) / 2
   y = (fh - h) / 2
   %{s: s, x: x, y: y, w: w, h: h}
@@ -164,6 +165,7 @@ menu = fn assigns ->
     "border border-1 border-solid border-white rounded-lg",
     ]}>
     <.fui fun={@option} phx-click="cmd:fit" phx-value-fit="All">Fit All</.fui>
+    <.fui fun={@option} phx-click="cmd:fit" phx-value-fit="Auto">Fit Auto</.fui>
     <.fui fun={@option} phx-click="cmd:fit" phx-value-fit="Width">Fit Width</.fui>
     <.fui fun={@option} phx-click="cmd:fit" phx-value-fit="Height">Fit Height</.fui>
     <.fui fun={@option} phx-click="cmd:add">Add Item</.fui>
