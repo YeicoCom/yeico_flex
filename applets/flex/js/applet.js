@@ -3,6 +3,9 @@ import { Socket } from "phoenix"
 import { LiveSocket } from "phoenix_live_view"
 import topbar from "topbar"
 
+const eventThrottlingMs = 50
+const ignoreClickDelayMs = 100
+
 function initialParams() {
     return {
         width: window.innerWidth,
@@ -197,7 +200,7 @@ const hooks = {
                     port.wheelState.timer = setTimeout(() => {
                         if (port.wheelState.pending) port.wheelState.pending()
                         port.wheelState = null
-                    }, 100)
+                    }, eventThrottlingMs)
                 }
             })
             port.addEventListener("pointerdown", (e) => {
@@ -226,7 +229,7 @@ const hooks = {
                             if (port.dragState.pending) port.dragState.pending()
                             port.dragState.timer = null
                             port.dragState.pending = null
-                        }, 100)
+                        }, eventThrottlingMs)
                     }
                 }
             })
@@ -234,7 +237,7 @@ const hooks = {
                 if (port.dragState) {
                     const { ox, oy, pid, moved } = port.dragState
                     if (port.dragState.timer) clearTimeout(port.dragState.timer)
-                    if (moved) frame.ignoreClickUntil = Date.now() + 100
+                    if (moved) frame.ignoreClickUntil = Date.now() + ignoreClickDelayMs
                     const rect = port.getBoundingClientRect()
                     const mx = e.clientX - rect.x
                     const my = e.clientY - rect.y

@@ -1,5 +1,8 @@
 use Terminal.Live
 
+box? = true
+zstep = 1.2
+
 new = %{
   id: nil,
   name: nil,
@@ -47,8 +50,13 @@ calc = fn state = %{screen: %{size: %{w: sw, h: sh}}, vp: vp} ->
   py = vy + dy
   vw = vs * sw
   vh = vs * sh
-  state = put_in(state, [:vp, :port], %{s: ps} = port.(fit, fw, fh, vw, vh))
+  state = put_in(state, [:vp, :port], %{s: ps, w: pw, h: ph} = port.(fit, fw, fh, vw, vh))
+  px = if box?, do: max(min(px, 0), pw - sw * ps), else: px
+  py = if box?, do: max(min(py, 0), ph - sh * ps), else: py
   state = put_in(state, [:vp, :panel], %{s: ps, x: px, y: py, w: sw, h: sh})
+  # boxing back propagation (harmless when not boxing)
+  state = put_in(state, [:vp, :x], px - dx)
+  state = put_in(state, [:vp, :y], py - dy)
   state
 end
 
@@ -88,7 +96,8 @@ apply = fn
 
   state = %{vp: vp}, :wheel, {x, y, _dx, dy} ->
     %{s: vs, x: vx, y: vy, panel: %{x: px, y: py}} = vp
-    sf = if dy > 0, do: 1.1, else: if(dy < 0, do: 1 / 1.1, else: 1)
+    sf = if dy > 0, do: zstep, else: if(dy < 0, do: 1 / zstep, else: 1)
+    sf = if box?, do: min(sf, 1 / vs), else: sf
     df = 1 - 1 / sf
     dx = df * (x - px)
     dy = df * (y - py)
