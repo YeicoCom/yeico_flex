@@ -22,7 +22,7 @@ frame = fn assigns ->
   assigns = Map.put_new(assigns, :title, "Flex")
 
   ~H"""
-  <div id="main_frame" class="flex flex-col gap-4 p-4 h-screen" phx-window-keydown="modal:close" phx-key="Escape">
+  <div id="main_frame" class="flex flex-col gap-4 p-4 h-screen select-none" phx-window-keydown="modal:close" phx-key="Escape">
     <div class="flex gap-4 p-4 items-center bg-zinc-800 rounded">
       <div class="relative group text-white content-center">
         <button class="px-4 py-2 bg-zinc-500 rounded hover:bg-lime-500 hero-bars-3 size-10"></button>
@@ -55,7 +55,7 @@ modal = fn assigns ->
   assigns = Map.put_new(assigns, :away, "modal:away")
 
   ~H"""
-  <div class="fixed top-0 left-0 z-9999 w-screen h-screen bg-neutral-200/50">
+  <div class="fixed top-0 left-0 z-9999 w-screen h-screen select-none bg-neutral-200/50">
     <div class="flex justify-center items-center h-screen">
       <div class={["p-8 rounded-md bg-neutral-800", @class]} phx-click-away={@away}>
         <div class="pb-2 gap-20 flex justify-between items-center text-gray-400">

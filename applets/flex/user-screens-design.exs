@@ -14,7 +14,7 @@ view = fn assigns ->
             "transform-origin: 0 0;scale: #{@vp.panel.s};",
             "left: #{@vp.panel.x}px; top: #{@vp.panel.y}px;",
             "width: #{@vp.panel.w}px;height: #{@vp.panel.h}px;"
-          ]}>
+          ]} draggable="false">
           <.fui :for={item <- @screen.items} fun={@sd.item}
             x={item.x} y={item.y} w={item.w} h={item.h} bg={item.bg}/>
         </div>
