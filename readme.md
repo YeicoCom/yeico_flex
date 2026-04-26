@@ -103,6 +103,7 @@ s=1,a=49,c=rri,d=5,e=u16le # Turck - Read All
 - [ ] Modbus lib deterministic error detection
 - [ ] Modbus rtu over tcp packet fragmentation
 - [ ] Standardize serial-exports/modbus-devices/user-screens to generic-items lib/loop/view template
+- [ ] Menu gets under screen design absolute positioned and transformed panel
 - [x] Socket terminal split hex and printable view
 - [x] Modbus log input/output as full hex: [00]![00000006010200030001]
 - [x] Modbus devices viewer slowed down to the point of modal delayed actions

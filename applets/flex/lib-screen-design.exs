@@ -64,12 +64,23 @@ apply = fn
     state = Map.put(state, :vp, vp)
     state
 
-  state, :resize, {fw, fh} ->
+  state = %{vp: %{frame: nil}}, :resize, {fw, fh} ->
     state = put_in(state, [:vp, :frame], %{w: fw, h: fh})
     state |> clean.() |> calc.()
 
   state = %{vp: %{frame: nil}}, _, _ ->
     state
+
+  state = %{screen: %{size: %{w: sw, h: sh}}, vp: vp}, :resize, {fw, fh} ->
+    %{s: vs, x: vx, y: vy, fit: fit, port: %{s: ps}} = vp
+    vw = vs * sw
+    vh = vs * sh
+    %{s: ns} = port.(fit, fw, fh, vw, vh)
+    df = ns / ps
+    x = df * vx
+    y = df * vy
+    state = Map.put(state, :vp, %{vp | frame: %{w: fw, h: fh}, x: x, y: y})
+    state |> clean.() |> calc.()
 
   state = %{vp: %{frame: frame}}, :fit, fit ->
     state = Map.put(state, :vp, %{vp | frame: frame, fit: fit})

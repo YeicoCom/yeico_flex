@@ -244,10 +244,8 @@ const hooks = {
             frame.childrenSetup = true
         },
         reconnected() {
-            const frame = this.el
-            const width = frame.clientWidth
-            const height = frame.clientHeight
-            this.pushEvent("frame:resize", { width, height })
+            // it gets stuck
+            window.location.reload()
         }
     },
 }
