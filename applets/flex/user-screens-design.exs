@@ -19,7 +19,7 @@ view = fn assigns ->
             x={item.x} y={item.y} w={item.w} h={item.h} bg={item.bg}/>
         </div>
       </div>
-      <.fui id="frame_menu" :if={@menu} fun={@sd.menu} x={@menu.x} y={@menu.y}/>
+      <.fui id="design_menu" :if={@menu} fun={@sd.menu} x={@menu.x} y={@menu.y}/>
     </div>
   </.fui>
   """
@@ -60,6 +60,7 @@ handler = fn
 
   {:event, socket, state, event = "cmd:add", params} ->
     Api.trace(view: path, event: event, params: params)
+    state = Map.put(state, :menu, nil)
     {socket, state}
 
   {:event, socket, state, event = "frame:click", params = %{"x" => x, "y" => y}} ->

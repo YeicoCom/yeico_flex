@@ -161,6 +161,8 @@ const hooks = {
             }
             frame.ignoreClickUntil = Date.now()
             frame.addEventListener("click", (e) => {
+                const menu = document.getElementById("design_menu")
+                if (menu && menu.contains(e.srcElement)) return
                 if (Date.now() < frame.ignoreClickUntil) return
                 const rect = frame.getBoundingClientRect()
                 const x = e.clientX - rect.x
