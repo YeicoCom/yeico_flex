@@ -6,7 +6,7 @@ zstep = 1.2
 new = %{
   id: nil,
   name: nil,
-  items: [],
+  items: %{},
   size: %{w: 800, h: 600}
 }
 
@@ -175,7 +175,6 @@ menu = fn assigns ->
 end
 
 item = fn assigns ->
-  assigns = phx_attribs.(assigns)
   assigns = Map.put_new(assigns, :id, nil)
   assigns = Map.put_new(assigns, :x, nil)
   assigns = Map.put_new(assigns, :y, nil)
@@ -184,21 +183,34 @@ item = fn assigns ->
   ~H"""
   <div
   id={"item_#{@id}"}
-  {@phx_attribs}
-  style={"left: #{@x}px; top: #{@y}px;"}
-  class={[
-    "absolute bg-red-500 cursor-grab",
-    ]}>
-    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-      Primary Button
-    </button>
+  class="absolute bg-red-500"
+  style={"left: #{@x}px; top: #{@y}px;"}>
+    <div id={"item_#{@id}_#{@type}"}
+      class="bg-blue-500 text-white py-2 px-4 rounded">
+      {@type}
+    </div>
   </div>
   """
+end
+
+get = fn
+  "Screen", _ -> fn state, _, key -> get_in(state, [:screen, key]) end
+  _, _ -> fn state, id, key -> get_in(state, [:screen, :items, id, :props, key]) end
+end
+
+put = fn
+  "Screen", _ -> fn state, _, key, val -> put_in(state, [:screen, key], val) end
+  _, _ -> fn state, id, key, val -> put_in(state, [:screen, :items, id, :props, key], val) end
+end
+
+select = fn type, id ->
+  %{type: type, id: id, get: get.(type, id), put: put.(type, id)}
 end
 
 %{
   new: new,
   menu: menu,
   item: item,
-  apply: apply
+  apply: apply,
+  select: select
 }

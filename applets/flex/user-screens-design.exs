@@ -2,8 +2,8 @@ use Terminal.Live
 
 view = fn assigns ->
   ~H"""
-  <.fui fun={@ui.frame} title="Screen Designer" label={@screen.name}>
-    <div id="design_frame" class="relative h-full w-full" phx-hook="DesignFrame">
+  <.fui fun={@ui.frame} title="Screen Designer" label={@screen.name} class="flex gap-2">
+    <div id="design_frame" class="grow relative" phx-hook="DesignFrame">
       <div id="design_port" :if={@vp.frame} class="design-port absolute overflow-hidden">
         <div id="design_grid" class="design-panel absolute origin-top-left"/>
         <div id="design_rulerx" class="design-panel absolute origin-top-left text-zinc-500" style="top: 0em;">
@@ -12,34 +12,37 @@ view = fn assigns ->
         <div id="design_rulery" class="design-panel absolute origin-top-left text-zinc-500" style="left: 0em;">
           <div :for={p <- 10..90//10} class="absolute text-[6px] left-[1px]" style={"top: #{p}%;"}>{p}%</div>
         </div>
-        <div id="design_panel" class="design-panel absolute origin-top-left" draggable="false">
-          <.fui :for={item <- @screen.items} fun={@sd.item} id={item.id} x={item.x} y={item.y} type={item.type}/>
+        <div id="design_panel" class="design-panel z-99999 absolute origin-top-left" draggable="false">
+          <.fui :for={{id, item} <- @index} fun={@sd.item} id={id} x={item.x} y={item.y} type={item.type}/>
         </div>
       </div>
       <.fui id="design_menu" :if={@menu} fun={@sd.menu} x={@menu.x} y={@menu.y} items={@menu.items?}/>
     </div>
-      <style :if={@vp.frame}>
-        /* https://www.magicpattern.design/tools/css-backgrounds */
-        #design_grid {
-          background-image: linear-gradient(#444444 2px, transparent 2px), linear-gradient(90deg, #444444 2px, transparent 2px), linear-gradient(#444444 1px, transparent 1px), linear-gradient(90deg, #444444 1px, transparent 1px);
-          background-size: 100px 100px, 100px 100px, 10px 10px, 10px 10px;
-          background-position: -1px -1px, -1px -1px, -1px -1px, -1px -1px;
-        }
-        .design-port {
-          left: <%= @vp.port.x %>px;
-          top: <%= @vp.port.y %>px;
-          width: <%= @vp.port.w %>px;
-          height: <%= @vp.port.h %>px;
-        }
-        .design-panel {
-          scale: <%= @vp.panel.s %>;
-          left: <%= @vp.panel.x %>px;
-          top: <%= @vp.panel.y %>px;
-          width: <%= @vp.panel.w %>px;
-          height: <%= @vp.panel.h %>px;
-        }
-      </style>
+    <div class="flex flex-col w-[16em]">
+      <div>{@selected.type} Properties</div>
+    </div>
   </.fui>
+  <style :if={@vp.frame}>
+    /* https://www.magicpattern.design/tools/css-backgrounds */
+    #design_grid {
+      background-image: linear-gradient(#444444 2px, transparent 2px), linear-gradient(90deg, #444444 2px, transparent 2px), linear-gradient(#444444 1px, transparent 1px), linear-gradient(90deg, #444444 1px, transparent 1px);
+      background-size: 100px 100px, 100px 100px, 10px 10px, 10px 10px;
+      background-position: -1px -1px, -1px -1px, -1px -1px, -1px -1px;
+    }
+    .design-port {
+      left: <%= @vp.port.x %>px;
+      top: <%= @vp.port.y %>px;
+      width: <%= @vp.port.w %>px;
+      height: <%= @vp.port.h %>px;
+    }
+    .design-panel {
+      scale: <%= @vp.panel.s %>;
+      left: <%= @vp.panel.x %>px;
+      top: <%= @vp.panel.y %>px;
+      width: <%= @vp.panel.w %>px;
+      height: <%= @vp.panel.h %>px;
+    }
+  </style>
   """
 end
 
@@ -49,6 +52,7 @@ handler = fn
     socket = assign(socket, applet_js: "/applets/flex.js")
     socket = assign(socket, page_title: "Screen Designer")
     socket = assign(socket, page_suffix: " · Flex")
+    state = Map.put(state, :selected, sd.select.("Screen", nil))
     state = Map.put(state, :screen, sd.new)
     state = Map.put(state, :menu, nil)
     state = Map.put(state, :vp, nil)
@@ -63,7 +67,9 @@ handler = fn
     state = put_in(state, [:screen, :id], id)
     {socket, state}
 
-  {:render, _assigns, state} ->
+  {:render, _assigns, state = %{screen: %{items: items}}} ->
+    index = Enum.sort_by(items, fn {_, item} -> item.index end)
+    state = Map.put(state, :index, index)
     view.(state)
 
   {:event, socket, state, event = "modal:close", params} ->
@@ -85,30 +91,42 @@ handler = fn
     y = String.to_integer(y)
     x = (x - pox - pax) / s
     y = (y - poy - pay) / s
-    item = %{x: x, y: y, type: type, id: id} |> Api.debug()
-    state = put_in(state, [:screen, :items], [item | items])
+    item = %{x: x, y: y, type: type, props: %{}, index: map_size(items)}
+    state = put_in(state, [:screen, :items, id], item)
+    state = Map.put(state, :selected, sd.select.(type, id))
+    state = Map.put(state, :menu, nil)
+    {socket, state}
+
+  {:event, socket, state, event = "frame:click", params = %{"sid" => "item_" <> id_type}} ->
+    Api.trace(view: path, event: event, params: params)
+    [id, type] = String.split(id_type, "_")
+    state = Map.put(state, :selected, sd.select.(type, id))
     state = Map.put(state, :menu, nil)
     {socket, state}
 
   {:event, socket, state, event = "frame:click", params = %{"x" => x, "y" => y, "sid" => sid}} ->
     Api.trace(view: path, event: event, params: params)
+    state = Map.put(state, :selected, sd.select.("Screen", nil))
     state = Map.put(state, :menu, %{x: x, y: y, items?: sid == "design_port"})
     {socket, state}
 
   {:event, socket, state, event = "frame:wheel",
    params = %{"x" => x, "y" => y, "dx" => dx, "dy" => dy}} ->
     Api.trace(view: path, event: event, params: params)
+    state = Map.put(state, :selected, sd.select.("Screen", nil))
     state = Map.put(state, :menu, nil)
     {socket, sd.apply.(state, :wheel, {x, y, dx, dy})}
 
   {:event, socket, state, event = "frame:drag",
    params = %{"mx" => mx, "my" => my, "ox" => ox, "oy" => oy, "e" => e, "m" => m}} ->
     Api.trace(view: path, event: event, params: params)
+    state = Map.put(state, :selected, sd.select.("Screen", nil))
     state = Map.put(state, :menu, nil)
     {socket, sd.apply.(state, :drag, {mx, my, ox, oy, e, m})}
 
   {:event, socket, state, event = "frame:resize", params = %{"width" => w, "height" => h}} ->
     Api.trace(view: path, event: event, params: params)
+    state = Map.put(state, :selected, sd.select.("Screen", nil))
     state = Map.put(state, :menu, nil)
     {socket, sd.apply.(state, :resize, {w, h})}
 

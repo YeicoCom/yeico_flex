@@ -205,6 +205,8 @@ const hooks = {
                 }
             })
             port.addEventListener("pointerdown", (e) => {
+                if (e.srcElement.id.startsWith("item_")) return
+                // this prevents panel and items click events
                 if (!panel.contains(e.srcElement)) return
                 const rect = port.getBoundingClientRect()
                 const ox = e.clientX - rect.x

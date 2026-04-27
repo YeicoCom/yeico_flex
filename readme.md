@@ -102,7 +102,7 @@ s=1,a=49,c=rri,d=5,e=u16le # Turck - Read All
 - [ ] Shaky things: browser, mountrap, socat, kill links, unable to await defers, modbus lib
 - [ ] Modbus lib deterministic error detection
 - [ ] Modbus rtu over tcp packet fragmentation
-- [ ] Why clicks are coming from design_port and not from design_panel?
+- [x] Why clicks are coming from design_port and not from design_panel?: masked by port pointerdown listener
 - [x] Standardize serial-exports/modbus-devices/user-screens to generic-items lib/loop/view template
 - [x] Menu gets under screen design absolute positioned and transformed panel: explicit flex components z-index
 - [x] Socket terminal split hex and printable view
