@@ -44,7 +44,7 @@ Api.putcast!("flex:user-screens:logs", %{})
 {lib, _} = Api.evalf("flex/user-screens-lib.exs")
 Api.evalf("flex/user-screens-loop.exs", path: dbpath.("user-screens"), dms: 2_000)
 Api.evalf("flex/user-screens-view.exs", path: "/flex/user-screens", ui: ui, lib: lib)
-{sd, _} = Api.evalf("flex/lib-screen-design.exs")
+{sd, _} = Api.evalf("flex/lib-screen-design.exs", ui: ui)
 
 Api.evalf("flex/user-screens-design.exs",
   path: "/flex/user-screens/design",

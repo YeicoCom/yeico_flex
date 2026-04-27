@@ -12,14 +12,17 @@ view = fn assigns ->
         <div id="design_rulery" class="design-panel absolute origin-top-left text-zinc-500" style="left: 0em;">
           <div :for={p <- 10..90//10} class="absolute text-[6px] left-[1px]" style={"top: #{p}%;"}>{p}%</div>
         </div>
-        <div id="design_panel" class="design-panel absolute origin-top-left" draggable="false">
-          <.fui :for={{id, item} <- @index} fun={@sd.item} id={id} {item}/>
+        <div id="design_panel" class="design-panel absolute origin-top-left cursor-default" draggable="false">
+          <.fui :for={{id, item} <- @index} fun={@sd.item} id={id} {item} selected={id==@selected.id}/>
         </div>
       </div>
-      <.fui id="design_menu" :if={@menu} fun={@sd.menu} x={@menu.x} y={@menu.y} items={@menu.items?}/>
+      <.fui id="design_menu" :if={@menu} fun={@sd.menu} x={@menu.x} y={@menu.y} items={@menu.items?}
+        phx-click-away="modal:close"/>
     </div>
-    <div class="flex flex-col w-[16em]">
+    <div class="flex flex-col p-1 gap-2 w-[16em]">
       <div>{@selected.type} Properties</div>
+      <.fui id="props_editor" fun={@sd.editor} editor={@selected.editor} iid={@selected.id} item={@selected.item}
+        phx-submit="props:apply" phx-change="props:apply" class="grid grid-cols-2 gap-1 items-center"/>
     </div>
   </.fui>
   <style :if={@vp.frame}>
@@ -52,12 +55,12 @@ handler = fn
     socket = assign(socket, applet_js: "/applets/flex.js")
     socket = assign(socket, page_title: "Screen Designer")
     socket = assign(socket, page_suffix: " · Flex")
-    state = Map.put(state, :selected, sd.select.("Screen", nil))
     state = Map.put(state, :screen, sd.new)
     state = Map.put(state, :menu, nil)
     state = Map.put(state, :vp, nil)
     state = Map.put(state, :sd, sd)
     state = Map.put(state, :ui, ui)
+    state = Map.put(state, :selected, sd.select.(state, "Screen", nil))
     {socket, sd.apply.(state, :init, nil)}
 
   {:params, socket, state, params = %{"id" => id}, uri} ->
@@ -77,6 +80,13 @@ handler = fn
     state = Map.put(state, :menu, nil)
     {socket, state}
 
+  {:event, socket, state = %{selected: %{id: id, apply: apply}}, event = "props:apply",
+   params = %{"iid" => id}} ->
+    Api.trace(view: path, event: event, params: params)
+    state = apply.(state, id, params)
+    state = Map.put(state, :menu, nil)
+    {socket, state}
+
   {:event, socket, state, event = "cmd:fit", params = %{"fit" => fit}} ->
     Api.trace(view: path, event: event, params: params)
     state = Map.put(state, :menu, nil)
@@ -91,9 +101,9 @@ handler = fn
     y = String.to_integer(y)
     x = (x - pox - pax) / s
     y = (y - poy - pay) / s
-    item = %{x: x, y: y, type: type, props: %{}, index: map_size(items)}
+    item = %{x: x, y: y, w: 0, h: 0, type: type, props: %{}, index: map_size(items)}
     state = put_in(state, [:screen, :items, id], item)
-    state = Map.put(state, :selected, sd.select.(type, id))
+    state = Map.put(state, :selected, sd.select.(state, type, id))
     state = Map.put(state, :menu, nil)
     {socket, state}
 
@@ -103,40 +113,40 @@ handler = fn
     [id, type] = String.split(id_type, "_")
     state = put_in(state, [:screen, :items, id, :x], x)
     state = put_in(state, [:screen, :items, id, :y], y)
-    state = Map.put(state, :selected, sd.select.(type, id))
+    state = Map.put(state, :selected, sd.select.(state, type, id))
     state = Map.put(state, :menu, nil)
     {socket, state}
 
   {:event, socket, state, event = "frame:click", params = %{"sid" => "item_" <> id_type}} ->
     Api.trace(view: path, event: event, params: params)
     [id, type] = String.split(id_type, "_")
-    state = Map.put(state, :selected, sd.select.(type, id))
+    state = Map.put(state, :selected, sd.select.(state, type, id))
     state = Map.put(state, :menu, nil)
     {socket, state}
 
   {:event, socket, state, event = "frame:click", params = %{"x" => x, "y" => y, "p" => p}} ->
     Api.trace(view: path, event: event, params: params)
-    state = Map.put(state, :selected, sd.select.("Screen", nil))
+    state = Map.put(state, :selected, sd.select.(state, "Screen", nil))
     state = Map.put(state, :menu, %{x: x, y: y, items?: p})
     {socket, state}
 
   {:event, socket, state, event = "frame:wheel",
    params = %{"x" => x, "y" => y, "dx" => dx, "dy" => dy}} ->
     Api.trace(view: path, event: event, params: params)
-    state = Map.put(state, :selected, sd.select.("Screen", nil))
+    state = Map.put(state, :selected, sd.select.(state, "Screen", nil))
     state = Map.put(state, :menu, nil)
     {socket, sd.apply.(state, :wheel, {x, y, dx, dy})}
 
   {:event, socket, state, event = "frame:drag",
    params = %{"mx" => mx, "my" => my, "ox" => ox, "oy" => oy, "e" => e, "m" => m}} ->
     Api.trace(view: path, event: event, params: params)
-    state = Map.put(state, :selected, sd.select.("Screen", nil))
+    state = Map.put(state, :selected, sd.select.(state, "Screen", nil))
     state = Map.put(state, :menu, nil)
     {socket, sd.apply.(state, :drag, {mx, my, ox, oy, e, m})}
 
   {:event, socket, state, event = "frame:resize", params = %{"width" => w, "height" => h}} ->
     Api.trace(view: path, event: event, params: params)
-    state = Map.put(state, :selected, sd.select.("Screen", nil))
+    state = Map.put(state, :selected, sd.select.(state, "Screen", nil))
     state = Map.put(state, :menu, nil)
     {socket, sd.apply.(state, :resize, {w, h})}
 
