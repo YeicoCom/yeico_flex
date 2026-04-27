@@ -12,7 +12,7 @@ view = fn assigns ->
         <div id="design_rulery" class="design-panel absolute origin-top-left text-zinc-500" style="left: 0em;">
           <div :for={p <- 10..90//10} class="absolute text-[6px] left-[1px]" style={"top: #{p}%;"}>{p}%</div>
         </div>
-        <div id="design_panel" class="design-panel z-99999 absolute origin-top-left" draggable="false">
+        <div id="design_panel" class="design-panel absolute origin-top-left" draggable="false">
           <.fui :for={{id, item} <- @index} fun={@sd.item} id={id} {item}/>
         </div>
       </div>
