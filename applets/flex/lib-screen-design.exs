@@ -193,13 +193,13 @@ screen_e = fn assigns ->
   assigns = Map.put_new(assigns, :ui, ui)
 
   ~H"""
-  <div>Pixel Size</div>
+  <div>Size</div>
   <div class="grid grid-cols-2 p-1 gap-1">
-    <.fui fun={@ui.input} name="w" value={@item.w} type="number" step="1" min="100" max="2000" required/>
-    <.fui fun={@ui.input} name="h" value={@item.h} type="number" step="1" min="100" max="2000" required/>
+    <.fui fun={@ui.input} name="w" value={@item.w} type="number" step="1" min="100" max="3840" title="100-3840" required/>
+    <.fui fun={@ui.input} name="h" value={@item.h} type="number" step="1" min="100" max="2160" title="100-2160" required/>
   </div>
   <div>Grid Snap</div>
-  <.fui fun={@ui.input} name="snap" value={@item.snap} type="number" step="1" min="1" max="100" required/>
+  <.fui fun={@ui.input} name="snap" value={@item.snap} type="number" step="1" min="1" max="100" title="1-100" required/>
   """
 end
 
@@ -214,7 +214,7 @@ size = fn
   w, h -> "width: #{w}px; height: #{h}px;"
 end
 
-button_i = fn assigns ->
+button_r = fn assigns ->
   ~H"""
     <div id={@id} class={[
       "absolute",
@@ -222,7 +222,7 @@ button_i = fn assigns ->
       "bg-blue-500 text-white py-2 px-4 rounded",
       ]}
       style={["left: #{@x}px; top: #{@y}px;", @size.(@w, @h)]}>
-      {@type}
+      {@props.text}
     </div>
   """
 end
@@ -232,15 +232,17 @@ button_e = fn assigns ->
   assigns = Map.put_new(assigns, :ui, ui)
 
   ~H"""
-  <div>Pixel Size</div>
+  <div>Size</div>
   <div class="grid grid-cols-2 p-1 gap-1">
-    <.fui fun={@ui.input} name="w" value={@item.w} type="number" step="1" min="0" max="2000" required/>
-    <.fui fun={@ui.input} name="h" value={@item.h} type="number" step="1" min="0" max="2000" required/>
+    <.fui fun={@ui.input} name="w" value={@item.w} type="number" step="1" min="0" max="3840" title="0-3840" required/>
+    <.fui fun={@ui.input} name="h" value={@item.h} type="number" step="1" min="0" max="2160" title="0-2160" required/>
   </div>
+  <div>Text</div>
+  <.fui fun={@ui.input} name="text" value={@item.props.text} type="text" pattern="[a-zA-Z0-9]+" required/>
   """
 end
 
-label_i = fn assigns ->
+label_r = fn assigns ->
   ~H"""
     <div id={@id} class={[
       "absolute",
@@ -248,7 +250,7 @@ label_i = fn assigns ->
       "bg-red-500 text-white py-2 px-4 rounded",
       ]}
       style={["left: #{@x}px; top: #{@y}px;", @size.(@w, @h)]}>
-      {@type}
+      {@props.text}
     </div>
   """
 end
@@ -258,12 +260,36 @@ label_e = fn assigns ->
   assigns = Map.put_new(assigns, :ui, ui)
 
   ~H"""
-  <div>Pixel Size</div>
+  <div>Size</div>
   <div class="grid grid-cols-2 p-1 gap-1">
-    <.fui fun={@ui.input} name="w" value={@item.w} type="number" step="1" min="0" max="2000" required/>
-    <.fui fun={@ui.input} name="h" value={@item.h} type="number" step="1" min="0" max="2000" required/>
+    <.fui fun={@ui.input} name="w" value={@item.w} type="number" step="1" min="0" max="3840" title="0-3840" required/>
+    <.fui fun={@ui.input} name="h" value={@item.h} type="number" step="1" min="0" max="2160" title="0-2160" required/>
   </div>
+  <div>Text</div>
+  <.fui fun={@ui.input} name="text" value={@item.props.text} type="text" pattern="[a-zA-Z0-9]+" required/>
   """
+end
+
+props = fn
+  "Button" -> %{text: "Button", action: ""}
+  "Label" -> %{text: "Label"}
+end
+
+renderer = fn
+  "Button" -> button_r
+  "Label" -> label_r
+end
+
+handlers = fn
+  "Screen" -> %{editor: screen_e, apply: screen_a}
+  "Button" -> %{editor: button_e, apply: screen_a}
+  "Label" -> %{editor: label_e, apply: screen_a}
+end
+
+getter = fn
+  %{screen: screen}, type = "Screen", _ -> %{type: type, id: "id", item: screen}
+  %{screen: screen}, type = "Button", id -> %{type: type, id: id, item: screen.items[id]}
+  %{screen: screen}, type = "Label", id -> %{type: type, id: id, item: screen.items[id]}
 end
 
 # cursor-default to remove safari text cursor
@@ -271,27 +297,15 @@ item = fn assigns ->
   assigns = Map.put(assigns, :size, size)
   pass = [:x, :y, :w, :h, :type, :index, :props, :selected, :size]
   assigns = Map.put(assigns, :pass, Map.take(assigns, pass))
-
-  assigns =
-    case assigns.type do
-      "Button" -> Map.put(assigns, :fun, button_i)
-      "Label" -> Map.put(assigns, :fun, label_i)
-    end
+  assigns = Map.put(assigns, :fun, renderer.(assigns.type))
 
   ~H"""
   <.fui fun={@fun} id={"item_#{@id}_#{@type}"} {@pass}/>
   """
 end
 
-select = fn
-  state, type = "Screen", _ ->
-    %{type: type, id: "id", editor: screen_e, apply: screen_a, item: state.screen}
-
-  state, type = "Button", id ->
-    %{type: type, id: id, editor: button_e, apply: screen_a, item: state.screen.items[id]}
-
-  state, type = "Label", id ->
-    %{type: type, id: id, editor: label_e, apply: screen_a, item: state.screen.items[id]}
+select = fn screen, type, id ->
+  getter.(screen, type, id) |> Map.merge(handlers.(type))
 end
 
 %{
@@ -299,6 +313,7 @@ end
   menu: menu,
   item: item,
   apply: apply,
+  props: props,
   editor: editor,
   select: select
 }

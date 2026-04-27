@@ -20,7 +20,7 @@ view = fn assigns ->
         phx-click-away="modal:close"/>
     </div>
     <div class="flex flex-col p-1 gap-2 w-[16em]">
-      <div>{@selected.type} Properties</div>
+      <div class="text-xl">{@selected.type} Properties</div>
       <.fui id="props_editor" fun={@sd.editor} editor={@selected.editor} iid={@selected.id} item={@selected.item}
         phx-submit="props:apply" phx-change="props:apply" class="grid grid-cols-2 gap-1 items-center"/>
     </div>
@@ -101,7 +101,7 @@ handler = fn
     y = String.to_integer(y)
     x = (x - pox - pax) / s
     y = (y - poy - pay) / s
-    item = %{x: x, y: y, w: 0, h: 0, type: type, props: %{}, index: map_size(items)}
+    item = %{x: x, y: y, w: 0, h: 0, type: type, props: sd.props.(type), index: map_size(items)}
     state = put_in(state, [:screen, :items, id], item)
     state = Map.put(state, :selected, sd.select.(state, type, id))
     state = Map.put(state, :menu, nil)
