@@ -13,11 +13,10 @@ view = fn assigns ->
           <div :for={p <- 10..90//10} class="absolute text-[6px] left-[1px]" style={"top: #{p}%;"}>{p}%</div>
         </div>
         <div id="design_panel" class="design-panel absolute origin-top-left" draggable="false">
-          <.fui :for={item <- @screen.items} fun={@sd.item}
-            x={item.x} y={item.y} w={item.w} h={item.h} bg={item.bg}/>
+          <.fui :for={item <- @screen.items} fun={@sd.item} id={item.id} x={item.x} y={item.y} type={item.type}/>
         </div>
       </div>
-      <.fui id="design_menu" :if={@menu} fun={@sd.menu} x={@menu.x} y={@menu.y}/>
+      <.fui id="design_menu" :if={@menu} fun={@sd.menu} x={@menu.x} y={@menu.y} items={@menu.items?}/>
     </div>
       <style :if={@vp.frame}>
         /* https://www.magicpattern.design/tools/css-backgrounds */
@@ -50,7 +49,7 @@ handler = fn
     socket = assign(socket, applet_js: "/applets/flex.js")
     socket = assign(socket, page_title: "Screen Designer")
     socket = assign(socket, page_suffix: " · Flex")
-    state = Map.put(state, :screen, %{})
+    state = Map.put(state, :screen, sd.new)
     state = Map.put(state, :menu, nil)
     state = Map.put(state, :vp, nil)
     state = Map.put(state, :sd, sd)
@@ -77,14 +76,23 @@ handler = fn
     state = Map.put(state, :menu, nil)
     {socket, sd.apply.(state, :fit, fit)}
 
-  {:event, socket, state, event = "cmd:add", params} ->
+  {:event, socket, state = %{vp: %{port: %{s: s, x: pox, y: poy}, panel: %{x: pax, y: pay}}},
+   event = "cmd:add", params = %{"x" => x, "y" => y, "type" => type}} ->
     Api.trace(view: path, event: event, params: params)
+    %{screen: %{items: items}} = state
+    id = UUID.uuid1() |> ShortUUID.encode!()
+    x = String.to_integer(x)
+    y = String.to_integer(y)
+    x = (x - pox - pax) / s
+    y = (y - poy - pay) / s
+    item = %{x: x, y: y, type: type, id: id} |> Api.debug()
+    state = put_in(state, [:screen, :items], [item | items])
     state = Map.put(state, :menu, nil)
     {socket, state}
 
-  {:event, socket, state, event = "frame:click", params = %{"x" => x, "y" => y}} ->
+  {:event, socket, state, event = "frame:click", params = %{"x" => x, "y" => y, "sid" => sid}} ->
     Api.trace(view: path, event: event, params: params)
-    state = Map.put(state, :menu, %{x: x, y: y})
+    state = Map.put(state, :menu, %{x: x, y: y, items?: sid == "design_port"})
     {socket, state}
 
   {:event, socket, state, event = "frame:wheel",

@@ -6,11 +6,7 @@ zstep = 1.2
 new = %{
   id: nil,
   name: nil,
-  items: [
-    # %{x: 10, y: 10, w: 800 - 20, h: 600 - 20, bg: "white"},
-    %{x: 0, y: 100, w: 800, h: 10, bg: "red"},
-    %{x: 100, y: 0, w: 10, h: 600, bg: "red"}
-  ],
+  items: [],
   size: %{w: 800, h: 600}
 }
 
@@ -154,6 +150,7 @@ menu = fn assigns ->
   assigns = Map.put_new(assigns, :id, nil)
   assigns = Map.put_new(assigns, :x, nil)
   assigns = Map.put_new(assigns, :y, nil)
+  assigns = Map.put_new(assigns, :items, nil)
 
   ~H"""
   <div
@@ -164,11 +161,15 @@ menu = fn assigns ->
     "absolute flex flex-col p-2 bg-black",
     "border border-1 border-solid border-white rounded-lg",
     ]}>
+    <div :if={@items} class="flex flex-col">
+      <.fui fun={@option} phx-click="cmd:add" phx-value-x={@x} phx-value-y={@y} phx-value-type="Button">Add Button</.fui>
+      <.fui fun={@option} phx-click="cmd:add" phx-value-x={@x} phx-value-y={@y} phx-value-type="Label">Add Label</.fui>
+      <hr class="border-t border-white my-1"/>
+    </div>
     <.fui fun={@option} phx-click="cmd:fit" phx-value-fit="All">Fit All</.fui>
     <.fui fun={@option} phx-click="cmd:fit" phx-value-fit="Auto">Fit Auto</.fui>
     <.fui fun={@option} phx-click="cmd:fit" phx-value-fit="Width">Fit Width</.fui>
     <.fui fun={@option} phx-click="cmd:fit" phx-value-fit="Height">Fit Height</.fui>
-    <.fui fun={@option} phx-click="cmd:add">Add Item</.fui>
   </div>
   """
 end
@@ -178,23 +179,26 @@ item = fn assigns ->
   assigns = Map.put_new(assigns, :id, nil)
   assigns = Map.put_new(assigns, :x, nil)
   assigns = Map.put_new(assigns, :y, nil)
-  assigns = Map.put_new(assigns, :w, nil)
-  assigns = Map.put_new(assigns, :h, nil)
-  assigns = Map.put_new(assigns, :bg, nil)
+  assigns = Map.put_new(assigns, :type, nil)
 
   ~H"""
   <div
-  id={@id}
+  id={"item_#{@id}"}
   {@phx_attribs}
-  style={"left: #{@x}px; top: #{@y}px;width: #{@w}px;height: #{@h}px;background-color: #{@bg};"}
+  style={"left: #{@x}px; top: #{@y}px;"}
   class={[
-    "absolute bg-red-500",
-    ]}/>
+    "absolute bg-red-500 cursor-grab",
+    ]}>
+    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+      Primary Button
+    </button>
+  </div>
   """
 end
 
 %{
-  apply: apply,
+  new: new,
   menu: menu,
-  item: item
+  item: item,
+  apply: apply
 }

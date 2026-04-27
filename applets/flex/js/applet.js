@@ -170,7 +170,8 @@ const hooks = {
                 const rect = frame.getBoundingClientRect()
                 const x = e.clientX - rect.x
                 const y = e.clientY - rect.y
-                this.pushEvent("frame:click", { x, y })
+                const sid = e.srcElement.id
+                this.pushEvent("frame:click", { x, y, sid })
             })
             frame.resizeListener = pushSize
             resizeObserver.observe(frame)
