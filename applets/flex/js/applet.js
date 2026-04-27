@@ -165,13 +165,16 @@ const hooks = {
             frame.ignoreClickUntil = Date.now()
             frame.addEventListener("click", (e) => {
                 const menu = document.getElementById("design_menu")
+                const port = document.getElementById("design_port")
                 if (menu && menu.contains(e.srcElement)) return
                 if (Date.now() < frame.ignoreClickUntil) return
                 const rect = frame.getBoundingClientRect()
                 const x = e.clientX - rect.x
                 const y = e.clientY - rect.y
-                const sid = e.srcElement.id
-                this.pushEvent("frame:click", { x, y, sid })
+                // srcElement is design_panel for safari
+                // srcElement is design_port for chrome
+                const p = port && port.contains(e.srcElement)
+                this.pushEvent("frame:click", { x, y, p })
             })
             frame.resizeListener = pushSize
             resizeObserver.observe(frame)
@@ -247,6 +250,53 @@ const hooks = {
                     port.releasePointerCapture(pid)
                     this.pushEvent("frame:drag", { mx, my, ox, oy, e: "up", m: moved })
                     port.dragState = null
+                }
+            })
+            port.addEventListener("pointerdown", (e) => {
+                if (!e.srcElement.id.startsWith("item_")) return
+                const item = e.srcElement
+                const id = item.id
+                const px = item.offsetLeft
+                const py = item.offsetTop
+                const ox = e.offsetX + px
+                const oy = e.offsetY + py
+                const pid = e.pointerId
+                const moved = false
+                const x = px, y = py
+                panel.dragState = { item, id, x, y, ox, oy, px, py, pid, moved }
+                panel.setPointerCapture(pid)
+                this.pushEvent("item:drag", { id, x, y, e: "down", m: moved })
+            })
+            port.addEventListener("mousemove", (e) => {
+                if (panel.dragState) {
+                    panel.dragState.moved = true
+                    const { ox, oy, px, py, moved, id } = panel.dragState
+                    const x = px + e.offsetX - ox
+                    const y = py + e.offsetY - oy
+                    panel.dragState.x = x
+                    panel.dragState.y = y
+                    panel.dragState.pending = () => {
+                        this.pushEvent("item:drag", { id, x, y, e: "move", m: moved })
+                    }
+                    if (!panel.dragState.timer) {
+                        panel.dragState.timer = setTimeout(() => {
+                            if (panel.dragState.pending) panel.dragState.pending()
+                            panel.dragState.timer = null
+                            panel.dragState.pending = null
+                        }, eventThrottlingMs)
+                    }
+                }
+            })
+            // offsetX/offsetY get relative to item from time to time
+            // send last move coordinates instead
+            port.addEventListener("pointerup", (e) => {
+                if (panel.dragState) {
+                    const { x, y, pid, moved, id } = panel.dragState
+                    if (panel.dragState.timer) clearTimeout(panel.dragState.timer)
+                    if (moved) frame.ignoreClickUntil = Date.now() + ignoreClickDelayMs
+                    panel.releasePointerCapture(pid)
+                    this.pushEvent("item:drag", { id, x, y, e: "up", m: moved })
+                    panel.dragState = null
                 }
             })
             frame.childrenSetup = true

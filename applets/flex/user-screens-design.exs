@@ -13,7 +13,7 @@ view = fn assigns ->
           <div :for={p <- 10..90//10} class="absolute text-[6px] left-[1px]" style={"top: #{p}%;"}>{p}%</div>
         </div>
         <div id="design_panel" class="design-panel z-99999 absolute origin-top-left" draggable="false">
-          <.fui :for={{id, item} <- @index} fun={@sd.item} id={id} x={item.x} y={item.y} type={item.type}/>
+          <.fui :for={{id, item} <- @index} fun={@sd.item} id={id} {item}/>
         </div>
       </div>
       <.fui id="design_menu" :if={@menu} fun={@sd.menu} x={@menu.x} y={@menu.y} items={@menu.items?}/>
@@ -97,6 +97,16 @@ handler = fn
     state = Map.put(state, :menu, nil)
     {socket, state}
 
+  {:event, socket, state, event = "item:drag",
+   params = %{"id" => "item_" <> id_type, "x" => x, "y" => y, "e" => _e, "m" => _m}} ->
+    Api.trace(view: path, event: event, params: params)
+    [id, type] = String.split(id_type, "_")
+    state = put_in(state, [:screen, :items, id, :x], x)
+    state = put_in(state, [:screen, :items, id, :y], y)
+    state = Map.put(state, :selected, sd.select.(type, id))
+    state = Map.put(state, :menu, nil)
+    {socket, state}
+
   {:event, socket, state, event = "frame:click", params = %{"sid" => "item_" <> id_type}} ->
     Api.trace(view: path, event: event, params: params)
     [id, type] = String.split(id_type, "_")
@@ -104,10 +114,10 @@ handler = fn
     state = Map.put(state, :menu, nil)
     {socket, state}
 
-  {:event, socket, state, event = "frame:click", params = %{"x" => x, "y" => y, "sid" => sid}} ->
+  {:event, socket, state, event = "frame:click", params = %{"x" => x, "y" => y, "p" => p}} ->
     Api.trace(view: path, event: event, params: params)
     state = Map.put(state, :selected, sd.select.("Screen", nil))
-    state = Map.put(state, :menu, %{x: x, y: y, items?: sid == "design_port"})
+    state = Map.put(state, :menu, %{x: x, y: y, items?: p})
     {socket, state}
 
   {:event, socket, state, event = "frame:wheel",

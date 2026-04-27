@@ -137,7 +137,7 @@ option = fn assigns ->
   {@phx_attribs}
   class={[
     "flex items-center gap-1 select-none text-nowrap text-white cursor-default",
-    "hover:cursor-pointer hover:text-lime-500",
+    "hover:text-lime-500",
     ]}>
     {render_slot(@inner_block)}
   </div>
@@ -174,22 +174,44 @@ menu = fn assigns ->
   """
 end
 
-item = fn assigns ->
-  assigns = Map.put_new(assigns, :id, nil)
-  assigns = Map.put_new(assigns, :x, nil)
-  assigns = Map.put_new(assigns, :y, nil)
-  assigns = Map.put_new(assigns, :type, nil)
-
+button = fn assigns ->
   ~H"""
-  <div
-  id={"item_#{@id}"}
-  class="absolute bg-red-500"
-  style={"left: #{@x}px; top: #{@y}px;"}>
-    <div id={"item_#{@id}_#{@type}"}
-      class="bg-blue-500 text-white py-2 px-4 rounded">
+    <div id={@id} class={[
+      @design && "absolute cursor-default",
+      @design && "hover:border hover:border-2 hover:border-lime-500",
+      "bg-blue-500 text-white py-2 px-4 rounded",
+      ]}
+      style={"left: #{@x}px; top: #{@y}px;"}>
       {@type}
     </div>
-  </div>
+  """
+end
+
+label = fn assigns ->
+  ~H"""
+    <div id={@id} class={[
+      @design && "absolute cursor-default",
+      @design && "hover:border hover:border-2 hover:border-lime-500",
+      "bg-red-500 text-white py-2 px-4 rounded",
+      ]}
+      style={"left: #{@x}px; top: #{@y}px;"}>
+      {@type}
+    </div>
+  """
+end
+
+# cursor-default to remove safari text cursor
+item = fn assigns ->
+  assigns = Map.put(assigns, :pass, Map.take(assigns, [:x, :y, :type, :props]))
+
+  assigns =
+    case assigns.type do
+      "Button" -> Map.put(assigns, :fun, button)
+      "Label" -> Map.put(assigns, :fun, label)
+    end
+
+  ~H"""
+  <.fui fun={@fun} id={"item_#{@id}_#{@type}"} design={true} {@pass}/>
   """
 end
 
