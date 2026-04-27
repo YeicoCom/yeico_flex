@@ -164,6 +164,7 @@ const hooks = {
             }
             frame.ignoreClickUntil = Date.now()
             frame.addEventListener("click", (e) => {
+                if (e.srcElement.id.startsWith("item_")) return
                 const menu = document.getElementById("design_menu")
                 const port = document.getElementById("design_port")
                 if (menu && menu.contains(e.srcElement)) return
@@ -289,11 +290,12 @@ const hooks = {
             })
             // offsetX/offsetY get relative to item from time to time
             // send last move coordinates instead
+            // ignore frame click even if not moved
             port.addEventListener("pointerup", (e) => {
                 if (panel.dragState) {
                     const { x, y, pid, moved, id } = panel.dragState
                     if (panel.dragState.timer) clearTimeout(panel.dragState.timer)
-                    if (moved) frame.ignoreClickUntil = Date.now() + ignoreClickDelayMs
+                    frame.ignoreClickUntil = Date.now() + ignoreClickDelayMs
                     panel.releasePointerCapture(pid)
                     this.pushEvent("item:drag", { id, x, y, e: "up", m: moved })
                     panel.dragState = null
