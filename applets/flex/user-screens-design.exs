@@ -4,23 +4,42 @@ view = fn assigns ->
   ~H"""
   <.fui fun={@ui.frame} title="Screen Designer" label={@screen.name}>
     <div id="design_frame" class="relative h-full w-full" phx-hook="DesignFrame">
-      <div id="design_port" :if={@vp.port} class="absolute overflow-hidden"
-        style={[
-          "left: #{@vp.port.x}px; top: #{@vp.port.y}px;",
-          "width: #{@vp.port.w}px;height: #{@vp.port.h}px;",
-        ]}>
-        <div id="design_panel" :if={@vp.panel} class="absolute"
-          style={[
-            "transform-origin: 0 0;scale: #{@vp.panel.s};",
-            "left: #{@vp.panel.x}px; top: #{@vp.panel.y}px;",
-            "width: #{@vp.panel.w}px;height: #{@vp.panel.h}px;"
-          ]} draggable="false">
+      <div id="design_port" :if={@vp.frame} class="design-port absolute overflow-hidden">
+        <div id="design_grid" class="design-panel absolute origin-top-left"/>
+        <div id="design_rulerx" class="design-panel absolute origin-top-left text-zinc-500" style="top: 0em;">
+          <div :for={p <- 10..90//10} class="absolute text-[6px] top-[-8px]" style={"left: #{p}%;"}>{p}%</div>
+        </div>
+        <div id="design_rulery" class="design-panel absolute origin-top-left text-zinc-500" style="left: 0em;">
+          <div :for={p <- 10..90//10} class="absolute text-[6px] left-[1px]" style={"top: #{p}%;"}>{p}%</div>
+        </div>
+        <div id="design_panel" class="design-panel absolute origin-top-left" draggable="false">
           <.fui :for={item <- @screen.items} fun={@sd.item}
             x={item.x} y={item.y} w={item.w} h={item.h} bg={item.bg}/>
         </div>
       </div>
       <.fui id="design_menu" :if={@menu} fun={@sd.menu} x={@menu.x} y={@menu.y}/>
     </div>
+      <style :if={@vp.frame}>
+        /* https://www.magicpattern.design/tools/css-backgrounds */
+        #design_grid {
+          background-image: linear-gradient(#444444 2px, transparent 2px), linear-gradient(90deg, #444444 2px, transparent 2px), linear-gradient(#444444 1px, transparent 1px), linear-gradient(90deg, #444444 1px, transparent 1px);
+          background-size: 100px 100px, 100px 100px, 10px 10px, 10px 10px;
+          background-position: -1px -1px, -1px -1px, -1px -1px, -1px -1px;
+        }
+        .design-port {
+          left: <%= @vp.port.x %>px;
+          top: <%= @vp.port.y %>px;
+          width: <%= @vp.port.w %>px;
+          height: <%= @vp.port.h %>px;
+        }
+        .design-panel {
+          scale: <%= @vp.panel.s %>;
+          left: <%= @vp.panel.x %>px;
+          top: <%= @vp.panel.y %>px;
+          width: <%= @vp.panel.w %>px;
+          height: <%= @vp.panel.h %>px;
+        }
+      </style>
   </.fui>
   """
 end
