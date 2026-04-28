@@ -1,14 +1,19 @@
 use Terminal.Live
 
-phx_attribs = fn assigns ->
+size = fn
+  0, _ -> ""
+  _, 0 -> ""
+  w, h -> "width: #{w}px; height: #{h}px;"
+end
+
+phxattr = fn assigns ->
   Map.put_new(
     assigns,
-    :phx_attribs,
+    :phxattr,
     for {k, v} <- assigns, reduce: %{} do
       acc ->
-        case {String.starts_with?("#{k}", "phx-"), String.starts_with?("#{k}", "data-")} do
-          {true, _} -> Map.put(acc, k, v)
-          {_, true} -> Map.put(acc, k, v)
+        case List.first(String.split("#{k}", "-")) in ["phx", "data"] do
+          true -> Map.put(acc, k, v)
           _ -> acc
         end
     end
@@ -73,7 +78,7 @@ modal = fn assigns ->
 end
 
 select = fn assigns ->
-  assigns = phx_attribs.(assigns)
+  assigns = phxattr.(assigns)
   assigns = Map.put_new(assigns, :id, nil)
   assigns = Map.put_new(assigns, :class, nil)
   assigns = Map.put_new(assigns, :name, nil)
@@ -90,7 +95,7 @@ select = fn assigns ->
   size={@size}
   required={@required}
   disabled={@disabled}
-  {@phx_attribs}
+  {@phxattr}
   class={[
     "px-2 py-1 border-0 rounded-lg ring-1 outline-none text-base",
     "bg-zinc-600 text-neutral-200 ring-zinc-600 cursor-pointer",
@@ -110,7 +115,7 @@ select = fn assigns ->
 end
 
 input = fn assigns ->
-  assigns = phx_attribs.(assigns)
+  assigns = phxattr.(assigns)
   # wont honor focus ring color if type nil
   assigns = Map.put_new(assigns, :id, nil)
   assigns = Map.put_new(assigns, :class, nil)
@@ -140,7 +145,7 @@ input = fn assigns ->
   step={@step}
   min={@min}
   max={@max}
-  {@phx_attribs}
+  {@phxattr}
   class={[
     "px-2 py-1 border-0 rounded-lg ring-1 outline-none text-base",
     "bg-zinc-600 text-neutral-200 ring-zinc-600 cursor-pointer",
@@ -154,7 +159,7 @@ input = fn assigns ->
 end
 
 button = fn assigns ->
-  assigns = phx_attribs.(assigns)
+  assigns = phxattr.(assigns)
   assigns = Map.put_new(assigns, :id, nil)
   assigns = Map.put_new(assigns, :class, nil)
   assigns = Map.put_new(assigns, :type, nil)
@@ -165,7 +170,7 @@ button = fn assigns ->
   id={@id}
   type={@type}
   disabled={@disabled}
-  {@phx_attribs}
+  {@phxattr}
   class={[
     "px-2 py-1 border-0 rounded-lg ring-1 outline-none text-base",
     "bg-zinc-600 text-neutral-200 ring-zinc-600 cursor-pointer",
@@ -179,7 +184,7 @@ button = fn assigns ->
 end
 
 link = fn assigns ->
-  assigns = phx_attribs.(assigns)
+  assigns = phxattr.(assigns)
   assigns = Map.put_new(assigns, :id, nil)
   assigns = Map.put_new(assigns, :class, nil)
   assigns = Map.put_new(assigns, :title, nil)
@@ -199,7 +204,7 @@ link = fn assigns ->
   id={@id}
   title={@title}
   disabled={@disabled}
-  {@phx_attribs}
+  {@phxattr}
   class={[
     "flex items-center gap-1 select-none",
     @disabled || "text-neutral-200 hover:cursor-pointer #{@hover}",
@@ -210,7 +215,7 @@ link = fn assigns ->
 end
 
 href = fn assigns ->
-  assigns = phx_attribs.(assigns)
+  assigns = phxattr.(assigns)
   assigns = Map.put_new(assigns, :id, nil)
   assigns = Map.put_new(assigns, :class, nil)
   assigns = Map.put_new(assigns, :title, nil)
@@ -223,7 +228,7 @@ href = fn assigns ->
   href={@href}
   title={@title}
   disabled={@disabled}
-  {@phx_attribs}
+  {@phxattr}
   class={[
     "flex items-center gap-1 select-none",
     @disabled || "text-neutral-200 hover:cursor-pointer hover:text-lime-500",
@@ -234,11 +239,13 @@ href = fn assigns ->
 end
 
 %{
+  phxattr: phxattr,
   frame: frame,
   modal: modal,
   select: select,
   input: input,
   button: button,
+  size: size,
   link: link,
   href: href
 }

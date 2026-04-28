@@ -21,7 +21,7 @@ view = fn assigns ->
     </div>
     <div class="flex flex-col p-1 gap-2 w-[16em]">
       <div class="text-xl">{@selected.type} Properties</div>
-      <.fui id="props_editor" fun={@sd.editor} editor={@selected.editor} iid={@selected.id} item={@selected.item}
+      <.fui id="props_editor" fun={@sd.form} editor={@selected.editor} iid={@selected.id} item={@selected.item}
         phx-submit="props:apply" phx-change="props:apply" class="grid grid-cols-2 gap-1 items-center"/>
     </div>
   </.fui>

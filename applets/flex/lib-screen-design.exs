@@ -1,5 +1,8 @@
 use Terminal.Live
 
+index = for item <- items, do: item.name
+items = for(item <- items, do: {item.name, item}) |> Enum.into(%{})
+
 box? = true
 zstep = 1.2
 
@@ -116,27 +119,12 @@ apply = fn
     state |> calc.()
 end
 
-phx_attribs = fn assigns ->
-  Map.put_new(
-    assigns,
-    :phx_attribs,
-    for {k, v} <- assigns, reduce: %{} do
-      acc ->
-        case {String.starts_with?("#{k}", "phx-"), String.starts_with?("#{k}", "data-")} do
-          {true, _} -> Map.put(acc, k, v)
-          {_, true} -> Map.put(acc, k, v)
-          _ -> acc
-        end
-    end
-  )
-end
-
 option = fn assigns ->
-  assigns = phx_attribs.(assigns)
+  assigns = ui.phxattr.(assigns)
 
   ~H"""
   <div
-  {@phx_attribs}
+  {@phxattr}
   class={[
     "flex items-center gap-1 select-none text-nowrap text-white cursor-default",
     "hover:text-lime-500",
@@ -147,25 +135,23 @@ option = fn assigns ->
 end
 
 menu = fn assigns ->
-  assigns = phx_attribs.(assigns)
-  assigns = Map.put_new(assigns, :option, option)
-  assigns = Map.put_new(assigns, :id, nil)
-  assigns = Map.put_new(assigns, :x, nil)
-  assigns = Map.put_new(assigns, :y, nil)
-  assigns = Map.put_new(assigns, :items, nil)
+  assigns = ui.phxattr.(assigns)
+  assigns = Map.put(assigns, :option, option)
+  assigns = Map.put(assigns, :index, index)
 
   ~H"""
   <div
   id={@id}
-  {@phx_attribs}
+  {@phxattr}
   style={"left: #{@x}px; top: #{@y}px;"}
   class={[
     "absolute flex flex-col p-2 bg-black",
     "border border-1 border-solid border-white rounded-lg",
     ]}>
     <div :if={@items} class="flex flex-col">
-      <.fui fun={@option} phx-click="cmd:add" phx-value-x={@x} phx-value-y={@y} phx-value-type="Button">Add Button</.fui>
-      <.fui fun={@option} phx-click="cmd:add" phx-value-x={@x} phx-value-y={@y} phx-value-type="Label">Add Label</.fui>
+      <.fui :for={item <- @index} fun={@option} phx-click="cmd:add"
+        phx-value-x={@x} phx-value-y={@y}
+        phx-value-type={item}>Add {item}</.fui>
       <hr class="border-t border-white my-1"/>
     </div>
     <.fui fun={@option} phx-click="cmd:fit" phx-value-fit="All">Fit All</.fui>
@@ -176,11 +162,23 @@ menu = fn assigns ->
   """
 end
 
-editor = fn assigns ->
-  assigns = phx_attribs.(assigns)
+# cursor-default to remove safari text cursor
+item = fn assigns ->
+  assigns = Map.put(assigns, :size, ui.size)
+  pass = [:x, :y, :w, :h, :type, :index, :props, :selected, :size]
+  assigns = Map.put(assigns, :pass, Map.take(assigns, pass))
+  assigns = Map.put(assigns, :fun, items[assigns.type].render)
 
   ~H"""
-    <form id={@id} class={@class} {@phx_attribs} autocomplete="off">
+  <.fui fun={@fun} id={"item_#{@id}_#{@type}"} {@pass}/>
+  """
+end
+
+form = fn assigns ->
+  assigns = ui.phxattr.(assigns)
+
+  ~H"""
+    <form id={@id} class={@class} {@phxattr} autocomplete="off">
       <input type="submit" hidden>
       <input type="hidden" name="iid" value={@iid}/>
       <.fui fun={@editor} item={@item}/>
@@ -188,9 +186,9 @@ editor = fn assigns ->
   """
 end
 
-screen_e = fn assigns ->
-  assigns = phx_attribs.(assigns)
-  assigns = Map.put_new(assigns, :ui, ui)
+editor = fn assigns ->
+  assigns = ui.phxattr.(assigns)
+  assigns = Map.put(assigns, :ui, ui)
 
   ~H"""
   <div>Size</div>
@@ -203,117 +201,35 @@ screen_e = fn assigns ->
   """
 end
 
-screen_a = fn state, id, params ->
+save = fn state, id, params ->
   Api.debug(id: id, params: params)
   state
 end
 
-size = fn
-  0, _ -> ""
-  _, 0 -> ""
-  w, h -> "width: #{w}px; height: #{h}px;"
-end
-
-button_r = fn assigns ->
-  ~H"""
-    <div id={@id} class={[
-      "absolute",
-      @selected && "border border-2 border-lime-500",
-      "bg-blue-500 text-white py-2 px-4 rounded",
-      ]}
-      style={["left: #{@x}px; top: #{@y}px;", @size.(@w, @h)]}>
-      {@props.text}
-    </div>
-  """
-end
-
-button_e = fn assigns ->
-  assigns = phx_attribs.(assigns)
-  assigns = Map.put_new(assigns, :ui, ui)
-
-  ~H"""
-  <div>Size</div>
-  <div class="grid grid-cols-2 p-1 gap-1">
-    <.fui fun={@ui.input} name="w" value={@item.w} type="number" step="1" min="0" max="3840" title="0-3840" required/>
-    <.fui fun={@ui.input} name="h" value={@item.h} type="number" step="1" min="0" max="2160" title="0-2160" required/>
-  </div>
-  <div>Text</div>
-  <.fui fun={@ui.input} name="text" value={@item.props.text} type="text" pattern="[a-zA-Z0-9]+" required/>
-  """
-end
-
-label_r = fn assigns ->
-  ~H"""
-    <div id={@id} class={[
-      "absolute",
-      @selected && "border border-2 border-lime-500",
-      "bg-red-500 text-white py-2 px-4 rounded",
-      ]}
-      style={["left: #{@x}px; top: #{@y}px;", @size.(@w, @h)]}>
-      {@props.text}
-    </div>
-  """
-end
-
-label_e = fn assigns ->
-  assigns = phx_attribs.(assigns)
-  assigns = Map.put_new(assigns, :ui, ui)
-
-  ~H"""
-  <div>Size</div>
-  <div class="grid grid-cols-2 p-1 gap-1">
-    <.fui fun={@ui.input} name="w" value={@item.w} type="number" step="1" min="0" max="3840" title="0-3840" required/>
-    <.fui fun={@ui.input} name="h" value={@item.h} type="number" step="1" min="0" max="2160" title="0-2160" required/>
-  </div>
-  <div>Text</div>
-  <.fui fun={@ui.input} name="text" value={@item.props.text} type="text" pattern="[a-zA-Z0-9]+" required/>
-  """
-end
-
 props = fn
-  "Button" -> %{text: "Button", action: ""}
-  "Label" -> %{text: "Label"}
+  type -> items[type].props
 end
 
-renderer = fn
-  "Button" -> button_r
-  "Label" -> label_r
-end
+select = fn
+  %{screen: screen}, type, nil ->
+    %{id: "id", type: type, item: screen, editor: editor, save: save}
 
-handlers = fn
-  "Screen" -> %{editor: screen_e, apply: screen_a}
-  "Button" -> %{editor: button_e, apply: screen_a}
-  "Label" -> %{editor: label_e, apply: screen_a}
-end
-
-getter = fn
-  %{screen: screen}, type = "Screen", _ -> %{type: type, id: "id", item: screen}
-  %{screen: screen}, type = "Button", id -> %{type: type, id: id, item: screen.items[id]}
-  %{screen: screen}, type = "Label", id -> %{type: type, id: id, item: screen.items[id]}
-end
-
-# cursor-default to remove safari text cursor
-item = fn assigns ->
-  assigns = Map.put(assigns, :size, size)
-  pass = [:x, :y, :w, :h, :type, :index, :props, :selected, :size]
-  assigns = Map.put(assigns, :pass, Map.take(assigns, pass))
-  assigns = Map.put(assigns, :fun, renderer.(assigns.type))
-
-  ~H"""
-  <.fui fun={@fun} id={"item_#{@id}_#{@type}"} {@pass}/>
-  """
-end
-
-select = fn screen, type, id ->
-  getter.(screen, type, id) |> Map.merge(handlers.(type))
+  %{screen: screen}, type, id ->
+    %{
+      id: id,
+      type: type,
+      item: screen.items[id],
+      editor: items[type].editor,
+      save: items[type].save
+    }
 end
 
 %{
   new: new,
+  form: form,
   menu: menu,
   item: item,
   apply: apply,
   props: props,
-  editor: editor,
   select: select
 }
