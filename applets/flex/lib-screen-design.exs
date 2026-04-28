@@ -28,7 +28,7 @@ vp = %{
 }
 
 # frame:resize -> updates frame w,h -> recalculates
-# cmd:fit -> updates screen fit and resets vp view -> recalculates
+# frame:fit -> updates screen fit and resets vp view -> recalculates
 
 port = fn fit, fw, fh, vw, vh ->
   s =
@@ -119,6 +119,13 @@ apply = fn
     state |> calc.()
 end
 
+size = fn
+  0, 0 -> ""
+  0, h -> "height: #{h}px;"
+  w, 0 -> "width: #{w}px;"
+  w, h -> "width: #{w}px; height: #{h}px;"
+end
+
 option = fn assigns ->
   assigns = ui.phxattr.(assigns)
 
@@ -149,22 +156,22 @@ menu = fn assigns ->
     "border border-1 border-solid border-white rounded-lg",
     ]}>
     <div :if={@items} class="flex flex-col">
-      <.fui :for={item <- @index} fun={@option} phx-click="cmd:add"
+      <.fui :for={item <- @index} fun={@option} phx-click="item:add"
         phx-value-x={@x} phx-value-y={@y}
         phx-value-type={item}>Add {item}</.fui>
       <hr class="border-t border-white my-1"/>
     </div>
-    <.fui fun={@option} phx-click="cmd:fit" phx-value-fit="All">Fit All</.fui>
-    <.fui fun={@option} phx-click="cmd:fit" phx-value-fit="Auto">Fit Auto</.fui>
-    <.fui fun={@option} phx-click="cmd:fit" phx-value-fit="Width">Fit Width</.fui>
-    <.fui fun={@option} phx-click="cmd:fit" phx-value-fit="Height">Fit Height</.fui>
+    <.fui fun={@option} phx-click="frame:fit" phx-value-fit="All">Fit All</.fui>
+    <.fui fun={@option} phx-click="frame:fit" phx-value-fit="Auto">Fit Auto</.fui>
+    <.fui fun={@option} phx-click="frame:fit" phx-value-fit="Width">Fit Width</.fui>
+    <.fui fun={@option} phx-click="frame:fit" phx-value-fit="Height">Fit Height</.fui>
   </div>
   """
 end
 
 # cursor-default to remove safari text cursor
 item = fn assigns ->
-  assigns = Map.put(assigns, :size, ui.size)
+  assigns = Map.put(assigns, :size, size)
   pass = [:x, :y, :w, :h, :type, :index, :props, :selected, :size]
   assigns = Map.put(assigns, :pass, Map.take(assigns, pass))
   assigns = Map.put(assigns, :fun, items[assigns.type].render)
@@ -201,6 +208,9 @@ editor = fn assigns ->
   """
 end
 
+# _target only preset for change events
+# empty inputs are acceptable for change events
+# validation is only guaranteed in submit events
 save = fn state, id, params ->
   Api.debug(id: id, params: params)
   state

@@ -22,7 +22,7 @@ view = fn assigns ->
     <div class="flex flex-col p-1 gap-2 w-[16em]">
       <div class="text-xl">{@selected.type} Properties</div>
       <.fui id="props_editor" fun={@sd.form} editor={@selected.editor} iid={@selected.id} item={@selected.item}
-        phx-submit="props:apply" phx-change="props:apply" class="grid grid-cols-[auto_1fr] gap-x-2 items-center"/>
+        phx-submit="item:save" phx-change="item:save" class="grid grid-cols-[auto_1fr] gap-x-2 items-center"/>
     </div>
   </.fui>
   <style :if={@vp.frame}>
@@ -80,20 +80,15 @@ handler = fn
     state = Map.put(state, :menu, nil)
     {socket, state}
 
-  {:event, socket, state = %{selected: %{id: id, apply: apply}}, event = "props:apply",
+  {:event, socket, state = %{selected: %{id: id, save: save}}, event = "item:save",
    params = %{"iid" => id}} ->
     Api.trace(view: path, event: event, params: params)
-    state = apply.(state, id, params)
+    state = save.(state, id, params)
     state = Map.put(state, :menu, nil)
     {socket, state}
 
-  {:event, socket, state, event = "cmd:fit", params = %{"fit" => fit}} ->
-    Api.trace(view: path, event: event, params: params)
-    state = Map.put(state, :menu, nil)
-    {socket, sd.apply.(state, :fit, fit)}
-
   {:event, socket, state = %{vp: %{port: %{s: s, x: pox, y: poy}, panel: %{x: pax, y: pay}}},
-   event = "cmd:add", params = %{"x" => x, "y" => y, "type" => type}} ->
+   event = "item:add", params = %{"x" => x, "y" => y, "type" => type}} ->
     Api.trace(view: path, event: event, params: params)
     %{screen: %{items: items}} = state
     id = UUID.uuid1() |> ShortUUID.encode!()
@@ -116,6 +111,11 @@ handler = fn
     state = Map.put(state, :selected, sd.select.(state, type, id))
     state = Map.put(state, :menu, nil)
     {socket, state}
+
+  {:event, socket, state, event = "frame:fit", params = %{"fit" => fit}} ->
+    Api.trace(view: path, event: event, params: params)
+    state = Map.put(state, :menu, nil)
+    {socket, sd.apply.(state, :fit, fit)}
 
   {:event, socket, state, event = "frame:click", params = %{"sid" => "item_" <> id_type}} ->
     Api.trace(view: path, event: event, params: params)

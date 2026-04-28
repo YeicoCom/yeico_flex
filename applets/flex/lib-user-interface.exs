@@ -1,11 +1,7 @@
 use Terminal.Live
 
-size = fn
-  0, _ -> ""
-  _, 0 -> ""
-  w, h -> "width: #{w}px; height: #{h}px;"
-end
-
+# data-KEY for hooks
+# phx-value-KEY for events
 phxattr = fn assigns ->
   Map.put_new(
     assigns,
@@ -243,9 +239,8 @@ end
   frame: frame,
   modal: modal,
   select: select,
-  input: input,
   button: button,
-  size: size,
+  input: input,
   link: link,
   href: href
 }
