@@ -127,6 +127,8 @@ input = fn assigns ->
   assigns = Map.put_new(assigns, :max, nil)
   # text type
   assigns = Map.put_new(assigns, :pattern, nil)
+  # validation
+  assigns = Map.put_new(assigns, :error, nil)
 
   ~H"""
   <input
@@ -137,14 +139,16 @@ input = fn assigns ->
   disabled={@disabled}
   required={@required}
   pattern={@pattern}
-  title={@title}
+  title={@error || @title}
   step={@step}
   min={@min}
   max={@max}
   {@phxattr}
   class={[
-    "px-2 py-1 border-0 rounded-lg ring-1 outline-none text-base",
-    "bg-zinc-600 text-neutral-200 ring-zinc-600 cursor-pointer",
+    "px-2 py-1 border-0 rounded-lg ring-1 outline-none",
+    "text-base ring-zinc-600 cursor-default",
+    @error || "bg-zinc-600 text-neutral-200",
+    @error && "bg-red-800 text-neutral-200",
     "disabled:cursor-default disabled:pointer-events-none",
     "disabled:bg-zinc-700 disabled:text-neutral-500 disabled:ring-zinc-500",
     "focus:ring-lime-500",

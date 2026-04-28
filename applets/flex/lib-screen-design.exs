@@ -10,9 +10,11 @@ new = %{
   id: nil,
   name: nil,
   items: %{},
-  w: 800,
-  h: 600,
-  snap: 1
+  props: %{
+    w: 800,
+    h: 600,
+    snap: 1
+  }
 }
 
 vp = %{
@@ -46,7 +48,7 @@ port = fn fit, fw, fh, vw, vh ->
   %{s: s, x: x, y: y, w: w, h: h}
 end
 
-calc = fn state = %{screen: %{w: sw, h: sh}, vp: vp} ->
+calc = fn state = %{screen: %{props: %{w: sw, h: sh}}, vp: vp} ->
   %{s: vs, x: vx, y: vy, dx: dx, dy: dy, fit: fit, frame: %{w: fw, h: fh}} = vp
   px = vx + dx
   py = vy + dy
@@ -81,7 +83,7 @@ apply = fn
   state = %{vp: %{frame: nil}}, _, _ ->
     state
 
-  state = %{screen: %{w: sw, h: sh}, vp: vp}, :resize, {fw, fh} ->
+  state = %{screen: %{props: %{w: sw, h: sh}}, vp: vp}, :resize, {fw, fh} ->
     %{s: vs, x: vx, y: vy, fit: fit, port: %{s: ps}} = vp
     vw = vs * sw
     vh = vs * sh
@@ -90,6 +92,10 @@ apply = fn
     x = df * vx
     y = df * vy
     state = Map.put(state, :vp, %{vp | frame: %{w: fw, h: fh}, x: x, y: y})
+    state |> clean.() |> calc.()
+
+  state = %{vp: %{fit: fit, frame: frame}}, :fit, nil ->
+    state = Map.put(state, :vp, %{vp | frame: frame, fit: fit})
     state |> clean.() |> calc.()
 
   state = %{vp: %{frame: frame}}, :fit, fit ->
@@ -193,27 +199,68 @@ form = fn assigns ->
   """
 end
 
-editor = fn assigns ->
+editor = fn assigns = %{item: item} ->
   assigns = ui.phxattr.(assigns)
   assigns = Map.put(assigns, :ui, ui)
+  assigns = Map.put(assigns, :props, item.props)
+  assigns = Map.put(assigns, :errors, item.errors)
 
   ~H"""
   <div>Size</div>
   <div class="grid grid-cols-2 py-1 gap-1">
-    <.fui fun={@ui.input} name="w" value={@item.w} type="number" step="1" min="100" max="3840" title="100-3840" required/>
-    <.fui fun={@ui.input} name="h" value={@item.h} type="number" step="1" min="100" max="2160" title="100-2160" required/>
+    <.fui fun={@ui.input} name="w" value={@props.w} error={@errors.w} type="number" step="1"/>
+    <.fui fun={@ui.input} name="h" value={@props.h} error={@errors.h} type="number" step="1"/>
   </div>
   <div>Grid Snap</div>
-  <.fui fun={@ui.input} name="snap" value={@item.snap} type="number" step="1" min="1" max="100" title="1-100" required/>
+  <.fui fun={@ui.input} name="snap" value={@props.snap} error={@errors.snap} type="number" step="1"/>
   """
 end
 
+parse = fn
+  :int, change, props, params, key, {min, max} ->
+    cv = props[key]
+
+    params
+    |> Map.get(key)
+    |> String.trim()
+    |> Integer.parse()
+    |> (fn
+          {v, _} when v < min -> put_in(change, [:errors, key], "Must be >= #{min}")
+          {v, _} when v > max -> put_in(change, [:errors, key], "Must be <= #{max}")
+          {^cv, ""} -> change
+          {v, ""} -> Map.put(change, key, v)
+          _ -> put_in(change, [:errors, key], "Must be an integer")
+        end).()
+end
+
+errors = fn props ->
+  Enum.map(props, fn {k, _} -> {k, nil} end) |> Enum.into(%{})
+end
+
 # _target only preset for change events
-# empty inputs are acceptable for change events
+# empty and out of range inputs are acceptable for change events
 # validation is only guaranteed in submit events
-save = fn state, id, params ->
+save = fn state = %{selected: %{item: sitem}, screen: aitem = %{props: props}}, id, params ->
   Api.debug(id: id, params: params)
-  state
+
+  change = %{errors: errors.(props)}
+  params = for({k, _} <- props, do: {k, params["#{k}"]}) |> Enum.into(%{})
+
+  change = parse.(:int, change, props, params, :w, {100, 3840})
+  change = parse.(:int, change, props, params, :h, {100, 2160})
+  change = parse.(:int, change, props, params, :snap, {1, 100})
+
+  props = Map.merge(props, Map.drop(change, [:errors]))
+  aitem = Map.put(aitem, :props, props)
+  state = Map.put(state, :screen, aitem)
+  sitem = Map.put(sitem, :props, params)
+  sitem = Map.put(sitem, :errors, change.errors)
+  state = put_in(state, [:selected, :item], sitem)
+
+  case Map.has_key?(change, :w) or Map.has_key?(change, :h) do
+    true -> apply.(state, :fit, nil)
+    false -> state
+  end
 end
 
 props = fn
@@ -221,14 +268,18 @@ props = fn
 end
 
 select = fn
-  %{screen: screen}, type, nil ->
+  %{screen: screen = %{props: props}}, type, nil ->
+    screen = Map.put(screen, :errors, errors.(props))
     %{id: "id", type: type, item: screen, editor: editor, save: save}
 
   %{screen: screen}, type, id ->
+    item = %{props: props} = screen.items[id]
+    item = Map.put(item, :errors, errors.(props))
+
     %{
       id: id,
       type: type,
-      item: screen.items[id],
+      item: item,
       editor: items[type].editor,
       save: items[type].save
     }

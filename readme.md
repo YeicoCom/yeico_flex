@@ -138,3 +138,7 @@ s=1,a=49,c=rri,d=5,e=u16le # Turck - Read All
 - [x] Scrolling in nested flex requires h-full parent and overflow-hidden grand parent and h-screen on flex root.
 - [x] Using [0102] instead of \x0102 allows to differenciate bitween [01]a and \x01a
 - [x] Printable groups control chars
+- [ ] Terminal bug?
+```
+close: {{:badfun, nil}, [{Applet.Api, :call, 1, [file: ~c"lib/applet/api.ex", line: 251]}, {TerminalWeb.HomeLive, :"-wrap/1-fun-1-", 2, [file: ~c"include/home.exs", line: 176]}, {TerminalWeb.HomeLive, :apply, 4, [file: ~c"include/home.exs", line: 161]}, {TerminalWeb.HomeLive, :handle_event, 3, [file: ~c"include/home.exs", line: 120]}, {Phoenix.LiveView.Channel, :"-view_handle_event/3-fun-0-", 3, [file: ~c"lib/phoenix_live_view/channel.ex", line: 509]}, {:telemetry, :span, 3, [file: ~c"/Users/samuel/Library/Caches/mix/installs/ex-1.19.1-erl-16.1.1/G3ornCiKhOG3d40YuqxB7A/deps/telemetry/src/telemetry.erl", line: 359]}, {Phoenix.LiveView.Channel, :handle_info, 2, [file: ~c"lib/phoenix_live_view/channel.ex", line: 260]}, {:gen_server, :try_handle_info, 3, [file: ~c"gen_server.erl", line: 2434]}]}]
+```
