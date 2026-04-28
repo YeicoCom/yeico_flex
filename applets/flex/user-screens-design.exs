@@ -22,7 +22,7 @@ view = fn assigns ->
     <div class="flex flex-col p-1 gap-2 w-[16em]">
       <div class="text-xl">{@selected.type} Properties</div>
       <.fui id="props_editor" fun={@sd.form} editor={@selected.editor} iid={@selected.id} item={@selected.item}
-        phx-submit="props:apply" phx-change="props:apply" class="grid grid-cols-2 gap-1 items-center"/>
+        phx-submit="props:apply" phx-change="props:apply" class="grid grid-cols-[auto_1fr] gap-x-2 items-center"/>
     </div>
   </.fui>
   <style :if={@vp.frame}>

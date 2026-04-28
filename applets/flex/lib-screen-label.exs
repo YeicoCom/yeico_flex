@@ -25,7 +25,7 @@ editor = fn assigns ->
 
   ~H"""
   <div>Size</div>
-  <div class="grid grid-cols-2 p-1 gap-1">
+  <div class="grid grid-cols-2 py-1 gap-1">
     <.fui fun={@ui.input} name="w" value={@item.w} type="number" step="1" min="0" max="3840" title="0-3840" required/>
     <.fui fun={@ui.input} name="h" value={@item.h} type="number" step="1" min="0" max="2160" title="0-2160" required/>
   </div>
