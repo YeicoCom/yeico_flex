@@ -62,9 +62,9 @@ modal = fn assigns ->
 
   ~H"""
   <div class="fixed top-0 left-0 z-9999 w-screen h-screen bg-neutral-200/50">
-    <div class="flex justify-center items-center h-screen">
+    <div class="flex justify-center items-center h-screen select-none text-base [&_*]:cursor-default">
       <div class={["p-8 rounded-md bg-neutral-800", @class]} phx-click-away={@away}>
-        <div class="pb-2 gap-20 flex justify-between items-center text-gray-400">
+        <div class="pb-2 gap-20 flex justify-between items-center">
           <div class="text-white text-lg font-semibold">{@title}</div>
           <button type="button" title="Close" phx-click={@close}
             class="hover:bg-gray-600 hover:text-white rounded-lg w-8 h-8 inline-flex justify-center items-center">
