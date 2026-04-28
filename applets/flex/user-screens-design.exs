@@ -102,10 +102,15 @@ handler = fn
     state = Map.put(state, :menu, nil)
     {socket, state}
 
-  {:event, socket, state, event = "item:drag",
+  {:event, socket, state = %{screen: %{props: %{snap: snap, w: w, h: h}}}, event = "item:drag",
    params = %{"id" => "item_" <> id_type, "x" => x, "y" => y, "e" => _e, "m" => _m}} ->
     Api.trace(view: path, event: event, params: params)
     [id, type] = String.split(id_type, "_")
+    x = div(round(x), snap) * snap
+    y = div(round(y), snap) * snap
+    # w/h optional: one pixel to witness out of bounds controls
+    x = min(max(x, 0), w - 1)
+    y = min(max(y, 0), h - 1)
     state = put_in(state, [:screen, :items, id, :x], x)
     state = put_in(state, [:screen, :items, id, :y], y)
     state = Map.put(state, :selected, sd.select.(state, type, id))
