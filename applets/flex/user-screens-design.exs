@@ -2,7 +2,7 @@ use Terminal.Live
 
 view = fn assigns ->
   ~H"""
-  <.fui fun={@ui.frame} title="Screen Designer" label={@screen.name} class="flex gap-2">
+  <.fui fun={@ui.frame} reverse={true} title="Screen Designer" label={@screen.name} class="flex gap-2">
     <div id="design_frame" class="grow relative" phx-hook="DesignFrame">
       <div id="design_port" :if={@vp.frame} class="design-port absolute overflow-hidden">
         <div id="design_grid" class="design-panel absolute origin-top-left"/>
@@ -12,7 +12,7 @@ view = fn assigns ->
         <div id="design_rulery" class="design-panel absolute origin-top-left text-zinc-500" style="left: 0em;">
           <div :for={p <- 10..90//10} class="absolute text-[6px] left-[1px]" style={"top: #{p}%;"}>{p}%</div>
         </div>
-        <div id="design_panel" class="design-panel absolute origin-top-left cursor-default" draggable="false">
+        <div id="design_panel" class="design-panel absolute origin-top-left" draggable="false">
           <.fui :for={{id, item} <- @index} fun={@sd.item} id={id} {item} selected={id==@selected.id}/>
         </div>
       </div>

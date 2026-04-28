@@ -20,11 +20,13 @@ frame = fn assigns ->
   assigns = Map.put_new(assigns, :id, nil)
   assigns = Map.put_new(assigns, :label, nil)
   assigns = Map.put_new(assigns, :class, nil)
+  assigns = Map.put_new(assigns, :reverse, nil)
   assigns = Map.put_new(assigns, :title, "Flex")
 
   ~H"""
-  <div id="main_frame" class="flex flex-col gap-4 p-4 h-screen select-none" phx-window-keydown="modal:close" phx-key="Escape">
-    <div class="z-20 flex gap-4 p-4 items-center bg-zinc-800 rounded">
+  <div id="main_frame" phx-window-keydown="modal:close" phx-key="Escape"
+    class="flex flex-col gap-4 p-4 h-screen select-none text-base cursor-default">
+    <div class={[@reverse && "z-20", "flex gap-4 p-4 items-center bg-zinc-800 rounded"]}>
       <div class="relative group text-white content-center">
         <button class="px-4 py-2 bg-zinc-500 rounded hover:bg-lime-500 hero-bars-3 size-10"></button>
         <div class="absolute top-3/4 hidden z-9998 group-hover:block w-48 bg-zinc-700 rounded shadow-xl mt-1">
@@ -43,11 +45,14 @@ frame = fn assigns ->
       <div :if={@label} class="text-[1.5em] text-white">{@label}</div>
       <image src="/applets/logo.svg" class="h-10"/>
     </div>
-    <div class={["z-10 grow text-base text-neutral-300 overflow-hidden", @class]}>{render_slot(@inner_block)}</div>
+    <div class={[@reverse && "z-10", "grow text-neutral-300 overflow-hidden", @class]}>
+      {render_slot(@inner_block)}
+    </div>
   </div>
   """
 end
 
+# modal assumed to be layed outside frame
 modal = fn assigns ->
   assigns = Map.put_new(assigns, :id, nil)
   assigns = Map.put_new(assigns, :class, nil)
@@ -56,11 +61,11 @@ modal = fn assigns ->
   assigns = Map.put_new(assigns, :away, "modal:away")
 
   ~H"""
-  <div class="fixed top-0 left-0 z-9999 w-screen h-screen select-none bg-neutral-200/50">
+  <div class="fixed top-0 left-0 z-9999 w-screen h-screen bg-neutral-200/50">
     <div class="flex justify-center items-center h-screen">
       <div class={["p-8 rounded-md bg-neutral-800", @class]} phx-click-away={@away}>
         <div class="pb-2 gap-20 flex justify-between items-center text-gray-400">
-          <div class="text-lg font-semibold">{@title}</div>
+          <div class="text-white text-lg font-semibold">{@title}</div>
           <button type="button" title="Close" phx-click={@close}
             class="hover:bg-gray-600 hover:text-white rounded-lg w-8 h-8 inline-flex justify-center items-center">
             <span class="hero-x-mark-solid z-0" />
@@ -93,10 +98,10 @@ select = fn assigns ->
   disabled={@disabled}
   {@phxattr}
   class={[
-    "px-2 py-1 border-0 rounded-lg ring-1 outline-none text-base",
-    "bg-zinc-600 text-neutral-200 ring-zinc-600 cursor-pointer",
-    "disabled:cursor-default disabled:pointer-events-none",
-    "disabled:bg-zinc-700 disabled:text-neutral-500 disabled:ring-zinc-500",
+    "px-2 py-1 border-0 rounded-lg ring-1 outline-none",
+    "bg-zinc-600 text-neutral-200 ring-zinc-600",
+    "disabled:pointer-events-none disabled:ring-zinc-500",
+    "disabled:bg-zinc-700 disabled:text-neutral-500",
     "focus:ring-lime-500",
     "hover:ring-lime-500",
     @class
@@ -121,6 +126,7 @@ input = fn assigns ->
   assigns = Map.put_new(assigns, :disabled, nil)
   assigns = Map.put_new(assigns, :title, nil)
   assigns = Map.put_new(assigns, :required, nil)
+  assigns = Map.put_new(assigns, :size, nil)
   # number type
   assigns = Map.put_new(assigns, :step, nil)
   assigns = Map.put_new(assigns, :min, nil)
@@ -129,6 +135,7 @@ input = fn assigns ->
   assigns = Map.put_new(assigns, :pattern, nil)
   # validation
   assigns = Map.put_new(assigns, :error, nil)
+  assigns = Map.put_new(assigns, :error?, !!assigns.error)
 
   ~H"""
   <input
@@ -140,17 +147,18 @@ input = fn assigns ->
   required={@required}
   pattern={@pattern}
   title={@error || @title}
+  size={@size}
   step={@step}
   min={@min}
   max={@max}
   {@phxattr}
   class={[
-    "px-2 py-1 border-0 rounded-lg ring-1 outline-none",
-    "text-base ring-zinc-600 cursor-default",
-    @error || "bg-zinc-600 text-neutral-200",
-    @error && "bg-red-800 text-neutral-200",
-    "disabled:cursor-default disabled:pointer-events-none",
-    "disabled:bg-zinc-700 disabled:text-neutral-500 disabled:ring-zinc-500",
+    "px-2 py-1 border-0 rounded-lg ring-1",
+    "ring-zinc-600 outline-none",
+    !@error? && "bg-zinc-600 text-neutral-200",
+    @error? && "bg-red-800 text-neutral-200",
+    "disabled:pointer-events-none disabled:ring-zinc-500",
+    "disabled:bg-zinc-700 disabled:text-neutral-500",
     "focus:ring-lime-500",
     "hover:ring-lime-500",
     @class
@@ -172,10 +180,10 @@ button = fn assigns ->
   disabled={@disabled}
   {@phxattr}
   class={[
-    "px-2 py-1 border-0 rounded-lg ring-1 outline-none text-base",
-    "bg-zinc-600 text-neutral-200 ring-zinc-600 cursor-pointer",
-    "disabled:cursor-default disabled:pointer-events-none",
-    "disabled:bg-zinc-700 disabled:text-neutral-500 disabled:ring-zinc-500",
+    "px-2 py-1 border-0 rounded-lg ring-1 outline-none",
+    "bg-zinc-600 text-neutral-200 ring-zinc-600",
+    "disabled:pointer-events-none disabled:ring-zinc-500",
+    "disabled:bg-zinc-700 disabled:text-neutral-500",
     "focus:ring-lime-500 focus:text-white focus:bg-lime-500",
     "hover:ring-lime-500 hover:text-white hover:bg-lime-500",
     @class
@@ -206,9 +214,9 @@ link = fn assigns ->
   disabled={@disabled}
   {@phxattr}
   class={[
-    "flex items-center gap-1 select-none",
-    @disabled || "text-neutral-200 hover:cursor-pointer #{@hover}",
-    @disabled && "text-neutral-500 cursor-default pointer-events-none",
+    "flex items-center gap-1",
+    !@disabled && "text-neutral-200 #{@hover}",
+    @disabled && "text-neutral-500 pointer-events-none",
     @class
   ]}>{render_slot(@inner_block)}</div>
   """
@@ -230,9 +238,9 @@ href = fn assigns ->
   disabled={@disabled}
   {@phxattr}
   class={[
-    "flex items-center gap-1 select-none",
-    @disabled || "text-neutral-200 hover:cursor-pointer hover:text-lime-500",
-    @disabled && "text-neutral-500 cursor-default pointer-events-none",
+    "flex items-center gap-1",
+    !@disabled && "text-neutral-200 hover:text-lime-500",
+    @disabled && "text-neutral-500 pointer-events-none",
     @class
   ]}>{render_slot(@inner_block)}</a>
   """

@@ -139,8 +139,8 @@ option = fn assigns ->
   <div
   {@phxattr}
   class={[
-    "flex items-center gap-1 select-none text-nowrap text-white cursor-default",
-    "hover:text-lime-500",
+    "flex items-center gap-1 text-nowrap",
+    "text-white hover:text-lime-500",
     ]}>
     {render_slot(@inner_block)}
   </div>
@@ -175,7 +175,7 @@ menu = fn assigns ->
   """
 end
 
-# cursor-default to remove safari text cursor
+# cursor-default to remove safari text cursor (managed externally)
 item = fn assigns ->
   assigns = Map.put(assigns, :size, size)
   pass = [:x, :y, :w, :h, :type, :index, :props, :selected, :size]
@@ -191,7 +191,7 @@ form = fn assigns ->
   assigns = ui.phxattr.(assigns)
 
   ~H"""
-    <form id={@id} class={@class} {@phxattr} autocomplete="off">
+    <form id={@id} class={[@class, "[&_*]:text-xs"]} {@phxattr} autocomplete="off">
       <input type="submit" hidden>
       <input type="hidden" name="iid" value={@iid}/>
       <.fui fun={@editor} item={@item}/>
@@ -208,11 +208,11 @@ editor = fn assigns = %{item: item} ->
   ~H"""
   <div>Size</div>
   <div class="grid grid-cols-2 py-1 gap-1">
-    <.fui fun={@ui.input} name="w" value={@props.w} error={@errors.w} type="number" step="1"/>
-    <.fui fun={@ui.input} name="h" value={@props.h} error={@errors.h} type="number" step="1"/>
+    <.fui fun={@ui.input} name="w" value={@props.w} error={@errors.w} type="number" step="1" size="5"/>
+    <.fui fun={@ui.input} name="h" value={@props.h} error={@errors.h} type="number" step="1" size="5"/>
   </div>
   <div>Grid Snap</div>
-  <.fui fun={@ui.input} name="snap" value={@props.snap} error={@errors.snap} type="number" step="1"/>
+  <.fui fun={@ui.input} name="snap" value={@props.snap} error={@errors.snap} type="number" step="1" size="3"/>
   """
 end
 
