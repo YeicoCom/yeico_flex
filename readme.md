@@ -102,6 +102,10 @@ s=1,a=49,c=rri,d=5,e=u16le # Turck - Read All
 - [ ] Shaky things: browser, mountrap, socat, kill links, unable to await defers, modbus lib
 - [ ] Modbus lib deterministic error detection
 - [ ] Modbus rtu over tcp packet fragmentation
+- [ ] Why html text has such a large y padding?
+- [ ] Clone controls to easy copy template styling
+- [ ] Label parametric text (and  parametric style?)
+- [ ] How to draw border inside bounds to avoid resize on select
 - [x] Styling globals: bg-black select-none text-base cursor-default
   - cursor-default to remove safari text cursor (managed externally)
   - [&_*]:cursor-default required for button and anchor
