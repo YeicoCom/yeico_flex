@@ -1,16 +1,6 @@
 use Terminal
 
 parse = fn
-  change, props, params, key, :not_empty ->
-    tv = params |> Map.get(key) |> String.trim()
-    cv = props[key]
-
-    case {tv, String.length(tv)} do
-      {_, 0} -> put_in(change, [:errors, key], "Must not be empty")
-      {^cv, _} -> change
-      _ -> Map.put(change, key, tv)
-    end
-
   change, props, params, key, {:int, min, max} ->
     tv = params |> Map.get(key) |> String.trim()
     cv = props[key]
@@ -30,6 +20,26 @@ parse = fn
 
       _ ->
         put_in(change, [:errors, key], "Must be an integer")
+    end
+
+  change, props, params, key, :txt ->
+    tv = params |> Map.get(key) |> String.trim()
+    cv = props[key]
+
+    case {tv, String.length(tv)} do
+      {_, 0} -> put_in(change, [:errors, key], "Must not be empty")
+      {^cv, _} -> change
+      _ -> Map.put(change, key, tv)
+    end
+
+  change, props, params, key, :color ->
+    tv = params |> Map.get(key) |> String.trim() |> String.downcase()
+    cv = props[key]
+
+    case {tv, Regex.match?(~r/^#[A-Fa-f0-9]{6}$/, tv)} do
+      {_, false} -> put_in(change, [:errors, key], "Must be hex color #rrggbb")
+      {^cv, _} -> change
+      _ -> Map.put(change, key, tv)
     end
 end
 

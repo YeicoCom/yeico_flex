@@ -5,7 +5,8 @@ name = "Button"
 props = %{
   w: 0,
   h: 0,
-  text: name
+  text: name,
+  color: "#2563eb"
 }
 
 render = fn assigns ->
@@ -15,9 +16,13 @@ render = fn assigns ->
     <div id={@id} class={[
       "absolute",
       @selected && "border border-2 border-lime-500",
-      "bg-blue-500 text-white py-2 px-4 rounded",
+      "text-white py-2 px-4 rounded",
       ]}
-      style={["left: #{@x}px; top: #{@y}px;", @size.(@props.w, @props.h)]}>
+      style={[
+        "left: #{@x}px; top: #{@y}px;",
+        @size.(@props.w, @props.h),
+        "background-color: #{@props.color};"
+      ]}>
       {@props.text}
     </div>
   """
@@ -35,6 +40,11 @@ editor = fn assigns = %{item: item} ->
     <.fui fun={@ui.input} name="w" value={@props.w} error={@errors.w} type="number" step="1"/>
     <.fui fun={@ui.input} name="h" value={@props.h} error={@errors.h} type="number" step="1"/>
   </div>
+  <div>Color</div>
+  <div class="grid grid-cols-2 py-1 gap-1">
+    <.fui fun={@ui.input} name="color" value={@props.color} error={@errors.color} type="text"/>
+    <div style={"background-color: #{@props.color};"} class="rounded-lg"/><div/>
+  </div>
   <div>Text</div>
   <.fui fun={@ui.input} name="text" value={@props.text} error={@errors.text} type="text"/>
   """
@@ -50,7 +60,8 @@ save = fn state = %{selected: %{item: sitem}, screen: screen}, id, params ->
 
   change = val.parse.(change, props, params, :w, {:int, 0, w})
   change = val.parse.(change, props, params, :h, {:int, 0, h})
-  change = val.parse.(change, props, params, :text, :not_empty)
+  change = val.parse.(change, props, params, :color, :color)
+  change = val.parse.(change, props, params, :text, :txt)
 
   props = Map.merge(props, Map.drop(change, [:errors]))
   aitem = Map.put(aitem, :props, props)
