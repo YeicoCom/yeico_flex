@@ -5,9 +5,9 @@ name = "Label"
 props = %{
   w: 0,
   h: 0,
-  text: name,
+  text: "#{name} ~s",
   source: "",
-  value: 0,
+  value: "0",
   style: """
   color: white;
   font-size: 16px;
@@ -17,7 +17,17 @@ props = %{
   """
 }
 
-render = fn assigns ->
+render = fn assigns = %{props: props} ->
+  # https://www.erlang.org/doc/apps/stdlib/io_lib.html#format/2
+  # search: io_lib Format Escapes
+  formatted =
+    case Api.safe(fn -> :io_lib.format(props.text, [props.value]) end) do
+      {:ok, text} -> text |> to_string()
+      _ -> props.text
+    end
+
+  assigns = Map.put(assigns, :formatted, formatted)
+
   ~H"""
     <div id={@id} class={@class}
       style={[
@@ -25,7 +35,7 @@ render = fn assigns ->
         @size.(@props.w, @props.h),
         @props.style,
       ]}>
-      {@props.text}
+      {@formatted}
     </div>
   """
 end

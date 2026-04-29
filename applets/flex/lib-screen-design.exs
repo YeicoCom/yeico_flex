@@ -186,7 +186,7 @@ item = fn assigns ->
 
   ~H"""
   <.fui fun={@fun} id={"item_#{@id}_#{@type}"} {@pass} class={
-    ["absolute", @selected && "outline outline-solid outline-2 outline-lime-500"]}/>
+    ["absolute", @selected && "outline outline-solid outline-2 outline-offset-2 outline-lime-500"]}/>
   """
 end
 
