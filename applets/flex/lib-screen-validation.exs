@@ -1,26 +1,62 @@
 use Terminal
 
+integer = fn change, props, params, key, {min, max} ->
+  tv = params |> Map.get(key) |> String.trim()
+  cv = props[key]
+
+  case Integer.parse(tv) do
+    {v, _} when not is_nil(min) and v < min ->
+      put_in(change, [:errors, key], "Must be >= #{min}")
+
+    {v, _} when not is_nil(max) and v > max ->
+      put_in(change, [:errors, key], "Must be <= #{max}")
+
+    {^cv, ""} ->
+      change
+
+    {v, ""} ->
+      Map.put(change, key, v)
+
+    _ ->
+      put_in(change, [:errors, key], "Must be an integer")
+  end
+end
+
+float = fn change, props, params, key, {min, max} ->
+  tv = params |> Map.get(key) |> String.trim()
+  cv = props[key]
+
+  case Float.parse(tv) do
+    {v, _} when not is_nil(min) and v < min ->
+      put_in(change, [:errors, key], "Must be >= #{min}")
+
+    {v, _} when not is_nil(max) and v > max ->
+      put_in(change, [:errors, key], "Must be <= #{max}")
+
+    {^cv, ""} ->
+      change
+
+    {v, ""} ->
+      Map.put(change, key, v)
+
+    _ ->
+      put_in(change, [:errors, key], "Must be a number")
+  end
+end
+
+any = fn change, props, params, key ->
+  tv = params |> Map.get(key) |> String.trim()
+  cv = props[key]
+
+  case tv do
+    ^cv -> change
+    _ -> Map.put(change, key, tv)
+  end
+end
+
 parse = fn
   change, props, params, key, {:integer, min, max} ->
-    tv = params |> Map.get(key) |> String.trim()
-    cv = props[key]
-
-    case Integer.parse(tv) do
-      {v, _} when not is_nil(min) and v < min ->
-        put_in(change, [:errors, key], "Must be >= #{min}")
-
-      {v, _} when not is_nil(max) and v > max ->
-        put_in(change, [:errors, key], "Must be <= #{max}")
-
-      {^cv, ""} ->
-        change
-
-      {v, ""} ->
-        Map.put(change, key, v)
-
-      _ ->
-        put_in(change, [:errors, key], "Must be an integer")
-    end
+    integer.(change, props, params, key, {min, max})
 
   change, props, params, key, :text ->
     tv = params |> Map.get(key) |> String.trim()
@@ -33,13 +69,7 @@ parse = fn
     end
 
   change, props, params, key, :any ->
-    tv = params |> Map.get(key) |> String.trim()
-    cv = props[key]
-
-    case tv do
-      ^cv -> change
-      _ -> Map.put(change, key, tv)
-    end
+    any.(change, props, params, key)
 
   change, props, params, key, :boolean ->
     tv = params |> Map.get(key) |> String.trim() |> String.downcase()
@@ -56,7 +86,7 @@ parse = fn
     cv = props[key]
 
     case {tv, Regex.match?(~r/^#[A-Fa-f0-9]{6}$/, tv)} do
-      {_, false} -> put_in(change, [:errors, key], "Must be hex color #rrggbb")
+      {_, false} -> put_in(change, [:errors, key], "Must be a hex color #rrggbb")
       {^cv, _} -> change
       _ -> Map.put(change, key, tv)
     end
@@ -93,10 +123,26 @@ parse = fn
       |> Enum.map(&(&1 <> ";\n"))
 
     case {tv, error?} do
-      {_, true} -> put_in(change, [:errors, key], "Must one style per line")
+      {_, true} -> put_in(change, [:errors, key], "Must be one style per line")
       {^cv, _} -> change
       _ -> Map.put(change, key, tv)
     end
+
+  # boolean, uint16, float
+  change, props, params, key, {:point, "boolean:" <> _} ->
+    integer.(change, props, params, key, {0, 1})
+
+  change, props, params, key, {:point, "uint16:" <> _} ->
+    integer.(change, props, params, key, {0, 65_535})
+
+  change, props, params, key, {:point, "sint16:" <> _} ->
+    integer.(change, props, params, key, {-32_768, 32_767})
+
+  change, props, params, key, {:point, "float:" <> _} ->
+    float.(change, props, params, key, {nil, nil})
+
+  change, props, params, key, {:point, _} ->
+    any.(change, props, params, key)
 end
 
 errors = fn props ->

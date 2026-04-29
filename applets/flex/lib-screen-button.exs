@@ -68,7 +68,7 @@ save = fn state = %{selected: %{item: sitem}, screen: screen}, id, params ->
   change = vlib.parse.(change, props, params, :h, {:integer, 0, h})
   change = vlib.parse.(change, props, params, :text, :text)
   change = vlib.parse.(change, props, params, :sink, :any)
-  # change = vlib.parse.(change, props, params, :value, {:type, params.sink})
+  change = vlib.parse.(change, props, params, :value, {:point, params.sink})
   change = vlib.parse.(change, props, params, :style, :style)
 
   props = Map.merge(props, Map.drop(change, [:errors]))
