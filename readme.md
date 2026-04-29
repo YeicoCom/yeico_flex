@@ -102,10 +102,11 @@ s=1,a=49,c=rri,d=5,e=u16le # Turck - Read All
 - [ ] Shaky things: browser, mountrap, socat, kill links, unable to await defers, modbus lib
 - [ ] Modbus lib deterministic error detection
 - [ ] Modbus rtu over tcp packet fragmentation
-- [ ] Styling globals: bg-black select-none text-base cursor-default
+- [x] Styling globals: bg-black select-none text-base cursor-default
+  - cursor-default to remove safari text cursor (managed externally)
   - [&_*]:cursor-default required for button and anchor
   - [&_*]:text-xs required for form inputs
-- [ ] z-order checks
+- [x] z-order checks
   - top-left global menu get on top of screen designer
   - hero icons in modbus points editor are visible
   - modals get on top of everything

@@ -44,9 +44,11 @@ Api.putcast!("flex:user-screens:logs", %{})
 {lib, _} = Api.evalf("flex/user-screens-lib.exs")
 Api.evalf("flex/user-screens-loop.exs", path: dbpath.("user-screens"), dms: 2_000)
 Api.evalf("flex/user-screens-view.exs", path: "/flex/user-screens", ui: ui, lib: lib)
-{button, _} = Api.evalf("flex/lib-screen-button.exs", ui: ui)
-{label, _} = Api.evalf("flex/lib-screen-label.exs", ui: ui)
-{sd, _} = Api.evalf("flex/lib-screen-design.exs", ui: ui, items: [button, label])
+{validation, _} = Api.evalf("flex/lib-screen-validation.exs", ui: ui)
+{button, _} = Api.evalf("flex/lib-screen-button.exs", ui: ui, val: validation)
+{label, _} = Api.evalf("flex/lib-screen-label.exs", ui: ui, val: validation)
+items = [button, label]
+{sd, _} = Api.evalf("flex/lib-screen-design.exs", ui: ui, val: validation, items: items)
 
 Api.evalf("flex/user-screens-design.exs",
   path: "/flex/user-screens/design",

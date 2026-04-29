@@ -175,10 +175,9 @@ menu = fn assigns ->
   """
 end
 
-# cursor-default to remove safari text cursor (managed externally)
 item = fn assigns ->
   assigns = Map.put(assigns, :size, size)
-  pass = [:x, :y, :w, :h, :type, :index, :props, :selected, :size]
+  pass = [:x, :y, :type, :index, :props, :selected, :size]
   assigns = Map.put(assigns, :pass, Map.take(assigns, pass))
   assigns = Map.put(assigns, :fun, items[assigns.type].render)
 
@@ -208,33 +207,12 @@ editor = fn assigns = %{item: item} ->
   ~H"""
   <div>Size</div>
   <div class="grid grid-cols-2 py-1 gap-1">
-    <.fui fun={@ui.input} name="w" value={@props.w} error={@errors.w} type="number" step="1" size="5"/>
-    <.fui fun={@ui.input} name="h" value={@props.h} error={@errors.h} type="number" step="1" size="5"/>
+    <.fui fun={@ui.input} name="w" value={@props.w} error={@errors.w} type="number" step="1"/>
+    <.fui fun={@ui.input} name="h" value={@props.h} error={@errors.h} type="number" step="1"/>
   </div>
   <div>Grid Snap</div>
-  <.fui fun={@ui.input} name="snap" value={@props.snap} error={@errors.snap} type="number" step="1" size="3"/>
+  <.fui fun={@ui.input} name="snap" value={@props.snap} error={@errors.snap} type="number" step="1"/>
   """
-end
-
-parse = fn
-  :int, change, props, params, key, {min, max} ->
-    cv = props[key]
-
-    params
-    |> Map.get(key)
-    |> String.trim()
-    |> Integer.parse()
-    |> (fn
-          {v, _} when v < min -> put_in(change, [:errors, key], "Must be >= #{min}")
-          {v, _} when v > max -> put_in(change, [:errors, key], "Must be <= #{max}")
-          {^cv, ""} -> change
-          {v, ""} -> Map.put(change, key, v)
-          _ -> put_in(change, [:errors, key], "Must be an integer")
-        end).()
-end
-
-errors = fn props ->
-  Enum.map(props, fn {k, _} -> {k, nil} end) |> Enum.into(%{})
 end
 
 # _target only preset for change events
@@ -243,12 +221,12 @@ end
 save = fn state = %{selected: %{item: sitem}, screen: aitem = %{props: props}}, id, params ->
   Api.debug(id: id, params: params)
 
-  change = %{errors: errors.(props)}
-  params = for({k, _} <- props, do: {k, params["#{k}"]}) |> Enum.into(%{})
+  change = %{errors: val.errors.(props)}
+  params = val.params.(props, params)
 
-  change = parse.(:int, change, props, params, :w, {100, 3840})
-  change = parse.(:int, change, props, params, :h, {100, 2160})
-  change = parse.(:int, change, props, params, :snap, {1, 100})
+  change = val.parse.(change, props, params, :w, {:int, 100, 3840})
+  change = val.parse.(change, props, params, :h, {:int, 100, 2160})
+  change = val.parse.(change, props, params, :snap, {:int, 1, 100})
 
   props = Map.merge(props, Map.drop(change, [:errors]))
   aitem = Map.put(aitem, :props, props)
@@ -269,12 +247,12 @@ end
 
 select = fn
   %{screen: screen = %{props: props}}, type, nil ->
-    screen = Map.put(screen, :errors, errors.(props))
+    screen = Map.put(screen, :errors, val.errors.(props))
     %{id: "id", type: type, item: screen, editor: editor, save: save}
 
   %{screen: screen}, type, id ->
     item = %{props: props} = screen.items[id]
-    item = Map.put(item, :errors, errors.(props))
+    item = Map.put(item, :errors, val.errors.(props))
 
     %{
       id: id,
