@@ -14,7 +14,7 @@ view = fn assigns ->
           <div :for={p <- 10..90//10} class="absolute text-[6px] left-[1px]" style={"top: #{p}%;"}>{p}%</div>
         </div>
         <div id="design_panel" class="design-panel text-white" draggable="false">
-          <.fui :for={{id, item} <- @index} fun={@sd.item} id={id} {item} selected={id==@selected.id} runtime={false}/>
+          <.fui :for={{id, item} <- @index} fun={@sd.item} id={id} {item} rt={@rts[id]} selected={id==@selected.id} runtime={false}/>
         </div>
       </div>
       <.fui id="design_menu" :if={@menu} fun={@sd.menu} x={@menu.x} y={@menu.y} items={@menu.items?}
@@ -59,8 +59,10 @@ handler = fn
     socket = assign(socket, applet_js: "/applets/flex.js")
     socket = assign(socket, page_title: "Screen Designer")
     socket = assign(socket, page_suffix: " · Flex")
+    state = Map.put(state, :events, %{})
     state = Map.put(state, :menu, nil)
     state = Map.put(state, :name, nil)
+    state = Map.put(state, :rts, %{})
     state = Map.put(state, :id, nil)
     state = Map.put(state, :sd, sd)
     state = Map.put(state, :ui, ui)
@@ -74,6 +76,12 @@ handler = fn
     screen = Api.subget!("flex:user-screens:item:#{id}")
     state = Map.put(state, :name, screen[:name])
     state = Map.put(state, :id, id)
+
+    state =
+      for {id, item} <- state.screen.items, reduce: state do
+        state -> sd.init.(state, id, item, true)
+      end
+
     {socket, state}
 
   {:render, _assigns, state = %{screen: %{items: items}}} ->

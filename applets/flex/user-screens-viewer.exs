@@ -7,7 +7,7 @@ view = fn assigns ->
       <%= if @enabled do %>
       <div :if={@size} id="design_port" class="design-port overflow-hidden">
         <div id="design_panel" class="design-panel text-white" draggable="false" style={@screen.props.style}>
-          <.fui :for={{id, item} <- @index} fun={@sd.item} id={id} {item} selected={false} runtime={true}/>
+          <.fui :for={{id, item} <- @index} fun={@sd.item} id={id} {item} rt={@rts[id]} selected={false} runtime={true}/>
         </div>
       </div>
       <style :if={@size}>
@@ -41,8 +41,10 @@ handler = fn
     socket = assign(socket, page_title: "Screen Viewer")
     socket = assign(socket, page_suffix: " · Flex")
     state = Map.put(state, :enabled, nil)
+    state = Map.put(state, :events, %{})
     state = Map.put(state, :size, nil)
     state = Map.put(state, :name, nil)
+    state = Map.put(state, :rts, %{})
     state = Map.put(state, :id, nil)
     state = Map.put(state, :sd, sd)
     state = Map.put(state, :ui, ui)
@@ -57,6 +59,12 @@ handler = fn
     state = Map.put(state, :enabled, screen[:status] == :enabled)
     state = Map.put(state, :name, screen[:name])
     state = Map.put(state, :id, id)
+
+    state =
+      for {id, item} <- state.screen.items, reduce: state do
+        state -> sd.init.(state, id, item, false)
+      end
+
     {socket, state}
 
   {:render, _assigns,
@@ -78,8 +86,8 @@ handler = fn
 
   {:event, socket, state, event = "item:click", params = %{"id" => "item_" <> id_type}} ->
     Api.trace(view: path, event: event, params: params)
-    [id, type] = String.split(id_type, "_")
-    state = sd.handle.(state, event, id, type)
+    [id, _type] = String.split(id_type, "_")
+    state = sd.handle.(state, id, event)
     {socket, state}
 
   {:event, socket, state, event = "hook:resize", params = %{"width" => w, "height" => h}} ->
@@ -99,6 +107,17 @@ handler = fn
   {:info, socket, state = %{id: id}, event = {"flex:user-screens:design:" <> id, _, _screen}} ->
     Api.trace(view: path, info: event)
     socket = push_event(socket, "hook:reload", %{})
+    {socket, state}
+
+  {:info, socket, state = %{events: events}, event = {key, _, value}} ->
+    Api.trace(view: path, info: event)
+    ids = events[key] || []
+
+    state =
+      for id <- ids, reduce: state do
+        state -> sd.handle.(state, id, {key, value})
+      end
+
     {socket, state}
 
   {:info, socket, state, event} ->

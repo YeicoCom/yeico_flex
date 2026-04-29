@@ -7,13 +7,17 @@ props = %{
   h: 0,
   text: name,
   sink: "",
-  value: 0,
+  default: 0,
   style: """
   color: white;
   font-size: 16px;
   padding: 2px 16px;
   border-radius: 4px;
+  text-align: center;
   background-color: blue;
+  """,
+  calc: """
+  %{disabled: value == default}
   """
 }
 
@@ -49,13 +53,42 @@ editor = fn assigns = %{item: item} ->
   <.fui fun={@ui.input} name="text" value={@props.text} error={@errors.text} type="text"/>
   <div>Sink</div>
   <.fui fun={@ui.select} name="sink" value={@props.sink} error={@errors.sink} values={@sinks}/>
-  <div>Value</div>
-  <.fui fun={@ui.input} name="value" value={@props.value} error={@errors.value}/>
+  <div>Default</div>
+  <.fui fun={@ui.input} name="default" value={@props.default} error={@errors.default}/>
   <div class="col-span-2">Style</div>
   <div class="col-span-2">
     <.fui fun={@ui.area} name="style" value={@props.style} error={@errors.style} rows="8" class="w-full"/>
   </div>
+  <div class="col-span-2">Calculator</div>
+  <div class="col-span-2">
+    <.fui fun={@ui.area} name="calc" value={@props.calc} error={@errors.calc} rows="8" class="w-full"/>
+  </div>
   """
+end
+
+calculate = fn %{props: props}, value ->
+  calc =
+    case Api.safe(fn -> Code.eval_string(props.calc, default: props.default, value: value) end) do
+      {:ok, {res, _}} when is_map(res) -> res
+      _ -> %{}
+    end
+
+  text = vlib.get.(calc, :text, :binary) || props.text
+
+  # allow for value type conversion
+  value =
+    case Map.has_key?(calc, :value) do
+      true -> calc[:value]
+      _ -> value || props.default
+    end
+
+  formatted =
+    case Api.safe(fn -> :io_lib.format(text, [value]) end) do
+      {:ok, text} -> text |> to_string()
+      _ -> props.text
+    end
+
+  %{calc: calc, text: text, value: value, formatted: formatted}
 end
 
 save = fn state = %{selected: %{item: sitem}, screen: screen}, id, params ->
@@ -70,8 +103,9 @@ save = fn state = %{selected: %{item: sitem}, screen: screen}, id, params ->
   change = vlib.parse.(change, props, params, :h, {:integer, 0, h})
   change = vlib.parse.(change, props, params, :text, :text)
   change = vlib.parse.(change, props, params, :sink, :any)
-  change = vlib.parse.(change, props, params, :value, {:point, params.sink})
+  change = vlib.parse.(change, props, params, :default, {:point, params.sink})
   change = vlib.parse.(change, props, params, :style, :style)
+  change = vlib.parse.(change, props, params, :calc, :any)
 
   props = Map.merge(props, Map.drop(change, [:errors]))
   aitem = Map.put(aitem, :props, props)
@@ -79,16 +113,33 @@ save = fn state = %{selected: %{item: sitem}, screen: screen}, id, params ->
   sitem = Map.put(sitem, :props, params)
   sitem = Map.put(sitem, :errors, change.errors)
   state = put_in(state, [:selected, :item], sitem)
+  rt = calculate.(aitem, nil)
+  state = put_in(state, [:rts, id], rt)
   state
 end
 
 handle = fn
-  item = %{props: %{sink: ""}}, "item:click" ->
-    item
+  %{props: %{sink: ""}}, rt, _ ->
+    rt
 
-  item = %{props: %{sink: sink, value: value}}, "item:click" ->
-    Api.putcast!("flex:point:sink:#{sink}", value)
-    item
+  %{props: %{sink: sink, default: default}}, rt, "item:click" ->
+    Api.putcast!("flex:point:sink:#{sink}", default)
+    rt
+
+  item, _, {"flex:point:" <> _, value} ->
+    calculate.(item, value)
+end
+
+init = fn
+  item = %{props: %{sink: ""}}, _ ->
+    rt = calculate.(item, nil)
+    {rt, nil}
+
+  item = %{props: %{sink: sink}}, subget! ->
+    key = "flex:point:sink:#{sink}"
+    value = subget!.(key)
+    rt = calculate.(item, value)
+    {rt, key}
 end
 
 %{
@@ -97,5 +148,6 @@ end
   render: render,
   editor: editor,
   handle: handle,
+  init: init,
   save: save
 }

@@ -1,5 +1,37 @@
 use Terminal
 
+valid? = fn
+  :binary ->
+    fn
+      v when is_binary(v) -> true
+      _ -> false
+    end
+
+  "boolean:" <> _ ->
+    fn
+      v when is_integer(v) and v >= 0 and v <= 1 -> true
+      _ -> false
+    end
+
+  "uint6:" <> _ ->
+    fn
+      v when is_integer(v) and v >= 0 and v <= 65_535 -> true
+      _ -> false
+    end
+
+  "float:" <> _ ->
+    fn
+      v when is_float(v) -> true
+      _ -> false
+    end
+end
+
+get = fn map, key, type ->
+  valid? = valid?.(type)
+  value = map[key]
+  if valid?.(value), do: value
+end
+
 integer = fn change, props, params, key, {min, max} ->
   tv = params |> Map.get(key) |> String.trim()
   cv = props[key]
@@ -157,6 +189,7 @@ params = fn props, params ->
 end
 
 %{
+  get: get,
   parse: parse,
   errors: errors,
   params: params

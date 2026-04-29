@@ -11,7 +11,7 @@ new = %{
   props: %{
     w: 800,
     h: 600,
-    snap: 1,
+    snap: 10,
     grid: true,
     style: """
     background-color: black;
@@ -179,7 +179,7 @@ end
 
 item = fn assigns ->
   assigns = Map.put(assigns, :size, size)
-  assigns = Map.put(assigns, :pass, Map.take(assigns, [:x, :y, :props, :size, :runtime]))
+  assigns = Map.put(assigns, :pass, Map.take(assigns, [:x, :y, :rt, :props, :size, :runtime]))
   assigns = Map.put(assigns, :fun, items[assigns.type].render)
 
   ~H"""
@@ -284,10 +284,29 @@ load = fn id ->
   CubDB.get(cubdb, id) || new
 end
 
-handle = fn state, event, id, type ->
+handle = fn state, id, event ->
+  rt = state.rts[id]
   item = state.screen.items[id]
-  item = items[type].handle.(item, event)
-  put_in(state, [:screen, :items, id], item)
+  rt = items[item.type].handle.(item, rt, event)
+  put_in(state, [:rts, id], rt)
+end
+
+# acceptable to end up with events: nil -> nil
+init = fn state = %{events: events}, id, item, design? ->
+  {rt, key} =
+    items[item.type].init.(item, fn key ->
+      case {design?, Map.has_key?(events, key)} do
+        {false, true} -> Adb.get(key)
+        {false, false} -> Api.subget!(key)
+        _ -> item.props.default
+      end
+    end)
+
+  list = events[key]
+  list = if key, do: [id | list || []], else: list
+  state = put_in(state, [:events, key], list)
+  state = put_in(state, [:rts, id], rt)
+  state
 end
 
 %{
@@ -299,6 +318,7 @@ end
   props: props,
   select: select,
   handle: handle,
+  init: init,
   load: load,
   save: save
 }
