@@ -176,7 +176,27 @@ points = fn ->
   }
 end
 
+wire = fn ->
+  sources = fn ->
+    "flex:points:source"
+    |> Mdb.lookup()
+    |> Enum.map(fn {_, v} -> "#{v.type}:#{v.name}" end)
+  end
+
+  sinks = fn ->
+    "flex:points:sink"
+    |> Mdb.lookup()
+    |> Enum.map(fn {_, v} -> "#{v.type}:#{v.name}" end)
+  end
+
+  %{
+    sources: sources,
+    sinks: sinks
+  }
+end
+
 %{
   device: device.(),
-  points: points.()
+  points: points.(),
+  wire: wire.()
 }

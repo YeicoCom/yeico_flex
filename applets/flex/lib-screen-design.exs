@@ -231,14 +231,14 @@ end
 save = fn state = %{selected: %{item: sitem}, screen: aitem = %{props: props}}, id, params ->
   Api.debug(id: id, params: params)
 
-  change = %{errors: val.errors.(props)}
-  params = val.params.(props, params)
+  change = %{errors: vlib.errors.(props)}
+  params = vlib.params.(props, params)
 
-  change = val.parse.(change, props, params, :w, {:integer, 100, 3840})
-  change = val.parse.(change, props, params, :h, {:integer, 100, 2160})
-  change = val.parse.(change, props, params, :snap, {:integer, 1, 100})
-  change = val.parse.(change, props, params, :grid, :boolean)
-  change = val.parse.(change, props, params, :style, :style)
+  change = vlib.parse.(change, props, params, :w, {:integer, 100, 3840})
+  change = vlib.parse.(change, props, params, :h, {:integer, 100, 2160})
+  change = vlib.parse.(change, props, params, :snap, {:integer, 1, 100})
+  change = vlib.parse.(change, props, params, :grid, :boolean)
+  change = vlib.parse.(change, props, params, :style, :style)
 
   props = Map.merge(props, Map.drop(change, [:errors]))
   aitem = Map.put(aitem, :props, props)
@@ -259,12 +259,12 @@ end
 
 select = fn
   %{screen: screen = %{props: props}}, type, nil ->
-    screen = Map.put(screen, :errors, val.errors.(props))
+    screen = Map.put(screen, :errors, vlib.errors.(props))
     %{id: "id", type: type, item: screen, editor: editor, save: save}
 
   %{screen: screen}, type, id ->
     item = %{props: props} = screen.items[id]
-    item = Map.put(item, :errors, val.errors.(props))
+    item = Map.put(item, :errors, vlib.errors.(props))
 
     %{
       id: id,

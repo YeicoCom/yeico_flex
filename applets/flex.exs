@@ -13,22 +13,23 @@ Api.evalf("flex/view.exs", path: "/flex", ui: ui)
 Api.putcast!("flex:modbus-devices:items", [])
 Api.putcast!("flex:modbus-devices:logs", %{})
 {lib, _} = Api.evalf("flex/modbus-devices-lib.exs", modbus: modbus, modcmd: modcmd)
+%{device: dlib, points: plib, wire: wlib} = lib
 
 Api.evalf("flex/modbus-devices-loop.exs",
   path: dbpath.("modbus-devices"),
   dms: 2_000,
-  dlib: lib.device,
-  plib: lib.points
+  dlib: dlib,
+  plib: plib
 )
 
 Api.evalf("flex/modbus-devices-view.exs",
   path: "/flex/modbus-devices",
   ui: ui,
-  dlib: lib.device,
-  plib: lib.points
+  dlib: dlib,
+  plib: plib
 )
 
-Api.evalf("flex/modbus-devices-publish.exs", dlib: lib.device, plib: lib.points)
+Api.evalf("flex/modbus-devices-publish.exs", dlib: dlib, plib: plib)
 
 {lib, _} = Api.evalf("flex/modbus-terminal-lib.exs", modbus: modbus, modcmd: modcmd)
 Api.evalf("flex/modbus-terminal-view.exs", path: "/flex/modbus-terminal", ui: ui, lib: lib)
@@ -44,11 +45,11 @@ Api.putcast!("flex:user-screens:logs", %{})
 {lib, _} = Api.evalf("flex/user-screens-lib.exs")
 Api.evalf("flex/user-screens-loop.exs", path: dbpath.("user-screens"), dms: 2_000)
 Api.evalf("flex/user-screens-view.exs", path: "/flex/user-screens", ui: ui, lib: lib)
-{validation, _} = Api.evalf("flex/lib-screen-validation.exs", ui: ui)
-{button, _} = Api.evalf("flex/lib-screen-button.exs", ui: ui, val: validation)
-{label, _} = Api.evalf("flex/lib-screen-label.exs", ui: ui, val: validation)
+{vlib, _} = Api.evalf("flex/lib-screen-validation.exs", ui: ui)
+{button, _} = Api.evalf("flex/lib-screen-button.exs", ui: ui, vlib: vlib, wlib: wlib)
+{label, _} = Api.evalf("flex/lib-screen-label.exs", ui: ui, vlib: vlib, wlib: wlib)
 items = [button, label]
-{sd, _} = Api.evalf("flex/lib-screen-design.exs", ui: ui, val: validation, items: items)
+{sd, _} = Api.evalf("flex/lib-screen-design.exs", ui: ui, vlib: vlib, items: items)
 
 Api.evalf("flex/user-screens-design.exs",
   path: "/flex/user-screens/design",

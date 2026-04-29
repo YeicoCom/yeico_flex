@@ -35,13 +35,7 @@ editor = fn assigns = %{item: item} ->
   assigns = Map.put(assigns, :ui, ui)
   assigns = Map.put(assigns, :props, item.props)
   assigns = Map.put(assigns, :errors, item.errors)
-
-  sinks =
-    "flex:points:sink"
-    |> Mdb.lookup()
-    |> Enum.map(fn {_, v} -> "#{v.type}:#{v.name}" end)
-
-  assigns = Map.put(assigns, :sinks, ["" | sinks])
+  assigns = Map.put(assigns, :sinks, ["" | wlib.sinks.()])
 
   ~H"""
   <div>Size</div>
@@ -67,15 +61,15 @@ save = fn state = %{selected: %{item: sitem}, screen: screen}, id, params ->
 
   %{items: items, props: %{w: w, h: h}} = screen
   aitem = %{props: props} = items[id]
-  change = %{errors: val.errors.(props)}
-  params = val.params.(props, params)
+  change = %{errors: vlib.errors.(props)}
+  params = vlib.params.(props, params)
 
-  change = val.parse.(change, props, params, :w, {:integer, 0, w})
-  change = val.parse.(change, props, params, :h, {:integer, 0, h})
-  change = val.parse.(change, props, params, :text, :text)
-  change = val.parse.(change, props, params, :sink, :any)
-  # change = val.parse.(change, props, params, :value, {:type, params.sink})
-  change = val.parse.(change, props, params, :style, :style)
+  change = vlib.parse.(change, props, params, :w, {:integer, 0, w})
+  change = vlib.parse.(change, props, params, :h, {:integer, 0, h})
+  change = vlib.parse.(change, props, params, :text, :text)
+  change = vlib.parse.(change, props, params, :sink, :any)
+  # change = vlib.parse.(change, props, params, :value, {:type, params.sink})
+  change = vlib.parse.(change, props, params, :style, :style)
 
   props = Map.merge(props, Map.drop(change, [:errors]))
   aitem = Map.put(aitem, :props, props)
