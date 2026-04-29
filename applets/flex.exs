@@ -8,7 +8,7 @@ Adb.reset()
 dbpath = fn name -> Terminal.dpath("@home/flex.cubdb/#{name}") end
 
 {ui, _} = Api.evalf("flex/lib-user-interface.exs")
-Api.evalf("flex/view.exs", path: "/flex", ui: ui)
+Api.evalf("flex/home-index.exs", path: "/flex", ui: ui)
 
 Api.putcast!("flex:modbus-devices:items", [])
 Api.putcast!("flex:modbus-devices:logs", %{})

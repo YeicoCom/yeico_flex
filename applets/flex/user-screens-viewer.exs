@@ -3,32 +3,34 @@ use Terminal.Live
 view = fn assigns ->
   ~H"""
   <.fui fun={@ui.frame} title="Screen Viewer" label={@name} class="flex gap-2">
-    <div id="design_frame" class="grow relative" phx-hook="ScreenViewer">
-      <div id="design_port" :if={@size} class="design-port overflow-hidden">
+    <div  id="design_frame" class="grow relative" phx-hook="ScreenViewer">
+      <%= if @enabled do %>
+      <div :if={@size} id="design_port" class="design-port overflow-hidden">
         <div id="design_panel" class="design-panel text-white" draggable="false" style={@screen.props.style}>
           <.fui :for={{id, item} <- @index} fun={@sd.item} id={id} {item} selected={false}/>
         </div>
       </div>
+      <style :if={@size}>
+        .design-port {
+          position: absolute;
+          left: <%= @port.x %>px;
+          top: <%= @port.y %>px;
+          width: <%= @port.w %>px;
+          height: <%= @port.h %>px;
+        }
+        .design-panel {
+          position: absolute;
+          transform-origin: top left;
+          scale: <%= @panel.s %>;
+          left: <%= @panel.x %>px;
+          top: <%= @panel.y %>px;
+          width: <%= @panel.w %>px;
+          height: <%= @panel.h %>px;
+        }
+      </style>
+      <% end %>
     </div>
   </.fui>
-  <style :if={@size}>
-    .design-port {
-      position: absolute;
-      left: <%= @port.x %>px;
-      top: <%= @port.y %>px;
-      width: <%= @port.w %>px;
-      height: <%= @port.h %>px;
-    }
-    .design-panel {
-      position: absolute;
-      transform-origin: top left;
-      scale: <%= @panel.s %>;
-      left: <%= @panel.x %>px;
-      top: <%= @panel.y %>px;
-      width: <%= @panel.w %>px;
-      height: <%= @panel.h %>px;
-    }
-  </style>
   """
 end
 
@@ -38,6 +40,7 @@ handler = fn
     socket = assign(socket, applet_js: "/applets/flex.js")
     socket = assign(socket, page_title: "Screen Viewer")
     socket = assign(socket, page_suffix: " · Flex")
+    state = Map.put(state, :enabled, nil)
     state = Map.put(state, :size, nil)
     state = Map.put(state, :name, nil)
     state = Map.put(state, :id, nil)
@@ -51,21 +54,26 @@ handler = fn
     state = Map.put(state, :screen, screen || sd.load.(id))
     # it may not exist: use screen[:name] accesor
     screen = Api.subget!("flex:user-screens:item:#{id}")
+    state = Map.put(state, :enabled, screen[:status] == :enabled)
     state = Map.put(state, :name, screen[:name])
     state = Map.put(state, :id, id)
     {socket, state}
 
-  {:render, _assigns, state = %{size: nil}} ->
-    view.(state)
-
   {:render, _assigns,
-   state = %{size: %{w: fw, h: fh}, screen: %{items: items, props: %{w: sw, h: sh}}}} ->
+   state = %{
+     enabled: true,
+     size: %{w: fw, h: fh},
+     screen: %{items: items, props: %{w: sw, h: sh}}
+   }} ->
     index = Enum.sort_by(items, fn {_, item} -> item.index end)
     state = Map.put(state, :index, index)
     port = %{s: s} = sd.port.("All", fw, fh, sw, sh)
     panel = %{s: s, x: 0, y: 0, w: sw, h: sh}
     state = Map.put(state, :port, port)
     state = Map.put(state, :panel, panel)
+    view.(state)
+
+  {:render, _assigns, state} ->
     view.(state)
 
   {:event, socket, state, event = "hook:resize", params = %{"width" => w, "height" => h}} ->
@@ -77,14 +85,14 @@ handler = fn
     Api.trace(view: path, event: event, params: params)
     {socket, state}
 
-  {:info, socket, state = %{id: id}, event = {"flex:user-screens:item:" <> id, _, screen}} ->
+  {:info, socket, state = %{id: id}, event = {"flex:user-screens:item:" <> id, _, _screen}} ->
     Api.trace(view: path, info: event)
-    state = Map.put(state, :name, screen.name)
+    socket = push_event(socket, "hook:reload", %{})
     {socket, state}
 
   {:info, socket, state = %{id: id}, event = {"flex:user-screens:design:" <> id, _, _screen}} ->
     Api.trace(view: path, info: event)
-    state = push_event(state, "hook:reload", %{})
+    socket = push_event(socket, "hook:reload", %{})
     {socket, state}
 
   {:info, socket, state, event} ->

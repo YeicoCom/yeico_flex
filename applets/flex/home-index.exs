@@ -2,7 +2,10 @@ use Terminal.Live
 
 view = fn assigns ->
   ~H"""
-  <.fui fun={@ui.frame}>
+  <.fui fun={@ui.frame} title="Home">
+    <div :for={{id, item} <- @items} class="flex flex-col justify-center items-center h-full text-3xl">
+      <.fui fun={@ui.href} href={"/flex/user-screens/viewer?id=#{id}"}>{item.name}</.fui>
+    </div>
   </.fui>
   """
 end
@@ -13,6 +16,9 @@ handler = fn
     socket = assign(socket, applet_js: "/applets/flex.js")
     socket = assign(socket, page_suffix: " · Flex")
     socket = assign(socket, page_title: "Home")
+    items = Api.subget!("flex:user-screens:items") || []
+    items = Enum.filter(items, fn {_, v} -> v.status == :enabled end)
+    state = Map.put(state, :items, items)
     state = Map.put(state, :ui, ui)
     {socket, state}
 
@@ -25,6 +31,12 @@ handler = fn
 
   {:event, socket, state, event, params} ->
     Api.trace(view: path, event: event, params: params)
+    {socket, state}
+
+  {:info, socket, state, event = {"flex:user-screens:items", _, items}} ->
+    Api.trace(view: path, info: event)
+    items = Enum.filter(items, fn {_, v} -> v.status == :enabled end)
+    state = Map.put(state, :items, items)
     {socket, state}
 
   {:info, socket, state, event} ->
