@@ -13,7 +13,11 @@ new = %{
   props: %{
     w: 800,
     h: 600,
-    snap: 1
+    snap: 1,
+    grid: true,
+    style: """
+    background-color: black;
+    """
   }
 }
 
@@ -205,13 +209,19 @@ editor = fn assigns = %{item: item} ->
   assigns = Map.put(assigns, :errors, item.errors)
 
   ~H"""
-  <div>Size</div>
-  <div class="grid grid-cols-2 py-1 gap-1">
+  <div>Size WxH</div>
+  <div class="grid grid-cols-2 gap-1">
     <.fui fun={@ui.input} name="w" value={@props.w} error={@errors.w} type="number" step="1"/>
     <.fui fun={@ui.input} name="h" value={@props.h} error={@errors.h} type="number" step="1"/>
   </div>
+  <div>Grid Visible</div>
+  <.fui fun={@ui.select} name="grid" value={"\t#{@props.grid}"} error={@errors.grid} values={["\ttrue", "\tfalse"]}/>
   <div>Grid Snap</div>
   <.fui fun={@ui.input} name="snap" value={@props.snap} error={@errors.snap} type="number" step="1"/>
+  <div class="col-span-2">Style</div>
+  <div class="col-span-2">
+    <.fui fun={@ui.area} name="style" value={@props.style} error={@errors.style} rows="8" class="w-full"/>
+  </div>
   """
 end
 
@@ -224,9 +234,11 @@ save = fn state = %{selected: %{item: sitem}, screen: aitem = %{props: props}}, 
   change = %{errors: val.errors.(props)}
   params = val.params.(props, params)
 
-  change = val.parse.(change, props, params, :w, {:int, 100, 3840})
-  change = val.parse.(change, props, params, :h, {:int, 100, 2160})
-  change = val.parse.(change, props, params, :snap, {:int, 1, 100})
+  change = val.parse.(change, props, params, :w, {:integer, 100, 3840})
+  change = val.parse.(change, props, params, :h, {:integer, 100, 2160})
+  change = val.parse.(change, props, params, :snap, {:integer, 1, 100})
+  change = val.parse.(change, props, params, :grid, :boolean)
+  change = val.parse.(change, props, params, :style, :style)
 
   props = Map.merge(props, Map.drop(change, [:errors]))
   aitem = Map.put(aitem, :props, props)

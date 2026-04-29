@@ -135,7 +135,6 @@ input = fn assigns ->
   assigns = Map.put_new(assigns, :pattern, nil)
   # validation
   assigns = Map.put_new(assigns, :error, nil)
-  assigns = Map.put_new(assigns, :error?, !!assigns.error)
 
   ~H"""
   <input
@@ -155,14 +154,51 @@ input = fn assigns ->
   class={[
     "px-2 py-1 border-0 rounded-lg ring-1",
     "ring-zinc-600 outline-none",
-    !@error? && "bg-zinc-600 text-neutral-200",
-    @error? && "bg-red-800 text-neutral-200",
+    !@error && "bg-zinc-600 text-neutral-200",
+    @error && "bg-red-800 text-neutral-200",
     "disabled:pointer-events-none disabled:ring-zinc-500",
     "disabled:bg-zinc-700 disabled:text-neutral-500",
     "focus:ring-lime-500",
     "hover:ring-lime-500",
     @class
   ]}/>
+  """
+end
+
+area = fn assigns ->
+  assigns = phxattr.(assigns)
+  # wont honor focus ring color if type nil
+  assigns = Map.put_new(assigns, :id, nil)
+  assigns = Map.put_new(assigns, :class, nil)
+  assigns = Map.put_new(assigns, :name, nil)
+  assigns = Map.put_new(assigns, :value, nil)
+  assigns = Map.put_new(assigns, :disabled, nil)
+  assigns = Map.put_new(assigns, :title, nil)
+  assigns = Map.put_new(assigns, :required, nil)
+  assigns = Map.put_new(assigns, :rows, nil)
+  # validation
+  assigns = Map.put_new(assigns, :error, nil)
+
+  ~H"""
+  <textarea
+  id={@id}
+  name={@name}
+  disabled={@disabled}
+  required={@required}
+  title={@error || @title}
+  rows={@rows}
+  {@phxattr}
+  class={[
+    "px-2 py-1 border-0 rounded-lg ring-1",
+    "ring-zinc-600 outline-none",
+    !@error && "bg-zinc-600 text-neutral-200",
+    @error && "bg-red-800 text-neutral-200",
+    "disabled:pointer-events-none disabled:ring-zinc-500",
+    "disabled:bg-zinc-700 disabled:text-neutral-500",
+    "focus:ring-lime-500",
+    "hover:ring-lime-500",
+    @class
+  ]}>{@value}</textarea>
   """
 end
 
@@ -246,13 +282,17 @@ href = fn assigns ->
   """
 end
 
+outline = "outline outline-solid outline-2 outline-lime-500"
+
 %{
   phxattr: phxattr,
+  outline: outline,
   frame: frame,
   modal: modal,
   select: select,
   button: button,
   input: input,
+  area: area,
   link: link,
   href: href
 }

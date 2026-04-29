@@ -30,6 +30,12 @@ view = fn assigns ->
       <.fui fun={@ui.button} type="submit" disabled>Send1</.fui>
       <.fui fun={@ui.button} type="submit">Send2</.fui>
     </form>
+    <form id="form3" phx-submit="form:submit" phx-change="form:change"
+      class="flex flex-col px-1 py-2 gap-2" phx-hook="EnterNavigation" autocomplete="off">
+      <.fui fun={@ui.area} name="text1" value={@input[:text1]} class="grow" disabled/>
+      <.fui fun={@ui.area} name="text1" value={@input[:text1]} class="grow"/>
+      <.fui fun={@ui.button} type="submit">Send</.fui>
+    </form>
   </.fui>
   """
 end

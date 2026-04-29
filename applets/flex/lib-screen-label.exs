@@ -6,21 +6,22 @@ props = %{
   w: 0,
   h: 0,
   text: name,
-  color: "#ffffff"
+  style: """
+  color: white;
+  font-size: 16px;
+  text-align: left;
+  """
 }
 
 render = fn assigns ->
   assigns = Map.put(assigns, :ui, ui)
 
   ~H"""
-    <div id={@id} class={[
-      "absolute",
-      @selected && "border border-2 border-lime-500",
-      ]}
+    <div id={@id} class={["absolute", @selected && @ui.outline]}
       style={[
         "left: #{@x}px; top: #{@y}px;",
         @size.(@props.w, @props.h),
-        "color: #{@props.color};"
+        @props.style,
       ]}>
       {@props.text}
     </div>
@@ -35,17 +36,16 @@ editor = fn assigns = %{item: item} ->
 
   ~H"""
   <div>Size</div>
-  <div class="grid grid-cols-2 py-1 gap-1">
+  <div class="grid grid-cols-2 gap-1">
     <.fui fun={@ui.input} name="w" value={@props.w} error={@errors.w} type="number" step="1"/>
     <.fui fun={@ui.input} name="h" value={@props.h} error={@errors.h} type="number" step="1"/>
   </div>
-  <div>Color</div>
-  <div class="grid grid-cols-2 py-1 gap-1">
-    <.fui fun={@ui.input} name="color" value={@props.color} error={@errors.color} type="text"/>
-    <div style={"background-color: #{@props.color};"} class="rounded-lg"/><div/>
-  </div>
   <div>Text</div>
   <.fui fun={@ui.input} name="text" value={@props.text} error={@errors.text} type="text"/>
+  <div class="col-span-2">Style</div>
+  <div class="col-span-2">
+    <.fui fun={@ui.area} name="style" value={@props.style} error={@errors.style} rows="8" class="w-full"/>
+  </div>
   """
 end
 
@@ -57,10 +57,10 @@ save = fn state = %{selected: %{item: sitem}, screen: screen}, id, params ->
   change = %{errors: val.errors.(props)}
   params = val.params.(props, params)
 
-  change = val.parse.(change, props, params, :w, {:int, 0, w})
-  change = val.parse.(change, props, params, :h, {:int, 0, h})
-  change = val.parse.(change, props, params, :color, :color)
-  change = val.parse.(change, props, params, :text, :txt)
+  change = val.parse.(change, props, params, :w, {:integer, 0, w})
+  change = val.parse.(change, props, params, :h, {:integer, 0, h})
+  change = val.parse.(change, props, params, :text, :text)
+  change = val.parse.(change, props, params, :style, :style)
 
   props = Map.merge(props, Map.drop(change, [:errors]))
   aitem = Map.put(aitem, :props, props)

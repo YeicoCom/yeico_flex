@@ -104,8 +104,10 @@ s=1,a=49,c=rri,d=5,e=u16le # Turck - Read All
 - [ ] Modbus rtu over tcp packet fragmentation
 - [ ] Why html text has such a large y padding?
 - [ ] Clone controls to easy copy template styling
-- [ ] Label parametric text (and  parametric style?)
-- [ ] How to draw border inside bounds to avoid resize on select
+- [ ] Label parametric text (and parametric style?)
+- [ ] How to style button hover using just the style attribute
+- [x] How to draw border inside bounds to avoid resize on select
+  - use outline instead
 - [x] Styling globals: bg-black select-none text-base cursor-default
   - cursor-default to remove safari text cursor (managed externally)
   - [&_*]:cursor-default required for button and anchor

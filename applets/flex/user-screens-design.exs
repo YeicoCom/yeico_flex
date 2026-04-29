@@ -4,15 +4,16 @@ view = fn assigns ->
   ~H"""
   <.fui fun={@ui.frame} reverse={true} title="Screen Designer" label={@screen.name} class="flex gap-2">
     <div id="design_frame" class="grow relative" phx-hook="DesignFrame">
-      <div id="design_port" :if={@vp.frame} class="design-port absolute overflow-hidden">
-        <div id="design_grid" class="design-panel absolute origin-top-left"/>
-        <div id="design_rulerx" class="design-panel absolute origin-top-left text-zinc-500" style="top: 0em;">
+      <div id="design_port" :if={@vp.frame} class="design-port overflow-hidden">
+        <div id="design_style" class="design-panel" style={@screen.props.style}/>
+        <div :if={@screen.props.grid} id="design_grid" class="design-panel"/>
+        <div :if={@screen.props.grid} id="design_rulerx" class="design-panel text-zinc-500" style="top: 0em;">
           <div :for={p <- 10..90//10} class="absolute text-[6px] top-[-8px]" style={"left: #{p}%;"}>{p}%</div>
         </div>
-        <div id="design_rulery" class="design-panel absolute origin-top-left text-zinc-500" style="left: 0em;">
+        <div :if={@screen.props.grid} id="design_rulery" class="design-panel text-zinc-500" style="left: 0em;">
           <div :for={p <- 10..90//10} class="absolute text-[6px] left-[1px]" style={"top: #{p}%;"}>{p}%</div>
         </div>
-        <div id="design_panel" class="design-panel absolute origin-top-left" draggable="false">
+        <div id="design_panel" class="design-panel" draggable="false">
           <.fui :for={{id, item} <- @index} fun={@sd.item} id={id} {item} selected={id==@selected.id}/>
         </div>
       </div>
@@ -22,7 +23,7 @@ view = fn assigns ->
     <div class="flex flex-col p-1 gap-2 w-[16em]">
       <div class="text-xl">{@selected.type} Properties</div>
       <.fui id="props_editor" fun={@sd.form} editor={@selected.editor} iid={@selected.id} item={@selected.item}
-        phx-submit="item:save" phx-change="item:save" class="grid grid-cols-[auto_1fr] gap-x-2 items-center"/>
+        phx-submit="item:save" phx-change="item:save" class="grid grid-cols-[auto_1fr] gap-y-1 gap-x-2 items-center"/>
     </div>
   </.fui>
   <style :if={@vp.frame}>
@@ -33,12 +34,15 @@ view = fn assigns ->
       background-position: -1px -1px, -1px -1px, -1px -1px, -1px -1px;
     }
     .design-port {
+      position: absolute;
       left: <%= @vp.port.x %>px;
       top: <%= @vp.port.y %>px;
       width: <%= @vp.port.w %>px;
       height: <%= @vp.port.h %>px;
     }
     .design-panel {
+      position: absolute;
+      transform-origin: top left;
       scale: <%= @vp.panel.s %>;
       left: <%= @vp.panel.x %>px;
       top: <%= @vp.panel.y %>px;
