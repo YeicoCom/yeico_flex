@@ -179,7 +179,7 @@ end
 
 item = fn assigns ->
   assigns = Map.put(assigns, :size, size)
-  assigns = Map.put(assigns, :pass, Map.take(assigns, [:x, :y, :props, :size]))
+  assigns = Map.put(assigns, :pass, Map.take(assigns, [:x, :y, :props, :size, :runtime]))
   assigns = Map.put(assigns, :fun, items[assigns.type].render)
 
   ~H"""
@@ -284,6 +284,12 @@ load = fn id ->
   CubDB.get(cubdb, id) || new
 end
 
+handle = fn state, event, id, type ->
+  item = state.screen.items[id]
+  item = items[type].handle.(item, event)
+  put_in(state, [:screen, :items, id], item)
+end
+
 %{
   port: port,
   form: form,
@@ -292,6 +298,7 @@ end
   apply: apply,
   props: props,
   select: select,
+  handle: handle,
   load: load,
   save: save
 }

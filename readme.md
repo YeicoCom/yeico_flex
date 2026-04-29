@@ -112,6 +112,8 @@ s=1,a=49,c=rri,d=5,e=u16le # Turck - Read All
 - [ ] Show io_lib format escapes help in props editor
 - [ ] CubDB screen design db cleanup strategy
 - [ ] Define mqtt strategy
+- [ ] Button hover and press visual feedback
+- [ ] Screen designer stumped after several enable/disable
 - [x] How to draw border inside bounds to avoid resize on select
   - use outline instead
 - [x] Styling globals: bg-black select-none text-base cursor-default

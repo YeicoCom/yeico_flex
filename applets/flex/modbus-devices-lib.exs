@@ -95,12 +95,13 @@ points = fn ->
     end
   end
 
+  # default value here must cover all types below
   get = fn key ->
     Adb.get("flex:point:#{key}", 0)
   end
 
   put = fn key, val ->
-    Adb.put("flex:point:#{key}", val)
+    Api.putcast!("flex:point:#{key}", val)
   end
 
   # use official erlang type names

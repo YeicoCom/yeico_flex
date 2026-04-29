@@ -20,6 +20,8 @@ props = %{
 render = fn assigns ->
   ~H"""
     <div id={@id} class={@class}
+      phx-click={@runtime && "item:click"}
+      phx-value-id={@runtime && @id}
       style={[
         "left: #{@x}px; top: #{@y}px;",
         @size.(@props.w, @props.h),
@@ -80,10 +82,20 @@ save = fn state = %{selected: %{item: sitem}, screen: screen}, id, params ->
   state
 end
 
+handle = fn
+  item = %{props: %{sink: ""}}, "item:click" ->
+    item
+
+  item = %{props: %{sink: sink, value: value}}, "item:click" ->
+    Api.putcast!("flex:point:sink:#{sink}", value)
+    item
+end
+
 %{
   name: name,
   props: props,
   render: render,
   editor: editor,
+  handle: handle,
   save: save
 }

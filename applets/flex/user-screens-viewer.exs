@@ -7,7 +7,7 @@ view = fn assigns ->
       <%= if @enabled do %>
       <div :if={@size} id="design_port" class="design-port overflow-hidden">
         <div id="design_panel" class="design-panel text-white" draggable="false" style={@screen.props.style}>
-          <.fui :for={{id, item} <- @index} fun={@sd.item} id={id} {item} selected={false}/>
+          <.fui :for={{id, item} <- @index} fun={@sd.item} id={id} {item} selected={false} runtime={true}/>
         </div>
       </div>
       <style :if={@size}>
@@ -75,6 +75,12 @@ handler = fn
 
   {:render, _assigns, state} ->
     view.(state)
+
+  {:event, socket, state, event = "item:click", params = %{"id" => "item_" <> id_type}} ->
+    Api.trace(view: path, event: event, params: params)
+    [id, type] = String.split(id_type, "_")
+    state = sd.handle.(state, event, id, type)
+    {socket, state}
 
   {:event, socket, state, event = "hook:resize", params = %{"width" => w, "height" => h}} ->
     Api.trace(view: path, event: event, params: params)
