@@ -13,7 +13,7 @@ view = fn assigns ->
         <div :if={@screen.props.grid} id="design_rulery" class="design-panel text-zinc-500" style="left: 0em;">
           <div :for={p <- 10..90//10} class="absolute text-[6px] left-[1px]" style={"top: #{p}%;"}>{p}%</div>
         </div>
-        <div id="design_panel" class="design-panel" draggable="false">
+        <div id="design_panel" class="design-panel text-white" draggable="false">
           <.fui :for={{id, item} <- @index} fun={@sd.item} id={id} {item} selected={id==@selected.id}/>
         </div>
       </div>

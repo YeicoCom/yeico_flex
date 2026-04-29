@@ -12,6 +12,8 @@ props = %{
   color: white;
   font-size: 16px;
   text-align: left;
+  padding: 0px 0px;
+  background-color: transparent;
   """
 }
 
