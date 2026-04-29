@@ -75,8 +75,8 @@ clean = fn state ->
 end
 
 apply = fn
-  state, :init, _ ->
-    state = Map.put(state, :screen, new)
+  state, :init, screen ->
+    state = Map.put(state, :screen, screen)
     state = Map.put(state, :vp, vp)
     state
 
@@ -275,12 +275,24 @@ select = fn
     }
 end
 
+{:ok, cubdb} = CubDB.start_link(data_dir: path)
+
+save = fn %{screen: screen = %{id: id}} ->
+  CubDB.put(cubdb, id, Map.drop(screen, [:id, :name]))
+  Api.putcast!("flex:screen-designs:#{id}", screen)
+end
+
+load = fn id ->
+  CubDB.get(cubdb, id) || new
+end
+
 %{
-  new: new,
   form: form,
   menu: menu,
   item: item,
   apply: apply,
   props: props,
-  select: select
+  select: select,
+  load: load,
+  save: save
 }

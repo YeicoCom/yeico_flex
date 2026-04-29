@@ -49,7 +49,14 @@ Api.evalf("flex/user-screens-view.exs", path: "/flex/user-screens", ui: ui, lib:
 {button, _} = Api.evalf("flex/lib-screen-button.exs", ui: ui, vlib: vlib, wlib: wlib)
 {label, _} = Api.evalf("flex/lib-screen-label.exs", ui: ui, vlib: vlib, wlib: wlib)
 items = [button, label]
-{sd, _} = Api.evalf("flex/lib-screen-design.exs", ui: ui, vlib: vlib, items: items)
+
+{sd, _} =
+  Api.evalf("flex/lib-screen-design.exs",
+    path: dbpath.("screen-designs"),
+    ui: ui,
+    vlib: vlib,
+    items: items
+  )
 
 Api.evalf("flex/user-screens-design.exs",
   path: "/flex/user-screens/design",

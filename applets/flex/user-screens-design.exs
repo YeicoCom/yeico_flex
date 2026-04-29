@@ -59,16 +59,16 @@ handler = fn
     socket = assign(socket, applet_js: "/applets/flex.js")
     socket = assign(socket, page_title: "Screen Designer")
     socket = assign(socket, page_suffix: " · Flex")
-    state = Map.put(state, :screen, sd.new)
     state = Map.put(state, :menu, nil)
-    state = Map.put(state, :vp, nil)
     state = Map.put(state, :sd, sd)
     state = Map.put(state, :ui, ui)
-    state = Map.put(state, :selected, sd.select.(state, "Screen", nil))
-    {socket, sd.apply.(state, :init, nil)}
+    {socket, state}
 
   {:params, socket, state, params = %{"id" => id}, uri} ->
     Api.trace(view: path, params: params, uri: uri)
+    state = sd.apply.(state, :init, sd.load.(id))
+    state = Map.put(state, :selected, sd.select.(state, "Screen", nil))
+    # it may not exist: use screen[:name] accesor
     screen = Api.subget!("flex:user-screens:item:#{id}")
     state = put_in(state, [:screen, :name], screen[:name])
     state = put_in(state, [:screen, :id], id)
@@ -89,6 +89,7 @@ handler = fn
     Api.trace(view: path, event: event, params: params)
     state = save.(state, id, params)
     state = Map.put(state, :menu, nil)
+    sd.save.(state)
     {socket, state}
 
   {:event, socket, state = %{vp: %{port: %{s: s, x: pox, y: poy}, panel: %{x: pax, y: pay}}},
@@ -104,6 +105,7 @@ handler = fn
     state = put_in(state, [:screen, :items, id], item)
     state = Map.put(state, :selected, sd.select.(state, type, id))
     state = Map.put(state, :menu, nil)
+    sd.save.(state)
     {socket, state}
 
   {:event, socket, state = %{screen: %{props: %{snap: snap, w: w, h: h}}}, event = "item:drag",
@@ -119,6 +121,7 @@ handler = fn
     state = put_in(state, [:screen, :items, id, :y], y)
     state = Map.put(state, :selected, sd.select.(state, type, id))
     state = Map.put(state, :menu, nil)
+    sd.save.(state)
     {socket, state}
 
   {:event, socket, state, event = "frame:fit", params = %{"fit" => fit}} ->
