@@ -195,7 +195,7 @@ form = fn assigns ->
     <form id={@id} class={[@class, "[&_*]:text-xs"]} {@phxattr} autocomplete="off">
       <input type="submit" hidden>
       <input type="hidden" name="iid" value={@iid}/>
-      <.fui fun={@editor} item={@item}/>
+      <.fui fun={@editor} item={@item} rt={@rt}/>
     </form>
   """
 end

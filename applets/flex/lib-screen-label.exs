@@ -31,7 +31,7 @@ render = fn assigns ->
         @size.(@props.w, @props.h),
         @props.style,
       ]}>
-      {@rt.formatted}
+      {@rt.text}
     </div>
   """
 end
@@ -63,32 +63,38 @@ editor = fn assigns = %{item: item} ->
   <div class="col-span-2">
     <.fui fun={@ui.area} name="calc" value={@props.calc} error={@errors.calc} rows="8" class="w-full"/>
   </div>
+  <div class="col-span-2">Output</div>
+  <div class="col-span-2">
+    <.fui fun={@ui.area} value={inspect(@rt.error || @rt.calc)} disabled rows="8" class="w-full"/>
+  </div>
   """
 end
 
 calculate = fn %{props: props}, value ->
-  calc =
+  {error, calc} =
     case Api.safe(fn -> Code.eval_string(props.calc, default: props.default, value: value) end) do
-      {:ok, {res, _}} when is_map(res) -> res
-      _ -> %{}
+      {:ok, {res, _}} when is_map(res) -> {nil, res}
+      {:ok, {res, _}} -> {res, %{}}
+      {:error, error} -> {error, %{}}
     end
 
   text = vlib.get.(calc, :text, :binary) || props.text
 
-  # allow for value type conversion
-  value =
-    case Map.has_key?(calc, :value) do
-      true -> calc[:value]
-      _ -> value || props.default
+  text =
+    case props.source do
+      "" ->
+        text
+
+      _ ->
+        # allow for value type conversion
+        # no defaults, make calc mandatory
+        case Api.safe(fn -> :io_lib.format(text, [calc[:value]]) end) do
+          {:ok, text} -> text |> to_string()
+          _ -> text
+        end
     end
 
-  formatted =
-    case Api.safe(fn -> :io_lib.format(text, [value]) end) do
-      {:ok, text} -> text |> to_string()
-      _ -> props.text
-    end
-
-  %{calc: calc, text: text, value: value, formatted: formatted}
+  %{calc: calc, error: error, text: text}
 end
 
 save = fn state = %{selected: %{item: sitem}, screen: screen}, id, params ->
