@@ -32,6 +32,15 @@ parse = fn
       _ -> Map.put(change, key, tv)
     end
 
+  change, props, params, key, :any ->
+    tv = params |> Map.get(key) |> String.trim()
+    cv = props[key]
+
+    case tv do
+      ^cv -> change
+      _ -> Map.put(change, key, tv)
+    end
+
   change, props, params, key, :boolean ->
     tv = params |> Map.get(key) |> String.trim() |> String.downcase()
     cv = props[key] |> to_string()

@@ -8,8 +8,20 @@ publish_modbus_devices = fn ->
     for point <- device.points do
       for {name, ni} <- Enum.with_index(plib.names.(point.names)) do
         addr = "#{point.type}:#{point.encoding}:#{point.address + ni}"
-        {dir, type} = plib.type.(point.type, point.encoding)
-        Mdb.register!("flex:points", %{src: src, addr: addr, dir: dir, type: type, name: name})
+        {dir, type} = plib.type.(point)
+        key = plib.key.({dir, type}, name)
+
+        entry = %{
+          src: src,
+          key: key,
+          addr: addr,
+          dir: dir,
+          type: type,
+          name: name
+        }
+
+        Mdb.register!("flex:points", entry)
+        Mdb.register!("flex:points:#{dir}", entry)
       end
     end
   end)

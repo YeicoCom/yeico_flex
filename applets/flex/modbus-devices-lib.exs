@@ -95,39 +95,44 @@ points = fn ->
     end
   end
 
-  # ensure that a relocated point wont get an unexpected value
-  key = fn type, encoding, name ->
-    "#{type}:#{encoding}:#{name}"
-  end
-
   get = fn key ->
-    Adb.get("flex:modbus-devices:point:#{key}", 0)
+    Adb.get("flex:point:#{key}", 0)
   end
 
   put = fn key, val ->
-    Adb.put("flex:modbus-devices:point:#{key}", val)
+    Adb.put("flex:point:#{key}", val)
   end
 
   # use official erlang type names
   type = fn
-    "RDI", _ -> {:input, :boolean}
-    "RDO", _ -> {:input, :boolean}
-    "WDO", _ -> {:output, :boolean}
-    "RRI", "F32BE" -> {:input, :float}
-    "RRO", "F32BE" -> {:input, :float}
-    "WRO", "F32BE" -> {:output, :float}
-    "RRI", "F32LE" -> {:input, :float}
-    "RRO", "F32LE" -> {:input, :float}
-    "WRO", "F32LE" -> {:output, :float}
-    "RRI", "U16BE" -> {:input, :uint16}
-    "RRO", "U16BE" -> {:input, :uint16}
-    "WRO", "U16BE" -> {:output, :uint16}
-    "RRI", "U16LE" -> {:input, :uint16}
-    "RRO", "U16LE" -> {:input, :uint16}
-    "WRO", "U16LE" -> {:output, :uint16}
-    "RRI", _ -> {:input, :uint16}
-    "RRO", _ -> {:input, :uint16}
-    "WRO", _ -> {:output, :uint16}
+    %{type: "RDI"} -> {:source, :boolean}
+    %{type: "RDO"} -> {:source, :boolean}
+    %{type: "WDO"} -> {:sink, :boolean}
+    %{type: "RRI", encoding: "F32BE"} -> {:source, :float}
+    %{type: "RRO", encoding: "F32BE"} -> {:source, :float}
+    %{type: "WRO", encoding: "F32BE"} -> {:sink, :float}
+    %{type: "RRI", encoding: "F32LE"} -> {:source, :float}
+    %{type: "RRO", encoding: "F32LE"} -> {:source, :float}
+    %{type: "WRO", encoding: "F32LE"} -> {:sink, :float}
+    %{type: "RRI", encoding: "U16BE"} -> {:source, :uint16}
+    %{type: "RRO", encoding: "U16BE"} -> {:source, :uint16}
+    %{type: "WRO", encoding: "U16BE"} -> {:sink, :uint16}
+    %{type: "RRI", encoding: "U16LE"} -> {:source, :uint16}
+    %{type: "RRO", encoding: "U16LE"} -> {:source, :uint16}
+    %{type: "WRO", encoding: "U16LE"} -> {:sink, :uint16}
+    %{type: "RRI"} -> {:source, :uint16}
+    %{type: "RRO"} -> {:source, :uint16}
+    %{type: "WRO"} -> {:sink, :uint16}
+  end
+
+  # ensure that a relocated point wont get an unexpected value
+  key = fn
+    {dir, type}, name ->
+      "#{dir}:#{type}:#{name}"
+
+    point, name ->
+      {dir, type} = type.(point)
+      "#{dir}:#{type}:#{name}"
   end
 
   names = fn str ->

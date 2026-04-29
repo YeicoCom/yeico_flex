@@ -6,6 +6,8 @@ props = %{
   w: 0,
   h: 0,
   text: name,
+  sink: "",
+  value: 0,
   style: """
   color: white;
   font-size: 16px;
@@ -36,6 +38,13 @@ editor = fn assigns = %{item: item} ->
   assigns = Map.put(assigns, :props, item.props)
   assigns = Map.put(assigns, :errors, item.errors)
 
+  sinks =
+    "flex:points:sink"
+    |> Mdb.lookup()
+    |> Enum.map(fn {_, v} -> "#{v.type}:#{v.name}" end)
+
+  assigns = Map.put(assigns, :sinks, ["" | sinks])
+
   ~H"""
   <div>Size</div>
   <div class="grid grid-cols-2 gap-1">
@@ -44,6 +53,10 @@ editor = fn assigns = %{item: item} ->
   </div>
   <div>Text</div>
   <.fui fun={@ui.input} name="text" value={@props.text} error={@errors.text} type="text"/>
+  <div>Sink</div>
+  <.fui fun={@ui.select} name="sink" value={@props.sink} error={@errors.sink} values={@sinks}/>
+  <div>Value</div>
+  <.fui fun={@ui.input} name="value" value={@props.value} error={@errors.value}/>
   <div class="col-span-2">Style</div>
   <div class="col-span-2">
     <.fui fun={@ui.area} name="style" value={@props.style} error={@errors.style} rows="8" class="w-full"/>
@@ -62,6 +75,8 @@ save = fn state = %{selected: %{item: sitem}, screen: screen}, id, params ->
   change = val.parse.(change, props, params, :w, {:integer, 0, w})
   change = val.parse.(change, props, params, :h, {:integer, 0, h})
   change = val.parse.(change, props, params, :text, :text)
+  change = val.parse.(change, props, params, :sink, :any)
+  # change = val.parse.(change, props, params, :value, {:type, params.sink})
   change = val.parse.(change, props, params, :style, :style)
 
   props = Map.merge(props, Map.drop(change, [:errors]))

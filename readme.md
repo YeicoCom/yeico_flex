@@ -106,6 +106,7 @@ s=1,a=49,c=rri,d=5,e=u16le # Turck - Read All
 - [ ] Clone controls to easy copy template styling
 - [ ] Label parametric text (and parametric style?)
 - [ ] How to style button hover using just the style attribute
+- [ ] Prevent read/write to points with empty names
 - [x] How to draw border inside bounds to avoid resize on select
   - use outline instead
 - [x] Styling globals: bg-black select-none text-base cursor-default

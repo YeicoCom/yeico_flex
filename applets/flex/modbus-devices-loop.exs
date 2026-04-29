@@ -91,7 +91,7 @@ complement_device = fn {id, device = %{points: points}} ->
     for {point, pi} <- Enum.with_index(points), reduce: device do
       device ->
         names = plib.names.(point.names)
-        keys = for name <- names, do: plib.key.(point.type, point.encoding, name)
+        keys = for name <- names, do: plib.key.(point, name)
         points = for {name, key} <- Enum.zip(names, keys), do: %{name: name, key: key}
         put_in(device, [:meta, pi], %{length: length(points), points: points})
     end
