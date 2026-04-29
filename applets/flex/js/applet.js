@@ -150,7 +150,27 @@ const hooks = {
             })
         },
     },
-    DesignFrame: {
+    ScreenViewer: {
+        mounted() {
+            this.handleEvent("hook:reload", (params) => {
+                window.location.reload()
+            })
+            const pushSize = (el) => {
+                const width = el.clientWidth
+                const height = el.clientHeight
+                const prev = el.sizeState || {}
+                el.sizeState = { width, height }
+                this.pushEvent("hook:resize", { width, height })
+            }
+            this.el.resizeListener = pushSize
+            resizeObserver.observe(this.el)
+            pushSize(this.el)
+        },
+        reconnected() {
+            window.location.reload()
+        }
+    },
+    ScreenDesigner: {
         mounted() {
             const frame = this.el
             const pushSize = (el) => {

@@ -107,9 +107,12 @@ parse = fn
     error? =
       for pair? <- pairs, reduce: false do
         error? ->
-          with [k, _] <- pair?,
+          with [k, v] <- pair?,
                k <- String.trim(k),
-               true <- Regex.match?(~r/^[a-z][a-z-]*[a-z]$/, k) do
+               v <- String.trim(v),
+               true <- String.length(v) > 0,
+               true <- Regex.match?(~r/^[a-z][a-z-]*[a-z]$/, k),
+               true <- Regex.match?(~r/^[^;]+$/, v) do
             false
           else
             _ -> error? or true

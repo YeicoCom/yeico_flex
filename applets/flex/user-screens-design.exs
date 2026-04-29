@@ -2,8 +2,8 @@ use Terminal.Live
 
 view = fn assigns ->
   ~H"""
-  <.fui fun={@ui.frame} reverse={true} title="Screen Designer" label={@screen.name} class="flex gap-2">
-    <div id="design_frame" class="grow relative" phx-hook="DesignFrame">
+  <.fui fun={@ui.frame} reverse={true} title="Screen Designer" label={@name} class="flex gap-2">
+    <div id="design_frame" class="grow relative" phx-hook="ScreenDesigner">
       <div id="design_port" :if={@vp.frame} class="design-port overflow-hidden">
         <div id="design_style" class="design-panel" style={@screen.props.style}/>
         <div :if={@screen.props.grid} id="design_grid" class="design-panel"/>
@@ -60,6 +60,8 @@ handler = fn
     socket = assign(socket, page_title: "Screen Designer")
     socket = assign(socket, page_suffix: " · Flex")
     state = Map.put(state, :menu, nil)
+    state = Map.put(state, :name, nil)
+    state = Map.put(state, :id, nil)
     state = Map.put(state, :sd, sd)
     state = Map.put(state, :ui, ui)
     {socket, state}
@@ -70,8 +72,8 @@ handler = fn
     state = Map.put(state, :selected, sd.select.(state, "Screen", nil))
     # it may not exist: use screen[:name] accesor
     screen = Api.subget!("flex:user-screens:item:#{id}")
-    state = put_in(state, [:screen, :name], screen[:name])
-    state = put_in(state, [:screen, :id], id)
+    state = Map.put(state, :name, screen[:name])
+    state = Map.put(state, :id, id)
     {socket, state}
 
   {:render, _assigns, state = %{screen: %{items: items}}} ->
@@ -168,7 +170,7 @@ handler = fn
 
   {:info, socket, state = %{id: id}, event = {"flex:user-screens:item:" <> id, _, screen}} ->
     Api.trace(view: path, info: event)
-    state = put_in(state, [:screen, :name], screen[:name])
+    state = Map.put(state, :name, screen[:name])
     {socket, state}
 
   {:info, socket, state, event} ->

@@ -7,8 +7,6 @@ box? = true
 zstep = 1.2
 
 new = %{
-  id: nil,
-  name: nil,
   items: %{},
   props: %{
     w: 800,
@@ -277,9 +275,9 @@ end
 
 {:ok, cubdb} = CubDB.start_link(data_dir: path)
 
-save = fn %{screen: screen = %{id: id}} ->
-  CubDB.put(cubdb, id, Map.drop(screen, [:id, :name]))
-  Api.putcast!("flex:screen-designs:#{id}", screen)
+save = fn %{id: id, screen: screen} ->
+  CubDB.put(cubdb, id, screen)
+  Api.putcast!("flex:user-screens:design:#{id}", screen)
 end
 
 load = fn id ->
@@ -287,6 +285,7 @@ load = fn id ->
 end
 
 %{
+  port: port,
   form: form,
   menu: menu,
   item: item,

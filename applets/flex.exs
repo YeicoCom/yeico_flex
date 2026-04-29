@@ -22,7 +22,7 @@ Api.evalf("flex/modbus-devices-loop.exs",
   plib: plib
 )
 
-Api.evalf("flex/modbus-devices-view.exs",
+Api.evalf("flex/modbus-devices-index.exs",
   path: "/flex/modbus-devices",
   ui: ui,
   dlib: dlib,
@@ -32,7 +32,7 @@ Api.evalf("flex/modbus-devices-view.exs",
 Api.evalf("flex/modbus-devices-publish.exs", dlib: dlib, plib: plib)
 
 {lib, _} = Api.evalf("flex/modbus-terminal-lib.exs", modbus: modbus, modcmd: modcmd)
-Api.evalf("flex/modbus-terminal-view.exs", path: "/flex/modbus-terminal", ui: ui, lib: lib)
+Api.evalf("flex/modbus-terminal-index.exs", path: "/flex/modbus-terminal", ui: ui, lib: lib)
 
 Api.putcast!("flex:serial-exports:items", [])
 Api.putcast!("flex:serial-exports:logs", %{})
@@ -44,7 +44,7 @@ Api.putcast!("flex:user-screens:items", [])
 Api.putcast!("flex:user-screens:logs", %{})
 {lib, _} = Api.evalf("flex/user-screens-lib.exs")
 Api.evalf("flex/user-screens-loop.exs", path: dbpath.("user-screens"), dms: 2_000)
-Api.evalf("flex/user-screens-view.exs", path: "/flex/user-screens", ui: ui, lib: lib)
+Api.evalf("flex/user-screens-index.exs", path: "/flex/user-screens", ui: ui, lib: lib)
 {vlib, _} = Api.evalf("flex/lib-screen-validation.exs", ui: ui)
 {button, _} = Api.evalf("flex/lib-screen-button.exs", ui: ui, vlib: vlib, wlib: wlib)
 {label, _} = Api.evalf("flex/lib-screen-label.exs", ui: ui, vlib: vlib, wlib: wlib)
@@ -65,8 +65,15 @@ Api.evalf("flex/user-screens-design.exs",
   sd: sd
 )
 
+Api.evalf("flex/user-screens-viewer.exs",
+  path: "/flex/user-screens/viewer",
+  lib: lib,
+  ui: ui,
+  sd: sd
+)
+
 {lib, _} = Api.evalf("flex/socket-terminal-lib.exs", toms: 4_000)
-Api.evalf("flex/socket-terminal-view.exs", path: "/flex/socket-terminal", ui: ui, lib: lib)
+Api.evalf("flex/socket-terminal-index.exs", path: "/flex/socket-terminal", ui: ui, lib: lib)
 
 Api.evalf("flex/echo-server-loop.exs", dms: 1_000, ip: "127.0.0.1", port: 44000)
 
@@ -92,7 +99,7 @@ if Terminal.dev?() do
 
   {lib, _} = Api.evalf("flex/dev-generic-items-lib.exs")
   Api.evalf("flex/dev-generic-items-loop.exs", path: dbpath.("generic-items"), dms: 2_000)
-  Api.evalf("flex/dev-generic-items-view.exs", path: "/flex/dev-generic-items", ui: ui, lib: lib)
+  Api.evalf("flex/dev-generic-items-index.exs", path: "/flex/dev-generic-items", ui: ui, lib: lib)
 
   Api.evalf("flex/dev-ui-tester-view.exs", path: "/flex/dev-ui-tester", ui: ui)
 end

@@ -20,6 +20,7 @@ view = fn assigns ->
           <.fui fun={@ui.link} phx-click="click:action" phx-value-id={id} phx-value-action="enable">Enable</.fui>
           <.fui fun={@ui.link} phx-click="click:action" phx-value-id={id} phx-value-action="disable">Disable</.fui>
           <.fui fun={@ui.href} href={"/flex/user-screens/design?id=#{id}"}>Design</.fui>
+          <.fui fun={@ui.href} href={"/flex/user-screens/viewer?id=#{id}"}>View</.fui>
           <div class="grow"></div>
           <.fui fun={@ui.link} phx-click="click:delete" phx-value-id={id} type="danger">Delete</.fui>
         </div>
