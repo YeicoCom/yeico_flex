@@ -282,11 +282,8 @@ href = fn assigns ->
   """
 end
 
-outline = "outline outline-solid outline-2 outline-lime-500"
-
 %{
   phxattr: phxattr,
-  outline: outline,
   frame: frame,
   modal: modal,
   select: select,

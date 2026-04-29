@@ -181,12 +181,12 @@ end
 
 item = fn assigns ->
   assigns = Map.put(assigns, :size, size)
-  pass = [:x, :y, :type, :index, :props, :selected, :size]
-  assigns = Map.put(assigns, :pass, Map.take(assigns, pass))
+  assigns = Map.put(assigns, :pass, Map.take(assigns, [:x, :y, :props, :size]))
   assigns = Map.put(assigns, :fun, items[assigns.type].render)
 
   ~H"""
-  <.fui fun={@fun} id={"item_#{@id}_#{@type}"} {@pass}/>
+  <.fui fun={@fun} id={"item_#{@id}_#{@type}"} {@pass} class={
+    ["absolute", @selected && "outline outline-solid outline-2 outline-lime-500"]}/>
   """
 end
 

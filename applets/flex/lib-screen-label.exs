@@ -18,10 +18,8 @@ props = %{
 }
 
 render = fn assigns ->
-  assigns = Map.put(assigns, :ui, ui)
-
   ~H"""
-    <div id={@id} class={["absolute", @selected && @ui.outline]}
+    <div id={@id} class={@class}
       style={[
         "left: #{@x}px; top: #{@y}px;",
         @size.(@props.w, @props.h),
