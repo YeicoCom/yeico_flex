@@ -35,8 +35,6 @@ render = fn assigns ->
     </div>
     <style id={"#{@id}_Style"}>
     <%= "\##{@id}" %> { <%= @rt.css[nil] %> }
-    <%= "\##{@id}:hover" %> { <%= @rt.css["hover"] %> }
-    <%= "\##{@id}:active" %> { <%= @rt.css["active"] %> }
     <%= "\##{@id}[disabled]" %> { <%= @rt.css["disabled"] %> }
     </style>
   """

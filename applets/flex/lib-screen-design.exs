@@ -15,6 +15,7 @@ new = %{
     grid: true,
     style: """
     background-color: black;
+    border-radius: 4px;
     """
   }
 }

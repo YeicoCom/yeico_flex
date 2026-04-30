@@ -6,7 +6,7 @@ view = fn assigns ->
     <div  id="design_frame" class="grow relative" phx-hook="ScreenViewer">
       <%= if @enabled do %>
       <div :if={@size} id="design_port" class="design-port overflow-hidden">
-        <div id="design_panel" class="design-panel text-white select-none text-base [&_*]:cursor-default"
+        <div id="design_panel" class="design-panel text-white select-none text-base [&_*]:cursor-default leading-none"
           draggable="false" style={@screen.props.style}>
           <.fui :for={{id, item} <- @index} fun={@sd.item} id={id} {item} rt={@rts[id]} selected={false} runtime={true}/>
         </div>

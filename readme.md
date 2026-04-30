@@ -95,6 +95,10 @@ s=1,a=49,c=rri,d=5,e=u16le # Turck - Read All
 # read command *1B0<cr>[<nl>]
 ```
 
+## Reference
+
+- https://tailscan.com/colors
+
 ## Fixme
 
 - [ ] Document live view life cycle
@@ -102,18 +106,18 @@ s=1,a=49,c=rri,d=5,e=u16le # Turck - Read All
 - [ ] Shaky things: browser, mountrap, socat, kill links, unable to await defers, modbus lib
 - [ ] Modbus lib deterministic error detection
 - [ ] Modbus rtu over tcp packet fragmentation
-- [ ] Why html text has such a large y padding?
 - [ ] Clone controls to easy copy template styling
 - [ ] Prevent read/write to points with empty names
 - [ ] Show io_lib format escapes help in props editor
 - [ ] CubDB screen design db cleanup strategy
 - [ ] Define mqtt strategy
 - [ ] Screen designer stumped after several enable/disable
+- [x] Why html text has such a large y padding?: leading-none
 - [x] Button hover and press visual feedback: with parametric pseudo classes hover and active
 - [?] Panel drag gets in the way of reliable clicks: drag requires shift pressed now (enough?)
 - [?] Label parametric text (and parametric style?): only parametric text and parametric pseudo classes (enough?)
 - [x] How to style button hover using just the style attribute: embedded style tags for each supported pseudo class
-- [x] Define panel design and runtime style defaults: text-white, text-base, [&_*]:cursor-default
+- [x] Define panel design and runtime style defaults: text-white, text-base, [&_*]:cursor-default, leading-none
 - [x] How to draw border inside bounds to avoid resize on select
   - use outline instead
 - [x] Styling globals: bg-black select-none text-base cursor-default
