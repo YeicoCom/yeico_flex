@@ -103,8 +103,7 @@ save = fn state = %{selected: %{item: sitem}, screen: screen}, id, params ->
   sitem = Map.put(sitem, :props, params)
   sitem = Map.put(sitem, :errors, change.errors)
   state = put_in(state, [:selected, :item], sitem)
-  rt = calculate.(aitem, nil)
-  state = put_in(state, [:rts, id], rt)
+  state = put_in(state, [:rts, id], calculate.(aitem, nil))
   state
 end
 

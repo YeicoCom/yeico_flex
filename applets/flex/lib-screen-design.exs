@@ -298,7 +298,7 @@ init = fn state = %{events: events}, id, item, design? ->
       case {design?, Map.has_key?(events, key)} do
         {false, true} -> Adb.get(key)
         {false, false} -> Api.subget!(key)
-        _ -> item.props.default
+        _ -> nil
       end
     end)
 
