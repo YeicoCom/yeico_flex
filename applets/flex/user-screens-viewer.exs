@@ -29,6 +29,8 @@ view = fn assigns ->
           height: <%= @panel.h %>px;
         }
       </style>
+      <% else %>
+      <div class="flex items-center h-full justify-center text-3xl">Disabled</div>
       <% end %>
     </div>
   </.fui>
