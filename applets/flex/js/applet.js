@@ -38,10 +38,11 @@ function enterNavigate(el) {
         const el = elements[i]
         const isSelect = el instanceof HTMLSelectElement
         const isInput = el instanceof HTMLInputElement
+        const isArea = el instanceof HTMLTextAreaElement
         const isSubmit = el.type === "submit"
-        if (isSelect || isInput) {
+        if (isSelect || isInput || isArea) {
             const listener = (event) => {
-                if (event.key === 'Enter') {
+                if (event.key === 'Enter' && !event.shiftKey) {
                     if (!isSubmit || el.disabled) {
                         event.preventDefault();
                         for (let j = 1; j < len; j++) {
@@ -149,6 +150,17 @@ const hooks = {
                 this.el.history = { line: 0, lines }
             })
         },
+    },
+    AllPages: {
+        mounted() {
+            this.handleEvent("hook:copy", ({ text }) => {
+                try {
+                    navigator.clipboard.writeText(text);
+                } catch (err) {
+                    console.error(err);
+                }
+            })
+        }
     },
     ScreenViewer: {
         mounted() {

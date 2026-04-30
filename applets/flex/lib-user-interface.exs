@@ -24,7 +24,7 @@ frame = fn assigns ->
   assigns = Map.put_new(assigns, :title, "Flex")
 
   ~H"""
-  <div id="main_frame" phx-window-keydown="modal:close" phx-key="Escape"
+  <div id="main_frame" phx-window-keydown="modal:close" phx-key="Escape" phx-hook="AllPages"
     class="flex flex-col gap-4 p-4 h-screen select-none text-base [&_*]:cursor-default">
     <div class={[@reverse && "z-20", "flex gap-4 p-4 items-center bg-zinc-800 rounded"]}>
       <div class="relative group text-white content-center">
