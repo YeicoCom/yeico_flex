@@ -140,7 +140,7 @@ parse = fn
       |> Enum.map(&String.replace(&1, ~r/ +/, " "))
       |> Enum.map(&String.trim(&1))
       |> Enum.map(&String.replace_suffix(&1, ";", ""))
-      |> Enum.map(&String.split(&1, ":", parts: 2))
+      |> Enum.map(&String.split(&1, ": ", parts: 2))
 
     error? =
       for pair? <- pairs, reduce: false do
@@ -149,7 +149,7 @@ parse = fn
                k <- String.trim(k),
                v <- String.trim(v),
                true <- String.length(v) > 0,
-               true <- Regex.match?(~r/^[a-z][a-z-]*[a-z]$/, k),
+               true <- Regex.match?(~r/^[a-z][a-z-]*[a-z](:[a-z][a-z-]*[a-z])?$/, k),
                true <- Regex.match?(~r/^[^;]+$/, v) do
             false
           else
@@ -161,8 +161,8 @@ parse = fn
     tv =
       pairs
       |> Enum.map(fn list -> Enum.map(list, &String.trim/1) end)
-      |> Enum.map(&Enum.join(&1, ": "))
-      |> Enum.map(&(&1 <> ";\n"))
+      |> Enum.map(&(Enum.join(&1, ": ") <> ";\n"))
+      |> Enum.join("")
 
     case {tv, error?} do
       {_, true} -> put_in(change, [:errors, key], "Must be one style per line")
@@ -195,8 +195,34 @@ params = fn props, params ->
   for({k, _} <- props, do: {k, params["#{k}"]}) |> Enum.into(%{})
 end
 
+css = fn style ->
+  for line <- String.split(style, "\n", trim: true), reduce: %{} do
+    css ->
+      [k, v] = String.split(line, ": ", parts: 2)
+
+      case String.split(k, ":", parts: 2) do
+        [k] -> Map.update(css, nil, ["#{k}: #{v}"], &["#{k}: #{v}" | &1])
+        [p, k] -> Map.update(css, "#{p}", ["#{k}: #{v}"], &["#{k}: #{v}" | &1])
+      end
+  end
+  |> Enum.map(fn {k, v} -> {k, Enum.reverse(v)} end)
+  |> Enum.map(fn {k, v} -> {k, Enum.join(v, " ")} end)
+  |> Enum.into(%{})
+end
+
+binds = fn ->
+  f = fn
+    f, d when is_list(d) -> :io_lib.format(f, d) |> to_string()
+    f, d -> :io_lib.format(f, [d]) |> to_string()
+  end
+
+  [f: f]
+end
+
 %{
   get: get,
+  css: css,
+  binds: binds,
   parse: parse,
   errors: errors,
   params: params

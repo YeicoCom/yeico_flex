@@ -15,6 +15,8 @@ props = %{
   border-radius: 4px;
   text-align: center;
   background-color: blue;
+  hover:background-color: teal;
+  hover:background-color: gray;
   """,
   calc: """
   # bindings: value, default, text
@@ -23,18 +25,24 @@ props = %{
 }
 
 render = fn assigns ->
+  # button supports disabled pseudo class, div does not
+  # div supports both hover and active pseudo classes
   ~H"""
-    <div id={@id} class={@class}
+    <button id={@id} class={@class} disabled={@rt.disabled}
       phx-click={!@rt.disabled && @runtime && "item:click"}
       phx-value-id={!@rt.disabled && @runtime && @id}
       style={[
-        if(!@rt.disabled && @runtime, do: "cursor: pointer;", else: "cursor: default;"),
         "left: #{@x}px; top: #{@y}px;",
         @size.(@props.w, @props.h),
-        @props.style
       ]}>
       {@rt.text}
-    </div>
+    </button>
+    <style id={"#{@id}_Style"}>
+    <%= "\##{@id}" %> { <%= @rt.css[nil] %> }
+    <%= "\##{@id}:hover" %> { <%= @rt.css["hover"] %> }
+    <%= "\##{@id}:active" %> { <%= @rt.css["active"] %> }
+    <%= "\##{@id}:disabled" %> { <%= @rt.css["disabled"] %> }
+    </style>
   """
 end
 
@@ -72,13 +80,8 @@ editor = fn assigns = %{item: item} ->
   """
 end
 
-calculate = fn %{props: %{calc: calc, default: default, text: text}}, value ->
-  f = fn
-    f, d when is_list(d) -> :io_lib.format(f, d) |> to_string()
-    f, d -> :io_lib.format(f, [d]) |> to_string()
-  end
-
-  bindings = [value: value, default: default, text: text, f: f]
+calculate = fn %{props: %{style: style, calc: calc, default: default, text: text}}, value ->
+  bindings = [value: value, default: default, text: text] ++ vlib.binds.()
 
   # no clean way to use error || calc
   {output, calc} =
@@ -88,9 +91,10 @@ calculate = fn %{props: %{calc: calc, default: default, text: text}}, value ->
       {:error, error} -> {error, %{}}
     end
 
+  css = vlib.css.(style)
   text = vlib.get.(calc, :text, :binary) || text
   disabled = vlib.get.(calc, :disabled, :boolean) || false
-  %{calc: calc, output: output, text: text, disabled: disabled}
+  %{css: css, calc: calc, output: output, text: text, disabled: disabled}
 end
 
 save = fn state = %{selected: %{item: sitem}, screen: screen}, id, params ->

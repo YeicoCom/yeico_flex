@@ -259,7 +259,8 @@ end
 select = fn
   %{screen: screen = %{props: props}}, type, nil ->
     screen = Map.put(screen, :errors, vlib.errors.(props))
-    %{id: nil, type: type, item: screen, editor: editor, save: save}
+    # item:save wont match with nil id
+    %{id: "", type: type, item: screen, editor: editor, save: save}
 
   %{screen: screen}, type, id ->
     item = %{props: props} = screen.items[id]

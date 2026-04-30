@@ -26,14 +26,19 @@ render = fn assigns ->
   # search: io_lib Format Escapes
 
   ~H"""
-    <div id={@id} class={@class}
+    <div id={@id} class={@class} disabled={@rt.disabled}
       style={[
         "left: #{@x}px; top: #{@y}px;",
         @size.(@props.w, @props.h),
-        @props.style,
       ]}>
       {@rt.text}
     </div>
+    <style id={"#{@id}_Style"}>
+    <%= "\##{@id}" %> { <%= @rt.css[nil] %> }
+    <%= "\##{@id}:hover" %> { <%= @rt.css["hover"] %> }
+    <%= "\##{@id}:active" %> { <%= @rt.css["active"] %> }
+    <%= "\##{@id}[disabled]" %> { <%= @rt.css["disabled"] %> }
+    </style>
   """
 end
 
@@ -71,13 +76,8 @@ editor = fn assigns = %{item: item} ->
   """
 end
 
-calculate = fn %{props: %{calc: calc, default: default, text: text}}, value ->
-  f = fn
-    f, d when is_list(d) -> :io_lib.format(f, d) |> to_string()
-    f, d -> :io_lib.format(f, [d]) |> to_string()
-  end
-
-  bindings = [value: value, default: default, text: text, f: f]
+calculate = fn %{props: %{style: style, calc: calc, default: default, text: text}}, value ->
+  bindings = [value: value, default: default, text: text] ++ vlib.binds.()
 
   # no clean way to use error || calc
   {output, calc} =
@@ -87,9 +87,10 @@ calculate = fn %{props: %{calc: calc, default: default, text: text}}, value ->
       {:error, error} -> {error, %{}}
     end
 
+  css = vlib.css.(style)
   text = vlib.get.(calc, :text, :binary) || text
   disabled = vlib.get.(calc, :disabled, :boolean) || false
-  %{calc: calc, output: output, text: text, disabled: disabled}
+  %{css: css, calc: calc, output: output, text: text, disabled: disabled}
 end
 
 save = fn state = %{selected: %{item: sitem}, screen: screen}, id, params ->
