@@ -190,9 +190,10 @@ end
 
 form = fn assigns ->
   assigns = ui.phxattr.(assigns)
+  assigns = Map.put(assigns, :ui, ui)
 
   ~H"""
-    <form id={@id} class={[@class, "[&_*]:text-xs"]} {@phxattr} autocomplete="off">
+    <form id={@id} class={@class} {@phxattr} autocomplete="off">
       <input type="submit" hidden>
       <input type="hidden" name="iid" value={@iid}/>
       <.fui fun={@editor} item={@item} rt={@rt}/>
@@ -258,7 +259,7 @@ end
 select = fn
   %{screen: screen = %{props: props}}, type, nil ->
     screen = Map.put(screen, :errors, vlib.errors.(props))
-    %{id: "id", type: type, item: screen, editor: editor, save: save}
+    %{id: nil, type: type, item: screen, editor: editor, save: save}
 
   %{screen: screen}, type, id ->
     item = %{props: props} = screen.items[id]
@@ -303,7 +304,8 @@ init = fn state = %{events: events}, id, item, design? ->
     end)
 
   list = events[key]
-  list = if key, do: [id | list || []], else: list
+  add? = key && not design?
+  list = if add?, do: [id | list || []], else: list
   state = put_in(state, [:events, key], list)
   state = put_in(state, [:rts, id], rt)
   state

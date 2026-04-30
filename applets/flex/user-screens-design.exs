@@ -20,10 +20,13 @@ view = fn assigns ->
       <.fui id="design_menu" :if={@menu} fun={@sd.menu} x={@menu.x} y={@menu.y} items={@menu.items?}
         phx-click-away="modal:close"/>
     </div>
-    <div class="flex flex-col p-1 gap-2 w-[16em]">
+    <div class="flex flex-col p-1 gap-2 w-[16em] overflow-y-auto">
       <div class="text-xl">{@selected.type} Properties</div>
       <.fui id="props_editor" fun={@sd.form} editor={@selected.editor} iid={@selected.id} item={@selected.item} rt={@rts[@selected.id]}
-        phx-submit="item:save" phx-change="item:save" class="grid grid-cols-[auto_1fr] gap-y-1 gap-x-2 items-center"/>
+        phx-submit="item:save" phx-change="item:save" class="[&_*]:text-xs grid grid-cols-[auto_1fr] gap-y-1 gap-x-2 items-center"/>
+      <div class="grow"/>
+      <.fui fun={@ui.link} :if={@selected.id} type="danger" class="text-xs justify-end"
+        phx-click="item:delete" phx-value-id={@selected.id}>Delete</.fui>
     </div>
   </.fui>
   <style :if={@vp.frame}>
@@ -102,6 +105,15 @@ handler = fn
     sd.save.(state)
     {socket, state}
 
+  {:event, socket, state = %{selected: %{id: id}}, event = "item:delete", params = %{"id" => id}} ->
+    Api.trace(view: path, event: event, params: params)
+    {_, state} = pop_in(state, [:rts, id])
+    {_, state} = pop_in(state, [:screen, :items, id])
+    state = Map.put(state, :selected, sd.select.(state, "Screen", nil))
+    state = Map.put(state, :menu, nil)
+    sd.save.(state)
+    {socket, state}
+
   {:event, socket, state = %{vp: %{port: %{s: s, x: pox, y: poy}, panel: %{x: pax, y: pay}}},
    event = "item:add", params = %{"x" => x, "y" => y, "type" => type}} ->
     Api.trace(view: path, event: event, params: params)
@@ -113,6 +125,7 @@ handler = fn
     y = (y - poy - pay) / s
     item = %{x: x, y: y, w: 0, h: 0, type: type, props: sd.props.(type), index: map_size(items)}
     state = put_in(state, [:screen, :items, id], item)
+    state = sd.init.(state, id, item, true)
     state = Map.put(state, :selected, sd.select.(state, type, id))
     state = Map.put(state, :menu, nil)
     sd.save.(state)
