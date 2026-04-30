@@ -5,7 +5,7 @@ name = "Label"
 props = %{
   w: 0,
   h: 0,
-  text: "#{name} ~s",
+  text: name,
   source: "",
   default: "0",
   style: """
