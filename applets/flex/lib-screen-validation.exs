@@ -151,7 +151,7 @@ parse = fn
                true <- String.length(v) > 0,
                true <- Regex.match?(~r/^[a-z][a-z-]*[a-z](:[a-z][a-z-]*[a-z])?$/, k),
                true <- Regex.match?(~r/^[^;]+$/, v) do
-            false
+            error?
           else
             _ -> error? or true
           end
