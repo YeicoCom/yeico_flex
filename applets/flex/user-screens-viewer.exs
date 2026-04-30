@@ -2,7 +2,7 @@ use Terminal.Live
 
 view = fn assigns ->
   ~H"""
-  <.fui fun={@ui.frame} title="Screen Viewer" label={@name} class="flex gap-2">
+  <.fui fun={@ui.frame} reverse={true} title="Screen Viewer" label={@name} class="flex gap-2">
     <div  id="design_frame" class="grow relative" phx-hook="ScreenViewer">
       <%= if @enabled do %>
       <div :if={@size} id="design_port" class="design-port overflow-hidden">

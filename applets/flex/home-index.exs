@@ -3,8 +3,8 @@ use Terminal.Live
 view = fn assigns ->
   ~H"""
   <.fui fun={@ui.frame} title="Home">
-    <div :for={{id, item} <- @items} class="flex flex-col justify-center items-center h-full text-3xl">
-      <.fui fun={@ui.href} href={"/flex/user-screens/viewer?id=#{id}"}>{item.name}</.fui>
+    <div class="flex flex-col gap-4 justify-center items-center overflow-y-auto h-full text-3xl">
+      <.fui :for={{id, item} <- @items} fun={@ui.href} href={"/flex/user-screens/viewer?id=#{id}"}>{item.name}</.fui>
     </div>
   </.fui>
   """
