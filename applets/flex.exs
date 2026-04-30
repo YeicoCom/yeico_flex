@@ -40,11 +40,6 @@ Api.putcast!("flex:serial-exports:logs", %{})
 Api.evalf("flex/serial-exports-loop.exs", path: dbpath.("serial-exports"), dms: 2_000)
 Api.evalf("flex/serial-exports-view.exs", path: "/flex/serial-exports", ui: ui, lib: lib)
 
-Api.putcast!("flex:user-screens:items", [])
-Api.putcast!("flex:user-screens:logs", %{})
-{lib, _} = Api.evalf("flex/user-screens-lib.exs")
-Api.evalf("flex/user-screens-loop.exs", path: dbpath.("user-screens"), dms: 2_000)
-Api.evalf("flex/user-screens-index.exs", path: "/flex/user-screens", ui: ui, lib: lib)
 {vlib, _} = Api.evalf("flex/lib-screen-validation.exs", ui: ui)
 {button, _} = Api.evalf("flex/lib-screen-button.exs", ui: ui, vlib: vlib, wlib: wlib)
 {label, _} = Api.evalf("flex/lib-screen-label.exs", ui: ui, vlib: vlib, wlib: wlib)
@@ -57,6 +52,12 @@ items = [button, label]
     vlib: vlib,
     items: items
   )
+
+Api.putcast!("flex:user-screens:items", [])
+Api.putcast!("flex:user-screens:logs", %{})
+{lib, _} = Api.evalf("flex/user-screens-lib.exs")
+Api.evalf("flex/user-screens-loop.exs", path: dbpath.("user-screens"), dms: 2_000)
+Api.evalf("flex/user-screens-index.exs", path: "/flex/user-screens", ui: ui, sd: sd, lib: lib)
 
 Api.evalf("flex/user-screens-design.exs",
   path: "/flex/user-screens/design",

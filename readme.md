@@ -137,6 +137,7 @@ text = f.("Button ~s", default)
 - [ ] CubDB screen design db cleanup strategy
 - [ ] Define mqtt strategy
 - [ ] Screen designer stumped after several enable/disable
+- [ ] Task to periodically delete unreferenced screen designs
 - [x] Why html text has such a large y padding?: leading-none
 - [x] Button hover and press visual feedback: with parametric pseudo classes hover and active
 - [?] Panel drag gets in the way of reliable clicks: drag requires shift pressed now (enough?)

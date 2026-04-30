@@ -24,6 +24,7 @@ modal = fn
   {:edit, state, id, item} ->
     Map.put(state, :modal, %{
       title: "Edit #{name}",
+      type: :edit,
       item: item,
       id: id,
       opts: options
@@ -32,9 +33,16 @@ modal = fn
   {:add, state} ->
     Map.put(state, :modal, %{
       title: "Add #{name}",
+      type: :edit,
       item: new,
       id: nil,
       opts: options
+    })
+
+  {:paste, state} ->
+    Map.put(state, :modal, %{
+      title: "Paste User Screen",
+      type: :paste
     })
 end
 

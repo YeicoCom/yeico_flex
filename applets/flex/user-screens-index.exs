@@ -4,11 +4,10 @@ view = fn assigns ->
   ~H"""
   <.fui fun={@ui.frame} title="User Screens">
     <div class="flex flex-col w-full h-full overflow-y-auto">
-      <div class="p-2 flex">
-        <.fui fun={@ui.link} phx-click="click:add">
-        <div class="hero-plus"/>Add User Screen
-        </.fui>
+      <div class="px-4 py-2 flex">
+        <.fui fun={@ui.link} phx-click="click:add"><div class="hero-plus"/>Add User Screen</.fui>
         <div class="grow"/>
+        <.fui fun={@ui.link} phx-click="click:paste">Paste</.fui>
       </div>
       <div :for={id <- @index} class="flex flex-col p-2 hover:rounded hover:bg-zinc-800">
         <% item = @items[id] %>
@@ -21,7 +20,8 @@ view = fn assigns ->
           <.fui fun={@ui.link} phx-click="click:action" phx-value-id={id} phx-value-action="disable">Disable</.fui>
           <.fui fun={@ui.href} href={"/flex/user-screens/design?id=#{id}"}>Design</.fui>
           <.fui fun={@ui.href} href={"/flex/user-screens/viewer?id=#{id}"}>View</.fui>
-          <div class="grow"></div>
+            <.fui fun={@ui.link} phx-click="click:copy" phx-value-id={id}>Copy</.fui>
+            <div class="grow"/>
           <.fui fun={@ui.link} phx-click="click:delete" phx-value-id={id} type="danger">Delete</.fui>
         </div>
         <% log = @logs[id] %>
@@ -32,7 +32,7 @@ view = fn assigns ->
       </div>
     </div>
   </.fui>
-  <.fui fun={@ui.modal} :if={@modal} title={@modal.title} class="min-w-[360px] flex flex-col gap-2">
+  <.fui fun={@ui.modal} :if={@modal[:type] == :edit} title={@modal.title} class="min-w-[360px] flex flex-col gap-2">
     <% %{item: item, opts: opts} = @modal %>
     <form id="modal_form" phx-submit="modal:submit" class="flex flex-col gap-4"
       phx-hook="EnterNavigation" phx-update="ignore" autocomplete="off">
@@ -43,6 +43,13 @@ view = fn assigns ->
         <.fui fun={@ui.select} name="status" value={item.status} values={opts.status} required/>
       </div>
       <.fui fun={@ui.button} type="submit" class="col-span-2">Accept</.fui>
+    </form>
+  </.fui>
+  <.fui fun={@ui.modal} :if={@modal[:type] == :paste} title={@modal.title} class="min-w-[360px]">
+    <form id="modal_form" phx-submit="modal:submit" class="flex flex-col gap-2"
+      phx-update="ignore" autocomplete="off" phx-hook="EnterNavigation">
+      <.fui fun={@ui.area} name="data" rows={12} class="text-xs" id="modal_autofocus" phx-hook="AutoFocus"/>
+      <.fui fun={@ui.button} type="submit">Accept</.fui>
     </form>
   </.fui>
   """
@@ -94,6 +101,36 @@ handler = fn
     Api.trace(view: path, event: event, params: params)
     Bus.broadcast!("flex:user-screens:update", {id, lib.parse.(params)})
     state = Map.put(state, :modal, nil)
+    {socket, state}
+
+  {:event, socket, state, event = "modal:submit", params = %{"data" => data}} ->
+    Api.trace(view: path, event: event, params: params)
+
+    with ["user-screen", hash, data64] <- String.split(data, ":"),
+         ^hash <- :crypto.hash(:md5, data64) |> Base.encode16(),
+         {:ok, code} <- Base.decode64(data64),
+         {%{id: id, type: "user-screen", item: item, design: design}, _} <- Code.eval_string(code) do
+      sd.save.(%{id: id, screen: design})
+      Bus.broadcast!("flex:user-screens:update", {id, item})
+      state = Map.put(state, :modal, nil)
+      {socket, state}
+    else
+      _ -> {socket, state}
+    end
+
+  {:event, socket, state = %{items: items}, event = "click:copy", params = %{"id" => id}} ->
+    Api.trace(view: path, event: event, params: params)
+    type = "user-screen"
+    item = %{items[id] | status: :disabled}
+    payload = %{id: id, type: type, item: item, design: sd.load.(id)}
+    data64 = inspect(payload, limit: :infinity) |> Base.encode64()
+    hash = :crypto.hash(:md5, data64) |> Base.encode16()
+    socket = push_event(socket, "hook:copy", %{text: "#{type}:#{hash}:#{data64}"})
+    {socket, state}
+
+  {:event, socket, state, event = "click:paste", params} ->
+    Api.trace(view: path, event: event, params: params)
+    state = lib.modal.({:paste, state})
     {socket, state}
 
   {:event, socket, state, event = "click:delete", params = %{"id" => id}} ->
