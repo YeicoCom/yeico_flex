@@ -80,15 +80,14 @@ calculate = fn %{props: %{style: style, calc: calc, default: default, text: text
   # no clean way to use error || calc
   {output, calc} =
     case Api.safe(fn -> Code.eval_string(calc, bindings) end) do
-      {:ok, {res, _}} when is_map(res) -> {res, res}
-      {:ok, {res, _}} -> {res, %{}}
+      {:ok, {_, kw}} -> {Keyword.take(kw, [:text, :disabled]), Enum.into(kw, %{})}
       {:error, error} -> {error, %{}}
     end
 
   css = vlib.css.(style)
   text = vlib.get.(calc, :text, :binary) || text
   disabled = vlib.get.(calc, :disabled, :boolean) || false
-  %{css: css, calc: calc, output: output, text: text, disabled: disabled}
+  %{css: css, output: output, text: text, disabled: disabled}
 end
 
 save = fn state = %{selected: %{item: sitem}, screen: screen}, id, params ->
