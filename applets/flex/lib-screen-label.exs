@@ -16,7 +16,8 @@ props = %{
   background-color: transparent;
   """,
   calc: """
-  %{value: value || default}
+  # bindings: value, default, text
+  %{text: f.("Label ~s", default)}
   """
 }
 
@@ -65,36 +66,30 @@ editor = fn assigns = %{item: item} ->
   </div>
   <div class="col-span-2">Output</div>
   <div class="col-span-2">
-    <.fui fun={@ui.area} value={inspect(@rt.error || @rt.calc)} disabled rows="8" class="w-full"/>
+    <.fui fun={@ui.area} value={inspect(@rt.output)} disabled rows="8" class="w-full"/>
   </div>
   """
 end
 
-calculate = fn %{props: props}, value ->
-  {error, calc} =
-    case Api.safe(fn -> Code.eval_string(props.calc, default: props.default, value: value) end) do
-      {:ok, {res, _}} when is_map(res) -> {nil, res}
+calculate = fn %{props: %{calc: calc, default: default, text: text}}, value ->
+  f = fn
+    f, d when is_list(d) -> :io_lib.format(f, d) |> to_string()
+    f, d -> :io_lib.format(f, [d]) |> to_string()
+  end
+
+  bindings = [value: value, default: default, text: text, f: f]
+
+  # no clean way to use error || calc
+  {output, calc} =
+    case Api.safe(fn -> Code.eval_string(calc, bindings) end) do
+      {:ok, {res, _}} when is_map(res) -> {res, res}
       {:ok, {res, _}} -> {res, %{}}
       {:error, error} -> {error, %{}}
     end
 
-  text = vlib.get.(calc, :text, :binary) || props.text
-
-  text =
-    case props.source do
-      "" ->
-        text
-
-      _ ->
-        # allow for value type conversion
-        # no defaults, make calc mandatory
-        case Api.safe(fn -> :io_lib.format(text, [calc[:value]]) end) do
-          {:ok, text} -> text |> to_string()
-          _ -> text
-        end
-    end
-
-  %{calc: calc, error: error, text: text}
+  text = vlib.get.(calc, :text, :binary) || text
+  disabled = vlib.get.(calc, :disabled, :boolean) || false
+  %{calc: calc, output: output, text: text, disabled: disabled}
 end
 
 save = fn state = %{selected: %{item: sitem}, screen: screen}, id, params ->

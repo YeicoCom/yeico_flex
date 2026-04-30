@@ -7,7 +7,7 @@ props = %{
   h: 0,
   text: name,
   sink: "",
-  default: 0,
+  default: "0",
   style: """
   color: white;
   font-size: 16px;
@@ -17,21 +17,22 @@ props = %{
   background-color: blue;
   """,
   calc: """
-  %{disabled: value == default}
+  # bindings: value, default, text
+  %{text: f.("Button ~s", default)}
   """
 }
 
 render = fn assigns ->
   ~H"""
     <div id={@id} class={@class}
-      phx-click={@runtime && "item:click"}
-      phx-value-id={@runtime && @id}
+      phx-click={!@rt.disabled && @runtime && "item:click"}
+      phx-value-id={!@rt.disabled && @runtime && @id}
       style={[
         "left: #{@x}px; top: #{@y}px;",
         @size.(@props.w, @props.h),
         @props.style
       ]}>
-      {@props.text}
+      {@rt.text}
     </div>
   """
 end
@@ -65,20 +66,30 @@ editor = fn assigns = %{item: item} ->
   </div>
   <div class="col-span-2">Output</div>
   <div class="col-span-2">
-    <.fui fun={@ui.area} value={inspect(@rt.error || @rt.calc)} disabled rows="8" class="w-full"/>
+    <.fui fun={@ui.area} value={inspect(@rt.output)} disabled rows="8" class="w-full"/>
   </div>
   """
 end
 
-calculate = fn %{props: props}, value ->
-  {error, calc} =
-    case Api.safe(fn -> Code.eval_string(props.calc, default: props.default, value: value) end) do
-      {:ok, {res, _}} when is_map(res) -> {nil, res}
+calculate = fn %{props: %{calc: calc, default: default, text: text}}, value ->
+  f = fn
+    f, d when is_list(d) -> :io_lib.format(f, d) |> to_string()
+    f, d -> :io_lib.format(f, [d]) |> to_string()
+  end
+
+  bindings = [value: value, default: default, text: text, f: f]
+
+  # no clean way to use error || calc
+  {output, calc} =
+    case Api.safe(fn -> Code.eval_string(calc, bindings) end) do
+      {:ok, {res, _}} when is_map(res) -> {res, res}
       {:ok, {res, _}} -> {res, %{}}
       {:error, error} -> {error, %{}}
     end
 
-  %{calc: calc, error: error}
+  text = vlib.get.(calc, :text, :binary) || text
+  disabled = vlib.get.(calc, :disabled, :boolean) || false
+  %{calc: calc, output: output, text: text, disabled: disabled}
 end
 
 save = fn state = %{selected: %{item: sitem}, screen: screen}, id, params ->

@@ -7,6 +7,12 @@ valid? = fn
       _ -> false
     end
 
+  :boolean ->
+    fn
+      v when is_boolean(v) -> true
+      _ -> false
+    end
+
   "boolean:" <> _ ->
     fn
       v when is_integer(v) and v >= 0 and v <= 1 -> true
