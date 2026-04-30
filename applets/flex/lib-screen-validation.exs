@@ -153,7 +153,7 @@ parse = fn
                true <- Regex.match?(~r/^[^;]+$/, v) do
             error?
           else
-            _ -> error? or true
+            _ -> true
           end
       end
 
