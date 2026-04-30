@@ -8,27 +8,18 @@ props = %{
   text: name,
   sink: "",
   default: "0",
-  style: """
-  color: white;
-  font-size: 16px;
-  padding: 2px 16px;
-  border-radius: 4px;
-  text-align: center;
-  background-color: blue;
-  hover:background-color: teal;
-  hover:background-color: gray;
-  """,
-  calc: """
-  # bindings: value, default, text
-  %{text: f.("Button ~s", default)}
-  """
+  style: "",
+  calc: ""
 }
 
 render = fn assigns ->
   # button supports disabled pseudo class, div does not
   # div supports both hover and active pseudo classes
   ~H"""
-    <button id={@id} class={@class} disabled={@rt.disabled}
+    <button id={@id} class={[@class, "px-4 py-2 rounded",
+      "bg-blue-600 active:bg-blue-400 hover:bg-blue-500",
+      "disabled:bg-zinc-800 disabled:text-zinc-600"]}
+      disabled={@rt.disabled}
       phx-click={!@rt.disabled && @runtime && "item:click"}
       phx-value-id={!@rt.disabled && @runtime && @id}
       style={[

@@ -98,6 +98,30 @@ s=1,a=49,c=rri,d=5,e=u16le # Turck - Read All
 ## Reference
 
 - https://tailscan.com/colors
+- Styles
+```css
+# label
+color: white;
+font-size: 16px;
+text-align: left;
+padding: 0px 0px;
+background-color: transparent;
+# button
+color: white;
+font-size: 16px;
+padding: 2px 16px;
+border-radius: 4px;
+text-align: center;
+background-color: blue;
+disabled:background-color: gray;
+active:background-color: orange;
+hover:background-color: green;
+```
+- Calculator
+```elixir
+disabled = values == default
+text = f.("Button ~s", default)
+```
 
 ## Fixme
 

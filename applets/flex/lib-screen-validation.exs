@@ -202,7 +202,7 @@ css = fn style ->
 
       case String.split(k, ":", parts: 2) do
         [k] -> Map.update(css, nil, ["#{k}: #{v}"], &["#{k}: #{v}" | &1])
-        [p, k] -> Map.update(css, "#{p}", ["#{k}: #{v}"], &["#{k}: #{v}" | &1])
+        [p, k] -> Map.update(css, p, ["#{k}: #{v}"], &["#{k}: #{v}" | &1])
       end
   end
   |> Enum.map(fn {k, v} -> {k, Enum.reverse(v)} end)

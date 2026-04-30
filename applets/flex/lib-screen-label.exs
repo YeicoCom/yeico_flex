@@ -8,17 +8,8 @@ props = %{
   text: name,
   source: "",
   default: "0",
-  style: """
-  color: white;
-  font-size: 16px;
-  text-align: left;
-  padding: 0px 0px;
-  background-color: transparent;
-  """,
-  calc: """
-  # bindings: value, default, text
-  %{text: f.("Label ~s", default)}
-  """
+  style: "",
+  calc: ""
 }
 
 render = fn assigns ->
@@ -26,7 +17,9 @@ render = fn assigns ->
   # search: io_lib Format Escapes
 
   ~H"""
-    <div id={@id} class={@class} disabled={@rt.disabled}
+    <div id={@id} class={[@class, "data-[disabled]:text-zinc-600"]}
+      data-disabled={@rt.disabled}
+      disabled={@rt.disabled}
       style={[
         "left: #{@x}px; top: #{@y}px;",
         @size.(@props.w, @props.h),
