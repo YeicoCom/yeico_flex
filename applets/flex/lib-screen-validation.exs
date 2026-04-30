@@ -160,6 +160,7 @@ parse = fn
     # always end with new line to match initial value with """
     tv =
       pairs
+      |> Enum.map(fn list -> Enum.map(list, &String.trim/1) end)
       |> Enum.map(&Enum.join(&1, ": "))
       |> Enum.map(&(&1 <> ";\n"))
 

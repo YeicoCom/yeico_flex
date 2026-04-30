@@ -28,6 +28,7 @@ render = fn assigns ->
       phx-click={!@rt.disabled && @runtime && "item:click"}
       phx-value-id={!@rt.disabled && @runtime && @id}
       style={[
+        if(!@rt.disabled && @runtime, do: "cursor: pointer;", else: "cursor: default;"),
         "left: #{@x}px; top: #{@y}px;",
         @size.(@props.w, @props.h),
         @props.style
