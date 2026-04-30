@@ -3,7 +3,8 @@ use Terminal.Live
 view = fn assigns ->
   ~H"""
   <.fui fun={@ui.frame} reverse={true} title="Screen Designer" label={@name} class="flex gap-2">
-    <div id="design_frame" class="grow relative" phx-hook="ScreenDesigner">
+    <div id="design_frame" class="grow relative" phx-hook="ScreenDesigner"
+      phx-window-keydown="selected:delete" phx-key="Backspace">
       <div id="design_port" :if={@vp.frame} class="design-port overflow-hidden">
         <div id="design_style" class="design-panel" style={@screen.props.style}/>
         <div :if={@screen.props.grid} id="design_grid" class="design-panel"/>
@@ -110,6 +111,15 @@ handler = fn
     {socket, state}
 
   {:event, socket, state = %{selected: %{id: id}}, event = "item:delete", params = %{"id" => id}} ->
+    Api.trace(view: path, event: event, params: params)
+    {_, state} = pop_in(state, [:rts, id])
+    {_, state} = pop_in(state, [:screen, :items, id])
+    state = Map.put(state, :selected, sd.select.(state, "Screen", nil))
+    state = Map.put(state, :menu, nil)
+    sd.save.(state)
+    {socket, state}
+
+  {:event, socket, state = %{selected: %{id: id}}, event = "selected:delete", params} ->
     Api.trace(view: path, event: event, params: params)
     {_, state} = pop_in(state, [:rts, id])
     {_, state} = pop_in(state, [:screen, :items, id])
