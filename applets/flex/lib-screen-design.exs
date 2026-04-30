@@ -311,6 +311,18 @@ init = fn state = %{events: events}, id, item, design? ->
   state
 end
 
+max = fn %{screen: %{items: items}} ->
+  case map_size(items) do
+    0 ->
+      0
+
+    _ ->
+      items
+      |> Enum.map(fn {_, item} -> item.index end)
+      |> Enum.max()
+  end
+end
+
 %{
   port: port,
   form: form,
@@ -320,6 +332,7 @@ end
   props: props,
   select: select,
   handle: handle,
+  max: max,
   init: init,
   load: load,
   save: save

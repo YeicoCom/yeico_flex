@@ -88,6 +88,10 @@ handler = fn
     {socket, state}
 
   {:render, _assigns, state = %{screen: %{items: items}}} ->
+    # indexing on render simplifies the for above
+    # doing it just here saves to carry dupplicated items
+    # no improvement in id accesing items above
+    # dragging requires reindexing to refresh cached items
     index = Enum.sort_by(items, fn {_, item} -> item.index end)
     state = Map.put(state, :index, index)
     view.(state)
@@ -117,13 +121,14 @@ handler = fn
   {:event, socket, state = %{vp: %{port: %{s: s, x: pox, y: poy}, panel: %{x: pax, y: pay}}},
    event = "item:add", params = %{"x" => x, "y" => y, "type" => type}} ->
     Api.trace(view: path, event: event, params: params)
-    %{screen: %{items: items}} = state
     id = UUID.uuid1() |> ShortUUID.encode!()
     x = String.to_integer(x)
     y = String.to_integer(y)
     x = (x - pox - pax) / s
     y = (y - poy - pay) / s
-    item = %{x: x, y: y, w: 0, h: 0, type: type, props: sd.props.(type), index: map_size(items)}
+    index = sd.max.(state) + 1
+    props = sd.props.(type)
+    item = %{x: x, y: y, w: 0, h: 0, type: type, props: props, index: index}
     state = put_in(state, [:screen, :items, id], item)
     state = sd.init.(state, id, item, true)
     state = Map.put(state, :selected, sd.select.(state, type, id))
