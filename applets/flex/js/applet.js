@@ -229,6 +229,7 @@ const hooks = {
                 }
             })
             port.addEventListener("pointerdown", (e) => {
+                if (!e.shiftKey) return
                 if (e.srcElement.id.startsWith("item_")) return
                 // this prevents panel and items click events
                 if (!panel.contains(e.srcElement)) return
