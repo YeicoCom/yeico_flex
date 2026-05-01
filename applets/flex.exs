@@ -9,7 +9,7 @@ end
 mapBindings = fn {_result, bindings} ->
   for {key, value} <- bindings, reduce: %{} do
     lib ->
-      case key |> to_string() |> String.starts_with?("_") do
+      case key |> to_string() |> String.ends_with?("_") do
         false -> Map.put(lib, key, value)
         true -> lib
       end
@@ -36,6 +36,8 @@ toLibrary.("flex/lib-convert.exs", "libConvert")
 toLibrary.("flex/lib-points.exs", "libPoints")
 toLibrary.("flex/lib-database.exs", "libDatabase")
 toLibrary.("flex/lib-user-interface.exs", "libUserInterface")
+toLibrary.("flex/lib-modbus-protocol.exs", "libModbusProtocol")
+toLibrary.("flex/lib-modbus-command.exs", "libModbusCommand")
 
 if Terminal.dev?() and true do
   evalScript.("flex/lib-convert-test.exs", [])
@@ -48,10 +50,15 @@ Api.putcast!("flex:serial-exports:items", [])
 Api.putcast!("flex:serial-exports:logs", %{})
 evalScript.("flex/serial-exports-loop.exs", dms: 2_000)
 lib = evalScript.("flex/serial-exports-lib.exs", [])
-evalScript.("flex/serial-exports-view.exs", path: "/flex/serial-exports", lib: lib)
+evalScript.("flex/serial-exports-index.exs", path: "/flex/serial-exports", lib: lib)
 
-evalScript.("flex/echo-server-loop.exs", dms: 1_000, ip: "127.0.0.1", port: 44000)
+evalScript.("flex/echo-server-loop.exs", dms: 1_000, port: 44000)
 lib = evalScript.("flex/socket-terminal-lib.exs", toms: 4_000)
 evalScript.("flex/socket-terminal-index.exs", path: "/flex/socket-terminal", lib: lib)
+
+evalScript.("flex/modbus-slave-loop.exs", proto: :tcp_proto, port: 44001, dms: 1_000)
+evalScript.("flex/modbus-slave-loop.exs", proto: :rtu_proto, port: 44002, dms: 1_000)
+lib = evalScript.("flex/modbus-terminal-lib.exs", toms: 4_000)
+evalScript.("flex/modbus-terminal-index.exs", path: "/flex/modbus-terminal", lib: lib)
 
 :ok

@@ -1,6 +1,8 @@
 use Terminal
 
-hi_array =
+toms_ = 4_000
+
+hia_ =
   """
   [
     0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81,
@@ -27,7 +29,7 @@ hi_array =
   |> elem(0)
   |> :array.from_list()
 
-lo_array =
+loa_ =
   """
   [
   0x00, 0xC0, 0xC1, 0x01, 0xC3, 0x03, 0x02, 0xC2, 0xC6, 0x06, 0x07, 0xC7, 0x05, 0xC5, 0xC4,
@@ -54,60 +56,23 @@ lo_array =
   |> elem(0)
   |> :array.from_list()
 
-crc_p = fn
+crc_ = fn
   {_self, <<>>, hi, lo} ->
     <<hi, lo>>
 
   {self, data, hi, lo} ->
     <<first, tail::binary>> = data
     index = Bitwise.bxor(lo, first)
-    nhi = :array.get(index, hi_array)
+    nhi = :array.get(index, hia_)
     lo = Bitwise.bxor(hi, nhi)
-    self.({self, tail, :array.get(index, lo_array), lo})
+    self.({self, tail, :array.get(index, loa_), lo})
 end
 
 crc = fn
-  data -> crc_p.({crc_p, data, 0xFF, 0xFF})
+  data -> crc_.({crc_, data, 0xFF, 0xFF})
 end
 
-# https://www.h-schmidt.net/FloatConverter/Float.html.
-
-float_p = fn
-  {_self, _, [], _} ->
-    []
-
-  {self, :from, [w0, w1 | tail], endianness} ->
-    [self.({self, :from, w0, w1, endianness}) | self.({self, :from, tail, endianness})]
-
-  {_self, :from, w0, w1, :be} ->
-    <<value::float-32>> = <<w0::16, w1::16>>
-    value
-
-  {_self, :from, w0, w1, :le} ->
-    <<value::float-32>> = <<w1::16, w0::16>>
-    value
-
-  {self, :to, [f | tail], endianness} ->
-    [w0, w1] = self.({self, :to, f, endianness})
-    [w0, w1 | self.({self, :to, tail, endianness})]
-
-  {_self, :to, f, :be} ->
-    <<w0::16, w1::16>> = <<f::float-32>>
-    [w0, w1]
-
-  {_self, :to, f, :le} ->
-    <<w0::16, w1::16>> = <<f::float-32>>
-    [w1, w0]
-end
-
-float = fn
-  {:from_be, list_of_regs} -> float_p.({float_p, :from, list_of_regs, :be})
-  {:from_le, list_of_regs} -> float_p.({float_p, :from, list_of_regs, :le})
-  {:to_be, list_of_floats} -> float_p.({float_p, :to, list_of_floats, :be})
-  {:to_le, list_of_floats} -> float_p.({float_p, :to, list_of_floats, :le})
-end
-
-utils = fn
+utils_ = fn
   {_self, :byte_count, count} ->
     div(count - 1, 8) + 1
 
@@ -157,53 +122,53 @@ utils = fn
     :erlang.iolist_to_binary(list)
 end
 
-request_p = fn
+request_ = fn
   {:reads, _type, slave, function, address, count} ->
     <<slave, function, address::16, count::16>>
 
   {:write, :d, slave, function, address, value} ->
-    <<slave, function, address::16, utils.({utils, :bool_to_byte, value}), 0x00>>
+    <<slave, function, address::16, utils_.({utils_, :bool_to_byte, value}), 0x00>>
 
   {:write, :a, slave, function, address, value} ->
     <<slave, function, address::16, value::16>>
 
   {:writes, :d, slave, function, address, values} ->
     count = Enum.count(values)
-    bytes = utils.({utils, :byte_count, count})
-    data = utils.({utils, :bitlist_to_bin, values})
+    bytes = utils_.({utils_, :byte_count, count})
+    data = utils_.({utils_, :bitlist_to_bin, values})
     <<slave, function, address::16, count::16, bytes, data::binary>>
 
   {:writes, :a, slave, function, address, values} ->
     count = Enum.count(values)
     bytes = 2 * count
-    data = utils.({utils, :reglist_to_bin, values})
+    data = utils_.({utils_, :reglist_to_bin, values})
     <<slave, function, address::16, count::16, bytes, data::binary>>
 end
 
 request = fn
   {:pack, {:rc, slave, address, count}} ->
-    request_p.({:reads, :d, slave, 1, address, count})
+    request_.({:reads, :d, slave, 1, address, count})
 
   {:pack, {:ri, slave, address, count}} ->
-    request_p.({:reads, :d, slave, 2, address, count})
+    request_.({:reads, :d, slave, 2, address, count})
 
   {:pack, {:rhr, slave, address, count}} ->
-    request_p.({:reads, :a, slave, 3, address, count})
+    request_.({:reads, :a, slave, 3, address, count})
 
   {:pack, {:rir, slave, address, count}} ->
-    request_p.({:reads, :a, slave, 4, address, count})
+    request_.({:reads, :a, slave, 4, address, count})
 
   {:pack, {:fc, slave, address, value}} when is_integer(value) ->
-    request_p.({:write, :d, slave, 5, address, value})
+    request_.({:write, :d, slave, 5, address, value})
 
   {:pack, {:phr, slave, address, value}} when is_integer(value) ->
-    request_p.({:write, :a, slave, 6, address, value})
+    request_.({:write, :a, slave, 6, address, value})
 
   {:pack, {:fc, slave, address, values}} when is_list(values) ->
-    request_p.({:writes, :d, slave, 15, address, values})
+    request_.({:writes, :d, slave, 15, address, values})
 
   {:pack, {:phr, slave, address, values}} when is_list(values) ->
-    request_p.({:writes, :a, slave, 16, address, values})
+    request_.({:writes, :a, slave, 16, address, values})
 
   {:parse, <<slave, 1, address::16, count::16>>} ->
     {:rc, slave, address, count}
@@ -227,13 +192,13 @@ request = fn
     {:phr, slave, address, value}
 
   {:parse, <<slave, 15, address::16, count::16, bytes, data::binary>>} ->
-    ^bytes = utils.({utils, :byte_count, count})
-    values = utils.({utils, :bin_to_bitlist, count, data})
+    ^bytes = utils_.({utils_, :byte_count, count})
+    values = utils_.({utils_, :bin_to_bitlist, count, data})
     {:fc, slave, address, values}
 
   {:parse, <<slave, 16, address::16, count::16, bytes, data::binary>>} ->
     ^bytes = 2 * count
-    values = utils.({utils, :bin_to_reglist, count, data})
+    values = utils_.({utils_, :bin_to_reglist, count, data})
     {:phr, slave, address, values}
 
   {:length, {:rc, _slave, _address, _count}} ->
@@ -255,19 +220,19 @@ request = fn
     6
 
   {:length, {:fc, _slave, _address, values}} when is_list(values) ->
-    7 + utils.({utils, :byte_count, Enum.count(values)})
+    7 + utils_.({utils_, :byte_count, Enum.count(values)})
 
   {:length, {:phr, _slave, _address, values}} when is_list(values) ->
     7 + 2 * Enum.count(values)
 end
 
-response_p = fn
+response_ = fn
   {:reads, slave, function, data} ->
     bytes = :erlang.byte_size(data)
     <<slave, function, bytes, data::binary>>
 
   {:write, :d, slave, function, address, value} ->
-    <<slave, function, address::16, utils.({utils, :bool_to_byte, value}), 0x00>>
+    <<slave, function, address::16, utils_.({utils_, :bool_to_byte, value}), 0x00>>
 
   {:write, :a, slave, function, address, value} ->
     <<slave, function, address::16, value::16>>
@@ -280,51 +245,51 @@ end
 response = fn
   {:pack, {:rc, slave, _address, count}, values} ->
     ^count = Enum.count(values)
-    data = utils.({utils, :bitlist_to_bin, values})
-    response_p.({:reads, slave, 1, data})
+    data = utils_.({utils_, :bitlist_to_bin, values})
+    response_.({:reads, slave, 1, data})
 
   {:pack, {:ri, slave, _address, count}, values} ->
     ^count = Enum.count(values)
-    data = utils.({utils, :bitlist_to_bin, values})
-    response_p.({:reads, slave, 2, data})
+    data = utils_.({utils_, :bitlist_to_bin, values})
+    response_.({:reads, slave, 2, data})
 
   {:pack, {:rhr, slave, _address, count}, values} ->
     ^count = Enum.count(values)
-    data = utils.({utils, :reglist_to_bin, values})
-    response_p.({:reads, slave, 3, data})
+    data = utils_.({utils_, :reglist_to_bin, values})
+    response_.({:reads, slave, 3, data})
 
   {:pack, {:rir, slave, _address, count}, values} ->
     ^count = Enum.count(values)
-    data = utils.({utils, :reglist_to_bin, values})
-    response_p.({:reads, slave, 4, data})
+    data = utils_.({utils_, :reglist_to_bin, values})
+    response_.({:reads, slave, 4, data})
 
   {:pack, {:fc, slave, address, value}, nil} when is_integer(value) ->
-    response_p.({:write, :d, slave, 5, address, value})
+    response_.({:write, :d, slave, 5, address, value})
 
   {:pack, {:phr, slave, address, value}, nil} when is_integer(value) ->
-    response_p.({:write, :a, slave, 6, address, value})
+    response_.({:write, :a, slave, 6, address, value})
 
   {:pack, {:fc, slave, address, values}, nil} when is_list(values) ->
-    response_p.({:writes, :d, slave, 15, address, values})
+    response_.({:writes, :d, slave, 15, address, values})
 
   {:pack, {:phr, slave, address, values}, nil} when is_list(values) ->
-    response_p.({:writes, :a, slave, 16, address, values})
+    response_.({:writes, :a, slave, 16, address, values})
 
   {:parse, {:rc, slave, _address, count}, <<slave, 1, bytes, data::binary>>} ->
-    ^bytes = utils.({utils, :byte_count, count})
-    utils.({utils, :bin_to_bitlist, count, data})
+    ^bytes = utils_.({utils_, :byte_count, count})
+    utils_.({utils_, :bin_to_bitlist, count, data})
 
   {:parse, {:ri, slave, _address, count}, <<slave, 2, bytes, data::binary>>} ->
-    ^bytes = utils.({utils, :byte_count, count})
-    utils.({utils, :bin_to_bitlist, count, data})
+    ^bytes = utils_.({utils_, :byte_count, count})
+    utils_.({utils_, :bin_to_bitlist, count, data})
 
   {:parse, {:rhr, slave, _address, count}, <<slave, 3, bytes, data::binary>>} ->
     ^bytes = 2 * count
-    utils.({utils, :bin_to_reglist, count, data})
+    utils_.({utils_, :bin_to_reglist, count, data})
 
   {:parse, {:rir, slave, _address, count}, <<slave, 4, bytes, data::binary>>} ->
     ^bytes = 2 * count
-    utils.({utils, :bin_to_reglist, count, data})
+    utils_.({utils_, :bin_to_reglist, count, data})
 
   {:parse, {:fc, slave, address, 0}, <<slave, 5, address::16, 0x00, 0x00>>} ->
     nil
@@ -344,10 +309,10 @@ response = fn
     nil
 
   {:length, {:rc, _slave, _address, count}} ->
-    3 + utils.({utils, :byte_count, count})
+    3 + utils_.({utils_, :byte_count, count})
 
   {:length, {:ri, _slave, _address, count}} ->
-    3 + utils.({utils, :byte_count, count})
+    3 + utils_.({utils_, :byte_count, count})
 
   {:length, {:rhr, _slave, _address, count}} ->
     3 + 2 * count
@@ -365,7 +330,7 @@ end
 # CRC is little endian
 # http://modbus.org/docs/Modbus_over_serial_line_V1_02.pdf page 13
 
-rtu_proto_p = fn
+rtu_proto_ = fn
   {:wrap, payload} ->
     <<crc_hi, crc_lo>> = crc.(payload)
     <<payload::binary, crc_lo, crc_hi>>
@@ -385,22 +350,22 @@ rtu_proto = fn
     nil
 
   {:pack_req, cmd, _tid} ->
-    rtu_proto_p.({:wrap, request.({:pack, cmd})})
+    rtu_proto_.({:wrap, request.({:pack, cmd})})
 
   {:res_len, cmd} ->
     response.({:length, cmd}) + 2
 
   {:parse_res, cmd, wraped, _tid} ->
-    response.({:parse, cmd, rtu_proto_p.({:unwrap, wraped})})
+    response.({:parse, cmd, rtu_proto_.({:unwrap, wraped})})
 
   {:parse_req, wraped} ->
-    {request.({:parse, rtu_proto_p.({:unwrap, wraped})}), nil}
+    {request.({:parse, rtu_proto_.({:unwrap, wraped})}), nil}
 
   {:pack_res, cmd, values, _tid} ->
-    rtu_proto_p.({:wrap, response.({:pack, cmd, values})})
+    rtu_proto_.({:wrap, response.({:pack, cmd, values})})
 end
 
-tcp_proto_p = fn
+tcp_proto_ = fn
   {:wrap, payload, tid} ->
     size = :erlang.byte_size(payload)
     <<tid::16, 0, 0, size::16, payload::binary>>
@@ -425,23 +390,23 @@ tcp_proto = fn
     end
 
   {:pack_req, cmd, tid} ->
-    tcp_proto_p.({:wrap, request.({:pack, cmd}), tid})
+    tcp_proto_.({:wrap, request.({:pack, cmd}), tid})
 
   {:res_len, cmd} ->
     response.({:length, cmd}) + 6
 
   {:parse_res, cmd, wraped, tid} ->
-    response.({:parse, cmd, tcp_proto_p.({:unwrap, wraped, tid})})
+    response.({:parse, cmd, tcp_proto_.({:unwrap, wraped, tid})})
 
   {:parse_req, wraped} ->
-    {pack, transid} = tcp_proto_p.({:unwrap, wraped})
+    {pack, transid} = tcp_proto_.({:unwrap, wraped})
     {request.({:parse, pack}), transid}
 
   {:pack_res, cmd, values, tid} ->
-    tcp_proto_p.({:wrap, response.({:pack, cmd, values}), tid})
+    tcp_proto_.({:wrap, response.({:pack, cmd, values}), tid})
 end
 
-tcp_trans_p = fn
+tcp_trans_ = fn
   {:parse, ip} ->
     :inet.parse_address(~c"#{ip}") |> elem(1)
 end
@@ -449,9 +414,9 @@ end
 tcp_trans = fn
   {:open, opts} ->
     ip = Keyword.fetch!(opts, :ip)
-    ip = if is_binary(ip), do: tcp_trans_p.({:parse, ip}), else: ip
+    ip = if is_binary(ip), do: tcp_trans_.({:parse, ip}), else: ip
     port = Keyword.fetch!(opts, :port)
-    timeout = Keyword.get(opts, :timeout, toms)
+    timeout = Keyword.get(opts, :timeout, toms_)
     opts = [:binary, packet: :raw, active: false]
     :gen_tcp.connect(ip, port, opts, timeout)
 
@@ -470,7 +435,7 @@ tcp_trans = fn
     :gen_tcp.close(socket)
 end
 
-master_p = fn
+master_ = fn
   {:request, proto, cmd, tid} ->
     try do
       request = proto.({:pack_req, cmd, tid})
@@ -489,38 +454,34 @@ master_p = fn
     end
 end
 
-open = fn opts ->
-  proto = Keyword.get(opts, :proto, tcp_proto)
-  trans = Keyword.get(opts, :trans, tcp_trans)
-  tid = proto.({:next, nil})
-
-  case trans.({:open, opts}) do
-    {:ok, tstate} ->
-      {:ok, %{trans: trans, proto: proto, tid: tid, tstate: tstate}}
-
-    {:error, reason} ->
-      {:error, reason}
-  end
-end
-
 master = fn
   {:open, opts} ->
-    open.(opts)
+    proto = Keyword.get(opts, :proto, tcp_proto)
+    trans = Keyword.get(opts, :trans, tcp_trans)
+    tid = proto.({:next, nil})
+
+    case trans.({:open, opts}) do
+      {:ok, tstate} ->
+        {:ok, %{trans: trans, proto: proto, tid: tid, tstate: tstate}}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
 
   {:close, %{trans: trans, tstate: tstate}} ->
     trans.({:close, tstate})
 
   {:exec, conn = %{trans: trans, proto: proto, tid: tid, tstate: tstate}, cmd, opts} ->
-    timeout = Keyword.get(opts, :timeout, toms)
+    timeout = Keyword.get(opts, :timeout, toms_)
     tracer = Keyword.get(opts, :tracer, fn _, _ -> :ok end)
     conn = Map.put(conn, :tid, proto.({:next, tid}))
 
-    with {:ok, request, length} <- master_p.({:request, proto, cmd, tid}),
+    with {:ok, request, length} <- master_.({:request, proto, cmd, tid}),
          :ok <- tracer.(:output, request),
          :ok <- trans.({:write, tstate, request}),
          {:ok, resp} <- trans.({:readn, tstate, length, timeout}),
          :ok <- tracer.(:input, resp) do
-      case master_p.({:parse, proto, cmd, resp, tid}) do
+      case master_.({:parse, proto, cmd, resp, tid}) do
         {:error, error} -> {:error, conn, error}
         nil -> {:ok, conn}
         values -> {:ok, conn, values}
@@ -538,10 +499,4 @@ master = fn
     Map.put(conn, :tid, tid)
 end
 
-%{
-  float: float,
-  master: master,
-  rtu_proto: rtu_proto,
-  tcp_proto: tcp_proto,
-  tcp_trans: tcp_trans
-}
+:ok

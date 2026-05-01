@@ -118,6 +118,7 @@ handler = fn
     socket = assign(socket, page_suffix: " · Flex")
     socket = stream(socket, :logs, [])
     state = Map.put(state, :tzoffset, tzoffset)
+    state = Map.put(state, :ui, libUserInterface)
     state = Map.put(state, :conn, %{task: nil, input: initial, on: false})
     state = Map.put(state, :modal, %{title: title, input: initial})
     state = Map.put(state, :options, lib.options)
@@ -125,7 +126,6 @@ handler = fn
     state = Map.put(state, :help, help)
     state = Map.put(state, :logid, 0)
     state = Map.put(state, :tip, tip)
-    state = Map.put(state, :ui, ui)
     {socket, state}
 
   {:params, socket, state, params, uri} ->
@@ -151,7 +151,7 @@ handler = fn
    params = %{"line" => line}} ->
     Api.trace(view: path, event: event, params: params)
 
-    case lib.parse.(line) do
+    case libModbusCommand.parse.(line) do
       {:ok, res} ->
         send(pid, {:exec, res})
         output = Map.put(output, :line, nil)

@@ -1,6 +1,42 @@
 use Terminal
 
-parse_n = fn value ->
+# https://www.h-schmidt.net/FloatConverter/Float.html.
+float_ = fn
+  {_self, _, [], _} ->
+    []
+
+  {self, :from, [w0, w1 | tail], endianness} ->
+    [self.({self, :from, w0, w1, endianness}) | self.({self, :from, tail, endianness})]
+
+  {_self, :from, w0, w1, :be} ->
+    <<value::float-32>> = <<w0::16, w1::16>>
+    value
+
+  {_self, :from, w0, w1, :le} ->
+    <<value::float-32>> = <<w1::16, w0::16>>
+    value
+
+  {self, :to, [f | tail], endianness} ->
+    [w0, w1] = self.({self, :to, f, endianness})
+    [w0, w1 | self.({self, :to, tail, endianness})]
+
+  {_self, :to, f, :be} ->
+    <<w0::16, w1::16>> = <<f::float-32>>
+    [w0, w1]
+
+  {_self, :to, f, :le} ->
+    <<w0::16, w1::16>> = <<f::float-32>>
+    [w1, w0]
+end
+
+float = fn
+  {:from_be, list_of_regs} -> float_.({float_, :from, list_of_regs, :be})
+  {:from_le, list_of_regs} -> float_.({float_, :from, list_of_regs, :le})
+  {:to_be, list_of_floats} -> float_.({float_, :to, list_of_floats, :be})
+  {:to_le, list_of_floats} -> float_.({float_, :to, list_of_floats, :le})
+end
+
+parse_n_ = fn value ->
   case String.first(value) do
     "d" -> Integer.parse(String.slice(value, 1..-1//1), 10)
     "h" -> Integer.parse(String.slice(value, 1..-1//1), 16)
@@ -9,7 +45,7 @@ parse_n = fn value ->
   end
 end
 
-parse_dd = fn value ->
+parse_dd_ = fn value ->
   with true <- Regex.match?(~r/^[01]+$/, value) do
     value |> String.graphemes() |> Enum.map(&String.to_integer/1)
   else
@@ -17,7 +53,7 @@ parse_dd = fn value ->
   end
 end
 
-parse_df32 = fn value ->
+parse_df32_ = fn value ->
   String.split(value, ":")
   |> Enum.map(fn part ->
     case Float.parse(part) do
@@ -27,10 +63,10 @@ parse_df32 = fn value ->
   end)
 end
 
-parse_du16 = fn value ->
+parse_du16_ = fn value ->
   String.split(value, ":")
   |> Enum.map(fn part ->
-    case parse_n.(part) do
+    case parse_n_.(part) do
       {v, ""} when v >= 0 and v <= 65535 -> v
       {_, ""} -> throw("Invalid data range")
       _ -> throw("Invalid data format")
@@ -38,14 +74,14 @@ parse_du16 = fn value ->
   end)
 end
 
-parse_dc = fn value ->
-  case parse_n.(value) do
+parse_dc_ = fn value ->
+  case parse_n_.(value) do
     {v, ""} -> v
     _ -> throw("Invalid data param")
   end
 end
 
-check_max = fn
+check_max_ = fn
   v, max when is_integer(v) ->
     if v <= 0 or v > max, do: throw("Invalid data range")
     v
@@ -58,7 +94,7 @@ end
 
 # https://erlang.org/euc/00/bit_syntax.html (6.4 Defaults)
 # Erlang defaults to big-endian, unsigned, integer.
-reg16_switch = fn value ->
+reg16_switch_ = fn value ->
   <<b0::8, b1::8>> = <<value::size(16)>>
   <<value::size(16)>> = <<b1::8, b0::8>>
   value
@@ -72,24 +108,24 @@ encoder = fn
       rf: 1,
       set: & &1,
       get: & &1,
-      parse: parse_du16
+      parse: parse_du16_
     }
 
   # opto22
   "F32BE" ->
     %{
       rf: 2,
-      set: fn d -> modbus.float.({:to_be, d}) end,
-      get: fn d -> modbus.float.({:from_be, d}) end,
-      parse: parse_df32
+      set: fn d -> float.({:to_be, d}) end,
+      get: fn d -> float.({:from_be, d}) end,
+      parse: parse_df32_
     }
 
   "F32LE" ->
     %{
       rf: 2,
-      set: fn d -> modbus.float.({:to_le, d}) end,
-      get: fn d -> modbus.float.({:from_le, d}) end,
-      parse: parse_df32
+      set: fn d -> float.({:to_le, d}) end,
+      get: fn d -> float.({:from_le, d}) end,
+      parse: parse_df32_
     }
 
   "U16BE" ->
@@ -97,20 +133,20 @@ encoder = fn
       rf: 1,
       set: & &1,
       get: & &1,
-      parse: parse_du16
+      parse: parse_du16_
     }
 
   # turck vibration and temp sensor CMVT-QR20-IOLX3-H1141
   "U16LE" ->
     %{
       rf: 1,
-      set: &for(v <- &1, do: reg16_switch.(v)),
-      get: &for(v <- &1, do: reg16_switch.(v)),
-      parse: parse_du16
+      set: &for(v <- &1, do: reg16_switch_.(v)),
+      get: &for(v <- &1, do: reg16_switch_.(v)),
+      parse: parse_du16_
     }
 end
 
-parse_p = fn line ->
+parse_ = fn line ->
   line = line |> String.split("#") |> List.first()
   line = String.downcase(line)
 
@@ -127,7 +163,7 @@ parse_p = fn line ->
   if !s, do: throw("Missing slave param")
 
   s =
-    case parse_n.(s) do
+    case parse_n_.(s) do
       {v, ""} when v >= 0 and v <= 255 -> v
       {_, ""} -> throw("Invalid slave range")
       _ -> throw("Invalid slave format")
@@ -137,7 +173,7 @@ parse_p = fn line ->
   if !a, do: throw("Missing address param")
 
   a =
-    case parse_n.(a) do
+    case parse_n_.(a) do
       {v, ""} when v >= 0 and v <= 65535 -> v
       {_, ""} -> throw("Invalid address range")
       _ -> throw("Invalid address format")
@@ -180,11 +216,11 @@ parse_p = fn line ->
   {d, get} =
     case {c, e} do
       {:rir, _} ->
-        d = parse_dc.(d) |> check_max.(div(254, 2 * rf))
+        d = parse_dc_.(d) |> check_max_.(div(254, 2 * rf))
         {rf * d, get}
 
       {:rhr, _} ->
-        d = parse_dc.(d) |> check_max.(div(254, 2 * rf))
+        d = parse_dc_.(d) |> check_max_.(div(254, 2 * rf))
         {rf * d, get}
 
       {:phr, _} ->
@@ -194,9 +230,9 @@ parse_p = fn line ->
       {_, "NONE"} ->
         d =
           case c do
-            :ri -> parse_dc.(d) |> check_max.(8 * 255)
-            :rc -> parse_dc.(d) |> check_max.(8 * 255)
-            :fc -> parse_dd.(d) |> check_max.(8 * 255)
+            :ri -> parse_dc_.(d) |> check_max_.(8 * 255)
+            :rc -> parse_dc_.(d) |> check_max_.(8 * 255)
+            :fc -> parse_dd_.(d) |> check_max_.(8 * 255)
           end
 
         {d, & &1}
@@ -206,7 +242,7 @@ parse_p = fn line ->
 end
 
 parse = fn line ->
-  case Api.safe(parse_p, line) do
+  case Api.safe(parse_, line) do
     {:ok, res} ->
       {:ok, res}
 
@@ -220,7 +256,4 @@ parse = fn line ->
   end
 end
 
-%{
-  encoder: encoder,
-  parse: parse
-}
+:ok

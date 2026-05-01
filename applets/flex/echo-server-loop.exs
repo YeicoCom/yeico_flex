@@ -20,7 +20,7 @@ accept = fn loop, socket ->
 end
 
 listen = fn ->
-  {:ok, socket} = Tcp.listen(ip, port, active: true)
+  {:ok, socket} = Tcp.listen("127.0.0.1", port, active: true)
   Api.info("Echo server port: #{socket.port}")
   accept.(accept, socket)
 end
