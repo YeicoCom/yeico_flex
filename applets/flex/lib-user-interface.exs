@@ -282,14 +282,4 @@ href = fn assigns ->
   """
 end
 
-%{
-  phxattr: phxattr,
-  frame: frame,
-  modal: modal,
-  select: select,
-  button: button,
-  input: input,
-  area: area,
-  link: link,
-  href: href
-}
+:ok

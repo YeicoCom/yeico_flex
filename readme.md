@@ -138,6 +138,8 @@ text = f.("Button ~s", default)
 - [ ] Define mqtt strategy
 - [ ] Screen designer stumped after several enable/disable
 - [ ] Task to periodically delete unreferenced screen designs
+- [ ] Unable to convert float string to int while adding a button on Linux
+  - different pointer coordinate type by platform?
 - [x] Why html text has such a large y padding?: leading-none
 - [x] Button hover and press visual feedback: with parametric pseudo classes hover and active
 - [?] Panel drag gets in the way of reliable clicks: drag requires shift pressed now (enough?)

@@ -61,12 +61,3 @@ parse = fn params ->
   params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
   Enum.into(params, %{})
 end
-
-%{
-  new: new,
-  modal: modal,
-  shift: shift,
-  parse: parse,
-  apply: apply,
-  index: index
-}

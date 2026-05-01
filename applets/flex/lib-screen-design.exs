@@ -14,7 +14,7 @@ new = %{
     snap: 10,
     grid: true,
     style: """
-    background-color: black;
+    background-color: #232323;
     border-radius: 4px;
     """
   }

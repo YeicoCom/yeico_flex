@@ -248,5 +248,7 @@ master_setup = fn %{cubdb: cubdb} ->
   master_loop.(%{cubdb: cubdb, loop: master_loop, runners: runners, logs: %{}})
 end
 
-{:ok, cubdb} = CubDB.start_link(data_dir: path)
+cubdb = libDatabase.getDatabase.("serial-exports")
 Api.loop(dms, master_setup, %{cubdb: cubdb})
+
+:ok
