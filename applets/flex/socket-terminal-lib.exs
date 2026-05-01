@@ -144,14 +144,4 @@ end
 
 initial = %{port: 44000, ip: "127.0.0.1"}
 
-%{
-  shift: shift,
-  toeol: toeol,
-  setup: setup,
-  style: style,
-  title: title,
-  initial: initial,
-  options: options,
-  transform: transform,
-  printable: printable
-}
+:ok

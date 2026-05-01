@@ -88,6 +88,7 @@ handler = fn
     socket = assign(socket, applet_js: "/applets/flex.js")
     socket = assign(socket, page_title: "Socket Terminal")
     socket = assign(socket, page_suffix: " · Flex")
+    state = Map.put(state, :ui, libUserInterface)
     socket = stream(socket, :logs, [])
     state = Map.put(state, :tzoffset, tzoffset)
     state = Map.put(state, :conn, %{task: nil, input: lib.initial, on: false})
@@ -95,7 +96,6 @@ handler = fn
     state = Map.put(state, :options, lib.options)
     state = Map.put(state, :output, output)
     state = Map.put(state, :logid, 0)
-    state = Map.put(state, :ui, ui)
     {socket, state}
 
   {:params, socket, state, params, uri} ->

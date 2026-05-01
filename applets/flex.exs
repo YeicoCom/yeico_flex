@@ -50,4 +50,8 @@ evalScript.("flex/serial-exports-loop.exs", dms: 2_000)
 lib = evalScript.("flex/serial-exports-lib.exs", [])
 evalScript.("flex/serial-exports-view.exs", path: "/flex/serial-exports", lib: lib)
 
+evalScript.("flex/echo-server-loop.exs", dms: 1_000, ip: "127.0.0.1", port: 44000)
+lib = evalScript.("flex/socket-terminal-lib.exs", toms: 4_000)
+evalScript.("flex/socket-terminal-index.exs", path: "/flex/socket-terminal", lib: lib)
+
 :ok
