@@ -53,10 +53,4 @@ parse = fn params ->
   Enum.into(params, %{})
 end
 
-%{
-  modal: modal,
-  shift: shift,
-  parse: parse,
-  apply: apply,
-  index: index
-}
+:ok

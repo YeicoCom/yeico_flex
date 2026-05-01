@@ -276,15 +276,15 @@ select = fn
     }
 end
 
-{:ok, cubdb} = CubDB.start_link(data_dir: path)
+{:ok, db} = CubDB.start_link(data_dir: path)
 
 save = fn %{id: id, screen: screen} ->
-  CubDB.put(cubdb, id, screen)
+  CubDB.put(db, id, screen)
   Api.putcast!("flex:user-screens:design:#{id}", screen)
 end
 
 load = fn id ->
-  CubDB.get(cubdb, id) || new
+  CubDB.get(db, id) || new
 end
 
 handle = fn state, id, event ->

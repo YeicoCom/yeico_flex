@@ -99,8 +99,8 @@ complement_device = fn {id, device = %{points: points}} ->
   {id, device}
 end
 
-publish_devices = fn cubdb ->
-  devices = CubDB.select(cubdb, []) |> Enum.to_list()
+publish_devices = fn db ->
+  devices = db.select.([]) |> Enum.to_list()
   devices = Enum.map(devices, complement_device)
   Api.putcast!("flex:modbus-devices:items", devices)
   devices
@@ -126,12 +126,12 @@ replace_log = fn logs, log = %{id: id, error?: error?} ->
   end
 end
 
-master_loop = fn state = %{cubdb: cubdb, loop: loop, runners: runners, logs: logs} ->
+master_loop = fn state = %{db: db, loop: loop, runners: runners, logs: logs} ->
   receive do
     {"flex:modbus-devices:insert", _, params} ->
       id = UUID.uuid1() |> ShortUUID.encode!()
-      CubDB.put(cubdb, id, params)
-      publish_devices.(cubdb)
+      CubDB.put(db, id, params)
+      publish_devices.(db)
       log_event.(id, false, "Created")
       runner = run_device.(id, params)
       runners = Map.put(runners, id, runner)
@@ -140,8 +140,8 @@ master_loop = fn state = %{cubdb: cubdb, loop: loop, runners: runners, logs: log
 
     {"flex:modbus-devices:update", _, {id, params}} ->
       params = Map.drop(params, [:meta])
-      CubDB.put(cubdb, id, params)
-      publish_devices.(cubdb)
+      CubDB.put(db, id, params)
+      publish_devices.(db)
       task = runners[id][:task]
       if task, do: Api.kill(task)
       log_event.(id, false, "Updated")
@@ -151,8 +151,8 @@ master_loop = fn state = %{cubdb: cubdb, loop: loop, runners: runners, logs: log
       loop.(state)
 
     {"flex:modbus-devices:delete", _, id} ->
-      CubDB.delete(cubdb, id)
-      publish_devices.(cubdb)
+      CubDB.delete(db, id)
+      publish_devices.(db)
       task = runners[id][:task]
       if task, do: Api.kill(task)
       log_event.(id, false, "Deleted")
@@ -176,12 +176,12 @@ master_loop = fn state = %{cubdb: cubdb, loop: loop, runners: runners, logs: log
   end
 end
 
-master_setup = fn %{cubdb: cubdb} ->
+master_setup = fn %{db: db} ->
   Bus.subscribe!("flex:modbus-devices:insert", nil)
   Bus.subscribe!("flex:modbus-devices:update", nil)
   Bus.subscribe!("flex:modbus-devices:delete", nil)
   Bus.subscribe!("flex:modbus-devices:log", nil)
-  devices = publish_devices.(cubdb)
+  devices = publish_devices.(db)
 
   runners =
     for {id, device} <- devices do
@@ -191,8 +191,8 @@ master_setup = fn %{cubdb: cubdb} ->
 
   runners = Enum.into(runners, %{})
   Api.putcast!("flex:modbus-devices:logs", %{})
-  master_loop.(%{cubdb: cubdb, loop: master_loop, runners: runners, logs: %{}})
+  master_loop.(%{db: db, loop: master_loop, runners: runners, logs: %{}})
 end
 
-{:ok, cubdb} = CubDB.start_link(data_dir: path)
-Api.loop(dms, master_setup, %{cubdb: cubdb})
+db = libDatabase.api.("modbus-devices")
+Api.loop(dms, master_setup, %{db: db})

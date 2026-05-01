@@ -58,12 +58,12 @@ handler = fn
     socket = assign(socket, applet_js: "/applets/flex.js")
     socket = assign(socket, page_title: "Generic Items")
     socket = assign(socket, page_suffix: " · Flex")
+    state = Map.put(state, :ui, libUserInterface)
     state = Map.put(state, :tzoffset, tzoffset)
     state = Map.put(state, :items, items)
     state = Map.put(state, :index, index)
     state = Map.put(state, :logs, logs)
     state = Map.put(state, :modal, nil)
-    state = Map.put(state, :ui, ui)
 
     case length(index) > 0 do
       false -> {socket, lib.modal.({:add, state})}

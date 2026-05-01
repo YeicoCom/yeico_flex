@@ -49,9 +49,9 @@ handler = fn
     socket = assign(socket, applet_js: "/applets/flex.js")
     socket = assign(socket, page_title: "UI Tester")
     socket = assign(socket, page_suffix: " · Flex")
-    state = Map.put(state, :options, options)
     state = Map.put(state, :input, %{text1: "Text", text2: "Text"})
-    state = Map.put(state, :ui, ui)
+    state = Map.put(state, :ui, libUserInterface)
+    state = Map.put(state, :options, options)
     {socket, state}
 
   {:params, socket, state, params, uri} ->

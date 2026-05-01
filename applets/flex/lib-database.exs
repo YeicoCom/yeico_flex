@@ -1,16 +1,23 @@
 use Terminal
 
-openDatabase = fn name ->
-  path = Terminal.dpath("@home/flex.cubdb/#{name}")
+open = fn name ->
+  path = Terminal.dpath("@home/flex.db/#{name}")
 
-  with {:ok, cubdb} <- CubDB.start_link(data_dir: path) do
-    Adb.update("flex:databases", %{name => cubdb}, &Map.put(&1, name, cubdb))
-    {:ok, cubdb}
+  with {:ok, db} <- CubDB.start_link(data_dir: path) do
+    Adb.update("flex:databases", %{name => db}, &Map.put(&1, name, db))
+    {:ok, db}
   end
 end
 
-getDatabase = fn name ->
-  Adb.get("flex:databases")[name]
+api = fn name ->
+  db = Adb.get("flex:databases")[name]
+
+  %{
+    select: fn opts -> CubDB.select(db, opts) end,
+    put: fn key, value -> CubDB.put(db, key, value) end,
+    get: fn key -> CubDB.get(db, key) end,
+    delete: fn key -> CubDB.delete(db, key) end
+  }
 end
 
 :ok
