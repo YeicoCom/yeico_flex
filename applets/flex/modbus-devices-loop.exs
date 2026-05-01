@@ -21,7 +21,7 @@ runner_loop =
         {conn, result} ->
           meta = device.meta[pi]
 
-          %{rf: rf, set: set, get: get} = plib.encoder.(point.encoding)
+          %{rf: rf, set: set, get: get} = libModbusCommand.encoder.(point.encoding)
 
           {cmd, result, get} =
             case {point.type, point.encoding} do
@@ -130,7 +130,7 @@ master_loop = fn state = %{db: db, loop: loop, runners: runners, logs: logs} ->
   receive do
     {"flex:modbus-devices:insert", _, params} ->
       id = UUID.uuid1() |> ShortUUID.encode!()
-      CubDB.put(db, id, params)
+      db.put.(id, params)
       publish_devices.(db)
       log_event.(id, false, "Created")
       runner = run_device.(id, params)
@@ -140,7 +140,7 @@ master_loop = fn state = %{db: db, loop: loop, runners: runners, logs: logs} ->
 
     {"flex:modbus-devices:update", _, {id, params}} ->
       params = Map.drop(params, [:meta])
-      CubDB.put(db, id, params)
+      db.put.(id, params)
       publish_devices.(db)
       task = runners[id][:task]
       if task, do: Api.kill(task)
@@ -151,7 +151,7 @@ master_loop = fn state = %{db: db, loop: loop, runners: runners, logs: logs} ->
       loop.(state)
 
     {"flex:modbus-devices:delete", _, id} ->
-      CubDB.delete(db, id)
+      db.delete.(id)
       publish_devices.(db)
       task = runners[id][:task]
       if task, do: Api.kill(task)
@@ -196,3 +196,5 @@ end
 
 db = libDatabase.api.("modbus-devices")
 Api.loop(dms, master_setup, %{db: db})
+
+:ok

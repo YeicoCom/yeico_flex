@@ -2,11 +2,8 @@ use Terminal
 
 open = fn name ->
   path = Terminal.dpath("@home/flex.db/#{name}")
-
-  with {:ok, db} <- CubDB.start_link(data_dir: path) do
-    Adb.update("flex:databases", %{name => db}, &Map.put(&1, name, db))
-    {:ok, db}
-  end
+  {:ok, db} = CubDB.start_link(data_dir: path)
+  Adb.update("flex:databases", %{name => db}, &Map.put(&1, name, db))
 end
 
 api = fn name ->

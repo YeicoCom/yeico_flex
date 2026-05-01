@@ -4,8 +4,8 @@ protos = ["TCP", "RTU"]
 options = %{protos: protos}
 
 toproto = fn
-  "TCP" -> libModbusProtocol.tcp_proto
-  "RTU" -> libModbusProtocol.rtu_proto
+  "TCP" -> libModbus.tcp_proto
+  "RTU" -> libModbus.rtu_proto
 end
 
 shift = fn tzoffset, log = %{dt: dt} ->
@@ -22,7 +22,7 @@ loop = fn loop, parent, conn ->
 
   receive do
     {:exec, %{cmd: cmd, get: get}} ->
-      case libModbusProtocol.master.({:exec, conn, cmd, tracer: tracer}) do
+      case libModbus.master.({:exec, conn, cmd, tracer: tracer}) do
         {:ok, conn} ->
           send(parent, {:socket, self(), :success, :ok})
           loop.(loop, parent, conn)
@@ -48,7 +48,7 @@ end
 
 setup = fn {parent, %{ip: ip, port: port, proto: proto}} ->
   with {:ok, conn} <-
-         libModbusProtocol.master.({:open, ip: ip, port: port, proto: toproto.(proto)}) do
+         libModbus.master.({:open, ip: ip, port: port, proto: toproto.(proto)}) do
     send(parent, {:socket, self(), :success, "Connected to #{proto}:#{ip}:#{port}"})
     loop.(loop, parent, conn)
   else

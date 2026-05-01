@@ -499,4 +499,9 @@ master = fn
     Map.put(conn, :tid, tid)
 end
 
+proto = fn
+  "TCP" -> tcp_proto
+  "RTU" -> rtu_proto
+end
+
 :ok

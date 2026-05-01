@@ -184,6 +184,7 @@ handler = fn
     socket = assign(socket, applet_js: "/applets/flex.js")
     socket = assign(socket, page_title: "Modbus Devices")
     socket = assign(socket, page_suffix: " · Flex")
+    state = Map.put(state, :ui, libUserInterface)
     state = Map.put(state, :tzoffset, tzoffset)
     state = Map.put(state, :devices, devices)
     state = Map.put(state, :refresh, refresh)
@@ -191,7 +192,7 @@ handler = fn
     state = Map.put(state, :logs, logs)
     state = Map.put(state, :points, points)
     state = Map.put(state, :modal, nil)
-    state = Map.put(state, :ui, ui)
+    # prevent events overwhelm
     Process.send_after(self(), :refresh, refresh)
 
     case length(index) > 0 do

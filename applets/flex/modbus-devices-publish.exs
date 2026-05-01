@@ -1,6 +1,6 @@
 use Terminal
 
-publish_modbus_devices = fn ->
+loop = fn ->
   Api.subget!("flex:modbus-devices:items")
   |> Enum.each(fn {_id, device} ->
     src = "modbus:#{device.proto},#{device.ip}:#{device.port},#{device.name}"
@@ -29,4 +29,6 @@ publish_modbus_devices = fn ->
   receive do: (_ -> nil)
 end
 
-Api.loop(0, publish_modbus_devices)
+Api.loop(0, loop)
+
+:ok

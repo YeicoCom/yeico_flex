@@ -1,6 +1,6 @@
 use Terminal
 
-proto = libModbusProtocol[proto]
+proto = libModbus.proto.(proto)
 
 get = fn slave, code, address, count ->
   model = Adb.get("flex:modbus-slave:model")
