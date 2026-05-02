@@ -1,6 +1,6 @@
 use Terminal
 
-proto = libModbus.proto.(proto)
+proto = mb.api.(:parse, proto: proto)
 
 get = fn slave, code, address, count ->
   model = Adb.get("flex:modbus-slave:model")
