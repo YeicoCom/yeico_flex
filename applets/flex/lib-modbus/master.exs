@@ -489,11 +489,11 @@ exec = fn {conn = %{trans: trans, proto: proto, tid: tid, tstate: tstate}, cmd, 
   end
 end
 
-master = fn
-  {:close, %{trans: trans, tstate: tstate}} ->
-    trans.({:close, tstate})
+close = fn %{trans: trans, tstate: tstate} ->
+  trans.({:close, tstate})
+end
 
-  # for testing
+test = fn
   {:tid, conn} ->
     Map.get(conn, :tid)
 

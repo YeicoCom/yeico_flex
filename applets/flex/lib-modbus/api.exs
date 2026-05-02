@@ -10,13 +10,16 @@ command = Adb.get("flex:api").evalScript.("command.exs", parser: parser, encoder
 Adb.get("flex:api").evalTest.("float-test.exs", float: float)
 Adb.get("flex:api").evalTest.("command-test.exs", command: command)
 
+# fixme cache encoder in modbus devices loop
+# most performance critical to the top
 api = fn
+  :master, exec: args -> master.exec.(args)
+  :master, open: opts -> master.open.(opts)
+  :master, close: conn -> master.close.(conn)
+  :encoder, encoding: encoding -> encoder.encoder.(encoding)
   :parse, proto: "TCP" -> master.tcp_proto
   :parse, proto: "RTU" -> master.rtu_proto
-  :master, open: opts -> master.open.(opts)
-  :master, exec: args -> master.exec.(args)
   :parse, cmdline: cmdline -> command.parse.(cmdline)
-  :encoder, encoding: encoding -> encoder.encoder.(encoding)
   :help, :short -> help.short
   :help, :full -> help.full
 end

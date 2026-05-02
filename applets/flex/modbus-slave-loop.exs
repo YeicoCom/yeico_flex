@@ -43,7 +43,7 @@ handle = fn {loop, conn = %{socket: socket}} ->
       loop.({loop, conn})
 
     unexpected ->
-      Api.warn(unexpected: unexpected)
+      Api.debug(unexpected: unexpected)
   end
 end
 

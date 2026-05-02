@@ -44,13 +44,14 @@ loop = fn loop, parent, conn ->
 
     unexpected ->
       send(parent, {:socket, self(), :error, unexpected: unexpected})
-      Api.warn(unexpected: unexpected)
+      Api.debug(unexpected: unexpected)
   end
 end
 
 setup = fn {parent, %{ip: ip, port: port, proto: proto}} ->
   with {:ok, conn} <-
          mb.api.(:master, open: [ip: ip, port: port, proto: toproto.(proto)]) do
+    Api.defer(fn -> mb.api.(:master, close: conn) end)
     send(parent, {:socket, self(), :success, "Connected to #{proto}:#{ip}:#{port}"})
     loop.(loop, parent, conn)
   else
