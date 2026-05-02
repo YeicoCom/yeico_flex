@@ -23,16 +23,16 @@ encoder = fn
   "F32BE" ->
     %{
       rf: 2,
-      set: fn d -> float.to_be.(d) end,
-      get: fn d -> float.from_be.(d) end,
+      set: fn d -> float.to_be_abcd.(d) end,
+      get: fn d -> float.from_be_abcd.(d) end,
       parse: parser.parse_df32
     }
 
   "F32LE" ->
     %{
       rf: 2,
-      set: fn d -> float.to_le.(d) end,
-      get: fn d -> float.from_le.(d) end,
+      set: fn d -> float.to_le_dcba.(d) end,
+      get: fn d -> float.from_le_dcba.(d) end,
       parse: parser.parse_df32
     }
 

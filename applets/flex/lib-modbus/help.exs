@@ -5,8 +5,8 @@ short = "s=Slave,a=Address,c=[rdi,rdo,wdo,rri,rro,wro],d=Data,e=[f32be,f32le,u16
 full = """
 Values are decimal by default and can be prefixed with:
   h for hexadecimal
-  d for decimal
   b for binary
+  d for decimal
 
 s: Slave [0-255] or [h00-hFF]
 a: Address [0-65535] or [h0000-hFFFF]
@@ -21,10 +21,10 @@ d: Read count
   or binary encoded digital data to output
   or colon separated register data to output
 e: Encoding
-  f32be 32 bit big endian IEEE754 float encoding
-  f32le 32 bit little endian IEEE754 float encoding
-  u16be 16 bit big endian unsigned integer
+  u16be 16 bit big endian unsigned integer (default)
   u16le 16 bit little endian unsigned integer
+  f32be 32 bit big endian IEEE754 float encoding
+  f32le 32 bit little endian IEEE754 float encoding (byte swap)
 #: Name or comment
 """
 

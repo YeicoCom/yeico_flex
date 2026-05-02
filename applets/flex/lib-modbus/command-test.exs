@@ -69,8 +69,8 @@ test.({:rir, 1, 0, 3}, "s=1,a=0,c=rri,d=3,e=u16be")
 test.({:rir, 1, 0, 3}, "s=1,a=0,c=rri,d=3,e=u16le")
 
 test.({:phr, 1, 0, [3]}, "s=1,a=0,c=wro,d=3,e=NONE")
-test.({:phr, 1, 0, [0x4040, 0x0000]}, "s=1,a=0,c=wro,d=3,e=f32be")
-test.({:phr, 1, 0, [0x0000, 0x4040]}, "s=1,a=0,c=wro,d=3,e=f32le")
+test.({:phr, 1, 0, [0x4059, 0x999A]}, "s=1,a=0,c=wro,d=3.4,e=f32be")
+test.({:phr, 1, 0, [0x9A99, 0x5940]}, "s=1,a=0,c=wro,d=3.4,e=f32le")
 test.({:phr, 1, 0, [0x0003]}, "s=1,a=0,c=wro,d=3,e=u16be")
 test.({:phr, 1, 0, [0x0300]}, "s=1,a=0,c=wro,d=3,e=u16le")
 
