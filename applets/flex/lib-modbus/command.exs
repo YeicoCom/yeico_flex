@@ -70,7 +70,7 @@ this = fn line ->
   e = e || "none"
   e = String.upcase(e)
 
-  %{rf: rf, set: set, get: get, parse: parse_dr} = encoder.encoder.(e)
+  %{rf: rf, set: set, get: get, parse: parse_dr} = encoder.get.(e)
 
   {d, get} =
     case {c, e} do

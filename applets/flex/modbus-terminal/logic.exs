@@ -4,7 +4,7 @@ protos = ["TCP", "RTU"]
 options = %{protos: protos}
 
 help = fn type -> mb.api.(:help, type) end
-toproto = fn proto -> mb.api.(:parse, proto: proto) end
+toproto = fn proto -> mb.api.(:proto, get: proto) end
 
 shift = fn tzoffset, log = %{dt: dt} ->
   dt = NaiveDateTime.shift(dt, hour: tzoffset)
