@@ -139,6 +139,7 @@ text = f.("Button ~s", default)
 - [ ] Screen designer stumped after several enable/disable
 - [ ] Task to periodically delete unreferenced screen designs
 - [ ] Inplace testing with a global enable flag (see lib-convert)
+- [ ] f32le untested, is endianess applied at register or byte level?
 - [ ] Unable to convert float string to int while adding a button on Linux
   - different pointer coordinate type by platform?
 - [x] Why html text has such a large y padding?: leading-none

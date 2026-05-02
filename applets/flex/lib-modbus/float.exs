@@ -1,6 +1,6 @@
 use Terminal
 
-# https://www.h-schmidt.net/FloatConverter/Float.html.
+# https://www.h-schmidt.net/FloatConverter/IEEE754.html
 this = fn
   {_this, _, [], _} ->
     []

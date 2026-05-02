@@ -17,12 +17,6 @@ c: Code
   rri to read register input(s)
   rro to read register output(s)
   wro to write register output(s)
-  ri to read input point(s)
-  rc to read discrete coil(s)
-  fc to force discrete coil(s)
-  rir to read input register(s)
-  rhr to read holding register(s)
-  phr to preset holding register(s)
 d: Read count
   or binary encoded digital data to output
   or colon separated register data to output
