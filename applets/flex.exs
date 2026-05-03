@@ -91,10 +91,12 @@ Adb.put("flex:api", flex)
 mb = flex.toLibrary.("lib-modbus/api.exs", [])
 db = flex.toLibrary.("lib-database.exs", [])
 ui = flex.toLibrary.("lib-user-interface.exs", [])
+pt = flex.toLibrary.("lib-points.exs", [])
 
 flex.evalScript.("modbus-slave-loop.exs", mb: mb, proto: "TCP", port: 44001, dms: 1_000)
 flex.evalScript.("modbus-slave-loop.exs", mb: mb, proto: "RTU", port: 44002, dms: 1_000)
 flex.evalScript.("/flex/modbus-terminal/setup.exs", mb: mb, ui: ui)
+flex.evalScript.("/flex/modbus-devices/setup.exs", db: db, mb: mb, ui: ui, pt: pt)
 
 # getLibrary = fn name ->
 #   Adb.get("flex:libraries")[name]

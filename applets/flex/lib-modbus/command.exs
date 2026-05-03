@@ -70,21 +70,21 @@ this = fn line ->
   e = e || "none"
   e = String.upcase(e)
 
-  %{rf: rf, set: set, get: get, parse: parse_dr} = encoder.get.(e)
+  enc = encoder.get.(e)
 
   {d, get} =
     case {c, e} do
       {:rir, _} ->
-        d = parser.parse_dc.(d) |> check_max.(div(254, 2 * rf))
-        {rf * d, get}
+        d = parser.parse_dc.(d) |> check_max.(div(254, 2 * enc.factor))
+        {enc.factor * d, enc.decode}
 
       {:rhr, _} ->
-        d = parser.parse_dc.(d) |> check_max.(div(254, 2 * rf))
-        {rf * d, get}
+        d = parser.parse_dc.(d) |> check_max.(div(254, 2 * enc.factor))
+        {enc.factor * d, enc.decode}
 
       {:phr, _} ->
-        d = parse_dr.(d)
-        {set.(d), & &1}
+        d = enc.parse.(d)
+        {enc.encode.(d), & &1}
 
       {_, "NONE"} ->
         d =

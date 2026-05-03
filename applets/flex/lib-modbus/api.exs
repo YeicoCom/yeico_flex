@@ -16,10 +16,10 @@ Adb.get("flex:api").evalTest.("command-test.exs", command: command)
 # FIXME: cache encoder in modbus devices loop
 # most performance critical to the top
 api = fn
-  :encoder, get: encoding -> encoder.get.(encoding)
   :master, exec: args -> master.exec.(args)
   :master, open: opts -> master.open.(opts)
   :master, close: conn -> master.close.(conn)
+  :encoder, get: encoding -> encoder.get.(encoding)
   :slave, proto: proto, key: key -> slave.build.(proto, key)
   :proto, get: "TCP" -> modbus.tcp_proto
   :proto, get: "RTU" -> modbus.rtu_proto

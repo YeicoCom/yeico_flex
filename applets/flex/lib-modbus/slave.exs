@@ -22,7 +22,7 @@ build = fn proto, key ->
 
   fn data ->
     {cmd, tid} = proto.({:parse_req, data})
-    Api.debug(cmd: cmd, tid: tid)
+    # Api.debug(cmd: cmd, tid: tid)
 
     values =
       case cmd do
