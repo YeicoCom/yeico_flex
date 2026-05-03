@@ -72,7 +72,16 @@ accessors = fn point = %{names: names, encoding: encoding} ->
     key = pt.get_key.(dir, type, name)
     get = fn -> get_value.(key) end
     put = fn value -> put_value.(key, value) end
-    %{name: name, key: key, get: get, put: put, parse: parse}
+
+    %{
+      dir: dir,
+      key: key,
+      get: get,
+      put: put,
+      type: type,
+      name: name,
+      parse: parse
+    }
   end
 end
 

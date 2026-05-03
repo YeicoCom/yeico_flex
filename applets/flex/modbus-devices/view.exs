@@ -313,4 +313,4 @@ handler = fn
     :ok
 end
 
-Terminal.view(path, handler)
+:ok

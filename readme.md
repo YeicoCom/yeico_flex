@@ -140,6 +140,7 @@ text = f.("Button ~s", default)
 - [ ] Task to periodically delete unreferenced screen designs
 - [ ] Inplace testing with a global enable flag (see lib-convert)
 - [ ] f32le untested, is endianess applied at register or byte level?
+- [ ] Split screen viewer from screen runner (listener and calculations)
 - [ ] Unable to convert float string to int while adding a button on Linux
   - different pointer coordinate type by platform?
 - Terminal dying on save hot reload: 
