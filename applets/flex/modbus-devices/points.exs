@@ -17,26 +17,23 @@ toint? = fn str ->
   end
 end
 
-# use official erlang type names
+enctype = fn
+  "NONE" -> :uint16
+  "U16BE" -> :uint16
+  "S16BE" -> :sint16
+  "F32BE" -> :float
+  "U16LE" -> :uint16
+  "S16LE" -> :sint16
+  "F32LE" -> :float
+end
+
 dirtype = fn
   %{type: "RDI"} -> %{dir: :source, type: :bit}
   %{type: "RDO"} -> %{dir: :source, type: :bit}
   %{type: "WDO"} -> %{dir: :sink, type: :bit}
-  %{type: "RRI", encoding: "F32BE"} -> %{dir: :source, type: :float}
-  %{type: "RRO", encoding: "F32BE"} -> %{dir: :source, type: :float}
-  %{type: "WRO", encoding: "F32BE"} -> %{dir: :sink, type: :float}
-  %{type: "RRI", encoding: "F32LE"} -> %{dir: :source, type: :float}
-  %{type: "RRO", encoding: "F32LE"} -> %{dir: :source, type: :float}
-  %{type: "WRO", encoding: "F32LE"} -> %{dir: :sink, type: :float}
-  %{type: "RRI", encoding: "U16BE"} -> %{dir: :source, type: :uint16}
-  %{type: "RRO", encoding: "U16BE"} -> %{dir: :source, type: :uint16}
-  %{type: "WRO", encoding: "U16BE"} -> %{dir: :sink, type: :uint16}
-  %{type: "RRI", encoding: "U16LE"} -> %{dir: :source, type: :uint16}
-  %{type: "RRO", encoding: "U16LE"} -> %{dir: :source, type: :uint16}
-  %{type: "WRO", encoding: "U16LE"} -> %{dir: :sink, type: :uint16}
-  %{type: "RRI"} -> %{dir: :source, type: :uint16}
-  %{type: "RRO"} -> %{dir: :source, type: :uint16}
-  %{type: "WRO"} -> %{dir: :sink, type: :uint16}
+  %{type: "RRI", encoding: enc} -> %{dir: :source, type: enctype.(enc)}
+  %{type: "RRO", encoding: enc} -> %{dir: :source, type: enctype.(enc)}
+  %{type: "WRO", encoding: enc} -> %{dir: :sink, type: enctype.(enc)}
 end
 
 switch = fn points, pi ->
