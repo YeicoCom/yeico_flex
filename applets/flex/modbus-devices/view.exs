@@ -251,32 +251,15 @@ handler = fn
     state = put_in(state, [:modal, :input, :points], points)
     {socket, state}
 
-  {:event, socket, state = %{modal: %{input: %{points: points}}}, event = "change:points", params} ->
+  {:event, socket, state = %{modal: %{input: device}}, event = "change:points", params} ->
     Api.trace(view: path, event: event, params: params)
-    type = params["type"]
-    encoding = params["encoding"]
-    slave = params["slave"] |> Enum.map(plib.toint?)
-    address = params["address"] |> Enum.map(plib.toint?)
-
-    names =
-      params["names"]
-      |> Enum.map(fn names ->
-        String.split(names, ",") |> Enum.map(&String.trim/1) |> Enum.join(",")
-      end)
-
-    {points, _, _, _, _, _} =
-      for _ <- points, reduce: {[], slave, address, type, encoding, names} do
-        {points, [s | slave], [a | address], [t | type], [e | encoding], [n | names]} ->
-          {[%{slave: s, address: a, type: t, encoding: e, names: n} | points], slave, address,
-           type, encoding, names}
-      end
-
-    points = points |> Enum.reverse()
-    state = put_in(state, [:modal, :input, :points], points)
+    device = plib.parse.(device, params)
+    state = put_in(state, [:modal, :input], device)
     {socket, state}
 
   {:event, socket, state = %{modal: %{id: id, input: device}}, event = "submit:points", params} ->
     Api.trace(view: path, event: event, params: params)
+    device = plib.parse.(device, params)
     Bus.broadcast!("flex:modbus-devices:update", {id, device})
     state = Map.put(state, :modal, nil)
     {socket, state}

@@ -79,4 +79,27 @@ accessors = fn point = %{names: names, encoding: encoding} ->
   end
 end
 
+parse = fn device = %{points: points}, params ->
+  type = params["type"]
+  encoding = params["encoding"]
+  slave = params["slave"] |> Enum.map(toint?)
+  address = params["address"] |> Enum.map(toint?)
+
+  names =
+    params["names"]
+    |> Enum.map(fn names ->
+      String.split(names, ",") |> Enum.map(&String.trim/1) |> Enum.join(",")
+    end)
+
+  {points, _, _, _, _, _} =
+    for _ <- points, reduce: {[], slave, address, type, encoding, names} do
+      {points, [s | slave], [a | address], [t | type], [e | encoding], [n | names]} ->
+        {[%{slave: s, address: a, type: t, encoding: e, names: n} | points], slave, address, type,
+         encoding, names}
+    end
+
+  points = points |> Enum.reverse()
+  Map.put(device, :points, points)
+end
+
 :ok
