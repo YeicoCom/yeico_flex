@@ -1,6 +1,6 @@
 use Terminal
 
 logic = flex.evalScript.("logic.exs", mb: mb)
-flex.evalView.("view.exs", logic: logic, ui: ui)
+flex.evalView.("index.exs", logic: logic, ui: ui)
 
 :ok

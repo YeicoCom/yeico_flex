@@ -7,6 +7,6 @@ Api.putcast!("flex:user-screens:logs", %{})
 flex.evalLoop.("loop.exs", db: db, dms: 2_000)
 # vd = flex.evalScript.("validation.exs", [])
 logic = flex.evalScript.("logic.exs", [])
-flex.evalView.("view.exs", logic: logic, ui: ui, sd: %{})
+flex.evalView.("index.exs", logic: logic, ui: ui, sd: %{})
 
 :ok

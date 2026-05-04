@@ -65,7 +65,9 @@ end
 evalView = fn route, opts ->
   runAsync.(fn ->
     %{path: path} = getPath.(route)
-    path = path |> Path.dirname()
+    # dir/index.exs -> dir
+    # dir/other.exs -> dir/other
+    path = path |> Path.rootname() |> String.replace_suffix("/index", "")
     view = evalScript.(route, [{:path, path} | opts])
     # Api.debug(route: route, view: path)
     Terminal.view(path, view.handler)
@@ -98,6 +100,10 @@ flex.evalScript.("/flex/modbus-devices/setup.exs", db: db, mb: mb, ui: ui, pt: p
 
 flex.evalScript.("/flex/user-screens/setup.exs", db: db, ui: ui, pt: pt)
 
-flex.evalView.("home-index.exs", ui: ui)
+flex.evalView.("index.exs", ui: ui)
+
+if Terminal.dev?() do
+  flex.evalView.("ui-tester.exs", ui: ui)
+end
 
 :ok
