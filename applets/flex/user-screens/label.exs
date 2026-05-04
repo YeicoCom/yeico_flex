@@ -39,6 +39,7 @@ editor = fn assigns = %{item: item} ->
   assigns = Map.put(assigns, :props, item.props)
   assigns = Map.put(assigns, :errors, item.errors)
   assigns = Map.put(assigns, :sources, ["" | pt.get_sources.()])
+  assigns = Map.put(assigns, :inspect?, vutils.inspect?)
 
   ~H"""
   <div>Size</div>
@@ -62,21 +63,15 @@ editor = fn assigns = %{item: item} ->
   </div>
   <div class="col-span-2">Output</div>
   <div class="col-span-2">
-    <.fui fun={@ui.area} value={inspect(@rt.output)} disabled rows="8" class="w-full"/>
+    <.fui fun={@ui.area} value={@inspect?.(@rt.output)} readonly rows="8" class="w-full"/>
   </div>
   """
 end
 
 calculate = fn %{props: %{style: style, calc: calc, default: default, text: text}}, value ->
-  bindings = [value: value, default: default, text: text] ++ vutils.binds.()
-
-  # no clean way to use error || calc
-  {output, calc} =
-    case Api.safe(fn -> Code.eval_string(calc, bindings) end) do
-      {:ok, {_, kw}} -> {Keyword.take(kw, [:text, :disabled]), Enum.into(kw, %{})}
-      {:error, error} -> {error, %{}}
-    end
-
+  bindings = [value: value, default: default, text: text]
+  take = [:text, :disabled, :style]
+  {output, calc, style} = vutils.eval.(calc, bindings, take, style)
   css = vutils.css.(style)
   text = vutils.get.(calc, :text, :binary) || text
   disabled = vutils.get.(calc, :disabled, :boolean) || false

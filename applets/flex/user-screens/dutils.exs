@@ -297,6 +297,7 @@ init = fn state = %{events: events}, id, item, design? ->
   {rt, key} =
     items[item.type].init.(item, fn key ->
       case {design?, Map.has_key?(events, key)} do
+        # nil initial values allow the use of || in calculator
         {false, false} -> Api.subget!(key)
         {false, true} -> Adb.get(key)
         _ -> nil

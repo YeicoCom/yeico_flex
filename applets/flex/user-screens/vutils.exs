@@ -1,5 +1,10 @@
 use Terminal
 
+inspect? = fn
+  v when is_binary(v) -> v
+  v -> inspect(v)
+end
+
 valid? = fn
   :binary ->
     fn
@@ -13,21 +18,9 @@ valid? = fn
       _ -> false
     end
 
-  "boolean:" <> _ ->
+  :keyword ->
     fn
-      v when is_integer(v) and v >= 0 and v <= 1 -> true
-      _ -> false
-    end
-
-  "uint6:" <> _ ->
-    fn
-      v when is_integer(v) and v >= 0 and v <= 65_535 -> true
-      _ -> false
-    end
-
-  "float:" <> _ ->
-    fn
-      v when is_float(v) -> true
+      v when is_list(v) -> Keyword.keyword?(v)
       _ -> false
     end
 end
@@ -209,13 +202,33 @@ css = fn style ->
   |> Enum.into(%{})
 end
 
-binds = fn ->
+eval = fn calc, bindings, take, style ->
   f = fn
     f, d when is_list(d) -> :io_lib.format(f, d) |> to_string()
     f, d -> :io_lib.format(f, [d]) |> to_string()
   end
 
-  [f: f]
+  eval_calc = fn ->
+    case Api.safe(fn -> Code.eval_string(calc, [{:f, f} | bindings]) end) do
+      {:ok, {_, kw}} ->
+        {:ok, Keyword.take(kw, take), Enum.into(kw, %{})}
+
+      {:error, _error} ->
+        {:error, "Calculator error", %{}}
+    end
+  end
+
+  with {:ok, output, calc} <- eval_calc.() do
+    bindings = get.(calc, :style, :keyword) || []
+
+    case Api.safe(fn -> Code.eval_string("\"\"\"\n#{style}\n\"\"\"", bindings) end) do
+      {:ok, {res, _}} when is_binary(res) -> {output, calc, res}
+      {:ok, {res, _}} -> {[style: res], calc, ""}
+      {:error, _error} -> {"Style error", calc, ""}
+    end
+  else
+    {:error, output, calc} -> {output, calc, ""}
+  end
 end
 
 :ok

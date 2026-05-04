@@ -136,6 +136,7 @@ text = f.("Button ~s", default)
 - [ ] Show io_lib format escapes help in props editor
 - [ ] CubDB screen design db cleanup strategy
 - [ ] Define mqtt strategy
+- [ ] Implement links between user screens
 - [ ] Screen designer stumped after several enable/disable
 - [ ] Task to periodically delete unreferenced screen designs
 - [ ] Inplace testing with a global enable flag (see lib-convert)
