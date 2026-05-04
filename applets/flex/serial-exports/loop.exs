@@ -248,7 +248,6 @@ master_setup = fn %{db: db} ->
   master_loop.(%{db: db, loop: master_loop, runners: runners, logs: %{}})
 end
 
-db = libDatabase.api.("serial-exports")
 Api.loop(dms, master_setup, %{db: db})
 
 :ok

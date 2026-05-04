@@ -1,6 +1,6 @@
 use Terminal
 
-logic = Adb.get("flex:api").evalScript.("logic.exs", mb: mb)
-view = Adb.get("flex:api").evalView.("view.exs", logic: logic, ui: ui)
+logic = flex.evalScript.("logic.exs", mb: mb)
+flex.evalView.("view.exs", logic: logic, ui: ui)
 
 :ok

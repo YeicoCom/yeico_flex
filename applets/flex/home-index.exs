@@ -18,8 +18,8 @@ handler = fn
     socket = assign(socket, page_title: "Home")
     items = Api.subget!("flex:user-screens:items") || []
     items = Enum.filter(items, fn {_, v} -> v.status == :enabled end)
-    state = Map.put(state, :ui, libUserInterface)
     state = Map.put(state, :items, items)
+    state = Map.put(state, :ui, ui)
     {socket, state}
 
   {:params, socket, state, params, uri} ->
@@ -48,4 +48,4 @@ handler = fn
     :ok
 end
 
-Terminal.view(path, handler)
+:ok

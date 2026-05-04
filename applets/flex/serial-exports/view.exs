@@ -60,23 +60,23 @@ handler = fn
   {:mount, socket, state} ->
     tzoffset = socket.assigns.tzoffset || 0
     logs = Api.subget!("flex:serial-exports:logs")
-    logs = lib.shift.(tzoffset, logs)
+    logs = logic.shift.(tzoffset, logs)
     items = Api.subget!("flex:serial-exports:items")
-    index = lib.index.(items)
+    index = logic.index.(items)
     items = Enum.into(items, %{})
     socket = assign(socket, applet_css: "/applets/flex.css")
     socket = assign(socket, applet_js: "/applets/flex.js")
     socket = assign(socket, page_title: "Serial Exports")
     socket = assign(socket, page_suffix: " · Flex")
-    state = Map.put(state, :ui, libUserInterface)
     state = Map.put(state, :tzoffset, tzoffset)
     state = Map.put(state, :items, items)
     state = Map.put(state, :index, index)
     state = Map.put(state, :logs, logs)
     state = Map.put(state, :modal, nil)
+    state = Map.put(state, :ui, ui)
 
     case length(index) > 0 do
-      false -> {socket, lib.modal.({:add, state})}
+      false -> {socket, logic.modal.({:add, state})}
       true -> {socket, state}
     end
 
@@ -94,13 +94,13 @@ handler = fn
 
   {:event, socket, state = %{modal: %{id: nil}}, event = "modal:submit", params} ->
     Api.trace(view: path, event: event, params: params)
-    Bus.broadcast!("flex:serial-exports:insert", lib.parse.(params))
+    Bus.broadcast!("flex:serial-exports:insert", logic.parse.(params))
     state = Map.put(state, :modal, nil)
     {socket, state}
 
   {:event, socket, state = %{modal: %{id: id}}, event = "modal:submit", params} ->
     Api.trace(view: path, event: event, params: params)
-    Bus.broadcast!("flex:serial-exports:update", {id, lib.parse.(params)})
+    Bus.broadcast!("flex:serial-exports:update", {id, logic.parse.(params)})
     state = Map.put(state, :modal, nil)
     {socket, state}
 
@@ -112,17 +112,17 @@ handler = fn
   {:event, socket, state = %{items: items}, event = "click:action",
    params = %{"id" => id, "action" => action}} ->
     Api.trace(view: path, event: event, params: params)
-    Bus.broadcast!("flex:serial-exports:update", {id, lib.apply.(items[id], action)})
+    Bus.broadcast!("flex:serial-exports:update", {id, logic.apply.(items[id], action)})
     {socket, state}
 
   {:event, socket, state, event = "click:add", params} ->
     Api.trace(view: path, event: event, params: params)
-    state = lib.modal.({:add, state})
+    state = logic.modal.({:add, state})
     {socket, state}
 
   {:event, socket, state = %{items: items}, event = "click:edit", params = %{"id" => id}} ->
     Api.trace(view: path, event: event, params: params)
-    state = lib.modal.({:edit, state, id, items[id]})
+    state = logic.modal.({:edit, state, id, items[id]})
     {socket, state}
 
   {:event, socket, state, event, params} ->
@@ -131,7 +131,7 @@ handler = fn
 
   {:info, socket, state, event = {"flex:serial-exports:items", _, items}} ->
     Api.trace(view: path, info: event)
-    index = lib.index.(items)
+    index = logic.index.(items)
     items = Enum.into(items, %{})
     state = Map.put(state, :items, items)
     state = Map.put(state, :index, index)
@@ -139,7 +139,7 @@ handler = fn
 
   {:info, socket, state = %{tzoffset: tzoffset}, event = {"flex:serial-exports:logs", _, logs}} ->
     Api.trace(view: path, info: event)
-    state = Map.put(state, :logs, lib.shift.(tzoffset, logs))
+    state = Map.put(state, :logs, logic.shift.(tzoffset, logs))
     {socket, state}
 
   {:info, socket, state, event} ->
@@ -151,4 +151,4 @@ handler = fn
     :ok
 end
 
-Terminal.view(path, handler)
+:ok

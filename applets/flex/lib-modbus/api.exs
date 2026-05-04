@@ -1,17 +1,17 @@
 use Terminal
 
-help = Adb.get("flex:api").evalScript.("help.exs", [])
-parser = Adb.get("flex:api").evalScript.("parser.exs", [])
-modbus = Adb.get("flex:api").evalScript.("modbus.exs", toms: 4_000)
-master = Adb.get("flex:api").evalScript.("master.exs", modbus: modbus, toms: 4_000)
-convert = Adb.get("flex:api").evalScript.("convert.exs", [])
-encoder = Adb.get("flex:api").evalScript.("encoder.exs", convert: convert, parser: parser)
-command = Adb.get("flex:api").evalScript.("command.exs", parser: parser, encoder: encoder)
-slave = Adb.get("flex:api").evalScript.("slave.exs", master: master)
+help = flex.evalScript.("help.exs", [])
+parser = flex.evalScript.("parser.exs", [])
+modbus = flex.evalScript.("modbus.exs", toms: 4_000)
+master = flex.evalScript.("master.exs", modbus: modbus, toms: 4_000)
+convert = flex.evalScript.("convert.exs", [])
+encoder = flex.evalScript.("encoder.exs", convert: convert, parser: parser)
+command = flex.evalScript.("command.exs", parser: parser, encoder: encoder)
+slave = flex.evalScript.("slave.exs", master: master)
 
-Adb.get("flex:api").evalTest.("modbus-test.exs", modbus: modbus, slave: slave)
-Adb.get("flex:api").evalTest.("convert-test.exs", convert: convert)
-Adb.get("flex:api").evalTest.("command-test.exs", command: command)
+flex.evalTest.("modbus-test.exs", modbus: modbus, slave: slave)
+flex.evalTest.("convert-test.exs", convert: convert)
+flex.evalTest.("command-test.exs", command: command)
 
 # FIXME: cache encoder in modbus devices loop
 # most performance critical to the top
