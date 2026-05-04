@@ -45,7 +45,7 @@ calc_runtimes = fn %{points: points} ->
       accessors = plib.accessors.(point)
       %{type: type, slave: slave, address: address, encoding: encoding} = point
       %{encode: encode, decode: decode, factor: factor} = mb.api.(:encoder, get: encoding)
-      count = length(points)
+      count = length(accessors)
 
       pointer =
         case({type, encoding}) do
@@ -86,7 +86,14 @@ runner_setup = fn %{id: id, device: device = %{ip: ip, port: port, proto: proto}
     # nil to reset
     log_event.(id, nil, "Started")
     if length(device.points) == 0, do: Api.sleep()
-    runner_loop.(%{id: id, rts: rts, device: device, loop: runner_loop, conn: conn})
+
+    run = fn ->
+      runner_loop.(%{id: id, rts: rts, device: device, loop: runner_loop, conn: conn})
+    end
+
+    with {:error, error} <- Api.safe(run) do
+      log_event.(id, true, error)
+    end
   else
     {:error, error} -> log_event.(id, true, error)
   end

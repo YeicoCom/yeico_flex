@@ -24,6 +24,13 @@ to = fn
     <<value::signed-little-integer-size(16)>> = <<value::size(16)>>
     value
 
+  # erlang float does not support nan nor infinity
+  :f32be, [0xFFFF, 0xFFFF] ->
+    -3.4028235e38
+
+  :f32le, [0xFFFF, 0xFFFF] ->
+    -3.4028235e38
+
   :f32be, [w0, w1] ->
     <<value::big-float-32>> = <<w0::16, w1::16>>
     value

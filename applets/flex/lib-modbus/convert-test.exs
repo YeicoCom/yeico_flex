@@ -14,4 +14,8 @@ use Terminal
 3.4000000953674316 = convert.to.(:f32be, [0x4059, 0x999A])
 3.4000000953674316 = convert.to.(:f32le, [0x9A99, 0x5940])
 
+# what opto22 returns for empty analog points
+-3.4028235e38 = convert.to.(:f32be, [0xFFFF, 0xFFFF])
+-3.4028235e38 = convert.to.(:f32le, [0xFFFF, 0xFFFF])
+
 :ok
