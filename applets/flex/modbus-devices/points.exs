@@ -69,11 +69,13 @@ accessors = fn point = %{names: names, encoding: encoding} ->
   %{parse: parse} = mb.api.(:encoder, get: encoding)
 
   for name <- split.(names) do
+    tag = pt.get_tag.(type, name)
     key = pt.get_key.(dir, type, name)
     get = fn -> get_value.(key) end
     put = fn value -> put_value.(key, value) end
 
     %{
+      tag: tag,
       dir: dir,
       key: key,
       get: get,

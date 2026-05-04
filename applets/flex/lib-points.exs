@@ -4,6 +4,10 @@ get_key = fn dir, type, name ->
   "#{dir}:#{type}:#{name}"
 end
 
+get_tag = fn type, name ->
+  "#{type}:#{name}"
+end
+
 get_def = fn
   "source:float:" <> _ -> 0.0
   "sink:float:" <> _ -> 0.0
@@ -24,7 +28,7 @@ put_value = fn key, val ->
   Api.putcast!("flex:point:#{key}", val)
 end
 
-subget = fn key ->
+subget_value = fn key ->
   case Api.subget!("flex:point:#{key}") do
     nil -> get_def.(key)
     val -> val

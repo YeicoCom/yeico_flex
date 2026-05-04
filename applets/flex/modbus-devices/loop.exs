@@ -12,34 +12,29 @@ log_event = fn
   id, error?, msg -> post_log.(id, error?, inspect(msg))
 end
 
-runner_loop = fn state = %{loop: loop, conn: conn, id: id, rts: rts, device: device} ->
+runner_loop = fn state = %{loop: loop, conn: conn, rts: rts, device: device} ->
   Api.sleep(device.delay)
 
-  {conn, result} =
-    for pi <- 0..(rts.count - 1)//1, reduce: {conn, %{}} do
-      {conn, result} ->
+  conn =
+    for pi <- 0..(rts.count - 1)//1, reduce: conn do
+      conn ->
         %{pointer: pointer, accessors: accessors} = rts[pi]
-        {cmd, result, decode} = pointer.(result)
+        {cmd, decode} = pointer.()
 
         case mb.api.(:master, exec: {conn, cmd, []}) do
           {:ok, conn} ->
-            {conn, result}
+            conn
 
           {:ok, conn, values} ->
-            captures =
-              for {value, %{key: key, put: put}} <- Enum.zip(decode.(values), accessors) do
-                put.(value)
-                {key, value}
-              end
-
-            {conn, Enum.into(captures, result)}
+            pairs = Enum.zip(decode.(values), accessors)
+            for {value, %{put: put}} <- pairs, do: put.(value)
+            conn
 
           {:error, _conn, error} ->
             throw(device: device, error: error)
         end
     end
 
-  Bus.broadcast!("flex:modbus-devices:points", {id, result})
   state = Map.put(state, :conn, conn)
   loop.(state)
 end
@@ -55,29 +50,27 @@ calc_runtimes = fn %{points: points} ->
       pointer =
         case({type, encoding}) do
           {"RDI", _} ->
-            fn result -> {{:ri, slave, address, count}, result, & &1} end
+            fn -> {{:ri, slave, address, count}, & &1} end
 
           {"RDO", _} ->
-            fn result -> {{:rc, slave, address, count}, result, & &1} end
+            fn -> {{:rc, slave, address, count}, & &1} end
 
           {"WDO", _} ->
-            fn result ->
+            fn ->
               values = for %{key: key, get: get} <- accessors, do: {key, get.()}
-              result = Enum.into(values, result)
-              {{:fc, slave, address, Keyword.values(values)}, result, & &1}
+              {{:fc, slave, address, Keyword.values(values)}, & &1}
             end
 
           {"RRI", _} ->
-            fn result -> {{:rir, slave, address, factor * count}, result, decode} end
+            fn -> {{:rir, slave, address, factor * count}, decode} end
 
           {"RRO", _} ->
-            fn result -> {{:rhr, slave, address, factor * count}, result, decode} end
+            fn -> {{:rhr, slave, address, factor * count}, decode} end
 
           {"WRO", _} ->
-            fn result ->
+            fn ->
               values = for %{key: key, get: get} <- accessors, do: {key, get.()}
-              result = Enum.into(values, result)
-              {{:phr, slave, address, encode.(Keyword.values(values))}, result, & &1}
+              {{:phr, slave, address, encode.(Keyword.values(values))}, & &1}
             end
         end
 

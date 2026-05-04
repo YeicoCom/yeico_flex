@@ -1,6 +1,7 @@
 use Terminal
 
-short = "s=Slave,a=Address,c=[rdi,rdo,wdo,rri,rro,wro],d=Data,e=[f32be,f32le,u16be,u16le]#Comment"
+short =
+  "s=Slave,a=Address,c=[rdi,rdo,wdo,rri,rro,wro],d=Data,e=[u16be,u16le,s16be,s16le,f32be,f32le]#Comment"
 
 full = """
 Values are decimal by default and can be prefixed with:
@@ -23,6 +24,8 @@ d: Read count
 e: Encoding
   u16be 16 bit big endian unsigned integer (default)
   u16le 16 bit little endian unsigned integer
+  s16be 16 bit big endian signed integer
+  s16le 16 bit little endian signed integer
   f32be 32 bit big endian IEEE754 float encoding
   f32le 32 bit little endian IEEE754 float encoding (byte swap)
 #: Name or comment

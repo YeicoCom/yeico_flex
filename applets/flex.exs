@@ -35,7 +35,7 @@ end
 
 toLibrary = fn route, opts ->
   library = evalFile.(route, opts) |> mapBindings.()
-  Adb.update("flex:libraries", %{route => library}, &Map.put(&1, route, library))
+  # Adb.update("flex:libraries", %{route => library}, &Map.put(&1, route, library))
   library
 end
 

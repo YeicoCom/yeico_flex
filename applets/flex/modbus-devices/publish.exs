@@ -6,8 +6,7 @@ loop = fn ->
     # src = "modbus:#{device.proto},#{device.ip}:#{device.port},#{device.name}"
 
     for point <- device.points do
-      for %{dir: dir, key: key} <- plib.accessors.(point) do
-        tag = String.trim_leading(key, "#{dir}:")
+      for %{dir: dir, tag: tag} <- plib.accessors.(point) do
         Mdb.register!("flex:points:#{dir}", tag)
       end
     end
