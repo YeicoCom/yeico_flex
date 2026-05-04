@@ -219,11 +219,4 @@ binds = fn ->
   [f: f]
 end
 
-%{
-  get: get,
-  css: css,
-  binds: binds,
-  parse: parse,
-  errors: errors,
-  params: params
-}
+:ok

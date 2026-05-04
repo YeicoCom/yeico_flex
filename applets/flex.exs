@@ -69,6 +69,7 @@ evalView = fn route, opts ->
     view = evalScript.(route, [{:path, path} | opts])
     # Api.debug(route: route, view: path)
     Terminal.view(path, view.handler)
+    Api.sleep()
   end)
 end
 

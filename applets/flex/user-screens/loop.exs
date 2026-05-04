@@ -38,7 +38,7 @@ replace_log = fn logs, log = %{id: id, error?: error?} ->
 end
 
 publish_items = fn db ->
-  items = db.select.([]) |> Enum.to_list()
+  items = db.select.([]) |> Enum.sort_by(fn {_, v} -> v.name end)
   Api.putcast!("flex:user-screens:items", items)
   for {id, item} <- items, do: Api.putcast!("flex:user-screens:item:#{id}", item)
   items
@@ -48,7 +48,7 @@ master_loop = fn state = %{db: db, loop: loop, runners: runners, logs: logs} ->
   receive do
     {"flex:user-screens:insert", _, params} ->
       id = UUID.uuid1() |> ShortUUID.encode!()
-      CubDB.put(db, id, params)
+      db.put.(id, params)
       publish_items.(db)
       log_event.(id, false, "Created")
       runner = run_item.(id, params)
@@ -57,7 +57,7 @@ master_loop = fn state = %{db: db, loop: loop, runners: runners, logs: logs} ->
       loop.(state)
 
     {"flex:user-screens:update", _, {id, params}} ->
-      CubDB.put(db, id, params)
+      db.put.(id, params)
       publish_items.(db)
       task = runners[id][:task]
       if task, do: Api.kill(task)
@@ -68,7 +68,7 @@ master_loop = fn state = %{db: db, loop: loop, runners: runners, logs: logs} ->
       loop.(state)
 
     {"flex:user-screens:delete", _, id} ->
-      CubDB.delete(db, id)
+      db.delete.(id)
       publish_items.(db)
       task = runners[id][:task]
       if task, do: Api.kill(task)
@@ -111,5 +111,6 @@ master_setup = fn %{db: db} ->
   master_loop.(%{db: db, loop: master_loop, runners: runners, logs: %{}})
 end
 
-{:ok, db} = CubDB.start_link(data_dir: path)
 Api.loop(dms, master_setup, %{db: db})
+
+:ok
