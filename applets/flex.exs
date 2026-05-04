@@ -48,7 +48,7 @@ end
 
 evalTest = fn route, opts ->
   if Terminal.dev?() do
-    if System.get_env("TERMINAL_TEST") do
+    if System.get_env("FLEX_TEST") do
       runAsync.(fn ->
         evalScript.(route, opts)
       end)
@@ -69,7 +69,6 @@ evalView = fn route, opts ->
     view = evalScript.(route, [{:path, path} | opts])
     # Api.debug(route: route, view: path)
     Terminal.view(path, view.handler)
-    Api.sleep()
   end)
 end
 
