@@ -36,22 +36,35 @@ view = fn assigns ->
             class="grid grid-cols-[12em_1fr] gap-1 hover:bg-zinc-800 rounded p-2">
             <div>{slave}:{address}:{type}:{encoding}</div>
             <div class="flex flex-col gap-1">
-            <%= for %{name: name, key: key} <- accessors do %>
+            <%= cond do %>
+            <% type in ["WDO"] -> %>
+              <%= for %{name: name, key: key, tag: tag} <- accessors do %>
               <% val = values[key].val %>
               <% tval = if val>0, do: 0, else: 1 %>
-              <%= cond do %>
-              <% type in ["WDO"] -> %>
-              <.fui fun={@ui.link} phx-click="click:putint" phx-value-key={key} phx-value-val={tval}
-                title="Toggle">
-                {name}:{val}
-              </.fui>
-              <% type in ["WRO"] -> %>
+              <div class="flex gap-1 px-1 rounded hover:bg-zinc-900">
+                <.fui fun={@ui.link} phx-click="click:capture" phx-value-key={key} phx-value-val={val}
+                  phx-value-type={type} phx-value-enc={encoding} phx-value-tag={tag} title="Capture Value">
+                  {name}:{val}
+                </.fui>
+                <div class="grow"/>
+                <.fui fun={@ui.link} phx-click="click:toggle" phx-value-key={key} phx-value-val={tval}
+                  title="Toggle">
+                  <div class="hero-arrows-right-left z-0"/>
+                </.fui>
+              </div>
+              <% end %>
+            <% type in ["WRO"] -> %>
+              <%= for %{name: name, key: key, tag: tag} <- accessors do %>
+              <% val = values[key].val %>
               <.fui fun={@ui.link} phx-click="click:capture" phx-value-key={key} phx-value-val={val}
-                phx-value-type={type} phx-value-enc={encoding} title="Capture Value">
+                phx-value-type={type} phx-value-enc={encoding} phx-value-tag={tag} title="Capture Value" class="px-1">
                 {name}:{val}
               </.fui>
-              <% true -> %>
-              <div>{name}:{val}</div>
+              <% end %>
+            <% true -> %>
+              <%= for %{name: name, key: key} <- accessors do %>
+              <% val = values[key].val %>
+              <div class="px-1">{name}:{val}</div>
               <% end %>
             <% end %>
             </div>
@@ -264,16 +277,16 @@ handler = fn
     state = Map.put(state, :modal, nil)
     {socket, state}
 
-  {:event, socket, state = %{points: %{values: values}}, event = "click:putint",
+  {:event, socket, state = %{points: %{values: values}}, event = "click:toggle",
    params = %{"key" => key, "val" => val}} ->
     Api.trace(view: path, event: event, params: params)
     values[key].put.(String.to_integer(val))
     {socket, state}
 
   {:event, socket, state, event = "click:capture",
-   params = %{"key" => key, "val" => val, "type" => type, "enc" => enc}} ->
+   params = %{"tag" => tag, "key" => key, "val" => val, "type" => type, "enc" => enc}} ->
     Api.trace(view: path, event: event, params: params)
-    state = dlib.modal.({:capture, state, key, val, type, enc})
+    state = dlib.modal.({:capture, state, key, val, type, enc, tag})
     {socket, state}
 
   {:event, socket, state = %{points: %{values: values}}, event = "submit:capture",

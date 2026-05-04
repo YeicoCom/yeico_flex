@@ -69,10 +69,10 @@ runtime = fn state, devices ->
 end
 
 modal = fn
-  {:capture, state, key, val, type, enc} ->
+  {:capture, state, key, val, type, enc, tag} ->
     input = %{key: key, val: val, enc: enc}
     capture = plib.capture.(%{type: type, encoding: enc})
-    modal = %{title: "Capture Value for #{key}", input: input, capture: capture, type: :capture}
+    modal = %{title: "Capture Value for #{tag}", input: input, capture: capture, type: :capture}
     state = Map.put(state, :modal, modal)
     Map.put(state, :options, nil)
 
