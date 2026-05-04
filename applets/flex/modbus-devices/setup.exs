@@ -5,7 +5,7 @@ Api.putcast!("flex:modbus-devices:items", [])
 Api.putcast!("flex:modbus-devices:logs", %{})
 
 plib = flex.evalScript.("points.exs", mb: mb, pt: pt)
-flex.evalScript.("loop.exs", db: db, mb: mb, plib: plib, dms: 2_000)
+flex.evalLoop.("loop.exs", db: db, mb: mb, plib: plib, dms: 2_000)
 dlib = flex.evalScript.("logic.exs", plib: plib)
 flex.evalView.("view.exs", dlib: dlib, plib: plib, ui: ui)
 flex.evalScript.("publish.exs", plib: plib)

@@ -2,6 +2,15 @@ use Terminal
 
 Adb.reset()
 
+runAsync = fn fun ->
+  env = Process.get(:__flex__)
+
+  Api.async(fn ->
+    Process.put(:__flex__, env)
+    fun.()
+  end)
+end
+
 getPath = fn route ->
   parent = Process.get(:__flex__) || "/flex"
 
@@ -33,16 +42,6 @@ mapBindings = fn {_result, bindings} ->
   end
 end
 
-toLibrary = fn route, opts ->
-  library = evalFile.(route, opts) |> mapBindings.()
-  # Adb.update("flex:libraries", %{route => library}, &Map.put(&1, route, library))
-  library
-end
-
-getLibrary = fn route ->
-  Adb.get("flex:libraries")[route]
-end
-
 evalScript = fn route, opts ->
   evalFile.(route, opts) |> mapBindings.()
 end
@@ -50,17 +49,24 @@ end
 evalTest = fn route, opts ->
   if Terminal.dev?() do
     if System.get_env("TERMINAL_TEST") do
-      evalScript.(route, opts)
+      runAsync.(fn ->
+        evalScript.(route, opts)
+      end)
     end
   end
 end
 
-evalView = fn route, opts ->
-  %{path: path} = getPath.(route)
-  path = path |> Path.dirname()
-  view = evalScript.(route, [{:path, path} | opts])
+evalLoop = fn route, opts ->
+  runAsync.(fn ->
+    evalScript.(route, opts)
+  end)
+end
 
-  Api.async(fn ->
+evalView = fn route, opts ->
+  runAsync.(fn ->
+    %{path: path} = getPath.(route)
+    path = path |> Path.dirname()
+    view = evalScript.(route, [{:path, path} | opts])
     # Api.debug(route: route, view: path)
     Terminal.view(path, view.handler)
     Api.sleep()
@@ -68,27 +74,25 @@ evalView = fn route, opts ->
 end
 
 flex = %{
-  mapBindings: mapBindings,
   evalScript: evalScript,
-  getLibrary: getLibrary,
-  toLibrary: toLibrary,
   evalView: evalView,
+  evalLoop: evalLoop,
   evalTest: evalTest
 }
 
 Adb.put("flex:api", flex)
 
-mb = flex.toLibrary.("lib-modbus/api.exs", [])
-db = flex.toLibrary.("lib-database.exs", [])
-ui = flex.toLibrary.("lib-user-interface.exs", [])
-pt = flex.toLibrary.("lib-points.exs", [])
+mb = flex.evalScript.("lib-modbus/api.exs", [])
+db = flex.evalScript.("lib-database.exs", [])
+ui = flex.evalScript.("lib-user-interface.exs", [])
+pt = flex.evalScript.("lib-points.exs", [])
 
-flex.evalScript.("echo-server-loop.exs", port: 44000, dms: 1_000)
+flex.evalLoop.("echo-server-loop.exs", port: 44000, dms: 1_000)
 flex.evalScript.("/flex/serial-exports/setup.exs", db: db, ui: ui)
 flex.evalScript.("/flex/socket-terminal/setup.exs", db: db, ui: ui)
 
-flex.evalScript.("modbus-slave-loop.exs", mb: mb, proto: "TCP", port: 44001, dms: 1_000)
-flex.evalScript.("modbus-slave-loop.exs", mb: mb, proto: "RTU", port: 44002, dms: 1_000)
+flex.evalLoop.("modbus-slave-loop.exs", mb: mb, proto: "TCP", port: 44001, dms: 1_000)
+flex.evalLoop.("modbus-slave-loop.exs", mb: mb, proto: "RTU", port: 44002, dms: 1_000)
 flex.evalScript.("/flex/modbus-terminal/setup.exs", mb: mb, ui: ui)
 flex.evalScript.("/flex/modbus-devices/setup.exs", db: db, mb: mb, ui: ui, pt: pt)
 
