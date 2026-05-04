@@ -36,6 +36,11 @@ dirtype = fn
   %{type: "WRO", encoding: enc} -> %{dir: :sink, type: enctype.(enc)}
 end
 
+capture = fn point ->
+  %{type: type} = dirtype.(point)
+  pt.capture.(type)
+end
+
 switch = fn points, pi ->
   {prefix, [a, b | tail]} = Enum.split(points, pi)
   prefix ++ [b, a | tail]

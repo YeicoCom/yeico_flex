@@ -46,8 +46,8 @@ view = fn assigns ->
                 {name}:{val}
               </.fui>
               <% type in ["WRO"] -> %>
-              <.fui fun={@ui.link} phx-click="click:capture" phx-value-key={key} phx-value-val={val}  phx-value-enc={encoding}
-                title="Capture Value">
+              <.fui fun={@ui.link} phx-click="click:capture" phx-value-key={key} phx-value-val={val}
+                phx-value-type={type} phx-value-enc={encoding} title="Capture Value">
                 {name}:{val}
               </.fui>
               <% true -> %>
@@ -119,12 +119,12 @@ view = fn assigns ->
     </div>
   </.fui>
   <.fui fun={@ui.modal} :if={@modal[:type] == :capture} title={@modal.title} class="min-w-[360px]">
-    <% %{key: key, val: val, enc: enc} = @modal.input %>
+    <% %{step: step, min: min, max: max} = @modal.capture %>
+    <% %{key: key, val: val} = @modal.input %>
     <form id="modal_form" phx-submit="submit:capture" class="grid grid-cols-[1fr_6em] gap-2"
       phx-update="ignore" autocomplete="off">
       <input type="hidden" name="key" value={key}/>
-      <.fui :if={enc in ["NONE", "U16BE", "U16LE"]} fun={@ui.input} name="val" value={val} type="number" step="1" min="0" max="65535" required id="modal_autofocus" phx-hook="AutoFocus"/>
-      <.fui :if={enc in ["F32BE", "F32LE"]} fun={@ui.input} name="val" value={val} type="number" step="any" required id="modal_autofocus" phx-hook="AutoFocus"/>
+      <.fui fun={@ui.input} name="val" value={val} type="number" step={step} min={min} max={max} required id="modal_autofocus" phx-hook="AutoFocus"/>
       <.fui fun={@ui.button} type="submit">Accept</.fui>
     </form>
   </.fui>
@@ -271,9 +271,9 @@ handler = fn
     {socket, state}
 
   {:event, socket, state, event = "click:capture",
-   params = %{"key" => key, "val" => val, "enc" => enc}} ->
+   params = %{"key" => key, "val" => val, "type" => type, "enc" => enc}} ->
     Api.trace(view: path, event: event, params: params)
-    state = dlib.modal.({:capture, state, key, val, enc})
+    state = dlib.modal.({:capture, state, key, val, type, enc})
     {socket, state}
 
   {:event, socket, state = %{points: %{values: values}}, event = "submit:capture",
