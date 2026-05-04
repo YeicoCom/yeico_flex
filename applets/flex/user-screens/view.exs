@@ -8,7 +8,7 @@ view = fn assigns ->
       <div :if={@size} id="design_port" class="design-port overflow-hidden">
         <div id="design_panel" class="design-panel text-white select-none text-base [&_*]:cursor-default leading-none"
           draggable="false" style={@screen.props.style}>
-          <.fui :for={{id, item} <- @index} fun={@sd.item} id={id} {item} rt={@rts[id]} selected={false} runtime={true}/>
+          <.fui :for={{id, item} <- @index} fun={@dutils.item} id={id} {item} rt={@rts[id]} selected={false} runtime={true}/>
         </div>
       </div>
       <style :if={@size}>
@@ -43,20 +43,20 @@ handler = fn
     socket = assign(socket, applet_js: "/applets/flex.js")
     socket = assign(socket, page_title: "Screen Viewer")
     socket = assign(socket, page_suffix: " · Flex")
+    state = Map.put(state, :dutils, dutils)
     state = Map.put(state, :enabled, nil)
     state = Map.put(state, :events, %{})
     state = Map.put(state, :size, nil)
     state = Map.put(state, :name, nil)
     state = Map.put(state, :rts, %{})
     state = Map.put(state, :id, nil)
-    state = Map.put(state, :sd, sd)
     state = Map.put(state, :ui, ui)
     {socket, state}
 
   {:params, socket, state, params = %{"id" => id}, uri} ->
     Api.trace(view: path, params: params, uri: uri)
     screen = Api.subget!("flex:user-screens:design:#{id}")
-    state = Map.put(state, :screen, screen || sd.load.(id))
+    state = Map.put(state, :screen, screen || dutils.load.(id))
     # it may not exist: use screen[:name] accesor
     screen = Api.subget!("flex:user-screens:item:#{id}")
     state = Map.put(state, :enabled, screen[:status] == :enabled)
@@ -65,7 +65,7 @@ handler = fn
 
     state =
       for {id, item} <- state.screen.items, reduce: state do
-        state -> sd.init.(state, id, item, false)
+        state -> dutils.init.(state, id, item, false)
       end
 
     {socket, state}
@@ -78,7 +78,7 @@ handler = fn
    }} ->
     index = Enum.sort_by(items, fn {_, item} -> item.index end)
     state = Map.put(state, :index, index)
-    port = %{s: s} = sd.port.("All", fw, fh, sw, sh)
+    port = %{s: s} = dutils.port.("All", fw, fh, sw, sh)
     panel = %{s: s, x: 0, y: 0, w: sw, h: sh}
     state = Map.put(state, :port, port)
     state = Map.put(state, :panel, panel)
@@ -90,7 +90,7 @@ handler = fn
   {:event, socket, state, event = "item:click", params = %{"id" => "item_" <> id_type}} ->
     Api.trace(view: path, event: event, params: params)
     [id, _type] = String.split(id_type, "_")
-    state = sd.handle.(state, id, event)
+    state = dutils.handle.(state, id, event)
     {socket, state}
 
   {:event, socket, state, event = "hook:resize", params = %{"width" => w, "height" => h}} ->
@@ -118,7 +118,7 @@ handler = fn
 
     state =
       for id <- ids, reduce: state do
-        state -> sd.handle.(state, id, {key, value})
+        state -> dutils.handle.(state, id, {key, value})
       end
 
     {socket, state}
@@ -132,4 +132,4 @@ handler = fn
     :ok
 end
 
-Terminal.view(path, handler)
+:ok

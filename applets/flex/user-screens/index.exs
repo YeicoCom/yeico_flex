@@ -19,7 +19,7 @@ view = fn assigns ->
           <.fui fun={@ui.link} phx-click="click:action" phx-value-id={id} phx-value-action="enable">Enable</.fui>
           <.fui fun={@ui.link} phx-click="click:action" phx-value-id={id} phx-value-action="disable">Disable</.fui>
           <.fui fun={@ui.href} href={"/flex/user-screens/design?id=#{id}"}>Design</.fui>
-          <.fui fun={@ui.href} href={"/flex/user-screens/viewer?id=#{id}"}>View</.fui>
+          <.fui fun={@ui.href} href={"/flex/user-screens/view?id=#{id}"}>View</.fui>
             <.fui fun={@ui.link} phx-click="click:copy" phx-value-id={id}>Copy</.fui>
             <div class="grow"/>
           <.fui fun={@ui.link} phx-click="click:delete" phx-value-id={id} type="danger">Delete</.fui>
@@ -59,9 +59,9 @@ handler = fn
   {:mount, socket, state} ->
     tzoffset = socket.assigns.tzoffset || 0
     logs = Api.subget!("flex:user-screens:logs")
-    logs = logic.shift.(tzoffset, logs)
+    logs = iutils.shift.(tzoffset, logs)
     items = Api.subget!("flex:user-screens:items")
-    index = logic.index.(items)
+    index = iutils.index.(items)
     items = Enum.into(items, %{})
     socket = assign(socket, applet_css: "/applets/flex.css")
     socket = assign(socket, applet_js: "/applets/flex.js")
@@ -75,7 +75,7 @@ handler = fn
     state = Map.put(state, :ui, ui)
 
     case length(index) > 0 do
-      false -> {socket, logic.modal.({:add, state})}
+      false -> {socket, iutils.modal.({:add, state})}
       true -> {socket, state}
     end
 
@@ -93,13 +93,13 @@ handler = fn
 
   {:event, socket, state = %{modal: %{id: nil}}, event = "modal:submit", params} ->
     Api.trace(view: path, event: event, params: params)
-    Bus.broadcast!("flex:user-screens:insert", logic.parse.(params))
+    Bus.broadcast!("flex:user-screens:insert", iutils.parse.(params))
     state = Map.put(state, :modal, nil)
     {socket, state}
 
   {:event, socket, state = %{modal: %{id: id}}, event = "modal:submit", params} ->
     Api.trace(view: path, event: event, params: params)
-    Bus.broadcast!("flex:user-screens:update", {id, logic.parse.(params)})
+    Bus.broadcast!("flex:user-screens:update", {id, iutils.parse.(params)})
     state = Map.put(state, :modal, nil)
     {socket, state}
 
@@ -110,7 +110,7 @@ handler = fn
          ^hash <- :crypto.hash(:md5, data64) |> Base.encode16(),
          {:ok, code} <- Base.decode64(data64),
          {%{id: id, type: "user-screen", item: item, design: design}, _} <- Code.eval_string(code) do
-      sd.save.(%{id: id, screen: design})
+      dutils.save.(%{id: id, screen: design})
       Bus.broadcast!("flex:user-screens:update", {id, item})
       state = Map.put(state, :modal, nil)
       {socket, state}
@@ -122,7 +122,7 @@ handler = fn
     Api.trace(view: path, event: event, params: params)
     type = "user-screen"
     item = %{items[id] | status: :disabled}
-    payload = %{id: id, type: type, item: item, design: sd.load.(id)}
+    payload = %{id: id, type: type, item: item, design: dutils.load.(id)}
     data64 = inspect(payload, limit: :infinity) |> Base.encode64()
     hash = :crypto.hash(:md5, data64) |> Base.encode16()
     socket = push_event(socket, "hook:copy", %{text: "#{type}:#{hash}:#{data64}"})
@@ -130,7 +130,7 @@ handler = fn
 
   {:event, socket, state, event = "click:paste", params} ->
     Api.trace(view: path, event: event, params: params)
-    state = logic.modal.({:paste, state})
+    state = iutils.modal.({:paste, state})
     {socket, state}
 
   {:event, socket, state, event = "click:delete", params = %{"id" => id}} ->
@@ -141,17 +141,17 @@ handler = fn
   {:event, socket, state = %{items: items}, event = "click:action",
    params = %{"id" => id, "action" => action}} ->
     Api.trace(view: path, event: event, params: params)
-    Bus.broadcast!("flex:user-screens:update", {id, logic.apply.(items[id], action)})
+    Bus.broadcast!("flex:user-screens:update", {id, iutils.apply.(items[id], action)})
     {socket, state}
 
   {:event, socket, state, event = "click:add", params} ->
     Api.trace(view: path, event: event, params: params)
-    state = logic.modal.({:add, state})
+    state = iutils.modal.({:add, state})
     {socket, state}
 
   {:event, socket, state = %{items: items}, event = "click:edit", params = %{"id" => id}} ->
     Api.trace(view: path, event: event, params: params)
-    state = logic.modal.({:edit, state, id, items[id]})
+    state = iutils.modal.({:edit, state, id, items[id]})
     {socket, state}
 
   {:event, socket, state, event, params} ->
@@ -160,7 +160,7 @@ handler = fn
 
   {:info, socket, state, event = {"flex:user-screens:items", _, items}} ->
     Api.trace(view: path, info: event)
-    index = logic.index.(items)
+    index = iutils.index.(items)
     items = Enum.into(items, %{})
     state = Map.put(state, :items, items)
     state = Map.put(state, :index, index)
@@ -168,7 +168,7 @@ handler = fn
 
   {:info, socket, state = %{tzoffset: tzoffset}, event = {"flex:user-screens:logs", _, logs}} ->
     Api.trace(view: path, info: event)
-    state = Map.put(state, :logs, logic.shift.(tzoffset, logs))
+    state = Map.put(state, :logs, iutils.shift.(tzoffset, logs))
     {socket, state}
 
   {:info, socket, state, event} ->

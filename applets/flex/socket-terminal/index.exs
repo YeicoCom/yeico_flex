@@ -65,14 +65,14 @@ append = fn socket, state = %{logid: logid, tzoffset: tzoffset}, type, line ->
 
   text =
     case type do
-      :input -> logic.printable.(line)
-      :output -> logic.printable.(line)
+      :input -> iutils.printable.(line)
+      :output -> iutils.printable.(line)
       _ -> if is_binary(line), do: line, else: inspect(line)
     end
 
   dt = NaiveDateTime.utc_now()
-  log = %{id: logid, dt: dt, style: logic.style.(type), text: text, hexa: hexa}
-  log = logic.shift.(tzoffset, log)
+  log = %{id: logid, dt: dt, style: iutils.style.(type), text: text, hexa: hexa}
+  log = iutils.shift.(tzoffset, log)
   socket = stream(socket, :logs, [log])
   state = Map.update!(state, :logid, &(&1 + 1))
   {socket, state}
@@ -81,8 +81,8 @@ end
 handler = fn
   {:mount, socket, state} ->
     tzoffset = socket.assigns.tzoffset || 0
-    ifirst = List.first(logic.options.imode)
-    ofirst = List.first(logic.options.omode)
+    ifirst = List.first(iutils.options.imode)
+    ofirst = List.first(iutils.options.omode)
     output = %{imode: ifirst, omode: ofirst, line: nil}
     socket = assign(socket, applet_css: "/applets/flex.css")
     socket = assign(socket, applet_js: "/applets/flex.js")
@@ -90,9 +90,9 @@ handler = fn
     socket = assign(socket, page_suffix: " · Flex")
     socket = stream(socket, :logs, [])
     state = Map.put(state, :tzoffset, tzoffset)
-    state = Map.put(state, :conn, %{task: nil, input: logic.initial, on: false})
-    state = Map.put(state, :modal, %{title: logic.title, input: logic.initial})
-    state = Map.put(state, :options, logic.options)
+    state = Map.put(state, :conn, %{task: nil, input: iutils.initial, on: false})
+    state = Map.put(state, :modal, %{title: iutils.title, input: iutils.initial})
+    state = Map.put(state, :options, iutils.options)
     state = Map.put(state, :output, output)
     state = Map.put(state, :logid, 0)
     state = Map.put(state, :ui, ui)
@@ -114,7 +114,7 @@ handler = fn
   {:event, socket, state = %{output: output, conn: %{task: %{pid: pid}}}, event = "output:change",
    params = %{"line" => line, "omode" => omode, "imode" => imode, "_target" => targets}} ->
     Api.trace(view: path, event: event, params: params)
-    if "imode" in targets, do: send(pid, {:eol, logic.toeol.(imode)})
+    if "imode" in targets, do: send(pid, {:eol, iutils.toeol.(imode)})
     output = Map.put(output, :line, line)
     output = Map.put(output, :omode, omode)
     output = Map.put(output, :imode, imode)
@@ -124,7 +124,7 @@ handler = fn
   {:event, socket, state = %{output: output, conn: %{task: %{pid: pid}}}, event = "output:submit",
    params = %{"line" => line, "omode" => omode}} ->
     Api.trace(view: path, event: event, params: params)
-    transformed = logic.transform.(omode, line)
+    transformed = iutils.transform.(omode, line)
     send(pid, {:write, transformed})
     output = Map.put(output, :line, nil)
     state = Map.put(state, :output, output)
@@ -138,7 +138,7 @@ handler = fn
     params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
     params = Enum.into(params, %{})
     if task, do: Api.kill(task)
-    task = Api.async(logic.setup, {self(), params, logic.toeol.(imode)})
+    task = Api.async(iutils.setup, {self(), params, iutils.toeol.(imode)})
     conn = %{input: params, task: task, on: true}
     state = Map.put(state, :conn, conn)
     state = Map.put(state, :modal, nil)
@@ -146,7 +146,7 @@ handler = fn
 
   {:event, socket, state = %{conn: %{input: input}}, event = "click:connect", params} ->
     Api.trace(view: path, event: event, params: params)
-    modal = %{title: logic.title, input: input}
+    modal = %{title: iutils.title, input: input}
     state = Map.put(state, :modal, modal)
     {socket, state}
 

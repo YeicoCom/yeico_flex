@@ -1,34 +1,38 @@
 use Terminal.Live
 
-name = "Label"
+name = "Button"
 
 props = %{
   w: 0,
   h: 0,
   text: name,
-  source: "",
+  sink: "",
   default: "0",
   style: "",
   calc: ""
 }
 
 render = fn assigns ->
-  # https://www.erlang.org/doc/apps/stdlib/io_lib.html#format/2
-  # search: io_lib Format Escapes
-
+  # button supports disabled pseudo class, div does not
+  # div supports both hover and active pseudo classes
   ~H"""
-    <div id={@id} class={[@class, "data-[disabled]:text-zinc-600"]}
-      data-disabled={@rt.disabled}
+    <button id={@id} class={[@class, "px-4 py-2 rounded",
+      "bg-blue-600 active:bg-blue-400 hover:bg-blue-500",
+      "disabled:bg-zinc-800 disabled:text-zinc-600"]}
       disabled={@rt.disabled}
+      phx-click={!@rt.disabled && @runtime && "item:click"}
+      phx-value-id={!@rt.disabled && @runtime && @id}
       style={[
         "left: #{@x}px; top: #{@y}px;",
         @size.(@props.w, @props.h),
       ]}>
       {@rt.text}
-    </div>
+    </button>
     <style id={"#{@id}_Style"}>
     <%= "\##{@id}" %> { <%= @rt.css[nil] %> }
-    <%= "\##{@id}[disabled]" %> { <%= @rt.css["disabled"] %> }
+    <%= "\##{@id}:hover" %> { <%= @rt.css["hover"] %> }
+    <%= "\##{@id}:active" %> { <%= @rt.css["active"] %> }
+    <%= "\##{@id}:disabled" %> { <%= @rt.css["disabled"] %> }
     </style>
   """
 end
@@ -38,7 +42,7 @@ editor = fn assigns = %{item: item} ->
   assigns = Map.put(assigns, :ui, ui)
   assigns = Map.put(assigns, :props, item.props)
   assigns = Map.put(assigns, :errors, item.errors)
-  assigns = Map.put(assigns, :sources, ["" | wlib.sources.()])
+  assigns = Map.put(assigns, :sinks, ["" | pt.get_sinks.()])
 
   ~H"""
   <div>Size</div>
@@ -48,8 +52,8 @@ editor = fn assigns = %{item: item} ->
   </div>
   <div>Text</div>
   <.fui fun={@ui.input} name="text" value={@props.text} error={@errors.text} type="text"/>
-  <div>Source</div>
-  <.fui fun={@ui.select} name="source" value={@props.source} error={@errors.source} values={@sources}/>
+  <div>Sink</div>
+  <.fui fun={@ui.select} name="sink" value={@props.sink} error={@errors.sink} values={@sinks}/>
   <div>Default</div>
   <.fui fun={@ui.input} name="default" value={@props.default} error={@errors.default}/>
   <div class="col-span-2">Style</div>
@@ -68,7 +72,7 @@ editor = fn assigns = %{item: item} ->
 end
 
 calculate = fn %{props: %{style: style, calc: calc, default: default, text: text}}, value ->
-  bindings = [value: value, default: default, text: text] ++ vlib.binds.()
+  bindings = [value: value, default: default, text: text] ++ vutils.binds.()
 
   # no clean way to use error || calc
   {output, calc} =
@@ -77,9 +81,9 @@ calculate = fn %{props: %{style: style, calc: calc, default: default, text: text
       {:error, error} -> {error, %{}}
     end
 
-  css = vlib.css.(style)
-  text = vlib.get.(calc, :text, :binary) || text
-  disabled = vlib.get.(calc, :disabled, :boolean) || false
+  css = vutils.css.(style)
+  text = vutils.get.(calc, :text, :binary) || text
+  disabled = vutils.get.(calc, :disabled, :boolean) || false
   %{css: css, output: output, text: text, disabled: disabled}
 end
 
@@ -88,16 +92,16 @@ save = fn state = %{selected: %{item: sitem}, screen: screen}, id, params ->
 
   %{items: items, props: %{w: w, h: h}} = screen
   aitem = %{props: props} = items[id]
-  change = %{errors: vlib.errors.(props)}
-  params = vlib.params.(props, params)
+  change = %{errors: vutils.errors.(props)}
+  params = vutils.params.(props, params)
 
-  change = vlib.parse.(change, props, params, :w, {:integer, 0, w})
-  change = vlib.parse.(change, props, params, :h, {:integer, 0, h})
-  change = vlib.parse.(change, props, params, :text, :text)
-  change = vlib.parse.(change, props, params, :source, :any)
-  change = vlib.parse.(change, props, params, :default, {:point, params.source})
-  change = vlib.parse.(change, props, params, :style, :style)
-  change = vlib.parse.(change, props, params, :calc, :any)
+  change = vutils.parse.(change, props, params, :w, {:integer, 0, w})
+  change = vutils.parse.(change, props, params, :h, {:integer, 0, h})
+  change = vutils.parse.(change, props, params, :text, :text)
+  change = vutils.parse.(change, props, params, :sink, :any)
+  change = vutils.parse.(change, props, params, :default, {:point, params.sink})
+  change = vutils.parse.(change, props, params, :style, :style)
+  change = vutils.parse.(change, props, params, :calc, :any)
 
   props = Map.merge(props, Map.drop(change, [:errors]))
   aitem = Map.put(aitem, :props, props)
@@ -110,7 +114,11 @@ save = fn state = %{selected: %{item: sitem}, screen: screen}, id, params ->
 end
 
 handle = fn
-  %{props: %{source: ""}}, rt, _ ->
+  %{props: %{sink: ""}}, rt, _ ->
+    rt
+
+  %{props: %{sink: sink, default: default}}, rt, "item:click" ->
+    Api.putcast!("flex:point:sink:#{sink}", default)
     rt
 
   item, _, {"flex:point:" <> _, value} ->
@@ -118,23 +126,15 @@ handle = fn
 end
 
 init = fn
-  item = %{props: %{source: ""}}, _ ->
+  item = %{props: %{sink: ""}}, _ ->
     rt = calculate.(item, nil)
     {rt, nil}
 
-  item = %{props: %{source: source}}, subget! ->
-    key = "flex:point:source:#{source}"
+  item = %{props: %{sink: sink}}, subget! ->
+    key = "flex:point:sink:#{sink}"
     value = subget!.(key)
     rt = calculate.(item, value)
     {rt, key}
 end
 
-%{
-  name: name,
-  props: props,
-  render: render,
-  editor: editor,
-  handle: handle,
-  init: init,
-  save: save
-}
+:ok

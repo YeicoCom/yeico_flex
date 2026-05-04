@@ -1,13 +1,13 @@
 use Terminal
 
-db = db.open.("modbus-devices")
+idb = db.open.("modbus-devices")
 Api.putcast!("flex:modbus-devices:items", [])
 Api.putcast!("flex:modbus-devices:logs", %{})
 
-plib = flex.evalScript.("points.exs", mb: mb, pt: pt)
-flex.evalLoop.("loop.exs", db: db, mb: mb, plib: plib, dms: 2_000)
-dlib = flex.evalScript.("logic.exs", plib: plib)
-flex.evalView.("index.exs", dlib: dlib, plib: plib, ui: ui)
-flex.evalScript.("publish.exs", plib: plib)
+putils = flex.evalScript.("putils.exs", mb: mb, pt: pt)
+flex.evalLoop.("loop.exs", idb: idb, mb: mb, putils: putils, dms: 2_000)
+iutils = flex.evalScript.("iutils.exs", putils: putils)
+flex.evalView.("index.exs", iutils: iutils, putils: putils, ui: ui)
+flex.evalScript.("publish.exs", putils: putils)
 
 :ok

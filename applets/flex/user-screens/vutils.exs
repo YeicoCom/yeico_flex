@@ -170,8 +170,7 @@ parse = fn
       _ -> Map.put(change, key, tv)
     end
 
-  # boolean, uint16, float
-  change, props, params, key, {:point, "boolean:" <> _} ->
+  change, props, params, key, {:point, "bit:" <> _} ->
     integer.(change, props, params, key, {0, 1})
 
   change, props, params, key, {:point, "uint16:" <> _} ->

@@ -1,12 +1,18 @@
 use Terminal
 
-db = db.open.("user-screens")
+ddb = db.open.("screen-designs")
+idb = db.open.("user-screens")
 Api.putcast!("flex:user-screens:items", [])
 Api.putcast!("flex:user-screens:logs", %{})
 
-flex.evalLoop.("loop.exs", db: db, dms: 2_000)
-# vd = flex.evalScript.("validation.exs", [])
-logic = flex.evalScript.("logic.exs", [])
-flex.evalView.("index.exs", logic: logic, ui: ui, sd: %{})
+flex.evalLoop.("loop.exs", idb: idb, dms: 2_000)
+vutils = flex.evalScript.("vutils.exs", [])
+button = flex.evalScript.("button.exs", ui: ui, pt: pt, vutils: vutils)
+label = flex.evalScript.("label.exs", ui: ui, pt: pt, vutils: vutils)
+dutils = flex.evalScript.("dutils.exs", ui: ui, ddb: ddb, vutils: vutils, items: [button, label])
+iutils = flex.evalScript.("iutils.exs", [])
+flex.evalView.("index.exs", ui: ui, iutils: iutils, dutils: dutils)
+flex.evalView.("design.exs", ui: ui, dutils: dutils)
+flex.evalView.("view.exs", ui: ui, dutils: dutils)
 
 :ok

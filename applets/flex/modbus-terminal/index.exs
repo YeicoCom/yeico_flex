@@ -65,7 +65,7 @@ append = fn socket, state = %{logid: logid, tzoffset: tzoffset}, type, line ->
   line = encode.(type, line)
   dt = NaiveDateTime.utc_now()
   log = %{id: logid, dt: dt, style: style.(type), line: line}
-  log = logic.shift.(tzoffset, log)
+  log = iutils.shift.(tzoffset, log)
   socket = stream(socket, :logs, [log])
   state = Map.update!(state, :logid, &(&1 + 1))
   {socket, state}
@@ -76,7 +76,7 @@ title = "Modbus Connection"
 handler = fn
   {:mount, socket, state} ->
     tzoffset = socket.assigns.tzoffset || 0
-    pfirst = List.first(logic.options.protos)
+    pfirst = List.first(iutils.options.protos)
     initial = %{port: 44001, ip: "127.0.0.1", proto: pfirst}
     socket = assign(socket, applet_css: "/applets/flex.css")
     socket = assign(socket, applet_js: "/applets/flex.js")
@@ -85,9 +85,9 @@ handler = fn
     socket = stream(socket, :logs, [])
     state = Map.put(state, :conn, %{task: nil, input: initial, on: false})
     state = Map.put(state, :modal, %{title: title, input: initial})
-    state = Map.put(state, :help, logic.help.(:full))
-    state = Map.put(state, :tip, logic.help.(:short))
-    state = Map.put(state, :options, logic.options)
+    state = Map.put(state, :help, iutils.help.(:full))
+    state = Map.put(state, :tip, iutils.help.(:short))
+    state = Map.put(state, :options, iutils.options)
     state = Map.put(state, :output, %{line: nil})
     state = Map.put(state, :tzoffset, tzoffset)
     state = Map.put(state, :logid, 0)
@@ -117,7 +117,7 @@ handler = fn
    params = %{"line" => line}} ->
     Api.trace(view: path, event: event, params: params)
 
-    case logic.parse.(line) do
+    case iutils.parse.(line) do
       {:ok, res} ->
         send(pid, {:exec, res})
         output = Map.put(output, :line, nil)
@@ -135,7 +135,7 @@ handler = fn
     params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
     params = Enum.into(params, %{})
     if task, do: Api.kill(task)
-    task = Api.async(logic.setup, {self(), params})
+    task = Api.async(iutils.setup, {self(), params})
     conn = %{input: params, task: task, on: true}
     state = Map.put(state, :conn, conn)
     state = Map.put(state, :modal, nil)

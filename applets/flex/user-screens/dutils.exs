@@ -225,20 +225,20 @@ editor = fn assigns = %{item: item} ->
   """
 end
 
-# _target only preset for change events
+# _target only present in change events
 # empty and out of range inputs are acceptable for change events
-# validation is only guaranteed in submit events
+# client side form validation is only guaranteed in submit events
 save = fn state = %{selected: %{item: sitem}, screen: aitem = %{props: props}}, id, params ->
   Api.debug(id: id, params: params)
 
-  change = %{errors: vlib.errors.(props)}
-  params = vlib.params.(props, params)
+  change = %{errors: vutils.errors.(props)}
+  params = vutils.params.(props, params)
 
-  change = vlib.parse.(change, props, params, :w, {:integer, 100, 3840})
-  change = vlib.parse.(change, props, params, :h, {:integer, 100, 2160})
-  change = vlib.parse.(change, props, params, :snap, {:integer, 1, 100})
-  change = vlib.parse.(change, props, params, :grid, :boolean)
-  change = vlib.parse.(change, props, params, :style, :style)
+  change = vutils.parse.(change, props, params, :w, {:integer, 100, 3840})
+  change = vutils.parse.(change, props, params, :h, {:integer, 100, 2160})
+  change = vutils.parse.(change, props, params, :snap, {:integer, 1, 100})
+  change = vutils.parse.(change, props, params, :grid, :boolean)
+  change = vutils.parse.(change, props, params, :style, :style)
 
   props = Map.merge(props, Map.drop(change, [:errors]))
   aitem = Map.put(aitem, :props, props)
@@ -259,13 +259,13 @@ end
 
 select = fn
   %{screen: screen = %{props: props}}, type, nil ->
-    screen = Map.put(screen, :errors, vlib.errors.(props))
+    screen = Map.put(screen, :errors, vutils.errors.(props))
     # item:save wont match with nil id
     %{id: "", type: type, item: screen, editor: editor, save: save}
 
   %{screen: screen}, type, id ->
     item = %{props: props} = screen.items[id]
-    item = Map.put(item, :errors, vlib.errors.(props))
+    item = Map.put(item, :errors, vutils.errors.(props))
 
     %{
       id: id,
@@ -276,15 +276,13 @@ select = fn
     }
 end
 
-{:ok, db} = CubDB.start_link(data_dir: path)
-
 save = fn %{id: id, screen: screen} ->
-  CubDB.put(db, id, screen)
+  ddb.put.(id, screen)
   Api.putcast!("flex:user-screens:design:#{id}", screen)
 end
 
 load = fn id ->
-  CubDB.get(db, id) || new
+  ddb.get.(id) || new
 end
 
 handle = fn state, id, event ->
@@ -299,8 +297,8 @@ init = fn state = %{events: events}, id, item, design? ->
   {rt, key} =
     items[item.type].init.(item, fn key ->
       case {design?, Map.has_key?(events, key)} do
-        {false, true} -> Adb.get(key)
         {false, false} -> Api.subget!(key)
+        {false, true} -> Adb.get(key)
         _ -> nil
       end
     end)
@@ -325,17 +323,4 @@ max = fn %{screen: %{items: items}} ->
   end
 end
 
-%{
-  port: port,
-  form: form,
-  menu: menu,
-  item: item,
-  apply: apply,
-  props: props,
-  select: select,
-  handle: handle,
-  max: max,
-  init: init,
-  load: load,
-  save: save
-}
+:ok

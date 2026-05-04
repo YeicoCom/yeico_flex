@@ -42,7 +42,7 @@ end
 calc_runtimes = fn %{points: points} ->
   for {point, pi} <- Enum.with_index(points), reduce: %{count: length(points)} do
     rts ->
-      accessors = plib.accessors.(point)
+      accessors = putils.accessors.(point)
       %{type: type, slave: slave, address: address, encoding: encoding} = point
       %{encode: encode, decode: decode, factor: factor} = mb.api.(:encoder, get: encoding)
       count = length(accessors)
@@ -99,8 +99,8 @@ runner_setup = fn %{id: id, device: device = %{ip: ip, port: port, proto: proto}
   end
 end
 
-publish_devices = fn db ->
-  devices = db.select.([]) |> Enum.sort_by(fn {_, v} -> v.name end)
+publish_devices = fn idb ->
+  devices = idb.select.([]) |> Enum.sort_by(fn {_, v} -> v.name end)
   Api.putcast!("flex:modbus-devices:items", devices)
   devices
 end
@@ -124,12 +124,12 @@ replace_log = fn logs, log = %{id: id, error?: error?} ->
   end
 end
 
-master_loop = fn state = %{db: db, loop: loop, runners: runners, logs: logs} ->
+master_loop = fn state = %{idb: idb, loop: loop, runners: runners, logs: logs} ->
   receive do
     {"flex:modbus-devices:insert", _, params} ->
       id = UUID.uuid1() |> ShortUUID.encode!()
-      db.put.(id, params)
-      publish_devices.(db)
+      idb.put.(id, params)
+      publish_devices.(idb)
       log_event.(id, false, "Created")
       runner = run_device.(id, params)
       runners = Map.put(runners, id, runner)
@@ -137,8 +137,10 @@ master_loop = fn state = %{db: db, loop: loop, runners: runners, logs: logs} ->
       loop.(state)
 
     {"flex:modbus-devices:update", _, {id, params}} ->
-      db.put.(id, params)
-      publish_devices.(db)
+      # FIXME support copied devices carrying meta
+      # params = Map.drop(params, [:meta])
+      idb.put.(id, params)
+      publish_devices.(idb)
       task = runners[id][:task]
       if task, do: Api.kill(task)
       log_event.(id, false, "Updated")
@@ -148,8 +150,8 @@ master_loop = fn state = %{db: db, loop: loop, runners: runners, logs: logs} ->
       loop.(state)
 
     {"flex:modbus-devices:delete", _, id} ->
-      db.delete.(id)
-      publish_devices.(db)
+      idb.delete.(id)
+      publish_devices.(idb)
       task = runners[id][:task]
       if task, do: Api.kill(task)
       log_event.(id, false, "Deleted")
@@ -173,12 +175,12 @@ master_loop = fn state = %{db: db, loop: loop, runners: runners, logs: logs} ->
   end
 end
 
-master_setup = fn %{db: db} ->
+master_setup = fn %{idb: idb} ->
   Bus.subscribe!("flex:modbus-devices:insert", nil)
   Bus.subscribe!("flex:modbus-devices:update", nil)
   Bus.subscribe!("flex:modbus-devices:delete", nil)
   Bus.subscribe!("flex:modbus-devices:log", nil)
-  devices = publish_devices.(db)
+  devices = publish_devices.(idb)
 
   runners =
     for {id, device} <- devices do
@@ -188,9 +190,9 @@ master_setup = fn %{db: db} ->
 
   runners = Enum.into(runners, %{})
   Api.putcast!("flex:modbus-devices:logs", %{})
-  master_loop.(%{db: db, loop: master_loop, runners: runners, logs: %{}})
+  master_loop.(%{idb: idb, loop: master_loop, runners: runners, logs: %{}})
 end
 
-Api.loop(dms, master_setup, %{db: db})
+Api.loop(dms, master_setup, %{idb: idb})
 
 :ok

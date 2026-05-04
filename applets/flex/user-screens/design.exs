@@ -14,15 +14,15 @@ view = fn assigns ->
           <div :for={p <- 10..90//10} class="absolute text-[6px] left-[1px]" style={"top: #{p}%;"}>{p}%</div>
         </div>
         <div id="design_panel" class="design-panel text-white select-none text-base [&_*]:cursor-default leading-none" draggable="false">
-          <.fui :for={{id, item} <- @index} fun={@sd.item} id={id} {item} rt={@rts[id]} selected={id==@selected.id} runtime={false}/>
+          <.fui :for={{id, item} <- @index} fun={@dutils.item} id={id} {item} rt={@rts[id]} selected={id==@selected.id} runtime={false}/>
         </div>
       </div>
-      <.fui id="design_menu" :if={@menu} fun={@sd.menu} x={@menu.x} y={@menu.y} items={@menu.items?}
+      <.fui id="design_menu" :if={@menu} fun={@dutils.menu} x={@menu.x} y={@menu.y} items={@menu.items?}
         phx-click-away="modal:close"/>
     </div>
     <div class="flex flex-col p-1 gap-2 w-[16em] overflow-y-auto">
       <div class="text-xl">{@selected.type} Properties</div>
-      <.fui id="props_editor" fun={@sd.form} editor={@selected.editor} iid={@selected.id} item={@selected.item} rt={@rts[@selected.id]}
+      <.fui id="props_editor" fun={@dutils.form} editor={@selected.editor} iid={@selected.id} item={@selected.item} rt={@rts[@selected.id]}
         phx-submit="item:save" phx-change="item:save" class="[&_*]:text-xs grid grid-cols-[auto_1fr] gap-y-1 gap-x-2 items-center"/>
       <div class="grow"/>
       <.fui fun={@ui.link} :if={@selected.id} type="danger" class="text-xs justify-end"
@@ -62,19 +62,19 @@ handler = fn
     socket = assign(socket, applet_js: "/applets/flex.js")
     socket = assign(socket, page_title: "Screen Designer")
     socket = assign(socket, page_suffix: " · Flex")
+    state = Map.put(state, :dutils, dutils)
     state = Map.put(state, :events, %{})
     state = Map.put(state, :menu, nil)
     state = Map.put(state, :name, nil)
     state = Map.put(state, :rts, %{})
     state = Map.put(state, :id, nil)
-    state = Map.put(state, :sd, sd)
     state = Map.put(state, :ui, ui)
     {socket, state}
 
   {:params, socket, state, params = %{"id" => id}, uri} ->
     Api.trace(view: path, params: params, uri: uri)
-    state = sd.apply.(state, :init, sd.load.(id))
-    state = Map.put(state, :selected, sd.select.(state, "Screen", nil))
+    state = dutils.apply.(state, :init, dutils.load.(id))
+    state = Map.put(state, :selected, dutils.select.(state, "Screen", nil))
     # it may not exist: use screen[:name] accesor
     screen = Api.subget!("flex:user-screens:item:#{id}")
     state = Map.put(state, :name, screen[:name])
@@ -82,7 +82,7 @@ handler = fn
 
     state =
       for {id, item} <- state.screen.items, reduce: state do
-        state -> sd.init.(state, id, item, true)
+        state -> dutils.init.(state, id, item, true)
       end
 
     {socket, state}
@@ -106,16 +106,16 @@ handler = fn
     Api.trace(view: path, event: event, params: params)
     state = save.(state, id, params)
     state = Map.put(state, :menu, nil)
-    sd.save.(state)
+    dutils.save.(state)
     {socket, state}
 
   {:event, socket, state = %{selected: %{id: id}}, event = "item:delete", params = %{"id" => id}} ->
     Api.trace(view: path, event: event, params: params)
     {_, state} = pop_in(state, [:rts, id])
     {_, state} = pop_in(state, [:screen, :items, id])
-    state = Map.put(state, :selected, sd.select.(state, "Screen", nil))
+    state = Map.put(state, :selected, dutils.select.(state, "Screen", nil))
     state = Map.put(state, :menu, nil)
-    sd.save.(state)
+    dutils.save.(state)
     {socket, state}
 
   {:event, socket, state = %{vp: %{port: %{s: s, x: pox, y: poy}, panel: %{x: pax, y: pay}}},
@@ -126,14 +126,14 @@ handler = fn
     y = String.to_integer(y)
     x = (x - pox - pax) / s
     y = (y - poy - pay) / s
-    index = sd.max.(state) + 1
-    props = sd.props.(type)
+    index = dutils.max.(state) + 1
+    props = dutils.props.(type)
     item = %{x: x, y: y, w: 0, h: 0, type: type, props: props, index: index}
     state = put_in(state, [:screen, :items, id], item)
-    state = sd.init.(state, id, item, true)
-    state = Map.put(state, :selected, sd.select.(state, type, id))
+    state = dutils.init.(state, id, item, true)
+    state = Map.put(state, :selected, dutils.select.(state, type, id))
     state = Map.put(state, :menu, nil)
-    sd.save.(state)
+    dutils.save.(state)
     {socket, state}
 
   {:event, socket, state = %{screen: %{props: %{snap: snap, w: w, h: h}}}, event = "item:drag",
@@ -147,48 +147,48 @@ handler = fn
     y = min(max(y, 0), h - 1)
     state = put_in(state, [:screen, :items, id, :x], x)
     state = put_in(state, [:screen, :items, id, :y], y)
-    state = Map.put(state, :selected, sd.select.(state, type, id))
+    state = Map.put(state, :selected, dutils.select.(state, type, id))
     state = Map.put(state, :menu, nil)
-    sd.save.(state)
+    dutils.save.(state)
     {socket, state}
 
   {:event, socket, state, event = "frame:fit", params = %{"fit" => fit}} ->
     Api.trace(view: path, event: event, params: params)
     state = Map.put(state, :menu, nil)
-    {socket, sd.apply.(state, :fit, fit)}
+    {socket, dutils.apply.(state, :fit, fit)}
 
   {:event, socket, state, event = "frame:click", params = %{"sid" => "item_" <> id_type}} ->
     Api.trace(view: path, event: event, params: params)
     [id, type] = String.split(id_type, "_")
-    state = Map.put(state, :selected, sd.select.(state, type, id))
+    state = Map.put(state, :selected, dutils.select.(state, type, id))
     state = Map.put(state, :menu, nil)
     {socket, state}
 
   {:event, socket, state, event = "frame:click", params = %{"x" => x, "y" => y, "p" => p}} ->
     Api.trace(view: path, event: event, params: params)
-    state = Map.put(state, :selected, sd.select.(state, "Screen", nil))
+    state = Map.put(state, :selected, dutils.select.(state, "Screen", nil))
     state = Map.put(state, :menu, %{x: x, y: y, items?: p})
     {socket, state}
 
   {:event, socket, state, event = "frame:wheel",
    params = %{"x" => x, "y" => y, "dx" => dx, "dy" => dy}} ->
     Api.trace(view: path, event: event, params: params)
-    state = Map.put(state, :selected, sd.select.(state, "Screen", nil))
+    state = Map.put(state, :selected, dutils.select.(state, "Screen", nil))
     state = Map.put(state, :menu, nil)
-    {socket, sd.apply.(state, :wheel, {x, y, dx, dy})}
+    {socket, dutils.apply.(state, :wheel, {x, y, dx, dy})}
 
   {:event, socket, state, event = "frame:drag",
    params = %{"mx" => mx, "my" => my, "ox" => ox, "oy" => oy, "e" => e, "m" => m}} ->
     Api.trace(view: path, event: event, params: params)
-    state = Map.put(state, :selected, sd.select.(state, "Screen", nil))
+    state = Map.put(state, :selected, dutils.select.(state, "Screen", nil))
     state = Map.put(state, :menu, nil)
-    {socket, sd.apply.(state, :drag, {mx, my, ox, oy, e, m})}
+    {socket, dutils.apply.(state, :drag, {mx, my, ox, oy, e, m})}
 
   {:event, socket, state, event = "frame:resize", params = %{"width" => w, "height" => h}} ->
     Api.trace(view: path, event: event, params: params)
-    state = Map.put(state, :selected, sd.select.(state, "Screen", nil))
+    state = Map.put(state, :selected, dutils.select.(state, "Screen", nil))
     state = Map.put(state, :menu, nil)
-    {socket, sd.apply.(state, :resize, {w, h})}
+    {socket, dutils.apply.(state, :resize, {w, h})}
 
   {:event, socket, state, event, params} ->
     Api.trace(view: path, event: event, params: params)
@@ -208,4 +208,4 @@ handler = fn
     :ok
 end
 
-Terminal.view(path, handler)
+:ok

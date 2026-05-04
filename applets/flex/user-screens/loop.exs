@@ -37,19 +37,19 @@ replace_log = fn logs, log = %{id: id, error?: error?} ->
   end
 end
 
-publish_items = fn db ->
-  items = db.select.([]) |> Enum.sort_by(fn {_, v} -> v.name end)
+publish_items = fn idb ->
+  items = idb.select.([]) |> Enum.sort_by(fn {_, v} -> v.name end)
   Api.putcast!("flex:user-screens:items", items)
   for {id, item} <- items, do: Api.putcast!("flex:user-screens:item:#{id}", item)
   items
 end
 
-master_loop = fn state = %{db: db, loop: loop, runners: runners, logs: logs} ->
+master_loop = fn state = %{idb: idb, loop: loop, runners: runners, logs: logs} ->
   receive do
     {"flex:user-screens:insert", _, params} ->
       id = UUID.uuid1() |> ShortUUID.encode!()
-      db.put.(id, params)
-      publish_items.(db)
+      idb.put.(id, params)
+      publish_items.(idb)
       log_event.(id, false, "Created")
       runner = run_item.(id, params)
       runners = Map.put(runners, id, runner)
@@ -57,8 +57,8 @@ master_loop = fn state = %{db: db, loop: loop, runners: runners, logs: logs} ->
       loop.(state)
 
     {"flex:user-screens:update", _, {id, params}} ->
-      db.put.(id, params)
-      publish_items.(db)
+      idb.put.(id, params)
+      publish_items.(idb)
       task = runners[id][:task]
       if task, do: Api.kill(task)
       log_event.(id, false, "Updated")
@@ -68,8 +68,8 @@ master_loop = fn state = %{db: db, loop: loop, runners: runners, logs: logs} ->
       loop.(state)
 
     {"flex:user-screens:delete", _, id} ->
-      db.delete.(id)
-      publish_items.(db)
+      idb.delete.(id)
+      publish_items.(idb)
       task = runners[id][:task]
       if task, do: Api.kill(task)
       log_event.(id, false, "Deleted")
@@ -93,12 +93,12 @@ master_loop = fn state = %{db: db, loop: loop, runners: runners, logs: logs} ->
   end
 end
 
-master_setup = fn %{db: db} ->
+master_setup = fn %{idb: idb} ->
   Bus.subscribe!("flex:user-screens:insert", nil)
   Bus.subscribe!("flex:user-screens:update", nil)
   Bus.subscribe!("flex:user-screens:delete", nil)
   Bus.subscribe!("flex:user-screens:log", nil)
-  items = publish_items.(db)
+  items = publish_items.(idb)
 
   runners =
     for {id, item} <- items do
@@ -108,9 +108,9 @@ master_setup = fn %{db: db} ->
 
   runners = Enum.into(runners, %{})
   Api.putcast!("flex:user-screens:logs", %{})
-  master_loop.(%{db: db, loop: master_loop, runners: runners, logs: %{}})
+  master_loop.(%{idb: idb, loop: master_loop, runners: runners, logs: %{}})
 end
 
-Api.loop(dms, master_setup, %{db: db})
+Api.loop(dms, master_setup, %{idb: idb})
 
 :ok

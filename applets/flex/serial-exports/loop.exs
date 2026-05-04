@@ -170,18 +170,18 @@ replace_log = fn logs, log = %{id: id, error?: error?} ->
   end
 end
 
-publish_items = fn db ->
-  items = db.select.([]) |> Enum.to_list()
+publish_items = fn idb ->
+  items = idb.select.([]) |> Enum.to_list()
   Api.putcast!("flex:serial-exports:items", items)
   items
 end
 
-master_loop = fn state = %{db: db, loop: loop, runners: runners, logs: logs} ->
+master_loop = fn state = %{idb: idb, loop: loop, runners: runners, logs: logs} ->
   receive do
     {"flex:serial-exports:insert", _, params} ->
       id = UUID.uuid1() |> ShortUUID.encode!()
-      db.put.(id, params)
-      publish_items.(db)
+      idb.put.(id, params)
+      publish_items.(idb)
       log_event.(id, false, "Created")
       runner = run_item.(id, params)
       runners = Map.put(runners, id, runner)
@@ -189,8 +189,8 @@ master_loop = fn state = %{db: db, loop: loop, runners: runners, logs: logs} ->
       loop.(state)
 
     {"flex:serial-exports:update", _, {id, params}} ->
-      db.put.(id, params)
-      publish_items.(db)
+      idb.put.(id, params)
+      publish_items.(idb)
       task = runners[id][:task]
       if task, do: Api.kill(task)
       log_event.(id, false, "Updated")
@@ -200,8 +200,8 @@ master_loop = fn state = %{db: db, loop: loop, runners: runners, logs: logs} ->
       loop.(state)
 
     {"flex:serial-exports:delete", _, id} ->
-      db.delete.(id)
-      publish_items.(db)
+      idb.delete.(id)
+      publish_items.(idb)
       task = runners[id][:task]
       if task, do: Api.kill(task)
       log_event.(id, false, "Deleted")
@@ -225,7 +225,7 @@ master_loop = fn state = %{db: db, loop: loop, runners: runners, logs: logs} ->
   end
 end
 
-master_setup = fn %{db: db} ->
+master_setup = fn %{idb: idb} ->
   for path <- pid_path.("*") |> Path.wildcard() do
     pid = Path.basename(path)
     kill_pid.(path, pid)
@@ -235,7 +235,7 @@ master_setup = fn %{db: db} ->
   Bus.subscribe!("flex:serial-exports:update", nil)
   Bus.subscribe!("flex:serial-exports:delete", nil)
   Bus.subscribe!("flex:serial-exports:log", nil)
-  items = publish_items.(db)
+  items = publish_items.(idb)
 
   runners =
     for {id, item} <- items do
@@ -245,9 +245,9 @@ master_setup = fn %{db: db} ->
 
   runners = Enum.into(runners, %{})
   Api.putcast!("flex:serial-exports:logs", %{})
-  master_loop.(%{db: db, loop: master_loop, runners: runners, logs: %{}})
+  master_loop.(%{idb: idb, loop: master_loop, runners: runners, logs: %{}})
 end
 
-Api.loop(dms, master_setup, %{db: db})
+Api.loop(dms, master_setup, %{idb: idb})
 
 :ok

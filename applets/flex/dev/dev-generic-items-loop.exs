@@ -37,18 +37,18 @@ replace_log = fn logs, log = %{id: id, error?: error?} ->
   end
 end
 
-publish_items = fn db ->
-  items = db.select.([]) |> Enum.to_list()
+publish_items = fn idb ->
+  items = idb.select.([]) |> Enum.to_list()
   Api.putcast!("flex:generic-items:items", items)
   items
 end
 
-master_loop = fn state = %{db: db, loop: loop, runners: runners, logs: logs} ->
+master_loop = fn state = %{idb: idb, loop: loop, runners: runners, logs: logs} ->
   receive do
     {"flex:generic-items:insert", _, params} ->
       id = UUID.uuid1() |> ShortUUID.encode!()
-      db.put.(id, params)
-      publish_items.(db)
+      idb.put.(id, params)
+      publish_items.(idb)
       log_event.(id, false, "Created")
       runner = run_item.(id, params)
       runners = Map.put(runners, id, runner)
@@ -56,8 +56,8 @@ master_loop = fn state = %{db: db, loop: loop, runners: runners, logs: logs} ->
       loop.(state)
 
     {"flex:generic-items:update", _, {id, params}} ->
-      db.put.(id, params)
-      publish_items.(db)
+      idb.put.(id, params)
+      publish_items.(idb)
       task = runners[id][:task]
       if task, do: Api.kill(task)
       log_event.(id, false, "Updated")
@@ -67,8 +67,8 @@ master_loop = fn state = %{db: db, loop: loop, runners: runners, logs: logs} ->
       loop.(state)
 
     {"flex:generic-items:delete", _, id} ->
-      db.delete.(id)
-      publish_items.(db)
+      idb.delete.(id)
+      publish_items.(idb)
       task = runners[id][:task]
       if task, do: Api.kill(task)
       log_event.(id, false, "Deleted")
@@ -92,12 +92,12 @@ master_loop = fn state = %{db: db, loop: loop, runners: runners, logs: logs} ->
   end
 end
 
-master_setup = fn %{db: db} ->
+master_setup = fn %{idb: idb} ->
   Bus.subscribe!("flex:generic-items:insert", nil)
   Bus.subscribe!("flex:generic-items:update", nil)
   Bus.subscribe!("flex:generic-items:delete", nil)
   Bus.subscribe!("flex:generic-items:log", nil)
-  items = publish_items.(db)
+  items = publish_items.(idb)
 
   runners =
     for {id, item} <- items do
@@ -107,10 +107,10 @@ master_setup = fn %{db: db} ->
 
   runners = Enum.into(runners, %{})
   Api.putcast!("flex:generic-items:logs", %{})
-  master_loop.(%{db: db, loop: master_loop, runners: runners, logs: %{}})
+  master_loop.(%{idb: idb, loop: master_loop, runners: runners, logs: %{}})
 end
 
-db = libDatabase.api.("dev-generic-items")
-Api.loop(dms, master_setup, %{db: db})
+idb = libDatabase.api.("dev-generic-items")
+Api.loop(dms, master_setup, %{idb: idb})
 
 :ok

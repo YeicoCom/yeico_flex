@@ -55,7 +55,7 @@ points = fn devices ->
   for {id, %{points: points}} <- devices do
     {id,
      for point <- points do
-       {point, plib.accessors.(point)}
+       {point, putils.accessors.(point)}
      end}
   end
   |> values.()
@@ -71,14 +71,14 @@ end
 modal = fn
   {:capture, state, key, val, type, enc, tag} ->
     input = %{key: key, val: val, enc: enc}
-    capture = plib.capture.(%{type: type, encoding: enc})
+    capture = putils.capture.(%{type: type, encoding: enc})
     modal = %{title: "Capture Value for #{tag}", input: input, capture: capture, type: :capture}
     state = Map.put(state, :modal, modal)
     Map.put(state, :options, nil)
 
   {:points, state, id, device = %{points: points}} ->
-    options = plib.options
-    points = if length(points) > 0, do: points, else: [plib.new]
+    options = putils.options
+    points = if length(points) > 0, do: points, else: [putils.new]
     device = Map.put(device, :points, points)
     modal = %{title: "Edit Modbus Points", id: id, input: device, type: :points}
     state = Map.put(state, :modal, modal)

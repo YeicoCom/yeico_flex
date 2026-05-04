@@ -6,7 +6,7 @@ loop = fn ->
     # src = "modbus:#{device.proto},#{device.ip}:#{device.port},#{device.name}"
 
     for point <- device.points do
-      for %{dir: dir, tag: tag} <- plib.accessors.(point) do
+      for %{dir: dir, tag: tag} <- putils.accessors.(point) do
         Mdb.register!("flex:points:#{dir}", tag)
       end
     end
