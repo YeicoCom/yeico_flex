@@ -228,8 +228,8 @@ end
 # _target only present in change events
 # empty and out of range inputs are acceptable for change events
 # client side form validation is only guaranteed in submit events
-save = fn state = %{selected: %{item: sitem}, screen: aitem = %{props: props}}, id, params ->
-  Api.debug(id: id, params: params)
+save = fn state = %{selected: %{item: sitem}, screen: aitem = %{props: props}}, _id, params ->
+  # Api.debug(id: id, params: params)
 
   change = %{errors: vutils.errors.(props)}
   params = vutils.params.(props, params)

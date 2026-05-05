@@ -83,7 +83,7 @@ calculate = fn %{props: %{style: style, calc: calc, default: default, text: text
 end
 
 save = fn state = %{selected: %{item: sitem}, screen: screen}, id, params ->
-  Api.debug(id: id, params: params)
+  # Api.debug(id: id, params: params)
 
   %{items: items, props: %{w: w, h: h}} = screen
   aitem = %{props: props} = items[id]
