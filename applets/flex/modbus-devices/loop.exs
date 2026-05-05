@@ -12,6 +12,17 @@ log_event = fn
   id, error?, msg -> post_log.(id, error?, inspect(msg))
 end
 
+put_status = fn %{name: name}, status ->
+  key = "source:status:#{name}"
+
+  case status do
+    "disabled" -> pt.put_value.(key, 0)
+    "starting" -> pt.put_value.(key, 1)
+    "started" -> pt.put_value.(key, 2)
+    "error" -> pt.put_value.(key, 3)
+  end
+end
+
 runner_loop = fn state = %{loop: loop, conn: conn, rts: rts, device: device} ->
   Api.sleep(device.delay)
 
@@ -82,9 +93,12 @@ runner_setup = fn %{id: id, device: device = %{ip: ip, port: port, proto: proto}
   proto = mb.api.(:proto, get: proto)
   rts = calc_runtimes.(device)
 
+  put_status.(device, "starting")
+
   with {:ok, conn} <- mb.api.(:master, open: [ip: ip, port: port, proto: proto]) do
     # nil to reset
     log_event.(id, nil, "Started")
+    put_status.(device, "started")
     if length(device.points) == 0, do: Api.sleep()
 
     run = fn ->
@@ -93,9 +107,12 @@ runner_setup = fn %{id: id, device: device = %{ip: ip, port: port, proto: proto}
 
     with {:error, error} <- Api.safe(run) do
       log_event.(id, true, error)
+      put_status.(device, "error")
     end
   else
-    {:error, error} -> log_event.(id, true, error)
+    {:error, error} ->
+      log_event.(id, true, error)
+      put_status.(device, "error")
   end
 end
 
@@ -107,8 +124,12 @@ end
 
 run_enabled = fn id, device ->
   case device.status do
-    :enabled -> Api.loop(dms, runner_setup, %{id: id, device: device})
-    _ -> nil
+    :enabled ->
+      Api.loop(dms, runner_setup, %{id: id, device: device})
+
+    _ ->
+      put_status.(device, "disabled")
+      nil
   end
 end
 
@@ -137,8 +158,6 @@ master_loop = fn state = %{idb: idb, loop: loop, runners: runners, logs: logs} -
       loop.(state)
 
     {"flex:modbus-devices:update", _, {id, params}} ->
-      # FIXME support copied devices carrying meta
-      # params = Map.drop(params, [:meta])
       idb.put.(id, params)
       publish_devices.(idb)
       task = runners[id][:task]

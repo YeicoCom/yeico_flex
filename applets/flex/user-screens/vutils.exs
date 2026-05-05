@@ -175,6 +175,9 @@ parse = fn
   change, props, params, key, {:point, "float:" <> _} ->
     float.(change, props, params, key, {nil, nil})
 
+  change, props, params, key, {:point, "status:" <> _} ->
+    integer.(change, props, params, key, {0, 3})
+
   change, props, params, key, {:point, _} ->
     any.(change, props, params, key)
 end

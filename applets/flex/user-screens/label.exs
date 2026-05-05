@@ -88,7 +88,7 @@ save = fn state = %{selected: %{item: sitem}, screen: screen}, id, params ->
 
   change = vutils.parse.(change, props, params, :w, {:integer, 0, w})
   change = vutils.parse.(change, props, params, :h, {:integer, 0, h})
-  change = vutils.parse.(change, props, params, :text, :text)
+  change = vutils.parse.(change, props, params, :text, :any)
   change = vutils.parse.(change, props, params, :source, :any)
   change = vutils.parse.(change, props, params, :default, {:point, params.source})
   change = vutils.parse.(change, props, params, :style, :style)

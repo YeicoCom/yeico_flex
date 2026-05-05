@@ -138,19 +138,20 @@ text = f.("Button ~s", default)
 - [ ] Define mqtt strategy
 - [ ] Implement links between user screens
 - [ ] Screen designer stumped after several enable/disable
-- [ ] Task to periodically delete unreferenced screen designs
 - [ ] Inplace testing with a global enable flag (see lib-convert)
 - [ ] f32le untested, is endianess applied at register or byte level?
-- [-] Split screen viewer from screen runner (listener and calculations)
-  - No appreciable gain for the moment (until some common calculation is required)
-  - The approach of calculation the runtime part and broadcasting that look heavier the current approach
-  - Centralized optimization requires incremental broadcasts 
-- [ ] Per modbus device status source point (int - string type)
 - [ ] Unable to convert float string to int while adding a button on Linux
   - different pointer coordinate type by platform?
-- Terminal dying on save hot reload: 
+- [x] Per modbus device status source integer point: 0:disabled 1:starting 2:started 3:error
+- [-] Task to periodically delete unreferenced screen designs: no need anymore?
+- [-] Split screen viewer from screen runner (listener and calculations)
+  - No appreciable gain for the moment (until some common calculation is required)
+  - Basic implementation felt heavier (pushin whole rts for a single point change)
+  - Needs deeper thinking about incremental broadcasts
+- [?] Terminal dying on save hot reload: 
   - ** (MatchError) no match of right hand side value: [{#PID<0.1105.0>, nil}] Unexpected exit: 256
   - Applet.Unique   {{:applet_super, "flex.exs"}, #PID<0.1105.0>, nil},
+  - loop was taking 7s to start (problem gone after loop fixed)
 - [x] Why html text has such a large y padding?: leading-none
 - [x] Button hover and press visual feedback: with parametric pseudo classes hover and active
 - [?] Panel drag gets in the way of reliable clicks: drag requires shift pressed now (enough?)

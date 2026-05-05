@@ -3,7 +3,7 @@ use Terminal
 loop = fn ->
   Api.subget!("flex:modbus-devices:items")
   |> Enum.each(fn {_id, device} ->
-    # src = "modbus:#{device.proto},#{device.ip}:#{device.port},#{device.name}"
+    Mdb.register!("flex:points:source", "status:#{device.name}")
 
     for point <- device.points do
       for %{dir: dir, tag: tag} <- putils.accessors.(point) do
