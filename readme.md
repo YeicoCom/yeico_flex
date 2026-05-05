@@ -140,8 +140,11 @@ text = f.("Button ~s", default)
 - [ ] Screen designer stumped after several enable/disable
 - [ ] Inplace testing with a global enable flag (see lib-convert)
 - [ ] f32le untested, is endianess applied at register or byte level?
+- [ ] Implement user loops
 - [ ] Implement SVG widget
 - [ ] Implement numeric input widget
+- [ ] Publish serial ports as point
+- [ ] Publish screens to custom uris
 - [ ] Review the performance impact of nested bindings (from libs)
 - [ ] Unable to convert float string to int while adding a button on Linux
   - different pointer coordinate type by platform?
