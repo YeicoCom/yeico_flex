@@ -69,6 +69,9 @@ master_loop = fn state = %{idb: idb, loop: loop, runners: runners, logs: logs} -
 
     {"flex:user-screens:delete", _, id} ->
       idb.delete.(id)
+      ddb.delete.(id)
+      Api.putcast!("flex:user-screens:design:#{id}", nil)
+      Api.putcast!("flex:user-screens:item:#{id}", nil)
       publish_items.(idb)
       task = runners[id][:task]
       if task, do: Api.kill(task)

@@ -5,7 +5,7 @@ idb = db.open.("user-screens")
 Api.putcast!("flex:user-screens:items", [])
 Api.putcast!("flex:user-screens:logs", %{})
 
-flex.evalLoop.("loop.exs", idb: idb, dms: 2_000)
+flex.evalLoop.("loop.exs", idb: idb, ddb: ddb, dms: 2_000)
 vutils = flex.evalScript.("vutils.exs", [])
 button = flex.evalScript.("button.exs", ui: ui, pt: pt, vutils: vutils)
 label = flex.evalScript.("label.exs", ui: ui, pt: pt, vutils: vutils)

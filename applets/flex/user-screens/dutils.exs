@@ -276,13 +276,17 @@ select = fn
     }
 end
 
-save = fn %{id: id, screen: screen} ->
+save_screen = fn %{id: id, screen: screen} ->
   ddb.put.(id, screen)
   Api.putcast!("flex:user-screens:design:#{id}", screen)
 end
 
-load = fn id ->
+load_screen = fn id ->
   Adb.get("flex:user-screens:design:#{id}") || ddb.get.(id) || new
+end
+
+subget_screen = fn id ->
+  Api.subget!("flex:user-screens:design:#{id}") || ddb.get.(id) || new
 end
 
 handle = fn state, id, event ->

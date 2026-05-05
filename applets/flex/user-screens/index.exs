@@ -110,7 +110,7 @@ handler = fn
          ^hash <- :crypto.hash(:md5, data64) |> Base.encode16(),
          {:ok, code} <- Base.decode64(data64),
          {%{id: id, type: "user-screen", item: item, design: design}, _} <- Code.eval_string(code) do
-      dutils.save.(%{id: id, screen: design})
+      dutils.save_screen.(%{id: id, screen: design})
       Bus.broadcast!("flex:user-screens:update", {id, item})
       state = Map.put(state, :modal, nil)
       {socket, state}
@@ -122,7 +122,7 @@ handler = fn
     Api.trace(view: path, event: event, params: params)
     type = "user-screen"
     item = %{items[id] | status: :disabled}
-    payload = %{id: id, type: type, item: item, design: dutils.load.(id)}
+    payload = %{id: id, type: type, item: item, design: dutils.load_screen.(id)}
     data64 = inspect(payload, limit: :infinity) |> Base.encode64()
     hash = :crypto.hash(:md5, data64) |> Base.encode16()
     socket = push_event(socket, "hook:copy", %{text: "#{type}:#{hash}:#{data64}"})
