@@ -110,7 +110,7 @@ handler = fn
          ^hash <- :crypto.hash(:md5, data64) |> Base.encode16(),
          {:ok, code} <- Base.decode64(data64),
          {%{id: id, type: "user-screen", item: item, design: design}, _} <- Code.eval_string(code) do
-      dutils.save_screen.(%{id: id, screen: design})
+      dutils.save_screen.(%{id: id, screen: design}, true)
       Bus.broadcast!("flex:user-screens:update", {id, item})
       state = Map.put(state, :modal, nil)
       {socket, state}

@@ -106,7 +106,7 @@ handler = fn
     Api.trace(view: path, event: event, params: params)
     state = save.(state, id, params)
     state = Map.put(state, :menu, nil)
-    dutils.save_screen.(state)
+    dutils.save_screen.(state, false)
     {socket, state}
 
   {:event, socket, state = %{selected: %{id: id}}, event = "item:delete", params = %{"id" => id}} ->
@@ -115,7 +115,7 @@ handler = fn
     {_, state} = pop_in(state, [:screen, :items, id])
     state = Map.put(state, :selected, dutils.select.(state, "Screen", nil))
     state = Map.put(state, :menu, nil)
-    dutils.save_screen.(state)
+    dutils.save_screen.(state, false)
     {socket, state}
 
   {:event, socket, state = %{vp: %{port: %{s: s, x: pox, y: poy}, panel: %{x: pax, y: pay}}},
@@ -133,7 +133,7 @@ handler = fn
     state = dutils.init.(state, id, item, true)
     state = Map.put(state, :selected, dutils.select.(state, type, id))
     state = Map.put(state, :menu, nil)
-    dutils.save_screen.(state)
+    dutils.save_screen.(state, false)
     {socket, state}
 
   {:event, socket, state = %{screen: %{props: %{snap: snap, w: w, h: h}}}, event = "item:drag",
@@ -149,7 +149,7 @@ handler = fn
     state = put_in(state, [:screen, :items, id, :y], y)
     state = Map.put(state, :selected, dutils.select.(state, type, id))
     state = Map.put(state, :menu, nil)
-    dutils.save_screen.(state)
+    dutils.save_screen.(state, false)
     {socket, state}
 
   {:event, socket, state, event = "frame:fit", params = %{"fit" => fit}} ->
@@ -194,9 +194,9 @@ handler = fn
     Api.trace(view: path, event: event, params: params)
     {socket, state}
 
-  {:info, socket, state = %{id: id}, event = {"flex:user-screens:item:" <> id, _, screen}} ->
+  {:info, socket, state = %{id: id}, event = {"flex:user-screens:item:" <> id, _, _}} ->
     Api.trace(view: path, info: event)
-    state = Map.put(state, :name, screen[:name])
+    socket = push_event(socket, "hook:reload", %{})
     {socket, state}
 
   {:info, socket, state, event} ->

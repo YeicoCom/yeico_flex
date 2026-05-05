@@ -184,6 +184,9 @@ const hooks = {
     },
     ScreenDesigner: {
         mounted() {
+            this.handleEvent("hook:reload", (params) => {
+                window.location.reload()
+            })
             const frame = this.el
             const pushSize = (el) => {
                 const width = el.clientWidth

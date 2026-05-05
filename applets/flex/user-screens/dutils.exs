@@ -276,9 +276,11 @@ select = fn
     }
 end
 
-save_screen = fn %{id: id, screen: screen} ->
-  ddb.put.(id, screen)
-  Api.putcast!("flex:user-screens:design:#{id}", screen)
+save_screen = fn %{id: id, screen: screen}, force? ->
+  if force? || Adb.get("flex:user-screens:item:#{id}") do
+    ddb.put.(id, screen)
+    Api.putcast!("flex:user-screens:design:#{id}", screen)
+  end
 end
 
 load_screen = fn id ->
