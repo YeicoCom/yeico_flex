@@ -205,13 +205,31 @@ css = fn style ->
   |> Enum.into(%{})
 end
 
-eval = fn calc, bindings, take, style ->
-  f = fn
-    f, d when is_list(d) -> :io_lib.format(f, d) |> to_string()
-    f, d -> :io_lib.format(f, [d]) |> to_string()
-  end
+eval_style = fn
+  "", _, output, calc ->
+    {output, calc, ""}
 
-  eval_calc = fn ->
+  style, [], output, calc ->
+    {output, calc, style}
+
+  style, bindings, output, calc ->
+    case flex.evalCode.("\"\"\"\n#{style}\n\"\"\"", bindings) do
+      {{:ok, {res, _}}, _} when is_binary(res) -> {output, calc, res}
+      {{:ok, {res, _}}, _} -> {[style: res], calc, ""}
+      {{:error, _error}, _} -> {"Style error", calc, ""}
+    end
+end
+
+eval_calc = fn
+  "", bindings, take ->
+    {:ok, Keyword.take(bindings, take), Enum.into(bindings, %{})}
+
+  calc, bindings, take ->
+    f = fn
+      f, d when is_list(d) -> :io_lib.format(f, d) |> to_string()
+      f, d -> :io_lib.format(f, [d]) |> to_string()
+    end
+
     case flex.evalCode.(calc, [{:f, f} | bindings]) do
       {{:ok, {_, kw}}, _} ->
         {:ok, Keyword.take(kw, take), Enum.into(kw, %{})}
@@ -219,16 +237,12 @@ eval = fn calc, bindings, take, style ->
       {{:error, _error}, _} ->
         {:error, "Calculator error", %{}}
     end
-  end
+end
 
-  with {:ok, output, calc} <- eval_calc.() do
+eval_rt = fn calc, bindings, take, style ->
+  with {:ok, output, calc} <- eval_calc.(calc, bindings, take) do
     bindings = get.(calc, :style, :keyword) || []
-
-    case flex.evalCode.("\"\"\"\n#{style}\n\"\"\"", bindings) do
-      {{:ok, {res, _}}, _} when is_binary(res) -> {output, calc, res}
-      {{:ok, {res, _}}, _} -> {[style: res], calc, ""}
-      {{:error, _error}, _} -> {"Style error", calc, ""}
-    end
+    eval_style.(style, bindings, output, calc)
   else
     {:error, output, calc} -> {output, calc, ""}
   end

@@ -75,7 +75,7 @@ end
 calculate = fn %{props: %{style: style, calc: calc, default: default, text: text}}, value ->
   bindings = [value: value, default: default, text: text]
   take = [:text, :disabled, :style]
-  {output, calc, style} = vutils.eval.(calc, bindings, take, style)
+  {output, calc, style} = vutils.eval_rt.(calc, bindings, take, style)
   css = vutils.css.(style)
   text = vutils.get.(calc, :text, :binary) || text
   disabled = vutils.get.(calc, :disabled, :boolean) || false
