@@ -18,7 +18,7 @@ render = fn assigns ->
   ~H"""
     <button id={@id} class={[@class, "px-4 py-2 rounded",
       "bg-blue-600 active:bg-blue-400 hover:bg-blue-500",
-      "disabled:bg-zinc-800 disabled:text-zinc-600"]}
+      "disabled:bg-zinc-600 disabled:text-zinc-400"]}
       disabled={@rt.disabled}
       phx-click={!@rt.disabled && @runtime && "item:click"}
       phx-value-id={!@rt.disabled && @runtime && @id}
