@@ -75,11 +75,24 @@ evalView = fn route, opts ->
   end)
 end
 
+evalCode = fn code, bindings ->
+  Code.with_diagnostics(fn ->
+    try do
+      {:ok, Code.eval_string(code, bindings)}
+    rescue
+      error -> {:error, error}
+    catch
+      error -> {:error, error}
+    end
+  end)
+end
+
 flex = %{
   evalScript: evalScript,
   evalView: evalView,
   evalLoop: evalLoop,
-  evalTest: evalTest
+  evalTest: evalTest,
+  evalCode: evalCode
 }
 
 Adb.put("flex:api", flex)

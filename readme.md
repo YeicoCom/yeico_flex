@@ -146,8 +146,10 @@ text = f.("Button ~s", default)
 - [ ] Publish serial ports as point
 - [ ] Publish screens to custom uris
 - [ ] Review the performance impact of nested bindings (from libs)
+- [ ] Single database for all entities for easier backup/reconvery
 - [ ] Unable to convert float string to int while adding a button on Linux
   - different pointer coordinate type by platform?
+- [x] Code with_diagnostics for calculator to avoid stdout output
 - [x] Per modbus device status source integer point: 0:disabled 1:starting 2:started 3:error
 - [-] Task to periodically delete unreferenced screen designs: no need anymore?
 - [-] Split screen viewer from screen runner (listener and calculations)

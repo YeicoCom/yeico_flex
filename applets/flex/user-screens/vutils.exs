@@ -212,11 +212,11 @@ eval = fn calc, bindings, take, style ->
   end
 
   eval_calc = fn ->
-    case Api.safe(fn -> Code.eval_string(calc, [{:f, f} | bindings]) end) do
-      {:ok, {_, kw}} ->
+    case flex.evalCode.(calc, [{:f, f} | bindings]) do
+      {{:ok, {_, kw}}, _} ->
         {:ok, Keyword.take(kw, take), Enum.into(kw, %{})}
 
-      {:error, _error} ->
+      {{:error, _error}, _} ->
         {:error, "Calculator error", %{}}
     end
   end
@@ -224,10 +224,10 @@ eval = fn calc, bindings, take, style ->
   with {:ok, output, calc} <- eval_calc.() do
     bindings = get.(calc, :style, :keyword) || []
 
-    case Api.safe(fn -> Code.eval_string("\"\"\"\n#{style}\n\"\"\"", bindings) end) do
-      {:ok, {res, _}} when is_binary(res) -> {output, calc, res}
-      {:ok, {res, _}} -> {[style: res], calc, ""}
-      {:error, _error} -> {"Style error", calc, ""}
+    case flex.evalCode.("\"\"\"\n#{style}\n\"\"\"", bindings) do
+      {{:ok, {res, _}}, _} when is_binary(res) -> {output, calc, res}
+      {{:ok, {res, _}}, _} -> {[style: res], calc, ""}
+      {{:error, _error}, _} -> {"Style error", calc, ""}
     end
   else
     {:error, output, calc} -> {output, calc, ""}
