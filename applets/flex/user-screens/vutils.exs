@@ -75,7 +75,7 @@ float = fn change, props, params, key, {min, max} ->
   end
 end
 
-any = fn change, props, params, key ->
+text? = fn change, props, params, key ->
   tv = params |> Map.get(key) |> String.trim()
   cv = props[key]
 
@@ -99,8 +99,8 @@ parse = fn
       _ -> Map.put(change, key, tv)
     end
 
-  change, props, params, key, :any ->
-    any.(change, props, params, key)
+  change, props, params, key, :text? ->
+    text?.(change, props, params, key)
 
   change, props, params, key, :boolean ->
     tv = params |> Map.get(key) |> String.trim() |> String.downcase()
@@ -179,7 +179,7 @@ parse = fn
     integer.(change, props, params, key, {0, 3})
 
   change, props, params, key, {:point, _} ->
-    any.(change, props, params, key)
+    text?.(change, props, params, key)
 end
 
 errors = fn props ->

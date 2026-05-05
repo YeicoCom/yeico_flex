@@ -93,10 +93,10 @@ save = fn state = %{selected: %{item: sitem}, screen: screen}, id, params ->
   change = vutils.parse.(change, props, params, :w, {:integer, 0, w})
   change = vutils.parse.(change, props, params, :h, {:integer, 0, h})
   change = vutils.parse.(change, props, params, :text, :text)
-  change = vutils.parse.(change, props, params, :sink, :any)
+  change = vutils.parse.(change, props, params, :sink, :text?)
   change = vutils.parse.(change, props, params, :default, {:point, params.sink})
   change = vutils.parse.(change, props, params, :style, :style)
-  change = vutils.parse.(change, props, params, :calc, :any)
+  change = vutils.parse.(change, props, params, :calc, :text?)
 
   props = Map.merge(props, Map.drop(change, [:errors]))
   aitem = Map.put(aitem, :props, props)
