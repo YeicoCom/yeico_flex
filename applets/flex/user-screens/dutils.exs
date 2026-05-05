@@ -282,7 +282,7 @@ save = fn %{id: id, screen: screen} ->
 end
 
 load = fn id ->
-  ddb.get.(id) || new
+  Adb.get("flex:user-screens:design:#{id}") || ddb.get.(id) || new
 end
 
 handle = fn state, id, event ->

@@ -141,7 +141,11 @@ text = f.("Button ~s", default)
 - [ ] Task to periodically delete unreferenced screen designs
 - [ ] Inplace testing with a global enable flag (see lib-convert)
 - [ ] f32le untested, is endianess applied at register or byte level?
-- [ ] Split screen viewer from screen runner (listener and calculations)
+- [-] Split screen viewer from screen runner (listener and calculations)
+  - No appreciable gain for the moment (until some common calculation is required)
+  - The approach of calculation the runtime part and broadcasting that look heavier the current approach
+  - Centralized optimization requires incremental broadcasts 
+- [ ] Per modbus device status source point (int - string type)
 - [ ] Unable to convert float string to int while adding a button on Linux
   - different pointer coordinate type by platform?
 - Terminal dying on save hot reload: 
