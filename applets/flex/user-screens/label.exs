@@ -108,7 +108,7 @@ handle = fn
   %{props: %{source: ""}}, rt, _ ->
     rt
 
-  item, _, {"flex:point:" <> _, value} ->
+  item, _, {_, value} ->
     calculate.(item, value)
 end
 
@@ -118,7 +118,7 @@ init = fn
     {rt, nil}
 
   item = %{props: %{source: source}}, subget! ->
-    key = "flex:point:source:#{source}"
+    key = "source:#{source}"
     value = subget!.(key)
     rt = calculate.(item, value)
     {rt, key}

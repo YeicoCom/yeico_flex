@@ -112,7 +112,7 @@ handler = fn
     socket = push_event(socket, "hook:reload", %{})
     {socket, state}
 
-  {:info, socket, state = %{events: events}, event = {key, _, value}} ->
+  {:info, socket, state = %{events: events}, event = {"flex:point:" <> key, _, value}} ->
     Api.trace(view: path, info: event)
     ids = events[key] || []
 

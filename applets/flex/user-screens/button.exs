@@ -113,10 +113,10 @@ handle = fn
     rt
 
   %{props: %{sink: sink, default: default}}, rt, "item:click" ->
-    Api.putcast!("flex:point:sink:#{sink}", default)
+    pt.put_value.("sink:#{sink}", default)
     rt
 
-  item, _, {"flex:point:" <> _, value} ->
+  item, _, {_, value} ->
     calculate.(item, value)
 end
 
@@ -126,7 +126,7 @@ init = fn
     {rt, nil}
 
   item = %{props: %{sink: sink}}, subget! ->
-    key = "flex:point:sink:#{sink}"
+    key = "sink:#{sink}"
     value = subget!.(key)
     rt = calculate.(item, value)
     {rt, key}
