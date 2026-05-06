@@ -122,8 +122,9 @@ handler = fn
    event = "item:add", params = %{"x" => x, "y" => y, "type" => type}} ->
     Api.trace(view: path, event: event, params: params)
     id = UUID.uuid1() |> ShortUUID.encode!()
-    x = String.to_integer(x)
-    y = String.to_integer(y)
+    # macos sends integers, linux sends floats
+    {x, ""} = Float.parse(x)
+    {y, ""} = Float.parse(y)
     x = (x - pox - pax) / s
     y = (y - poy - pay) / s
     index = dutils.max.(state) + 1
