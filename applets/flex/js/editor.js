@@ -5,8 +5,7 @@ import { elixir } from "codemirror-lang-elixir"
 import { oneDark } from "@codemirror/theme-one-dark"
 import { indentWithTab } from "@codemirror/commands"
 
-export default function Editor(id, prefix, onKey) {
-    let codeKey = `${prefix}-editor-code`
+export default function Editor(id, codeKey, onKey) {
     let language = new Compartment
     let state = EditorState.create({
         doc: localStorage.getItem(codeKey),

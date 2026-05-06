@@ -169,11 +169,16 @@ const hooks = {
                     console.error(err);
                 }
             })
+        },
+        reconnected() {
+            window.location.reload()
         }
     },
     ScriptEditor: {
         mounted() {
-            let editor = new Editor(this.el.id, "Scripts", (key) => {
+            const params = new URLSearchParams(window.location.search)
+            const codeKey = `script-editor:${params.get("id")}`
+            let editor = new Editor(this.el.id, codeKey, (key) => {
                 console.log(key)
             })
             editor.focus()
@@ -194,9 +199,6 @@ const hooks = {
             this.el.resizeListener = pushSize
             resizeObserver.observe(this.el)
             pushSize(this.el)
-        },
-        reconnected() {
-            window.location.reload()
         }
     },
     ScreenDesigner: {
@@ -355,10 +357,6 @@ const hooks = {
                 }
             })
             frame.childrenSetup = true
-        },
-        reconnected() {
-            // it gets stuck
-            window.location.reload()
         }
     },
 }

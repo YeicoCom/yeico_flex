@@ -3,7 +3,7 @@ use Terminal.Live
 view = fn assigns ->
   ~H"""
   <.fui fun={@ui.frame} title="Script Editor" label={@name}>
-    <div id="script_editor" class="h-full w-full overflow-y-scroll" phx-hook="ScriptEditor" data-id={@id}></div>
+    <div id="script_editor" class="h-full w-full overflow-y-scroll" phx-hook="ScriptEditor"></div>
   </.fui>
   """
 end
@@ -22,7 +22,7 @@ handler = fn
   {:params, socket, state, params = %{"id" => id}, uri} ->
     Api.trace(view: path, params: params, uri: uri)
     # it may not exist: use script[:name] accesor
-    script = Api.subget!("flex:user-scripts:item:#{id}") |> Api.debug()
+    script = Api.subget!("flex:user-scripts:item:#{id}")
     state = Map.put(state, :name, script[:name])
     state = Map.put(state, :id, id)
     {socket, state}
