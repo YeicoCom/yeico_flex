@@ -133,7 +133,6 @@ text = f.("Button ~s", default)
 - [ ] Clone controls to easy copy template styling
 - [ ] Prevent read/write to points with empty names
 - [ ] Show io_lib format escapes help in props editor
-- [ ] CubDB screen design db cleanup strategy
 - [ ] Define mqtt strategy
 - [ ] Implement links between user screens
 - [ ] Screen designer stumped after several enable/disable
@@ -144,7 +143,8 @@ text = f.("Button ~s", default)
 - [ ] Publish serial ports as point
 - [ ] Publish screens to custom uris
 - [ ] Review the performance impact of nested bindings (from libs)
-- [ ] Single database for all entities for easier backup/reconvery
+- [ ] Single database for all entities for easier backup/recovery
+- [x] CubDB screen design db cleanup strategy: immediate delete
 - [x] f32le untested, is endianess applied at register or byte level?
   - register level for https://photos.app.goo.gl/xKAbaXo185Wi8SzDA
   - changed default f32le to register level

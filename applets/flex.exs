@@ -112,6 +112,7 @@ flex.evalScript.("/flex/modbus-terminal/setup.exs", mb: mb, ui: ui)
 flex.evalScript.("/flex/modbus-devices/setup.exs", db: db, mb: mb, ui: ui, pt: pt)
 
 flex.evalScript.("/flex/user-screens/setup.exs", db: db, ui: ui, pt: pt)
+flex.evalScript.("/flex/user-scripts/setup.exs", db: db, ui: ui, pt: pt)
 
 flex.evalView.("index.exs", ui: ui)
 
