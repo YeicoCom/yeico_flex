@@ -40,6 +40,7 @@ end
 publish_items = fn idb ->
   items = idb.select.([]) |> Enum.sort_by(fn {_, v} -> v.name end)
   Api.putcast!("flex:user-scripts:items", items)
+  for {id, item} <- items, do: Api.putcast!("flex:user-scripts:item:#{id}", item)
   items
 end
 

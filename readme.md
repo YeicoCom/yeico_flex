@@ -137,7 +137,7 @@ text = f.("Button ~s", default)
 - [ ] Implement links between user screens
 - [ ] Screen designer stumped after several enable/disable
 - [ ] Inplace testing with a global enable flag (see lib-convert)
-- [ ] Implement user loops
+- [ ] Implement user scripts: https://github.com/YeicoCom/chivo_w3/blob/main/assets/js/app.js
 - [ ] Implement SVG widget
 - [ ] Implement numeric input widget
 - [ ] Publish serial ports as point

@@ -2,6 +2,7 @@ import "phoenix_html"
 import { Socket } from "phoenix"
 import { LiveSocket } from "phoenix_live_view"
 import topbar from "topbar"
+import Editor from "./editor"
 
 const eventThrottlingMs = 50
 const ignoreClickDelayMs = 100
@@ -168,6 +169,14 @@ const hooks = {
                     console.error(err);
                 }
             })
+        }
+    },
+    ScriptEditor: {
+        mounted() {
+            let editor = new Editor(this.el.id, "Scripts", (key) => {
+                console.log(key)
+            })
+            editor.focus()
         }
     },
     ScreenViewer: {
