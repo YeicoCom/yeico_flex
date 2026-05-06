@@ -130,7 +130,6 @@ text = f.("Button ~s", default)
 - [ ] Make flex pages password protected: use put cookie as regular login
 - [ ] Shaky things: browser, mountrap, socat, kill links, unable to await defers, modbus lib
 - [ ] Modbus lib deterministic error detection
-- [ ] Modbus rtu over tcp packet fragmentation
 - [ ] Clone controls to easy copy template styling
 - [ ] Prevent read/write to points with empty names
 - [ ] Show io_lib format escapes help in props editor
@@ -139,7 +138,6 @@ text = f.("Button ~s", default)
 - [ ] Implement links between user screens
 - [ ] Screen designer stumped after several enable/disable
 - [ ] Inplace testing with a global enable flag (see lib-convert)
-- [ ] f32le untested, is endianess applied at register or byte level?
 - [ ] Implement user loops
 - [ ] Implement SVG widget
 - [ ] Implement numeric input widget
@@ -147,7 +145,14 @@ text = f.("Button ~s", default)
 - [ ] Publish screens to custom uris
 - [ ] Review the performance impact of nested bindings (from libs)
 - [ ] Single database for all entities for easier backup/reconvery
-- [ ] Socket/modbus terminal not auto scrolling on linux
+- [x] f32le untested, is endianess applied at register or byte level?
+  - register level for https://photos.app.goo.gl/xKAbaXo185Wi8SzDA
+  - changed default f32le to register level
+- [x] Socket/modbus terminal not auto scrolling on linux (macos works)
+  - linux requires calculating based on last two children
+  - macos works with only one
+- [x] Modbus rtu over tcp packet fragmentation
+  - worked ok with https://photos.app.goo.gl/xKAbaXo185Wi8SzDA
 - [x] Unable to convert float string to int while adding a button on Linux
   - different pointer coordinate type by platform?
 - [x] Code with_diagnostics for calculator to avoid stdout output

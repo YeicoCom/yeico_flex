@@ -36,7 +36,10 @@ to = fn
     value
 
   :f32le, [w0, w1] ->
-    <<value::little-float-32>> = <<w0::16, w1::16>>
+    # byte swap
+    # <<value::little-float-32>> = <<w0::16, w1::16>>
+    # reg swap
+    <<value::big-float-32>> = <<w1::16, w0::16>>
     value
 end
 
@@ -61,7 +64,10 @@ from = fn
     [w0, w1]
 
   :f32le, value ->
-    <<w0::16, w1::16>> = <<value::little-float-32>>
+    # byte swap
+    # <<w0::16, w1::16>> = <<value::little-float-32>>
+    # reg swap
+    <<w1::16, w0::16>> = <<value::big-float-32>>
     [w0, w1]
 end
 

@@ -86,12 +86,20 @@ const hooks = {
             this.el.scrollTo(0, this.el.scrollHeight)
         },
         updated() {
+            // macos work with just one last children
+            // linux requires last two children (maybe the update sends them together)
             const lastChild = this.el.lastElementChild
             const bottomExcess = this.el.scrollHeight - this.el.clientHeight - this.el.scrollTop
+            //console.log(lastChild, bottomExcess, lastChild.clientHeight)
             //clientHeight recommended for layout and scrolling
             //confirmed to work with tailwind break-all multi line logs
-            if (lastChild && bottomExcess <= lastChild.clientHeight) {
-                this.el.scrollTo(0, this.el.scrollHeight)
+            if (lastChild) {
+                const prelastChild = lastChild.previousElementSibling
+                if (prelastChild) {
+                    if (bottomExcess <= lastChild.clientHeight + prelastChild.clientHeight) {
+                        this.el.scrollTo(0, this.el.scrollHeight)
+                    }
+                }
             }
         }
     },

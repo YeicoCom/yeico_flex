@@ -27,7 +27,7 @@ e: Encoding
   s16be 16 bit big endian signed integer
   s16le 16 bit little endian signed integer
   f32be 32 bit big endian IEEE754 float encoding
-  f32le 32 bit little endian IEEE754 float encoding (byte swap)
+  f32le 32 bit little endian IEEE754 float encoding (register swap)
 #: Name or comment
 """
 
