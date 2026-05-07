@@ -68,7 +68,8 @@ handler = fn
     state = Map.update!(state, :logid, &(&1 + 1))
     {socket, state}
 
-  {:info, socket, state = %{id: id}, event = {"flex:user-scripts:item:" <> id, _, _}} ->
+  # reload only on delete to catch reenable logs
+  {:info, socket, state = %{id: id}, event = {"flex:user-scripts:item:" <> id, _, nil}} ->
     Api.trace(view: path, info: event)
     socket = push_event(socket, "hook:reload", %{})
     {socket, state}
