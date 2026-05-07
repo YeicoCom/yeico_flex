@@ -14,6 +14,7 @@ end
 
 new = %{
   name: name,
+  route: "",
   status: :disabled
 }
 
@@ -57,6 +58,7 @@ end
 
 parse = fn params ->
   params = Map.update!(params, "name", &(String.replace(&1, ~r/ +/, " ") |> String.trim()))
+  params = Map.update!(params, "route", &String.trim/1)
   params = Map.update!(params, "status", &String.to_atom/1)
   params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
   Enum.into(params, %{})

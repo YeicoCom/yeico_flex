@@ -1,39 +1,53 @@
 use Terminal.Live
 
+canvas = fn assigns ->
+  ~H"""
+  <div id="design_frame" class="grow relative" phx-hook="ScreenViewer">
+    <%= if @enabled do %>
+    <div :if={@size} id="design_port" class="design-port overflow-hidden">
+      <div id="design_panel" class="design-panel text-white select-none text-base [&_*]:cursor-default leading-none"
+        draggable="false" style={@screen.props.style}>
+        <.fui :for={{id, item} <- @index} fun={@dutils.item} id={id} {item} rt={@rts[id]} selected={false} runtime={true}/>
+      </div>
+    </div>
+    <style :if={@size}>
+      .design-port {
+        position: absolute;
+        left: <%= @port.x %>px;
+        top: <%= @port.y %>px;
+        width: <%= @port.w %>px;
+        height: <%= @port.h %>px;
+      }
+      .design-panel {
+        position: absolute;
+        transform-origin: top left;
+        scale: <%= @panel.s %>;
+        left: <%= @panel.x %>px;
+        top: <%= @panel.y %>px;
+        width: <%= @panel.w %>px;
+        height: <%= @panel.h %>px;
+      }
+    </style>
+    <% else %>
+    <div class="flex items-center h-full justify-center text-3xl">Disabled</div>
+    <% end %>
+  </div>
+  """
+end
+
 view = fn assigns ->
   ~H"""
   <.fui fun={@ui.frame} reverse={true} title="Screen Viewer" label={@name} class="flex gap-2">
-    <div  id="design_frame" class="grow relative" phx-hook="ScreenViewer">
-      <%= if @enabled do %>
-      <div :if={@size} id="design_port" class="design-port overflow-hidden">
-        <div id="design_panel" class="design-panel text-white select-none text-base [&_*]:cursor-default leading-none"
-          draggable="false" style={@screen.props.style}>
-          <.fui :for={{id, item} <- @index} fun={@dutils.item} id={id} {item} rt={@rts[id]} selected={false} runtime={true}/>
-        </div>
-      </div>
-      <style :if={@size}>
-        .design-port {
-          position: absolute;
-          left: <%= @port.x %>px;
-          top: <%= @port.y %>px;
-          width: <%= @port.w %>px;
-          height: <%= @port.h %>px;
-        }
-        .design-panel {
-          position: absolute;
-          transform-origin: top left;
-          scale: <%= @panel.s %>;
-          left: <%= @panel.x %>px;
-          top: <%= @panel.y %>px;
-          width: <%= @panel.w %>px;
-          height: <%= @panel.h %>px;
-        }
-      </style>
-      <% else %>
-      <div class="flex items-center h-full justify-center text-3xl">Disabled</div>
-      <% end %>
-    </div>
+    <.fui fun={@canvas} {assigns}/>
   </.fui>
+  """
+end
+
+bare = fn assigns ->
+  ~H"""
+  <div id="main_frame" class="flex h-full" phx-hook="AllPages">
+    <.fui fun={@canvas} {assigns}/>
+  </div>
   """
 end
 
@@ -46,15 +60,18 @@ handler = fn
     state = Map.put(state, :dutils, dutils)
     state = Map.put(state, :enabled, nil)
     state = Map.put(state, :events, %{})
+    state = Map.put(state, :canvas, canvas)
     state = Map.put(state, :size, nil)
     state = Map.put(state, :name, nil)
     state = Map.put(state, :rts, %{})
+    state = Map.put(state, :fid, fid)
     state = Map.put(state, :id, nil)
     state = Map.put(state, :ui, ui)
     {socket, state}
 
-  {:params, socket, state, params = %{"id" => id}, uri} ->
+  {:params, socket, state, params, uri} ->
     Api.trace(view: path, params: params, uri: uri)
+    id = params["id"] || fid
     state = Map.put(state, :screen, dutils.subget_screen.(id))
     # it may not exist: use screen[:name] assessor
     screen = Api.subget!("flex:user-screens:item:#{id}")
@@ -71,6 +88,7 @@ handler = fn
 
   {:render, _assigns,
    state = %{
+     fid: fid,
      enabled: true,
      size: %{w: fw, h: fh},
      screen: %{items: items, props: %{w: sw, h: sh}}
@@ -81,10 +99,10 @@ handler = fn
     panel = %{s: s, x: 0, y: 0, w: sw, h: sh}
     state = Map.put(state, :port, port)
     state = Map.put(state, :panel, panel)
-    view.(state)
+    if fid, do: bare.(state), else: view.(state)
 
-  {:render, _assigns, state} ->
-    view.(state)
+  {:render, _assigns, state = %{fid: fid}} ->
+    if fid, do: bare.(state), else: view.(state)
 
   {:event, socket, state, event = "item:click", params = %{"id" => "item_" <> id_type}} ->
     Api.trace(view: path, event: event, params: params)

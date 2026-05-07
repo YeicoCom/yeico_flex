@@ -12,9 +12,21 @@ log_event = fn
   id, error?, msg -> post_log.(id, error?, inspect(msg))
 end
 
-runner_setup = fn %{id: id} ->
+run_view = fn
+  _, %{route: ""} ->
+    :ok
+
+  id, %{route: route} ->
+    path = "#{route}"
+    view = "user-screens/view.exs"
+    %{handler: handler} = flex.evalScript.(view, [{:path, path}, {:fid, id} | opts])
+    Terminal.view(path, handler)
+end
+
+runner_setup = fn %{id: id, item: item} ->
   # nil to reset
   log_event.(id, nil, "Started")
+  run_view.(id, item)
   Api.sleep()
 end
 
