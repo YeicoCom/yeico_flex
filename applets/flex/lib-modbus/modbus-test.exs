@@ -1,19 +1,20 @@
-use Terminal
+use Flex
+alias Modbus.Slave
 
 test = fn cmd, res ->
-  ptcp = modbus.tcp_proto
-  prtu = modbus.rtu_proto
+  ptcp = Modbus.Tcp.Protocol
+  prtu = Modbus.Rtu.Protocol
 
   tid = Adb.get("flex:modbus-test:tid", 0)
   Adb.put("flex:modbus-test:tid", tid + 1)
-  stcp = slave.build.(ptcp, "flex:modbus-test:model:tcp")
-  srtu = slave.build.(prtu, "flex:modbus-test:model:rtu")
+  stcp = fn data -> Slave.apply(ptcp, "flex:modbus-test:model:tcp", data) end
+  srtu = fn data -> Slave.apply(prtu, "flex:modbus-test:model:rtu", data) end
 
-  req = ptcp.({:pack_req, cmd, tid})
-  ^res = ptcp.({:parse_res, cmd, stcp.(req), tid})
+  req = ptcp.pack_req(cmd, tid)
+  ^res = ptcp.parse_res(cmd, stcp.(req), tid)
 
-  req = prtu.({:pack_req, cmd, nil})
-  ^res = prtu.({:parse_res, cmd, srtu.(req), nil})
+  req = prtu.pack_req(cmd, nil)
+  ^res = prtu.parse_res(cmd, srtu.(req), nil)
 end
 
 test.({:ri, 1, 2, 3}, [0, 0, 0])

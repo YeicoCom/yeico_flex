@@ -1,20 +1,25 @@
-use Terminal
+use Flex
 
-ddb = db.open.("screen-designs")
-idb = db.open.("user-screens")
+ddb = Db.open("screen-designs")
+idb = Db.open("user-screens")
 Api.putcast!("flex:user-screens:items", [])
 Api.putcast!("flex:user-screens:logs", %{})
 
-vutils = flex.evalScript.("vutils.exs", [])
-button = flex.evalScript.("button.exs", ui: ui, pt: pt, vutils: vutils)
-label = flex.evalScript.("label.exs", ui: ui, pt: pt, vutils: vutils)
-items = [button, label]
-dutils = flex.evalScript.("dutils.exs", ui: ui, pt: pt, ddb: ddb, vutils: vutils, items: items)
-iutils = flex.evalScript.("iutils.exs", [])
-flex.evalView.("index.exs", ui: ui, iutils: iutils, dutils: dutils)
-flex.evalView.("design.exs", ui: ui, dutils: dutils)
-flex.evalView.("view.exs", ui: ui, dutils: dutils, fid: nil)
-opts = [ui: ui, dutils: dutils]
-flex.evalLoop.("loop.exs", idb: idb, ddb: ddb, opts: opts, dms: 2_000)
+Flex.eval_file("vutils.exs", [])
+Flex.eval_file("button.exs", [])
+Flex.eval_file("label.exs", [])
+
+Flex.eval_file("iutils.exs", [])
+Flex.eval_file("dutils.exs", [])
+
+Flex.eval_file("view.exs", [])
+Flex.eval_file("loop.exs", [])
+Flex.eval_file("index.exs", [])
+Flex.eval_file("design.exs", [])
+
+Flex.run_view("index.exs", Flex.UserScreens.Index, ui: ui, idb: idb, ddb: ddb)
+Flex.run_view("view.exs", Flex.UserScreens.View, ui: ui, idb: idb, ddb: ddb, fid: nil)
+Flex.run_view("design.exs", Flex.UserScreens.Design, ui: ui, ddb: ddb)
+Flex.run_loop(2_000, Flex.UserScreens.Loop, idb: idb, ddb: ddb)
 
 :ok

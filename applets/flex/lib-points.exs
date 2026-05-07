@@ -1,57 +1,55 @@
-use Terminal
+defmodule Flex.Pt do
+  use Flex
 
-get_key = fn dir, type, name ->
-  "#{dir}:#{type}:#{name}"
-end
-
-get_tag = fn type, name ->
-  "#{type}:#{name}"
-end
-
-get_def = fn
-  "source:float:" <> _ -> 0.0
-  "sink:float:" <> _ -> 0.0
-  _ -> 0
-end
-
-# FIXME float is not covered by 0 default
-# default value here must cover all types below
-# keys must be typed to avoid type mixing
-get_value = fn key ->
-  case Adb.get("flex:point:#{key}") do
-    nil -> get_def.(key)
-    val -> val
+  def get_key(dir, type, name) do
+    "#{dir}:#{type}:#{name}"
   end
-end
 
-put_value = fn key, val ->
-  Api.putcast!("flex:point:#{key}", val)
-end
-
-subget_value = fn key ->
-  case Api.subget!("flex:point:#{key}") do
-    nil -> get_def.(key)
-    val -> val
+  def get_tag(type, name) do
+    "#{type}:#{name}"
   end
-end
 
-get_sources = fn ->
-  "flex:points:source"
-  |> Mdb.lookup()
-  |> Enum.map(fn {_, tag} -> tag end)
-end
+  # FIXME float is not covered by 0 default
+  # default value here must cover all types below
+  # keys must be typed to avoid type mixing
+  def get_value(key) do
+    case Adb.get("flex:point:#{key}") do
+      nil -> get_def(key)
+      val -> val
+    end
+  end
 
-get_sinks = fn ->
-  "flex:points:sink"
-  |> Mdb.lookup()
-  |> Enum.map(fn {_, tag} -> tag end)
-end
+  def put_value(key, val) do
+    Api.putcast!("flex:point:#{key}", val)
+  end
 
-capture = fn
-  :uint16 -> %{step: 1, min: 0, max: 65_535}
-  :sint16 -> %{step: 1, min: -32_768, max: 32_767}
-  :float -> %{step: "any", min: nil, max: nil}
-  :bit -> %{step: 1, min: 0, max: 1}
+  def subget_value(key) do
+    case Api.subget!("flex:point:#{key}") do
+      nil -> get_def(key)
+      val -> val
+    end
+  end
+
+  def get_sources do
+    "flex:points:source"
+    |> Mdb.lookup()
+    |> Enum.map(fn {_, tag} -> tag end)
+  end
+
+  def get_sinks do
+    "flex:points:sink"
+    |> Mdb.lookup()
+    |> Enum.map(fn {_, tag} -> tag end)
+  end
+
+  def get_limits(:uint16), do: %{step: 1, min: 0, max: 65_535}
+  def get_limits(:sint16), do: %{step: 1, min: -32_768, max: 32_767}
+  def get_limits(:float), do: %{step: "any", min: nil, max: nil}
+  def get_limits(:bit), do: %{step: 1, min: 0, max: 1}
+
+  defp get_def("source:float:" <> _), do: 0.0
+  defp get_def("sink:float:" <> _), do: 0.0
+  defp get_def(_), do: 0
 end
 
 :ok

@@ -1,7 +1,8 @@
-use Terminal
+defmodule Modbus.Slave do
+  alias Modbus.Protocol
+  use Flex
 
-build = fn proto, key ->
-  get = fn slave, type, address, count ->
+  defp get(key, slave, type, address, count) do
     model = Adb.get(key, %{})
 
     for i <- 0..(count - 1) do
@@ -9,7 +10,7 @@ build = fn proto, key ->
     end
   end
 
-  put = fn slave, type, address, values ->
+  defp put(key, slave, type, address, values) do
     patch =
       for {v, i} <- Enum.with_index(values), reduce: %{} do
         patch -> Map.put(patch, "#{slave}:#{type}:#{address + i}", v)
@@ -20,21 +21,21 @@ build = fn proto, key ->
     nil
   end
 
-  fn data ->
-    {cmd, tid} = proto.({:parse_req, data})
-    # Api.debug(cmd: cmd, tid: tid)
+  def apply(proto, key, data) do
+    {cmd, tid} = Protocol.parse_req(proto, data)
+    # Log.debug(cmd: cmd, tid: tid)
 
     values =
       case cmd do
-        {:ri, slave, address, count} -> get.(slave, "d", address, count)
-        {:rc, slave, address, count} -> get.(slave, "d", address, count)
-        {:rir, slave, address, count} -> get.(slave, "r", address, count)
-        {:rhr, slave, address, count} -> get.(slave, "r", address, count)
-        {:fc, slave, address, values} -> put.(slave, "d", address, values)
-        {:phr, slave, address, values} -> put.(slave, "r", address, values)
+        {:ri, slave, address, count} -> get(key, slave, "d", address, count)
+        {:rc, slave, address, count} -> get(key, slave, "d", address, count)
+        {:rir, slave, address, count} -> get(key, slave, "r", address, count)
+        {:rhr, slave, address, count} -> get(key, slave, "r", address, count)
+        {:fc, slave, address, values} -> put(key, slave, "d", address, values)
+        {:phr, slave, address, values} -> put(key, slave, "r", address, values)
       end
 
-    proto.({:pack_res, cmd, values, tid})
+    Protocol.pack_res(proto, cmd, values, tid)
   end
 end
 

@@ -1,118 +1,115 @@
-use Terminal
+defmodule Flex.ModbusDevices.PUtils do
+  use Flex
 
-new = %{type: "RDI", slave: 1, address: 0, encoding: "none", names: ""}
+  @new %{type: "RDI", slave: 1, address: 0, encoding: "NONE", names: ""}
+  @types ["RDI", "RDO", "WDO", "RRI", "RRO", "WRO"]
+  @encodings ["NONE", "U16BE", "U16LE", "S16BE", "S16LE", "F32BE", "F32LE"]
+  @options %{types: @types, encodings: @encodings}
 
-types = ["RDI", "RDO", "WDO", "RRI", "RRO", "WRO"]
-encodings = ["NONE", "U16BE", "U16LE", "S16BE", "S16LE", "F32BE", "F32LE"]
+  def new, do: @new
+  def options, do: @options
 
-options = %{
-  types: types,
-  encodings: encodings
-}
-
-toint? = fn str ->
-  case Integer.parse(str) do
-    {v, ""} -> v
-    _ -> nil
+  def limits(point) do
+    %{type: type} = dirtype(point)
+    Pt.get_limits(type)
   end
-end
 
-enctype = fn
-  "NONE" -> :uint16
-  "U16BE" -> :uint16
-  "S16BE" -> :sint16
-  "F32BE" -> :float
-  "U16LE" -> :uint16
-  "S16LE" -> :sint16
-  "F32LE" -> :float
-end
+  def apply(arg) do
+    case arg do
+      {points, action, pi} ->
+        case action do
+          "add" -> points ++ [@new]
+          "del" -> List.delete_at(points, pi)
+          "up" -> switch(points, pi - 1)
+          "down" -> switch(points, pi)
+        end
 
-dirtype = fn
-  %{type: "RDI"} -> %{dir: :source, type: :bit}
-  %{type: "RDO"} -> %{dir: :source, type: :bit}
-  %{type: "WDO"} -> %{dir: :sink, type: :bit}
-  %{type: "RRI", encoding: enc} -> %{dir: :source, type: enctype.(enc)}
-  %{type: "RRO", encoding: enc} -> %{dir: :source, type: enctype.(enc)}
-  %{type: "WRO", encoding: enc} -> %{dir: :sink, type: enctype.(enc)}
-end
-
-capture = fn point ->
-  %{type: type} = dirtype.(point)
-  pt.capture.(type)
-end
-
-switch = fn points, pi ->
-  {prefix, [a, b | tail]} = Enum.split(points, pi)
-  prefix ++ [b, a | tail]
-end
-
-apply = fn
-  {points, action, pi} ->
-    case action do
-      "add" -> points ++ [new]
-      "del" -> List.delete_at(points, pi)
-      "up" -> switch.(points, pi - 1)
-      "down" -> switch.(points, pi)
+      {device, action} ->
+        case action do
+          "enable" -> Map.put(device, :status, :enabled)
+          "disable" -> Map.put(device, :status, :disabled)
+        end
     end
-
-  {device, action} ->
-    case action do
-      "enable" -> Map.put(device, :status, :enabled)
-      "disable" -> Map.put(device, :status, :disabled)
-    end
-end
-
-split = fn str ->
-  str
-  |> String.split(",")
-  |> Enum.map(&String.trim/1)
-end
-
-accessors = fn point = %{names: names, encoding: encoding} ->
-  %{get_value: get_value, put_value: put_value} = pt
-  %{dir: dir, type: type} = dirtype.(point)
-  %{parse: parse} = mb.api.(:encoder, get: encoding)
-
-  for name <- split.(names) do
-    tag = pt.get_tag.(type, name)
-    key = pt.get_key.(dir, type, name)
-    get = fn -> get_value.(key) end
-    put = fn value -> put_value.(key, value) end
-
-    %{
-      tag: tag,
-      dir: dir,
-      key: key,
-      get: get,
-      put: put,
-      type: type,
-      name: name,
-      parse: parse
-    }
   end
-end
 
-parse = fn device = %{points: points}, params ->
-  type = params["type"]
-  encoding = params["encoding"]
-  slave = params["slave"] |> Enum.map(toint?)
-  address = params["address"] |> Enum.map(toint?)
+  def accessors(point = %{names: names, encoding: encoding}) do
+    %{dir: dir, type: type} = dirtype(point)
+    %{parse: parse} = Mb.get_encoder(encoding)
 
-  names =
-    params["names"]
-    |> Enum.map(fn names ->
-      String.split(names, ",") |> Enum.map(&String.trim/1) |> Enum.join(",")
-    end)
+    for name <- split(names) do
+      tag = Pt.get_tag(type, name)
+      key = Pt.get_key(dir, type, name)
+      get = fn -> Pt.get_value(key) end
+      put = fn value -> Pt.put_value(key, value) end
 
-  {points, _, _, _, _, _} =
-    for _ <- points, reduce: {[], slave, address, type, encoding, names} do
-      {points, [s | slave], [a | address], [t | type], [e | encoding], [n | names]} ->
-        {[%{slave: s, address: a, type: t, encoding: e, names: n} | points], slave, address, type,
-         encoding, names}
+      %{
+        tag: tag,
+        dir: dir,
+        key: key,
+        get: get,
+        put: put,
+        type: type,
+        name: name,
+        parse: parse
+      }
     end
+  end
 
-  points = points |> Enum.reverse()
-  Map.put(device, :points, points)
+  def parse(device = %{points: points}, params) do
+    type = params["type"]
+    encoding = params["encoding"]
+    slave = params["slave"] |> Enum.map(&toint?/1)
+    address = params["address"] |> Enum.map(&toint?/1)
+
+    names =
+      params["names"]
+      |> Enum.map(fn names ->
+        String.split(names, ",") |> Enum.map(&String.trim/1) |> Enum.join(",")
+      end)
+
+    {points, _, _, _, _, _} =
+      for _ <- points, reduce: {[], slave, address, type, encoding, names} do
+        {points, [s | slave], [a | address], [t | type], [e | encoding], [n | names]} ->
+          {[%{slave: s, address: a, type: t, encoding: e, names: n} | points], slave, address,
+           type, encoding, names}
+      end
+
+    points = points |> Enum.reverse()
+    Map.put(device, :points, points)
+  end
+
+  defp switch(points, pi) do
+    {prefix, [a, b | tail]} = Enum.split(points, pi)
+    prefix ++ [b, a | tail]
+  end
+
+  defp split(str) do
+    str
+    |> String.split(",")
+    |> Enum.map(&String.trim/1)
+  end
+
+  defp toint?(str) do
+    case Integer.parse(str) do
+      {v, ""} -> v
+      _ -> nil
+    end
+  end
+
+  defp enctype("NONE"), do: :uint16
+  defp enctype("U16BE"), do: :uint16
+  defp enctype("S16BE"), do: :sint16
+  defp enctype("F32BE"), do: :float
+  defp enctype("U16LE"), do: :uint16
+  defp enctype("S16LE"), do: :sint16
+  defp enctype("F32LE"), do: :float
+
+  defp dirtype(%{type: "RDI"}), do: %{dir: :source, type: :bit}
+  defp dirtype(%{type: "RDO"}), do: %{dir: :source, type: :bit}
+  defp dirtype(%{type: "WDO"}), do: %{dir: :sink, type: :bit}
+  defp dirtype(%{type: "RRI", encoding: enc}), do: %{dir: :source, type: enctype(enc)}
+  defp dirtype(%{type: "RRO", encoding: enc}), do: %{dir: :source, type: enctype(enc)}
+  defp dirtype(%{type: "WRO", encoding: enc}), do: %{dir: :sink, type: enctype(enc)}
 end
 
 :ok

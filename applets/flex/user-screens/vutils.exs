@@ -1,95 +1,8 @@
-use Terminal
+defmodule Flex.UserScreens.VUtils do
+  def inspect?(v) when is_binary(v), do: v
+  def inspect?(v), do: inspect(v)
 
-inspect? = fn
-  v when is_binary(v) -> v
-  v -> inspect(v)
-end
-
-valid? = fn
-  :binary ->
-    fn
-      v when is_binary(v) -> true
-      _ -> false
-    end
-
-  :boolean ->
-    fn
-      v when is_boolean(v) -> true
-      _ -> false
-    end
-
-  :keyword ->
-    fn
-      v when is_list(v) -> Keyword.keyword?(v)
-      _ -> false
-    end
-end
-
-get = fn map, key, type ->
-  valid? = valid?.(type)
-  value = map[key]
-  if valid?.(value), do: value
-end
-
-integer = fn change, props, params, key, {min, max} ->
-  tv = params |> Map.get(key) |> String.trim()
-  cv = props[key]
-
-  case Integer.parse(tv) do
-    {v, _} when not is_nil(min) and v < min ->
-      put_in(change, [:errors, key], "Must be >= #{min}")
-
-    {v, _} when not is_nil(max) and v > max ->
-      put_in(change, [:errors, key], "Must be <= #{max}")
-
-    {^cv, ""} ->
-      change
-
-    {v, ""} ->
-      Map.put(change, key, v)
-
-    _ ->
-      put_in(change, [:errors, key], "Must be an integer")
-  end
-end
-
-float = fn change, props, params, key, {min, max} ->
-  tv = params |> Map.get(key) |> String.trim()
-  cv = props[key]
-
-  case Float.parse(tv) do
-    {v, _} when not is_nil(min) and v < min ->
-      put_in(change, [:errors, key], "Must be >= #{min}")
-
-    {v, _} when not is_nil(max) and v > max ->
-      put_in(change, [:errors, key], "Must be <= #{max}")
-
-    {^cv, ""} ->
-      change
-
-    {v, ""} ->
-      Map.put(change, key, v)
-
-    _ ->
-      put_in(change, [:errors, key], "Must be a number")
-  end
-end
-
-text? = fn change, props, params, key ->
-  tv = params |> Map.get(key) |> String.trim()
-  cv = props[key]
-
-  case tv do
-    ^cv -> change
-    _ -> Map.put(change, key, tv)
-  end
-end
-
-parse = fn
-  change, props, params, key, {:integer, min, max} ->
-    integer.(change, props, params, key, {min, max})
-
-  change, props, params, key, :text ->
+  def parse(change, props, params, key, :text) do
     tv = params |> Map.get(key) |> String.trim()
     cv = props[key]
 
@@ -98,11 +11,9 @@ parse = fn
       {^cv, _} -> change
       _ -> Map.put(change, key, tv)
     end
+  end
 
-  change, props, params, key, :text? ->
-    text?.(change, props, params, key)
-
-  change, props, params, key, :boolean ->
+  def parse(change, props, params, key, :boolean) do
     tv = params |> Map.get(key) |> String.trim() |> String.downcase()
     cv = props[key] |> to_string()
 
@@ -111,8 +22,9 @@ parse = fn
       {^cv, _} -> change
       _ -> Map.put(change, key, String.to_atom(tv))
     end
+  end
 
-  change, props, params, key, :color ->
+  def parse(change, props, params, key, :color) do
     tv = params |> Map.get(key) |> String.trim() |> String.downcase()
     cv = props[key]
 
@@ -121,8 +33,9 @@ parse = fn
       {^cv, _} -> change
       _ -> Map.put(change, key, tv)
     end
+  end
 
-  change, props, params, key, :style ->
+  def parse(change, props, params, key, :style) do
     tv = params |> Map.get(key) |> String.trim() |> String.downcase()
     cv = props[key]
 
@@ -162,89 +75,169 @@ parse = fn
       {^cv, _} -> change
       _ -> Map.put(change, key, tv)
     end
-
-  change, props, params, key, {:point, "bit:" <> _} ->
-    integer.(change, props, params, key, {0, 1})
-
-  change, props, params, key, {:point, "uint16:" <> _} ->
-    integer.(change, props, params, key, {0, 65_535})
-
-  change, props, params, key, {:point, "sint16:" <> _} ->
-    integer.(change, props, params, key, {-32_768, 32_767})
-
-  change, props, params, key, {:point, "float:" <> _} ->
-    float.(change, props, params, key, {nil, nil})
-
-  change, props, params, key, {:point, "status:" <> _} ->
-    integer.(change, props, params, key, {0, 3})
-
-  change, props, params, key, {:point, _} ->
-    text?.(change, props, params, key)
-end
-
-errors = fn props ->
-  Enum.map(props, fn {k, _} -> {k, nil} end) |> Enum.into(%{})
-end
-
-params = fn props, params ->
-  for({k, _} <- props, do: {k, params["#{k}"]}) |> Enum.into(%{})
-end
-
-css = fn style ->
-  for line <- String.split(style, "\n", trim: true), reduce: %{} do
-    css ->
-      [k, v] = String.split(line, ": ", parts: 2)
-
-      case String.split(k, ":", parts: 2) do
-        [k] -> Map.update(css, nil, ["#{k}: #{v}"], &["#{k}: #{v}" | &1])
-        [p, k] -> Map.update(css, p, ["#{k}: #{v}"], &["#{k}: #{v}" | &1])
-      end
   end
-  |> Enum.map(fn {k, v} -> {k, Enum.reverse(v)} end)
-  |> Enum.map(fn {k, v} -> {k, Enum.join(v, " ")} end)
-  |> Enum.into(%{})
-end
 
-eval_style = fn
-  "", _, output, calc ->
-    {output, calc, ""}
-
-  style, [], output, calc ->
-    {output, calc, style}
-
-  style, bindings, output, calc ->
-    case flex.evalCode.("\"\"\"\n#{style}\n\"\"\"", bindings) do
-      {{:ok, {res, _}}, _} when is_binary(res) -> {output, calc, res}
-      {{:ok, {res, _}}, _} -> {[style: res], calc, ""}
-      {{:error, _error}, _} -> {"Style error", calc, ""}
+  def parse(change, props, params, key, type) do
+    case type do
+      :text? -> text?(change, props, params, key)
+      {:integer, min, max} -> integer(change, props, params, key, {min, max})
+      {:point, "bit:" <> _} -> integer(change, props, params, key, {0, 1})
+      {:point, "uint16:" <> _} -> integer(change, props, params, key, {0, 65_535})
+      {:point, "sint16:" <> _} -> integer(change, props, params, key, {-32_768, 32_767})
+      {:point, "float:" <> _} -> float(change, props, params, key, {nil, nil})
+      {:point, "status:" <> _} -> integer(change, props, params, key, {0, 3})
+      {:point, _} -> text?(change, props, params, key)
     end
-end
+  end
 
-eval_calc = fn
-  "", bindings, take ->
+  def errors(props) do
+    Enum.map(props, fn {k, _} -> {k, nil} end) |> Enum.into(%{})
+  end
+
+  def params(props, params) do
+    for({k, _} <- props, do: {k, params["#{k}"]}) |> Enum.into(%{})
+  end
+
+  def get_typed(map, key, type) do
+    valid? = valid?(type)
+    value = map[key]
+    if valid?.(value), do: value
+  end
+
+  def get_css(""), do: %{}
+
+  def get_css(style) do
+    for line <- String.split(style, "\n", trim: true), reduce: %{} do
+      css ->
+        [k, v] = String.split(line, ": ", parts: 2)
+
+        case String.split(k, ":", parts: 2) do
+          [k] -> Map.update(css, nil, ["#{k}: #{v}"], &["#{k}: #{v}" | &1])
+          [p, k] -> Map.update(css, p, ["#{k}: #{v}"], &["#{k}: #{v}" | &1])
+        end
+    end
+    |> Enum.map(fn {k, v} -> {k, Enum.reverse(v)} end)
+    |> Enum.map(fn {k, v} -> {k, Enum.join(v, " ")} end)
+    |> Enum.into(%{})
+  end
+
+  def eval_rt(calc, bindings, take, style) do
+    with {:ok, output, calc} <- eval_calc(calc, bindings, take) do
+      bindings = get_typed(calc, :style, :keyword) || []
+      eval_style(style, bindings, output, calc)
+    else
+      {:error, output, calc} -> {output, calc, ""}
+    end
+  end
+
+  defp eval_calc("", bindings, take) do
     {:ok, Keyword.take(bindings, take), Enum.into(bindings, %{})}
+  end
 
-  calc, bindings, take ->
+  defp eval_calc(calc, bindings, take) do
     f = fn
       f, d when is_list(d) -> :io_lib.format(f, d) |> to_string()
       f, d -> :io_lib.format(f, [d]) |> to_string()
     end
 
-    case flex.evalCode.(calc, [{:f, f} | bindings]) do
+    case Flex.eval_code(calc, [{:f, f} | bindings]) do
       {{:ok, {_, kw}}, _} ->
         {:ok, Keyword.take(kw, take), Enum.into(kw, %{})}
 
       {{:error, _error}, _} ->
         {:error, "Calculator error", %{}}
     end
-end
+  end
 
-eval_rt = fn calc, bindings, take, style ->
-  with {:ok, output, calc} <- eval_calc.(calc, bindings, take) do
-    bindings = get.(calc, :style, :keyword) || []
-    eval_style.(style, bindings, output, calc)
-  else
-    {:error, output, calc} -> {output, calc, ""}
+  defp eval_style("", _, output, calc) do
+    {output, calc, ""}
+  end
+
+  defp eval_style(style, [], output, calc) do
+    {output, calc, style}
+  end
+
+  defp eval_style(style, bindings, output, calc) do
+    case Flex.eval_code("\"\"\"\n#{style}\n\"\"\"", bindings) do
+      {{:ok, {res, _}}, _} when is_binary(res) -> {output, calc, res}
+      {{:ok, {res, _}}, _} -> {[style: res], calc, ""}
+      {{:error, _error}, _} -> {"Style error", calc, ""}
+    end
+  end
+
+  defp integer(change, props, params, key, {min, max}) do
+    tv = params |> Map.get(key) |> String.trim()
+    cv = props[key]
+
+    case Integer.parse(tv) do
+      {v, _} when not is_nil(min) and v < min ->
+        put_in(change, [:errors, key], "Must be >= #{min}")
+
+      {v, _} when not is_nil(max) and v > max ->
+        put_in(change, [:errors, key], "Must be <= #{max}")
+
+      {^cv, ""} ->
+        change
+
+      {v, ""} ->
+        Map.put(change, key, v)
+
+      _ ->
+        put_in(change, [:errors, key], "Must be an integer")
+    end
+  end
+
+  defp float(change, props, params, key, {min, max}) do
+    tv = params |> Map.get(key) |> String.trim()
+    cv = props[key]
+
+    case Float.parse(tv) do
+      {v, _} when not is_nil(min) and v < min ->
+        put_in(change, [:errors, key], "Must be >= #{min}")
+
+      {v, _} when not is_nil(max) and v > max ->
+        put_in(change, [:errors, key], "Must be <= #{max}")
+
+      {^cv, ""} ->
+        change
+
+      {v, ""} ->
+        Map.put(change, key, v)
+
+      _ ->
+        put_in(change, [:errors, key], "Must be a number")
+    end
+  end
+
+  defp text?(change, props, params, key) do
+    tv = params |> Map.get(key) |> String.trim()
+    cv = props[key]
+
+    case tv do
+      ^cv -> change
+      _ -> Map.put(change, key, tv)
+    end
+  end
+
+  defp valid?(:binary) do
+    fn
+      v when is_binary(v) -> true
+      _ -> false
+    end
+  end
+
+  defp valid?(:boolean) do
+    fn
+      v when is_boolean(v) -> true
+      _ -> false
+    end
+  end
+
+  defp valid?(:keyword) do
+    fn
+      v when is_list(v) -> Keyword.keyword?(v)
+      _ -> false
+    end
   end
 end
 

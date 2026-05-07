@@ -1,13 +1,17 @@
-use Terminal
+use Flex
 
-idb = db.open.("user-scripts")
-cdb = db.open.("script-code")
+idb = Db.open("user-scripts")
+cdb = Db.open("script-code")
 Api.putcast!("flex:user-scripts:items", [])
 Api.putcast!("flex:user-scripts:logs", %{})
 
-iutils = flex.evalScript.("iutils.exs", cdb: cdb)
-flex.evalLoop.("loop.exs", idb: idb, cdb: cdb, iutils: iutils, dms: 2_000)
-flex.evalView.("index.exs", iutils: iutils, ui: ui)
-flex.evalView.("code.exs", ui: ui, iutils: iutils)
+Flex.eval_file("iutils.exs", [])
+Flex.eval_file("loop.exs", [])
+Flex.eval_file("index.exs", [])
+Flex.eval_file("code.exs", [])
+
+Flex.run_view("code.exs", Flex.UserScripts.Code, ui: ui, cdb: cdb)
+Flex.run_view("index.exs", Flex.UserScripts.Index, ui: ui, idb: idb, cdb: cdb)
+Flex.run_loop(2_000, Flex.UserScripts.Loop, idb: idb, cdb: cdb)
 
 :ok

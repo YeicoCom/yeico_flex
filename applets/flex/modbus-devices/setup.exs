@@ -1,13 +1,17 @@
-use Terminal
+use Flex
 
-idb = db.open.("modbus-devices")
+idb = Db.open("modbus-devices")
 Api.putcast!("flex:modbus-devices:items", [])
 Api.putcast!("flex:modbus-devices:logs", %{})
 
-putils = flex.evalScript.("putils.exs", mb: mb, pt: pt)
-flex.evalLoop.("loop.exs", idb: idb, mb: mb, pt: pt, putils: putils, dms: 2_000)
-iutils = flex.evalScript.("iutils.exs", putils: putils)
-flex.evalView.("index.exs", iutils: iutils, putils: putils, ui: ui)
-flex.evalScript.("publish.exs", putils: putils)
+Flex.eval_file("putils.exs", [])
+Flex.eval_file("iutils.exs", [])
+Flex.eval_file("index.exs", [])
+Flex.eval_file("publish.exs", [])
+Flex.eval_file("loop.exs", [])
+
+Flex.run_view("index.exs", Flex.ModbusDevices.Index, ui: ui, idb: idb)
+Flex.run_loop(2_000, Flex.ModbusDevices.Loop, idb: idb)
+Flex.run_loop(0, Flex.ModbusDevices.Publish, [])
 
 :ok

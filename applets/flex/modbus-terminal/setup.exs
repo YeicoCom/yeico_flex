@@ -1,6 +1,7 @@
-use Terminal
+use Flex
 
-iutils = flex.evalScript.("iutils.exs", mb: mb)
-flex.evalView.("index.exs", iutils: iutils, ui: ui)
+Flex.eval_file("iutils.exs", [])
+Flex.eval_file("index.exs", [])
+Flex.run_view("index.exs", Flex.ModbusTerminal.Index, ui: ui)
 
 :ok

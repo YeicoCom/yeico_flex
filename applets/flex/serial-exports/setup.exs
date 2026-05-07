@@ -1,11 +1,14 @@
-use Terminal
+use Flex
 
-idb = db.open.("serial-exports")
+idb = Db.open("serial-exports")
 Api.putcast!("flex:serial-exports:items", [])
 Api.putcast!("flex:serial-exports:logs", %{})
 
-flex.evalLoop.("loop.exs", idb: idb, dms: 2_000)
-iutils = flex.evalScript.("iutils.exs", [])
-flex.evalView.("index.exs", iutils: iutils, ui: ui)
+Flex.eval_file("loop.exs", [])
+Flex.eval_file("iutils.exs", [])
+Flex.eval_file("index.exs", [])
+
+Flex.run_view("index.exs", Flex.SerialExports.Index, ui: ui, idb: idb)
+Flex.run_loop(2_000, Flex.SerialExports.Loop, idb: idb)
 
 :ok

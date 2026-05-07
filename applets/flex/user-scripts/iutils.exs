@@ -1,68 +1,60 @@
-use Terminal
+defmodule Flex.UserScripts.IUtils do
+  use Flex
 
-name = "User Script"
+  @name "User Script"
+  @status [:disabled, :enabled]
+  @options %{status: @status}
+  @new %{name: @name, status: :disabled}
 
-shift = fn tzoffset, logs ->
-  logs
-  |> Enum.map(fn {k, log = %{dt: dt}} ->
-    dt = NaiveDateTime.shift(dt, hour: tzoffset)
-    dt = NaiveDateTime.to_time(dt)
-    {k, %{log | dt: dt}}
-  end)
-  |> Enum.into(%{})
-end
+  def style(:error), do: "text-red-500"
+  def style(:warn), do: "text-yellow-500"
+  def style(:info), do: "text-blue-500"
+  def style(:debug), do: "text-teal-500"
+  def style(:trace), do: "text-gray-500"
+  def style(:unhandled), do: "text-red-700"
 
-new = %{
-  name: name,
-  status: :disabled
-}
+  def modal(args) do
+    case args do
+      {:edit, state, id, item} ->
+        Map.put(state, :modal, %{
+          title: "Edit #{@name}",
+          item: item,
+          id: id,
+          opts: @options
+        })
 
-status = [:disabled, :enabled]
-options = %{status: status}
-
-modal = fn
-  {:edit, state, id, item} ->
-    Map.put(state, :modal, %{
-      title: "Edit #{name}",
-      item: item,
-      id: id,
-      opts: options
-    })
-
-  {:add, state} ->
-    Map.put(state, :modal, %{
-      title: "Add #{name}",
-      item: new,
-      id: nil,
-      opts: options
-    })
-end
-
-index = fn pairs -> Enum.map(pairs, fn {k, _} -> k end) end
-
-apply = fn item, action ->
-  case action do
-    "enable" -> Map.put(item, :status, :enabled)
-    "disable" -> Map.put(item, :status, :disabled)
-  end
-end
-
-parse = fn params ->
-  params = Map.update!(params, "status", &String.to_atom/1)
-  params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
-  Enum.into(params, %{})
-end
-
-load = fn id ->
-  cdb.get.(id)
-end
-
-save = fn id, code, force? ->
-  if force? || Adb.get("flex:user-scripts:item:#{id}") do
-    cdb.put.(id, code)
+      {:add, state} ->
+        Map.put(state, :modal, %{
+          title: "Add #{@name}",
+          item: @new,
+          id: nil,
+          opts: @options
+        })
+    end
   end
 
-  Bus.broadcast!("flex:user-scripts:reload:#{id}", nil)
+  def index(pairs), do: Enum.map(pairs, fn {k, _} -> k end)
+
+  def apply(item, "enable"), do: Map.put(item, :status, :enabled)
+  def apply(item, "disable"), do: Map.put(item, :status, :disabled)
+
+  def parse(params) do
+    params = Map.update!(params, "status", &String.to_atom/1)
+    params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
+    Enum.into(params, %{})
+  end
+
+  def load(cdb, id) do
+    Db.get(cdb, id)
+  end
+
+  def save(cdb, id, code, force?) do
+    if force? || Adb.get("flex:user-scripts:item:#{id}") do
+      Db.put(cdb, id, code)
+    end
+
+    Bus.broadcast!("flex:user-scripts:reload:#{id}", nil)
+  end
 end
 
 :ok

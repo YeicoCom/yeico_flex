@@ -1,7 +1,7 @@
-use Terminal
+alias Modbus.Command
 
 test = fn cmd, line ->
-  {:ok, %{cmd: ^cmd, get: _}} = command.parse.(line)
+  {:ok, %{cmd: ^cmd, get: _}} = Command.safe_parse(line)
 end
 
 # digital command sweep

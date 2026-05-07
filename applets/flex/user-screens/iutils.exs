@@ -1,67 +1,53 @@
-use Terminal
+defmodule Flex.UserScreens.IUtils do
+  @name "User Screen"
+  @new %{name: @name, route: "", status: :disabled}
+  @status [:disabled, :enabled]
+  @options %{status: @status}
 
-name = "User Screen"
+  def modal(args) do
+    case args do
+      {:edit, state, id, item} ->
+        Map.put(state, :modal, %{
+          title: "Edit #{@name}",
+          type: :edit,
+          item: item,
+          id: id,
+          opts: @options
+        })
 
-shift = fn tzoffset, logs ->
-  logs
-  |> Enum.map(fn {k, log = %{dt: dt}} ->
-    dt = NaiveDateTime.shift(dt, hour: tzoffset)
-    dt = NaiveDateTime.to_time(dt)
-    {k, %{log | dt: dt}}
-  end)
-  |> Enum.into(%{})
-end
+      {:add, state} ->
+        Map.put(state, :modal, %{
+          title: "Add #{@name}",
+          type: :edit,
+          item: @new,
+          id: nil,
+          opts: @options
+        })
 
-new = %{
-  name: name,
-  route: "",
-  status: :disabled
-}
-
-status = [:disabled, :enabled]
-options = %{status: status}
-
-modal = fn
-  {:edit, state, id, item} ->
-    Map.put(state, :modal, %{
-      title: "Edit #{name}",
-      type: :edit,
-      item: item,
-      id: id,
-      opts: options
-    })
-
-  {:add, state} ->
-    Map.put(state, :modal, %{
-      title: "Add #{name}",
-      type: :edit,
-      item: new,
-      id: nil,
-      opts: options
-    })
-
-  {:paste, state} ->
-    Map.put(state, :modal, %{
-      title: "Paste User Screen",
-      type: :paste
-    })
-end
-
-index = fn pairs -> Enum.map(pairs, fn {k, _} -> k end) end
-
-apply = fn item, action ->
-  case action do
-    "enable" -> Map.put(item, :status, :enabled)
-    "disable" -> Map.put(item, :status, :disabled)
+      {:paste, state} ->
+        Map.put(state, :modal, %{
+          title: "Paste User Screen",
+          type: :paste
+        })
+    end
   end
-end
 
-parse = fn params ->
-  params = Map.update!(params, "name", &(String.replace(&1, ~r/ +/, " ") |> String.trim()))
-  params = Map.update!(params, "route", &String.trim/1)
-  params = Map.update!(params, "status", &String.to_atom/1)
-  params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
-  Enum.into(params, %{})
+  def index(pairs), do: Enum.map(pairs, fn {k, _} -> k end)
+
+  def apply(item, action) do
+    case action do
+      "enable" -> Map.put(item, :status, :enabled)
+      "disable" -> Map.put(item, :status, :disabled)
+    end
+  end
+
+  def parse(params) do
+    params = Map.update!(params, "name", &(String.replace(&1, ~r/ +/, " ") |> String.trim()))
+    params = Map.update!(params, "route", &String.trim/1)
+    params = Map.update!(params, "status", &String.to_atom/1)
+    params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
+    Enum.into(params, %{})
+  end
 end
 
 :ok

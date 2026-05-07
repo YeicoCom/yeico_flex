@@ -125,13 +125,13 @@ text = f.("Button ~s", default)
 ```
 - Script
 ```elixir
-use Terminal
+use Flex
 
-Api.trace "Hello"
-Api.debug "Hello"
-Api.info "Hello"
-Api.warn "Hello"
-Api.error "Hello"
+Log.trace "Hello"
+Log.debug "Hello"
+Log.info "Hello"
+Log.warn "Hello"
+Log.error "Hello"
 
 raise "ouch!"
 ```
@@ -139,7 +139,6 @@ raise "ouch!"
 ## Fixme
 
 - [ ] Document live view life cycle
-- [ ] Make flex pages password protected: use put cookie as regular login
 - [ ] Shaky things: browser, mountrap, socat, kill links, unable to await defers, modbus lib
 - [ ] Modbus lib deterministic error detection
 - [ ] Clone controls to easy copy template styling
@@ -152,9 +151,17 @@ raise "ouch!"
 - [ ] Implement SVG widget
 - [ ] Implement numeric input widget
 - [ ] Publish serial ports as point
-- [ ] Publish screens to custom uris
 - [ ] Review the performance impact of nested bindings (from libs)
 - [ ] Single database for all entities for easier backup/recovery
+- [ ] Global trace/debug disable
+- [ ] Screen password protection
+- [ ] Screen link widget for inter screen navigation
+- [ ] Flex password protected: use put cookie as regular login
+- [ ] Refactor flex to be module based: 
+  - 2.5s m1 redefinition warning delay? only message is delayed
+  - module is available for use right away
+- [ ] Definite manual test procedures for each flex package
+- [x] Publish screens to custom uris
 - [x] Implement user scripts: https://github.com/YeicoCom/chivo_w3/blob/main/assets/js/app.js
 - [x] CubDB screen design db cleanup strategy: immediate delete
 - [x] f32le untested, is endianess applied at register or byte level?
