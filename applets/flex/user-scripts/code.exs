@@ -74,6 +74,14 @@ handler = fn
     socket = push_event(socket, "hook:reload", %{})
     {socket, state}
 
+  {:info, socket, state = %{id: id}, event = {"flex:user-scripts:item:" <> id, _, script}} ->
+    Api.trace(view: path, info: event)
+    state = Map.put(state, :name, script[:name])
+    # below line only required if copy/paste is implemented
+    # but pasting can be directly performed on code mirror editor
+    # socket = push_event(socket, "hook:init", %{code: iutils.load.(id)})
+    {socket, state}
+
   {:info, socket, state, event} ->
     Api.trace(view: path, info: event)
     {socket, state}

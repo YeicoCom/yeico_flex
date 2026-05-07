@@ -26,8 +26,10 @@ run_code = fn {id, code} ->
   Api.sleep()
 end
 
-runner_setup = fn %{id: id} ->
+runner_setup = fn %{id: id, item: item} ->
   Bus.subscribe!("flex:user-scripts:reload:#{id}", nil)
+  Udb.register!({:script, id}, item.name)
+  Mdb.register!(:script, id)
   code = String.trim(iutils.load.(id) || "")
   # nil to reset
   log_event.(id, nil, "Started")
