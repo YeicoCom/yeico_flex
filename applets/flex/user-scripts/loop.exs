@@ -12,15 +12,23 @@ log_event = fn
   id, error?, msg -> post_log.(id, error?, inspect(msg))
 end
 
+run_code = fn code ->
+  flex.evalCode.(code, []) |> Api.debug()
+  Api.sleep()
+end
+
 runner_setup = fn %{id: id} ->
+  code = String.trim(Api.subget!("flex:user-scripts:code:#{id}") || "")
   # nil to reset
   log_event.(id, nil, "Started")
-  Api.sleep()
+  if String.length(code) > 0, do: Api.loop(dms, run_code, code)
+  receive do: (_ -> nil)
+  :reload
 end
 
 run_enabled = fn id, item ->
   case item.status do
-    :enabled -> Api.loop(dms, runner_setup, %{id: id, item: item})
+    :enabled -> Api.loop(0, runner_setup, %{id: id, item: item})
     _ -> nil
   end
 end
@@ -68,7 +76,9 @@ master_loop = fn state = %{idb: idb, loop: loop, runners: runners, logs: logs} -
       loop.(state)
 
     {"flex:user-scripts:delete", _, id} ->
+      cdb.delete.(id)
       idb.delete.(id)
+      Api.putcast!("flex:user-scripts:item:#{id}", nil)
       publish_items.(idb)
       task = runners[id][:task]
       if task, do: Api.kill(task)

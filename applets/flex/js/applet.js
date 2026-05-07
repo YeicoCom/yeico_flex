@@ -170,6 +170,9 @@ const hooks = {
     },
     AllPages: {
         mounted() {
+            this.handleEvent("hook:reload", (params) => {
+                window.location.reload()
+            })
             this.handleEvent("hook:copy", ({ text }) => {
                 runSafe(() => { navigator.clipboard.writeText(text) })
             })
@@ -194,9 +197,6 @@ const hooks = {
     },
     ScreenViewer: {
         mounted() {
-            this.handleEvent("hook:reload", (params) => {
-                window.location.reload()
-            })
             const pushSize = (el) => {
                 const width = el.clientWidth
                 const height = el.clientHeight
@@ -211,9 +211,6 @@ const hooks = {
     },
     ScreenDesigner: {
         mounted() {
-            this.handleEvent("hook:reload", (params) => {
-                window.location.reload()
-            })
             const frame = this.el
             const pushSize = (el) => {
                 const width = el.clientWidth

@@ -13,6 +13,7 @@ loop = fn ->
   end)
 
   receive do: (_ -> nil)
+  :reload
 end
 
 Api.loop(0, loop)

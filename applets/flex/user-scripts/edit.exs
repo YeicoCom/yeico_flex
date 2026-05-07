@@ -42,6 +42,7 @@ handler = fn
 
   {:info, socket, state = %{id: id}, event = {"flex:user-scripts:item:" <> id, _, _}} ->
     Api.trace(view: path, info: event)
+    Api.debug("reloading")
     socket = push_event(socket, "hook:reload", %{})
     {socket, state}
 

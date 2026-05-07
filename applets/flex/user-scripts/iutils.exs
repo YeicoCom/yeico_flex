@@ -54,7 +54,7 @@ parse = fn params ->
 end
 
 load = fn id ->
-  Adb.get("flex:user-scripts:code:#{id}") || cdb.get.(id)
+  cdb.get.(id)
 end
 
 save = fn id, code, force? ->
