@@ -12,18 +12,28 @@ log_event = fn
   id, error?, msg -> post_log.(id, error?, inspect(msg))
 end
 
-run_code = fn code ->
-  flex.evalCode.(code, []) |> Api.debug()
+run_code = fn {id, code} ->
+  api = Process.get(:__api__)
+
+  Process.put(:__api__, fn
+    :entry -> id
+    :route -> id
+    other -> api.(other)
+  end)
+
+  Api.info("Starting...")
+  Api.evals(id, code, [])
   Api.sleep()
 end
 
 runner_setup = fn %{id: id} ->
-  code = String.trim(Api.subget!("flex:user-scripts:code:#{id}") || "")
+  Bus.subscribe!("flex:user-scripts:reload:#{id}", nil)
+  code = String.trim(iutils.load.(id) || "")
   # nil to reset
   log_event.(id, nil, "Started")
-  if String.length(code) > 0, do: Api.loop(dms, run_code, code)
+  if String.length(code) > 0, do: Api.loop(dms, run_code, {id, code})
   receive do: (_ -> nil)
-  :reload
+  [reload: id]
 end
 
 run_enabled = fn id, item ->

@@ -60,8 +60,9 @@ end
 save = fn id, code, force? ->
   if force? || Adb.get("flex:user-scripts:item:#{id}") do
     cdb.put.(id, code)
-    Api.putcast!("flex:user-scripts:code:#{id}", code)
   end
+
+  Bus.broadcast!("flex:user-scripts:reload:#{id}", nil)
 end
 
 :ok

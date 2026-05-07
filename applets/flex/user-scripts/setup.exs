@@ -5,8 +5,8 @@ cdb = db.open.("script-code")
 Api.putcast!("flex:user-scripts:items", [])
 Api.putcast!("flex:user-scripts:logs", %{})
 
-flex.evalLoop.("loop.exs", idb: idb, cdb: cdb, dms: 2_000)
 iutils = flex.evalScript.("iutils.exs", cdb: cdb)
+flex.evalLoop.("loop.exs", idb: idb, cdb: cdb, iutils: iutils, dms: 2_000)
 flex.evalView.("index.exs", iutils: iutils, ui: ui)
 flex.evalView.("edit.exs", ui: ui, iutils: iutils)
 

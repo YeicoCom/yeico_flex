@@ -123,6 +123,18 @@ hover:background-color: green;
 disabled = values == default
 text = f.("Button ~s", default)
 ```
+- Script
+```elixir
+use Terminal
+
+Api.trace "Hello"
+Api.debug "Hello"
+Api.info "Hello"
+Api.warn "Hello"
+Api.error "Hello"
+
+raise "ouch!"
+```
 
 ## Fixme
 
@@ -137,13 +149,13 @@ text = f.("Button ~s", default)
 - [ ] Implement links between user screens
 - [ ] Screen designer stumped after several enable/disable
 - [ ] Inplace testing with a global enable flag (see lib-convert)
-- [ ] Implement user scripts: https://github.com/YeicoCom/chivo_w3/blob/main/assets/js/app.js
 - [ ] Implement SVG widget
 - [ ] Implement numeric input widget
 - [ ] Publish serial ports as point
 - [ ] Publish screens to custom uris
 - [ ] Review the performance impact of nested bindings (from libs)
 - [ ] Single database for all entities for easier backup/recovery
+- [x] Implement user scripts: https://github.com/YeicoCom/chivo_w3/blob/main/assets/js/app.js
 - [x] CubDB screen design db cleanup strategy: immediate delete
 - [x] f32le untested, is endianess applied at register or byte level?
   - register level for https://photos.app.goo.gl/xKAbaXo185Wi8SzDA
