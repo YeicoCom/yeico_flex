@@ -61,7 +61,7 @@ handler = fn
 
   {:info, socket, state = %{id: id, logid: logid}, event = {{:logger, id, level}, _, line}} ->
     Api.trace(view: path, info: event)
-    line = line |> String.replace_prefix(id, "") |> String.trim()
+    line = line |> String.replace_prefix("script ", "")
     stamp = NaiveDateTime.utc_now() |> NaiveDateTime.shift(hour: state.tzoffset)
     log = %{id: logid, stamp: stamp, level: level, style: style.(level), line: line}
     socket = stream(socket, :logs, [log])

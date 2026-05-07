@@ -17,12 +17,12 @@ run_code = fn {id, code} ->
 
   Process.put(:__api__, fn
     :entry -> id
-    :route -> id
+    :route -> "script"
     other -> api.(other)
   end)
 
   Api.info("Starting...")
-  Api.evals(id, code, [])
+  Api.evals("script", code, [])
   Api.sleep()
 end
 
@@ -31,8 +31,9 @@ runner_setup = fn %{id: id} ->
   code = String.trim(iutils.load.(id) || "")
   # nil to reset
   log_event.(id, nil, "Started")
-  if String.length(code) > 0, do: Api.loop(dms, run_code, {id, code})
+  task = if String.length(code) > 0, do: Api.loop(dms, run_code, {id, code})
   receive do: (_ -> nil)
+  if task, do: Api.kill(task)
   [reload: id]
 end
 
