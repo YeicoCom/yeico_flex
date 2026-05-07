@@ -1,12 +1,13 @@
 use Terminal
 
 idb = db.open.("user-scripts")
+cdb = db.open.("script-code")
 Api.putcast!("flex:user-scripts:items", [])
 Api.putcast!("flex:user-scripts:logs", %{})
 
 flex.evalLoop.("loop.exs", idb: idb, dms: 2_000)
-iutils = flex.evalScript.("iutils.exs", [])
+iutils = flex.evalScript.("iutils.exs", cdb: cdb)
 flex.evalView.("index.exs", iutils: iutils, ui: ui)
-flex.evalView.("edit.exs", ui: ui)
+flex.evalView.("edit.exs", ui: ui, iutils: iutils)
 
 :ok

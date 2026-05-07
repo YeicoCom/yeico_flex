@@ -67,6 +67,14 @@ function enterNavigate(el) {
     }
 }
 
+function runSafe(fun) {
+    try {
+        fun()
+    } catch (err) {
+        console.error(err);
+    }
+}
+
 const resizeObserver = new ResizeObserver((entries) => {
     for (const entry of entries) {
         const target = entry.target
@@ -163,11 +171,7 @@ const hooks = {
     AllPages: {
         mounted() {
             this.handleEvent("hook:copy", ({ text }) => {
-                try {
-                    navigator.clipboard.writeText(text);
-                } catch (err) {
-                    console.error(err);
-                }
+                runSafe(() => { navigator.clipboard.writeText(text) })
             })
         },
         reconnected() {
@@ -176,10 +180,14 @@ const hooks = {
     },
     ScriptEditor: {
         mounted() {
+            // recover from disconnect by undo pushed down code
             const params = new URLSearchParams(window.location.search)
             const codeKey = `script-editor:${params.get("id")}`
-            let editor = new Editor(this.el.id, codeKey, (key) => {
-                console.log(key)
+            let editor = new Editor(this.el.id, codeKey, (editor) => {
+                this.pushEvent("hook:save", { code: editor.toString() })
+            })
+            this.handleEvent("hook:init", (params) => {
+                editor.replace(params.code)
             })
             editor.focus()
         }

@@ -75,7 +75,7 @@ handler = fn
     Api.trace(view: path, params: params, uri: uri)
     state = dutils.apply.(state, :init, dutils.load_screen.(id))
     state = Map.put(state, :selected, dutils.select.(state, "Screen", nil))
-    # it may not exist: use screen[:name] accesor
+    # it may not exist: use screen[:name] assessor
     screen = Api.subget!("flex:user-screens:item:#{id}")
     state = Map.put(state, :name, screen[:name])
     state = Map.put(state, :id, id)

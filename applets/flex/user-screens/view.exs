@@ -56,7 +56,7 @@ handler = fn
   {:params, socket, state, params = %{"id" => id}, uri} ->
     Api.trace(view: path, params: params, uri: uri)
     state = Map.put(state, :screen, dutils.subget_screen.(id))
-    # it may not exist: use screen[:name] accesor
+    # it may not exist: use screen[:name] assessor
     screen = Api.subget!("flex:user-screens:item:#{id}")
     state = Map.put(state, :enabled, screen[:status] == :enabled)
     state = Map.put(state, :name, screen[:name])

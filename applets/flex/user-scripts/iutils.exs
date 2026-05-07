@@ -53,4 +53,15 @@ parse = fn params ->
   Enum.into(params, %{})
 end
 
+load = fn id ->
+  Adb.get("flex:user-scripts:code:#{id}") || cdb.get.(id)
+end
+
+save = fn id, code, force? ->
+  if force? || Adb.get("flex:user-scripts:item:#{id}") do
+    cdb.put.(id, code)
+    Api.putcast!("flex:user-scripts:code:#{id}", code)
+  end
+end
+
 :ok
