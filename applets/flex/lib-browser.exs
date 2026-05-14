@@ -111,6 +111,7 @@ weston = fn ->
     "--",
     "/usr/bin/cog",
     "--ignore-tls-errors",
+    "--bg-color=black",
     url
   ]
 
@@ -139,9 +140,7 @@ Api.loop(5_000, loop, %{call: weston, loop: loop, delay: 1_000})
 # test with
 # cmd "killall cog" -> reboots weston
 # cmd "killall weston" -> weston wont return until cog is manually killed as well
-
-# fn
-#   url -> exec.("cogctl", ["--system", "open", url], [])
-# end
+# cmd "cogctl --system open https://google.com"
+# cmd "cogctl --system open https://127.0.0.1"
 
 :ok

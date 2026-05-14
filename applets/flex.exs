@@ -133,7 +133,7 @@ if Terminal.dev?() do
 end
 
 if Terminal.device?() do
-  Flex.eval_file("lib-browser.exs", monitor: false, port: 0)
+  Flex.eval_file("lib-browser.exs", url: "https://127.0.0.1", monitor: false, port: 0)
 end
 
 :ok
