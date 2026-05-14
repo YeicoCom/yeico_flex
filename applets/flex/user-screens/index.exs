@@ -40,12 +40,14 @@ defmodule Flex.UserScreens.Index do
       <% %{item: item, opts: opts} = @modal %>
       <form id="modal_form" phx-submit="modal:submit" class="flex flex-col gap-4"
         phx-hook="EnterNavigation" phx-update="ignore" autocomplete="off">
-        <div class="grid grid-cols-[4em_1fr] gap-2 items-center min-w-[12em]">
+        <div class="grid grid-cols-[5em_1fr] gap-2 items-center min-w-[12em]">
           <div>Name</div>
           <.fui fun={@ui.input} name="name" value={item.name} required id="modal_autofocus" phx-hook="AutoFocus" pattern="^[ ]*[a-zA-Z]+[a-zA-Z0-9 ]*$"/>
           <div>Route</div>
           <%!-- macos ignores pattern for optional inputs --%>
           <.fui fun={@ui.input} name="route" value={item.route}/>
+          <div>Password</div>
+          <.fui fun={@ui.input} name="password" value={item.password} type="password"/>
           <div>Status</div>
           <.fui fun={@ui.select} name="status" value={item.status} values={opts.status} required/>
         </div>

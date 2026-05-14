@@ -1,4 +1,5 @@
 defmodule Flex.UserScreens.View do
+  alias Flex.UserScreens.IUtils
   alias Flex.UserScreens.DUtils
   use Flex.Live
 
@@ -53,6 +54,27 @@ defmodule Flex.UserScreens.View do
     """
   end
 
+  defp login(assigns) do
+    ~H"""
+    <div id="login_view" class="h-full flex flex-col gap-4 justify-center items-center" phx-hook="AllPages">
+      <div class="text-3xl text-white">{@name}</div>
+      <form id="login_form" phx-submit="submit:login" class="flex flex-col gap-4 items-center" phx-update="ignore" autocomplete="off">
+        <.fui fun={@ui.input} name="password" type="password" required id="modal_autofocus" phx-hook="AutoFocus"/>
+        <.fui fun={@ui.button} type="submit" class="hidden">Login</.fui>
+      </form>
+      <.fui fun={@ui.href} href="/">Home</.fui>
+    </div>
+    """
+  end
+
+  defp render(state = %{fid: fid, password: password}) do
+    case {password, fid} do
+      {nil, nil} -> view(state)
+      {nil, _} -> bare(state)
+      {_, _} -> login(state)
+    end
+  end
+
   def handler(opts) do
     path = Keyword.fetch!(opts, :path)
     ui = Keyword.fetch!(opts, :ui)
@@ -82,6 +104,7 @@ defmodule Flex.UserScreens.View do
         # it may not exist: use screen[:name] assessor
         screen = Api.subget!("flex:user-screens:item:#{id}")
         state = Map.put(state, :enabled, screen[:status] == :enabled)
+        state = Map.put(state, :password, IUtils.password?(screen[:password]))
         state = Map.put(state, :name, screen[:name])
         state = Map.put(state, :id, id)
 
@@ -94,7 +117,6 @@ defmodule Flex.UserScreens.View do
 
       {:render, _assigns,
        state = %{
-         fid: fid,
          enabled: true,
          size: %{w: fw, h: fh},
          screen: %{items: items, props: %{w: sw, h: sh}}
@@ -105,10 +127,10 @@ defmodule Flex.UserScreens.View do
         panel = %{s: s, x: 0, y: 0, w: sw, h: sh}
         state = Map.put(state, :port, port)
         state = Map.put(state, :panel, panel)
-        if fid, do: bare(state), else: view(state)
+        render(state)
 
-      {:render, _assigns, state = %{fid: fid}} ->
-        if fid, do: bare(state), else: view(state)
+      {:render, _assigns, state} ->
+        render(state)
 
       {:event, socket, state, event = "item:click", params = %{"id" => "item_" <> id_type}} ->
         Log.trace(view: path, event: event, params: params)
@@ -119,6 +141,12 @@ defmodule Flex.UserScreens.View do
       {:event, socket, state, event = "hook:resize", params = %{"width" => w, "height" => h}} ->
         Log.trace(view: path, event: event, params: params)
         state = Map.put(state, :size, %{w: w, h: h})
+        {socket, state}
+
+      {:event, socket, state = %{password: password}, event = "submit:login",
+       params = %{"password" => password}} ->
+        Log.trace(view: path, event: event, params: params)
+        state = Map.put(state, :password, nil)
         {socket, state}
 
       {:event, socket, state, event, params} ->

@@ -1,6 +1,6 @@
 defmodule Flex.UserScreens.IUtils do
   @name "User Screen"
-  @new %{name: @name, route: "", status: :disabled}
+  @new %{name: @name, route: "", password: "", status: :disabled}
   @status [:disabled, :enabled]
   @options %{status: @status}
 
@@ -44,10 +44,14 @@ defmodule Flex.UserScreens.IUtils do
   def parse(params) do
     params = Map.update!(params, "name", &(String.replace(&1, ~r/ +/, " ") |> String.trim()))
     params = Map.update!(params, "route", &String.trim/1)
+    params = Map.update!(params, "password", &String.trim/1)
     params = Map.update!(params, "status", &String.to_atom/1)
     params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
     Enum.into(params, %{})
   end
+
+  def password?(""), do: nil
+  def password?(password), do: password
 end
 
 :ok
