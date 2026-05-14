@@ -175,6 +175,7 @@ defmodule Flex.ModbusDevices.Index do
         state = Map.put(state, :tzoffset, tzoffset)
         state = Map.put(state, :refresh, refresh)
         state = Map.put(state, :modal, nil)
+        state = Ln.init(socket, state)
         state = Map.put(state, :ui, ui)
         # prevent events overwhelm
         Process.send_after(self(), :refresh, refresh)
@@ -183,6 +184,11 @@ defmodule Flex.ModbusDevices.Index do
           false -> {socket, IUtils.modal({:device, state})}
           true -> {socket, state}
         end
+
+      {:params, socket, state = %{login?: true, user: nil}, params, uri} ->
+        Log.trace(view: path, params: params, uri: uri)
+        socket = Ln.forward(socket, path, uri)
+        {socket, state}
 
       {:params, socket, state, params, uri} ->
         Log.trace(view: path, params: params, uri: uri)

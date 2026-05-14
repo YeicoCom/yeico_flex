@@ -9,6 +9,7 @@ defmodule Flex do
       alias Flex.Pt
       alias Flex.UI
       alias Flex.Lg
+      alias Flex.Ln
     end
   end
 
@@ -100,6 +101,7 @@ end
 Adb.reset()
 
 Flex.eval_file("lib-logs.exs", [])
+Flex.eval_file("lib-login.exs", [])
 Flex.eval_file("lib-database.exs", [])
 Flex.eval_file("lib-user-interface.exs", [])
 Flex.eval_file("lib-modbus/setup.exs", [])
@@ -125,7 +127,11 @@ Flex.eval_file("/flex/user-screens/setup.exs", ui: ui)
 Flex.eval_file("/flex/user-scripts/setup.exs", ui: ui)
 
 Flex.eval_file("index.exs", [])
+Flex.eval_file("login.exs", [])
+Flex.eval_file("logout.exs", [])
 Flex.run_view("index.exs", Flex.Index, ui: ui)
+Flex.run_view("login.exs", Flex.Login, ui: ui)
+Flex.run_view("logout.exs", Flex.Logout, ui: ui)
 
 if Terminal.dev?() do
   Flex.eval_file("ui-tester.exs", [])

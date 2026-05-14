@@ -76,12 +76,18 @@ defmodule Flex.SerialExports.Index do
         state = Map.put(state, :items, Enum.into(items, %{}))
         state = Map.put(state, :tzoffset, tzoffset)
         state = Map.put(state, :modal, nil)
+        state = Ln.init(socket, state)
         state = Map.put(state, :ui, ui)
 
         case length(state.index) > 0 do
           false -> {socket, IUtils.modal({:add, state})}
           true -> {socket, state}
         end
+
+      {:params, socket, state = %{login?: true, user: nil}, params, uri} ->
+        Log.trace(view: path, params: params, uri: uri)
+        socket = Ln.forward(socket, path, uri)
+        {socket, state}
 
       {:params, socket, state, params, uri} ->
         Log.trace(view: path, params: params, uri: uri)

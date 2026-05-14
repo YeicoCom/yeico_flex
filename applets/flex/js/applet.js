@@ -181,6 +181,22 @@ const hooks = {
             window.location.reload()
         }
     },
+    LoginView: {
+        mounted() {
+            this.handleEvent("session:create", (params) => {
+                localStorage.setItem("login:user", JSON.stringify(params.user))
+                window.location.href = params.put
+            })
+        }
+    },
+    LogoutView: {
+        mounted() {
+            this.handleEvent("session:destroy", (params) => {
+                localStorage.removeItem("login:user")
+                window.location.href = params.put
+            })
+        }
+    },
     ScriptEditor: {
         mounted() {
             // recover from disconnect by undo pushed down code

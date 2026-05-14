@@ -39,6 +39,7 @@ defmodule Flex.UI do
             <a href="/flex/socket-terminal" class="block px-4 py-2 hover:bg-lime-500">Socket Terminal</a>
             <a href="/flex/serial-exports" class="block px-4 py-2 hover:bg-lime-500">Serial Exports</a>
             <a :if={Terminal.dev?()} href="/flex/ui-tester" class="block px-4 py-2 hover:bg-lime-500">UI Tester</a>
+            <a href="/flex/logout" class="block px-4 py-2 hover:bg-lime-500">Logout</a>
           </div>
         </div>
         <div class="text-[2em] text-white">{@title}</div>

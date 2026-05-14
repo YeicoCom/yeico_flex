@@ -74,7 +74,13 @@ defmodule Flex.UserScreens.Design do
         state = Map.put(state, :name, nil)
         state = Map.put(state, :rts, %{})
         state = Map.put(state, :id, nil)
+        state = Ln.init(socket, state)
         state = Map.put(state, :ui, ui)
+        {socket, state}
+
+      {:params, socket, state = %{login?: true, user: nil}, params, uri} ->
+        Log.trace(view: path, params: params, uri: uri)
+        socket = Ln.forward(socket, path, uri)
         {socket, state}
 
       {:params, socket, state, params = %{"id" => id}, uri} ->
