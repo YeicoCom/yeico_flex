@@ -3,13 +3,15 @@ defmodule Flex.Login do
 
   defp view(assigns) do
     ~H"""
-    <.fui fun={@ui.frame} title="Login" class="h-full flex flex-col justify-center items-center">
-      <form id="login_view" phx-submit="submit:login" class="grid grid-cols-[1fr_6em] gap-2"
+    <div class="h-full flex flex-col gap-2 justify-center items-center">
+      <image src="/applets/logo.svg" class="h-20"/>
+      <div class="text-3xl text-white text-center">Flex Login</div>
+      <form id="login_view" phx-submit="submit:login" class="flex flex-cols"
         phx-update="ignore" autocomplete="off" phx-hook="LoginView">
         <.fui fun={@ui.input} name="pass" type="password" required id="modal_autofocus" phx-hook="AutoFocus"/>
-        <.fui fun={@ui.button} type="submit">Login</.fui>
+        <.fui fun={@ui.button} type="submit" class="hidden">Login</.fui>
       </form>
-    </.fui>
+    </div>
     """
   end
 

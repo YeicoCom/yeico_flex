@@ -12,7 +12,6 @@ function initialParams() {
         width: window.innerWidth,
         height: window.innerHeight,
         href: window.location.href,
-        site: localStorage.getItem("login:site"),
         locale: Intl.NumberFormat().resolvedOptions().locale,
         tzname: Intl.DateTimeFormat().resolvedOptions().timeZone,
         tzoffset: -(new Date().getTimezoneOffset() / 60),
@@ -184,7 +183,7 @@ const hooks = {
     LoginView: {
         mounted() {
             this.handleEvent("session:create", (params) => {
-                localStorage.setItem("login:user", JSON.stringify(params.user))
+                localStorage.setItem("flex:user", JSON.stringify(params.user))
                 window.location.href = params.put
             })
         }
@@ -192,7 +191,7 @@ const hooks = {
     LogoutView: {
         mounted() {
             this.handleEvent("session:destroy", (params) => {
-                localStorage.removeItem("login:user")
+                localStorage.removeItem("flex:user")
                 window.location.href = params.put
             })
         }
