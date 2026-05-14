@@ -156,10 +156,10 @@ raise "ouch!"
 - [ ] Global trace/debug disable
 - [ ] Screen password protection
 - [ ] Screen link widget for inter screen navigation
-- [ ] Flex password protected: use put cookie as regular login
-- [ ] Browser launcher on devices
-  - test if weston kills autolaunched cog
-  - test if weston restarts when cog dies
+- [x] Flex password protected: use put cookie as regular login
+- [x] Browser launcher on devices
+  - test if weston kills autolaunched cog: no (cog need to be killed manually)
+  - test if weston restarts when cog dies: yes
 - [x] Refactor flex to be module based: 
   - 2.5s m1 redefinition warning delay? only message is delayed
   - module is available for use right away
