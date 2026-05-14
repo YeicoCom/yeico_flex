@@ -157,9 +157,13 @@ raise "ouch!"
 - [ ] Screen password protection
 - [ ] Screen link widget for inter screen navigation
 - [ ] Flex password protected: use put cookie as regular login
-- [ ] Refactor flex to be module based: 
+- [ ] Browser launcher on devices
+  - test if weston kills autolaunched cog
+  - test if weston restarts when cog dies
+- [x] Refactor flex to be module based: 
   - 2.5s m1 redefinition warning delay? only message is delayed
   - module is available for use right away
+  - slower than scripts?
 - [ ] Definite manual test procedures for each flex package
 - [x] Publish screens to custom uris
 - [x] Implement user scripts: https://github.com/YeicoCom/chivo_w3/blob/main/assets/js/app.js

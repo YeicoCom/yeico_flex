@@ -132,4 +132,8 @@ if Terminal.dev?() do
   Flex.run_view("ui-tester.exs", Flex.UITester, ui: ui)
 end
 
+if Terminal.device?() do
+  Flex.eval_file("lib-browser.exs", monitor: false, port: 0)
+end
+
 :ok
