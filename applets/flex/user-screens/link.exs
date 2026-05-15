@@ -30,7 +30,7 @@ defmodule Flex.UserScreens.Link do
         style={[
           "left: #{@x}px; top: #{@y}px;",
           @size.(@props.w, @props.h),
-        ]} href={@rt.href}>
+        ]} href={@rt.href} draggable="false">
         {@rt.text}
       </a>
       <style id={"#{@id}_Style"}>

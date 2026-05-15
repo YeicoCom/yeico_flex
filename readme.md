@@ -154,8 +154,9 @@ raise "ouch!"
 - [ ] Review the performance impact of nested bindings (from libs)
 - [ ] Single database for all entities for easier backup/recovery
 - [ ] Global trace/debug disable
-- [ ] Screen password protection
-- [ ] Screen link widget for inter screen navigation
+- [x] Simulated pulse inputs
+- [x] Screen password protection
+- [x] Screen link widget for inter screen navigation
 - [x] Flex password protected: use put cookie as regular login
 - [x] Browser launcher on devices
   - test if weston kills autolaunched cog: no (cog need to be killed manually)
