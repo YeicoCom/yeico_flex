@@ -22,9 +22,10 @@ defmodule Flex.UserScreens.Label do
     # search: io_lib Format Escapes
 
     ~H"""
-      <div id={@id} class={[@class, "data-[disabled]:text-zinc-600"]}
+      <div id={@id} class={[@class,
+        "data-[disabled]:text-zinc-600"
+        ]}
         data-disabled={@rt.disabled}
-        disabled={@rt.disabled}
         style={[
           "left: #{@x}px; top: #{@y}px;",
           @size.(@props.w, @props.h),
