@@ -175,8 +175,7 @@ defmodule Flex.UserScreens.DUtils do
 
   def select(%{screen: screen = %{props: props}}, type, nil) do
     screen = Map.put(screen, :errors, VUtils.errors(props))
-    # item:save wont match with nil id
-    %{id: "", type: type, item: screen, editor: &editor/1, save: &save/3}
+    %{id: nil, type: type, item: screen, editor: &editor/1, save: &save/3}
   end
 
   def select(%{screen: screen}, type, id) do

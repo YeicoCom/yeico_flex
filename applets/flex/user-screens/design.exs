@@ -113,6 +113,14 @@ defmodule Flex.UserScreens.Design do
         state = Map.put(state, :menu, nil)
         {socket, state}
 
+      {:event, socket, state = %{selected: %{id: nil, save: save}}, event = "item:change",
+       params = %{"iid" => ""}} ->
+        Log.trace(view: path, event: event, params: params)
+        state = save.(state, nil, params)
+        state = Map.put(state, :menu, nil)
+        DUtils.save_screen(ddb, state, false)
+        {socket, state}
+
       {:event, socket, state = %{selected: %{id: id, save: save}}, event = "item:change",
        params = %{"iid" => id}} ->
         Log.trace(view: path, event: event, params: params)
