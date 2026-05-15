@@ -13,15 +13,6 @@ defmodule Flex do
     end
   end
 
-  defp run_async(fun) do
-    env = Process.get(:__flex__)
-
-    Api.async(fn ->
-      Process.put(:__flex__, env)
-      fun.()
-    end)
-  end
-
   defp get_path(route) do
     parent = Process.get(:__flex__) || "/flex"
 
@@ -36,7 +27,6 @@ defmodule Flex do
 
   def eval_file(route, opts) do
     %{parent: parent, path: path} = get_path(route)
-    # Log.debug(parent: parent, route: route, path: path)
     Process.put(:__flex__, Path.dirname(path))
     result = Api.evalf(path, opts)
     Process.put(:__flex__, parent)
@@ -46,9 +36,7 @@ defmodule Flex do
   def eval_test(route, opts) do
     if Terminal.dev?() do
       if System.get_env("FLEX_TEST") do
-        run_async(fn ->
-          eval_file(route, opts)
-        end)
+        eval_file(route, opts)
       end
     end
   end
@@ -58,16 +46,12 @@ defmodule Flex do
     Api.loop(dms, setup, opts)
   end
 
+  # dir/index.exs -> dir
+  # dir/other.exs -> dir/other
   def run_view(route, mod, opts) do
-    run_async(fn ->
-      %{path: path} = get_path(route)
-      # dir/index.exs -> dir
-      # dir/other.exs -> dir/other
-      path = path |> Path.rootname() |> String.replace_suffix("/index", "")
-      # Log.debug(route: route, view: path)
-      Terminal.view(path, mod.handler([{:path, path} | opts]))
-      Api.sleep()
-    end)
+    %{path: path} = get_path(route)
+    path = path |> Path.rootname() |> String.replace_suffix("/index", "")
+    Terminal.view(path, mod.handler([{:path, path} | opts]))
   end
 
   def eval_code(code, bindings) do

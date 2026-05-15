@@ -86,6 +86,7 @@ defmodule Flex.UserScreens.VUtils do
       {:point, "sint16:" <> _} -> integer(change, props, params, key, {-32_768, 32_767})
       {:point, "float:" <> _} -> float(change, props, params, key, {nil, nil})
       {:point, "status:" <> _} -> integer(change, props, params, key, {0, 3})
+      {:point, "pulse:" <> _} -> integer(change, props, params, key, {-32_768, 32_767})
       {:point, _} -> text?(change, props, params, key)
     end
   end

@@ -34,18 +34,21 @@ defmodule Flex.Pt do
     "flex:points:source"
     |> Mdb.lookup()
     |> Enum.map(fn {_, tag} -> tag end)
+    |> Enum.sort()
   end
 
   def get_sinks do
     "flex:points:sink"
     |> Mdb.lookup()
     |> Enum.map(fn {_, tag} -> tag end)
+    |> Enum.sort()
   end
 
   def get_screens do
     "flex:points:screen"
     |> Mdb.lookup()
     |> Enum.map(fn {_, tag} -> tag end)
+    |> Enum.sort()
   end
 
   def get_limits(:uint16), do: %{step: 1, min: 0, max: 65_535}
