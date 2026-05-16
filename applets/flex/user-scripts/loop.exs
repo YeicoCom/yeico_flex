@@ -18,21 +18,24 @@ defmodule Flex.UserScripts.Loop do
     Api.sleep()
   end
 
-  defp runner_setup(%{id: id, item: item, ctx: %{cdb: cdb}}) do
+  defp runner_setup(%{id: id, item: %{name: name}, ctx: %{cdb: cdb}}) do
     Bus.subscribe!("flex:user-scripts:reload:#{id}", nil)
-    Udb.register!({:script, id}, item.name)
+    Udb.register!({:script, id}, name)
     Mdb.register!(:script, id)
     code = String.trim(IUtils.load(cdb, id) || "")
     Lg.send(@log, id, nil, "Started")
-    task = if String.length(code) > 0, do: Api.async(&run_code/1, {id, code})
+    tag = "userscripts:#{id}:#{name}"
+    task = if String.length(code) > 0, do: Api.async(tag, &run_code/1, {id, code})
     Api.receive()
     if task, do: Api.kill(task)
     [reload: id]
   end
 
   defp run_enabled(id, item, ctx) do
+    tag = "userscripts:#{id}:#{item.name}"
+
     case item.status do
-      :enabled -> Api.loop(0, &runner_setup/1, %{id: id, item: item, ctx: ctx})
+      :enabled -> Api.loop(tag, 0, &runner_setup/1, %{id: id, item: item, ctx: ctx})
       _ -> nil
     end
   end

@@ -117,9 +117,12 @@ defmodule Flex.ModbusTerminal.Index do
         Log.trace(view: path, event: event, params: params)
         params = Map.update!(params, "port", &String.to_integer/1)
         params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
+        opts = [{:parent, self()} | params]
+        params = Enum.into(params, %{})
         if task, do: Api.kill(task)
-        task = Api.async(&IUtils.setup/1, [{:parent, self()} | params])
-        conn = %{input: Enum.into(params, %{}), task: task, on: true}
+        tag = "modbusterminal:#{params.ip}:#{params.port}:#{params.proto}"
+        task = Api.async(tag, &IUtils.setup/1, opts)
+        conn = %{input: params, task: task, on: true}
         state = Map.put(state, :conn, conn)
         state = Map.put(state, :modal, nil)
         {socket, state}

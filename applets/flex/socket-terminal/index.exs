@@ -127,8 +127,10 @@ defmodule Flex.SocketTerminal.Index do
         params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
         if task, do: Api.kill(task)
         opts = Keyword.merge(params, parent: self(), imode: imode)
-        task = Api.async(&IUtils.setup/1, opts)
-        conn = %{input: Enum.into(params, %{}), task: task, on: true}
+        params = Enum.into(params, %{})
+        tag = "socketterminal:#{params.ip}:#{params.port}"
+        task = Api.async(tag, &IUtils.setup/1, opts)
+        conn = %{input: params, task: task, on: true}
         state = Map.put(state, :conn, conn)
         state = Map.put(state, :modal, nil)
         {socket, state}

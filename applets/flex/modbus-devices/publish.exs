@@ -51,7 +51,7 @@ defmodule Flex.ModbusDevices.Publish do
   end
 
   def setup _ do
-    task = Api.async(&pulse/1, {%{}, %{}})
+    task = Api.async("modbusdevices:publish:pulse", &pulse/1, {%{}, %{}})
 
     Api.subget!("flex:modbus-devices:items")
     |> Enum.each(fn {_id, %{name: name, points: points}} ->

@@ -125,17 +125,17 @@ loop = fn args ->
 end
 
 clean.()
-Api.defer(clean)
+Flex.with_tag("browser", fn -> Api.defer(clean) end)
 
-Api.loop(5_000, loop, %{call: dbus, loop: loop, delay: 5_000})
-Api.loop(5_000, loop, %{call: udev, loop: loop, delay: 5_000})
+Api.loop("browser:dbus", 5_000, loop, %{call: dbus, loop: loop, delay: 5_000})
+Api.loop("browser:udev", 5_000, loop, %{call: udev, loop: loop, delay: 5_000})
 
 # 400 works 10x on kingdel1, vm110, touch1
 # 300 works 10x on vm110, touch1 fails on kingdel1
 Api.sleep(400 + 200)
 
 # short period because it may need seveal tries on reboot
-Api.loop(5_000, loop, %{call: weston, loop: loop, delay: 1_000})
+Api.loop("browser:weston", 5_000, loop, %{call: weston, loop: loop, delay: 1_000})
 
 # test with
 # cmd "killall cog" -> reboots weston

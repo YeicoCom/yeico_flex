@@ -9,6 +9,6 @@ Flex.eval_file("iutils.exs", [])
 Flex.eval_file("index.exs", [])
 
 Flex.run_view("index.exs", Flex.SerialExports.Index, idb: idb)
-Flex.run_loop(2_000, Flex.SerialExports.Loop, idb: idb)
+Flex.run_loop("serialexports:loop", 2_000, Flex.SerialExports.Loop, idb: idb)
 
 :ok

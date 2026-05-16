@@ -140,6 +140,7 @@ raise "ouch!"
 
 - [ ] Document live view life cycle
 - [ ] Shaky things: slow boot, browser, mountrap, socat, kill links, unable to await defers, modbus lib
+- [ ] Shaky things: api kill may buble kill single when called from non task parent
 - [ ] Modbus lib deterministic error detection
 - [ ] Clone controls to easy copy template styling
 - [ ] Prevent read/write to points with empty names

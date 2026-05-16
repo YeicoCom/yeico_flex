@@ -25,6 +25,12 @@ defmodule Flex do
     %{parent: parent, path: path}
   end
 
+  def with_tag(tag, fun) do
+    prev = Process.put(:__tag__, tag)
+    fun.()
+    Process.put(:__tag__, prev)
+  end
+
   def eval_file(route, opts) do
     %{parent: parent, path: path} = get_path(route)
     Process.put(:__flex__, Path.dirname(path))
@@ -41,9 +47,9 @@ defmodule Flex do
     end
   end
 
-  def run_loop(dms, mod, opts) do
+  def run_loop(tag, dms, mod, opts) do
     setup = Function.capture(mod, :setup, 1)
-    Api.loop(dms, setup, opts)
+    Api.loop(tag, dms, setup, opts)
   end
 
   # dir/index.exs -> dir
@@ -51,7 +57,8 @@ defmodule Flex do
   def run_view(route, mod, opts) do
     %{path: path} = get_path(route)
     path = path |> Path.rootname() |> String.replace_suffix("/index", "")
-    Terminal.view(path, mod.handler([{:path, path} | opts]))
+    opts = [{:path, path} | opts]
+    with_tag(path, fn -> Terminal.view(path, mod.handler(opts)) end)
   end
 
   def eval_code(code, bindings) do
@@ -86,15 +93,15 @@ Flex.eval_file("lib-modbus/setup.exs", [])
 Flex.eval_file("lib-points.exs", [])
 
 Flex.eval_file("echo-server-loop.exs", [])
-Flex.run_loop(1_000, Flex.EchoServer.Loop, port: 44000)
+Flex.run_loop("echo:44000", 1_000, Flex.EchoServer.Loop, port: 44000)
 
 Flex.eval_file("/flex/serial-exports/setup.exs", [])
 Flex.eval_file("/flex/socket-terminal/setup.exs", [])
 
 Flex.eval_file("modbus-slave-loop.exs", [])
 
-Flex.run_loop(1_000, Flex.ModbusSlave.Loop, proto: "TCP", port: 44001)
-Flex.run_loop(1_000, Flex.ModbusSlave.Loop, proto: "RTU", port: 44002)
+Flex.run_loop("slave:tcp:44001", 1_000, Flex.ModbusSlave.Loop, proto: "TCP", port: 44001)
+Flex.run_loop("slave:rtu:44002", 1_000, Flex.ModbusSlave.Loop, proto: "RTU", port: 44002)
 
 Flex.eval_file("/flex/modbus-terminal/setup.exs", [])
 Flex.eval_file("/flex/modbus-devices/setup.exs", [])

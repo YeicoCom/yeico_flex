@@ -115,9 +115,11 @@ defmodule Flex.ModbusDevices.Loop do
   end
 
   defp run_enabled(id, device) do
+    tag = "modbusdevices:#{id}:#{device.name}"
+
     case device.status do
       :enabled ->
-        Api.loop(4_000, &runner_setup/1, %{id: id, device: device})
+        Api.loop(tag, 4_000, &runner_setup/1, %{id: id, device: device})
 
       _ ->
         put_status(device, "disabled")
