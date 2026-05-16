@@ -3,9 +3,9 @@ defmodule Flex.Index do
 
   defp view(assigns) do
     ~H"""
-    <.fui fun={@ui.frame} title="Home">
+    <.fui fun={&UI.frame/1} title="Home">
       <div class="flex flex-col gap-4 justify-center items-center overflow-y-auto h-full text-3xl">
-        <.fui :for={{id, item} <- @items} fun={@ui.href} href={"/flex/user-screens/view?id=#{id}"}>{item.name}</.fui>
+        <.fui :for={{id, item} <- @items} fun={&UI.href/1} href={"/flex/user-screens/view?id=#{id}"}>{item.name}</.fui>
       </div>
     </.fui>
     """
@@ -17,7 +17,6 @@ defmodule Flex.Index do
 
   def handler(opts) do
     path = Keyword.fetch!(opts, :path)
-    ui = Keyword.fetch!(opts, :ui)
 
     fn
       {:mount, socket, state} ->
@@ -27,7 +26,6 @@ defmodule Flex.Index do
         socket = assign(socket, page_title: "Home")
         items = Api.subget!("flex:user-screens:items") || []
         state = Map.put(state, :items, filter_enabled(items))
-        state = Map.put(state, :ui, ui)
         state = Ln.init(socket, state)
         {socket, state}
 

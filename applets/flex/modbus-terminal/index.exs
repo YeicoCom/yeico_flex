@@ -4,14 +4,14 @@ defmodule Flex.ModbusTerminal.Index do
 
   def view(assigns) do
     ~H"""
-    <.fui fun={@ui.frame} title="Modbus Terminal">
+    <.fui fun={&UI.frame/1} title="Modbus Terminal">
       <div class="flex flex-col w-full h-full gap-2">
         <div class="px-2 flex">
-          <.fui fun={@ui.link} phx-click="click:connect">
+          <.fui fun={&UI.link/1} phx-click="click:connect">
             <div class="hero-link"/>Connect to Modbus Device
           </.fui>
           <div class="grow"/>
-          <.fui :if={@conn.on} fun={@ui.link} phx-click="click:disconnect" type="danger">
+          <.fui :if={@conn.on} fun={&UI.link/1} phx-click="click:disconnect" type="danger">
             <div class="hero-x-mark"/>Disconnect from {@conn.input.proto}:{@conn.input.ip}:{@conn.input.port}
           </.fui>
         </div>
@@ -22,27 +22,27 @@ defmodule Flex.ModbusTerminal.Index do
         </div>
         <form id="output_form" :if={@conn.on} phx-submit="output:submit" phx-change="output:change"
           class="flex px-1 gap-2" phx-hook="EnterNavigation" autocomplete="off">
-          <.fui fun={@ui.input} name="line" value={@output.line} type="text" class="grow" id="output_form_line"
+          <.fui fun={&UI.input/1} name="line" value={@output.line} type="text" class="grow" id="output_form_line"
             phx-hook="LineHistory" data-key="modbus-terminal" title={@help}/>
-          <.fui fun={@ui.button} type="submit">Execute</.fui>
+          <.fui fun={&UI.button/1} type="submit">Execute</.fui>
         </form>
         <div :if={@conn.on} class="px-2">{@tip}</div>
       </div>
     </.fui>
-    <.fui fun={@ui.modal} :if={@modal} title={@modal.title} class="min-w-[360px] flex flex-col gap-2">
+    <.fui fun={&UI.modal/1} :if={@modal} title={@modal.title} class="min-w-[360px] flex flex-col gap-2">
       <% input = @modal.input %>
       <form id="modal_form" phx-submit="modal:submit" class="flex flex-col gap-4"
         phx-hook="EnterNavigation" phx-update="ignore" autocomplete="off">
         <div class="grid grid-cols-2 gap-2 items-center min-w-[12em]">
           <div>IP</div>
-          <.fui fun={@ui.input} name="ip" value={input.ip} type="text" required pattern="^(((?!25?[6-9])[12]\d|[1-9])?\d\.?\b){4}$"
+          <.fui fun={&UI.input/1} name="ip" value={input.ip} type="text" required pattern="^(((?!25?[6-9])[12]\d|[1-9])?\d\.?\b){4}$"
             id="modal_autofocus" phx-hook="AutoFocus"/>
           <div>Port</div>
-          <.fui fun={@ui.input} name="port" value={input.port} type="number" step="1" min="1" max="65535" required/>
+          <.fui fun={&UI.input/1} name="port" value={input.port} type="number" step="1" min="1" max="65535" required/>
           <div>Protocol</div>
-          <.fui fun={@ui.select} name="proto" value={input.proto} values={@options.protos} required/>
+          <.fui fun={&UI.select/1} name="proto" value={input.proto} values={@options.protos} required/>
         </div>
-        <.fui fun={@ui.button} type="submit" class="col-span-2">Accept</.fui>
+        <.fui fun={&UI.button/1} type="submit" class="col-span-2">Accept</.fui>
       </form>
     </.fui>
     """
@@ -50,7 +50,6 @@ defmodule Flex.ModbusTerminal.Index do
 
   def handler(opts) do
     path = Keyword.fetch!(opts, :path)
-    ui = Keyword.fetch!(opts, :ui)
 
     fn
       {:mount, socket, state} ->
@@ -71,7 +70,6 @@ defmodule Flex.ModbusTerminal.Index do
         state = Map.put(state, :tzoffset, tzoffset)
         state = Map.put(state, :logid, 0)
         state = Ln.init(socket, state)
-        state = Map.put(state, :ui, ui)
         {socket, state}
 
       {:params, socket, state = %{login?: true, user: nil}, params, uri} ->

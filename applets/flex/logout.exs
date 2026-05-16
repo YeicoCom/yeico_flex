@@ -3,7 +3,7 @@ defmodule Flex.Logout do
 
   defp view(assigns) do
     ~H"""
-    <.fui fun={@ui.frame} title="Logout">
+    <.fui fun={&UI.frame/1} title="Logout">
       <div id="logout_view" phx-hook="LogoutView"/>
     </.fui>
     """
@@ -11,7 +11,6 @@ defmodule Flex.Logout do
 
   def handler(opts) do
     path = Keyword.fetch!(opts, :path)
-    ui = Keyword.fetch!(opts, :ui)
 
     fn
       {:mount, socket = %{assigns: %{params: params}}, state} ->
@@ -21,7 +20,6 @@ defmodule Flex.Logout do
         socket = assign(socket, page_suffix: " · Flex")
         socket = assign(socket, page_title: "Logout")
         state = Map.put(state, :referer, referer)
-        state = Map.put(state, :ui, ui)
         {socket, state}
 
       {:params, socket, state = %{referer: referer}, params, uri} ->

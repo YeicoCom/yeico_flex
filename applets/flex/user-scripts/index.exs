@@ -4,25 +4,25 @@ defmodule Flex.UserScripts.Index do
 
   defp view(assigns) do
     ~H"""
-    <.fui fun={@ui.frame} title="User Scripts">
+    <.fui fun={&UI.frame/1} title="User Scripts">
       <div class="flex flex-col w-full h-full overflow-y-auto">
         <div class="p-2 flex gap-2">
-          <.fui fun={@ui.link} phx-click="click:add"><div class="hero-plus"/>Add User Script</.fui>
+          <.fui fun={&UI.link/1} phx-click="click:add"><div class="hero-plus"/>Add User Script</.fui>
           <div class="grow"/>
-          <.fui fun={@ui.link} phx-click="click:compact">Compact</.fui>
+          <.fui fun={&UI.link/1} phx-click="click:compact">Compact</.fui>
         </div>
         <div :for={id <- @index} class="flex flex-col p-2 hover:rounded hover:bg-zinc-800">
           <% item = @items[id] %>
-          <.fui fun={@ui.link} phx-click="click:edit" phx-value-id={id}>
+          <.fui fun={&UI.link/1} phx-click="click:edit" phx-value-id={id}>
             {item.name}
           </.fui>
           <div class="flex gap-2">
-            <.fui fun={@ui.link} phx-click="click:edit" phx-value-id={id}>Edit</.fui>
-            <.fui fun={@ui.link} phx-click="click:action" phx-value-id={id} phx-value-action="enable">Enable</.fui>
-            <.fui fun={@ui.link} phx-click="click:action" phx-value-id={id} phx-value-action="disable">Disable</.fui>
-            <.fui fun={@ui.href} href={"/flex/user-scripts/code?id=#{id}"}>Code</.fui>
+            <.fui fun={&UI.link/1} phx-click="click:edit" phx-value-id={id}>Edit</.fui>
+            <.fui fun={&UI.link/1} phx-click="click:action" phx-value-id={id} phx-value-action="enable">Enable</.fui>
+            <.fui fun={&UI.link/1} phx-click="click:action" phx-value-id={id} phx-value-action="disable">Disable</.fui>
+            <.fui fun={&UI.href/1} href={"/flex/user-scripts/code?id=#{id}"}>Code</.fui>
             <div class="grow"></div>
-            <.fui fun={@ui.link} phx-click="click:delete" phx-value-id={id} type="danger">Delete</.fui>
+            <.fui fun={&UI.link/1} phx-click="click:delete" phx-value-id={id} type="danger">Delete</.fui>
           </div>
           <% log = @logs[id] %>
           <div :if={item.status==:enabled and log} class={[
@@ -32,17 +32,17 @@ defmodule Flex.UserScripts.Index do
         </div>
       </div>
     </.fui>
-    <.fui fun={@ui.modal} :if={@modal} title={@modal.title} class="min-w-[360px] flex flex-col gap-2">
+    <.fui fun={&UI.modal/1} :if={@modal} title={@modal.title} class="min-w-[360px] flex flex-col gap-2">
       <% %{item: item, opts: opts} = @modal %>
       <form id="modal_form" phx-submit="modal:submit" class="flex flex-col gap-4"
         phx-hook="EnterNavigation" phx-update="ignore" autocomplete="off">
         <div class="grid grid-cols-2 gap-2 items-center min-w-[12em]">
           <div>Name</div>
-          <.fui fun={@ui.input} name="name" value={item.name} required id="modal_autofocus" phx-hook="AutoFocus"/>
+          <.fui fun={&UI.input/1} name="name" value={item.name} required id="modal_autofocus" phx-hook="AutoFocus"/>
           <div>Status</div>
-          <.fui fun={@ui.select} name="status" value={item.status} values={opts.status} required/>
+          <.fui fun={&UI.select/1} name="status" value={item.status} values={opts.status} required/>
         </div>
-        <.fui fun={@ui.button} type="submit" class="col-span-2">Accept</.fui>
+        <.fui fun={&UI.button/1} type="submit" class="col-span-2">Accept</.fui>
       </form>
     </.fui>
     """
@@ -52,7 +52,6 @@ defmodule Flex.UserScripts.Index do
     idb = Keyword.fetch!(opts, :idb)
     cdb = Keyword.fetch!(opts, :cdb)
     path = Keyword.fetch!(opts, :path)
-    ui = Keyword.fetch!(opts, :ui)
 
     fn
       {:mount, socket, state} ->
@@ -70,7 +69,6 @@ defmodule Flex.UserScripts.Index do
         state = Map.put(state, :logs, logs)
         state = Map.put(state, :modal, nil)
         state = Ln.init(socket, state)
-        state = Map.put(state, :ui, ui)
 
         case length(state.index) > 0 do
           false -> {socket, IUtils.modal({:add, state})}

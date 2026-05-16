@@ -65,12 +65,6 @@ defmodule Flex do
       end
     end)
   end
-
-  def ui do
-    Flex.UI.__info__(:functions)
-    |> Enum.map(fn {k, v} -> {k, Function.capture(Flex.UI, k, v)} end)
-    |> Enum.into(%{})
-  end
 end
 
 defmodule Flex.Live do
@@ -91,35 +85,33 @@ Flex.eval_file("lib-user-interface.exs", [])
 Flex.eval_file("lib-modbus/setup.exs", [])
 Flex.eval_file("lib-points.exs", [])
 
-ui = Flex.ui()
-
 Flex.eval_file("echo-server-loop.exs", [])
 Flex.run_loop(1_000, Flex.EchoServer.Loop, port: 44000)
 
-Flex.eval_file("/flex/serial-exports/setup.exs", ui: ui)
-Flex.eval_file("/flex/socket-terminal/setup.exs", ui: ui)
+Flex.eval_file("/flex/serial-exports/setup.exs", [])
+Flex.eval_file("/flex/socket-terminal/setup.exs", [])
 
 Flex.eval_file("modbus-slave-loop.exs", [])
 
 Flex.run_loop(1_000, Flex.ModbusSlave.Loop, proto: "TCP", port: 44001)
 Flex.run_loop(1_000, Flex.ModbusSlave.Loop, proto: "RTU", port: 44002)
 
-Flex.eval_file("/flex/modbus-terminal/setup.exs", ui: ui)
-Flex.eval_file("/flex/modbus-devices/setup.exs", ui: ui)
+Flex.eval_file("/flex/modbus-terminal/setup.exs", [])
+Flex.eval_file("/flex/modbus-devices/setup.exs", [])
 
-Flex.eval_file("/flex/user-screens/setup.exs", ui: ui)
-Flex.eval_file("/flex/user-scripts/setup.exs", ui: ui)
+Flex.eval_file("/flex/user-screens/setup.exs", [])
+Flex.eval_file("/flex/user-scripts/setup.exs", [])
 
 Flex.eval_file("index.exs", [])
 Flex.eval_file("login.exs", [])
 Flex.eval_file("logout.exs", [])
-Flex.run_view("index.exs", Flex.Index, ui: ui)
-Flex.run_view("login.exs", Flex.Login, ui: ui)
-Flex.run_view("logout.exs", Flex.Logout, ui: ui)
+Flex.run_view("index.exs", Flex.Index, [])
+Flex.run_view("login.exs", Flex.Login, [])
+Flex.run_view("logout.exs", Flex.Logout, [])
 
 if Terminal.dev?() do
   Flex.eval_file("ui-tester.exs", [])
-  Flex.run_view("ui-tester.exs", Flex.UITester, ui: ui)
+  Flex.run_view("ui-tester.exs", Flex.UITester, [])
 end
 
 if Terminal.device?() do

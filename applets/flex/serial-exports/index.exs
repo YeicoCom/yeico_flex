@@ -4,26 +4,26 @@ defmodule Flex.SerialExports.Index do
 
   def view(assigns) do
     ~H"""
-    <.fui fun={@ui.frame} title="Serial Exports">
+    <.fui fun={&UI.frame/1} title="Serial Exports">
       <div class="flex flex-col w-full h-full overflow-y-auto">
         <div class="p-2 flex gap-2">
-          <.fui fun={@ui.link} phx-click="click:add"><div class="hero-plus"/>Add Serial Export</.fui>
+          <.fui fun={&UI.link/1} phx-click="click:add"><div class="hero-plus"/>Add Serial Export</.fui>
           <div class="grow"/>
-          <.fui fun={@ui.link} phx-click="click:compact">Compact</.fui>
+          <.fui fun={&UI.link/1} phx-click="click:compact">Compact</.fui>
         </div>
         <div :for={id <- @index} class="flex flex-col p-2 hover:rounded hover:bg-zinc-800">
           <% item = @items[id] %>
-          <.fui fun={@ui.link} phx-click="click:edit" phx-value-id={id}>
+          <.fui fun={&UI.link/1} phx-click="click:edit" phx-value-id={id}>
             {item.tty},{item.bauds}@{item.bits},{item.ip}:{item.port},{item.status}
           </.fui>
           <div class="flex gap-2">
-            <.fui fun={@ui.link} phx-click="click:edit" phx-value-id={id}>Edit</.fui>
-            <.fui fun={@ui.link} phx-click="click:action" phx-value-id={id} phx-value-action="enable">Enable</.fui>
-            <.fui fun={@ui.link} phx-click="click:action" phx-value-id={id} phx-value-action="disable">Disable</.fui>
-            <.fui fun={@ui.link} phx-click="click:action" phx-value-id={id} phx-value-action="local">Local</.fui>
-            <.fui fun={@ui.link} phx-click="click:action" phx-value-id={id} phx-value-action="remote">Remote</.fui>
+            <.fui fun={&UI.link/1} phx-click="click:edit" phx-value-id={id}>Edit</.fui>
+            <.fui fun={&UI.link/1} phx-click="click:action" phx-value-id={id} phx-value-action="enable">Enable</.fui>
+            <.fui fun={&UI.link/1} phx-click="click:action" phx-value-id={id} phx-value-action="disable">Disable</.fui>
+            <.fui fun={&UI.link/1} phx-click="click:action" phx-value-id={id} phx-value-action="local">Local</.fui>
+            <.fui fun={&UI.link/1} phx-click="click:action" phx-value-id={id} phx-value-action="remote">Remote</.fui>
             <div class="grow"></div>
-            <.fui fun={@ui.link} phx-click="click:delete" phx-value-id={id} type="danger">Delete</.fui>
+            <.fui fun={&UI.link/1} phx-click="click:delete" phx-value-id={id} type="danger">Delete</.fui>
           </div>
           <% log = @logs[id] %>
           <div :if={item.status==:enabled and log} class={[
@@ -33,25 +33,25 @@ defmodule Flex.SerialExports.Index do
         </div>
       </div>
     </.fui>
-    <.fui fun={@ui.modal} :if={@modal} title={@modal.title} class="min-w-[360px] flex flex-col gap-2">
+    <.fui fun={&UI.modal/1} :if={@modal} title={@modal.title} class="min-w-[360px] flex flex-col gap-2">
       <% %{item: item, opts: opts} = @modal %>
       <form id="modal_form" phx-submit="modal:submit" class="flex flex-col gap-4"
         phx-hook="EnterNavigation" phx-update="ignore" autocomplete="off">
-        <.fui fun={@ui.select} name="tty" value={item.tty} values={opts.ttys} class="min-w-[120px] overflow-x-auto" size="4" required
+        <.fui fun={&UI.select/1} name="tty" value={item.tty} values={opts.ttys} class="min-w-[120px] overflow-x-auto" size="4" required
           id="modal_autofocus" phx-hook="AutoFocus"/>
         <div class="grid grid-cols-2 gap-2 items-center min-w-[12em]">
           <div>Bauds</div>
-          <.fui fun={@ui.select} name="bauds" value={item.bauds} values={opts.bauds} required/>
+          <.fui fun={&UI.select/1} name="bauds" value={item.bauds} values={opts.bauds} required/>
           <div>Bits</div>
-          <.fui fun={@ui.select} name="bits" value={item.bits} values={opts.bits} required/>
+          <.fui fun={&UI.select/1} name="bits" value={item.bits} values={opts.bits} required/>
           <div>IP</div>
-          <.fui fun={@ui.select} name="ip" value={item.ip} values={opts.ips} required/>
+          <.fui fun={&UI.select/1} name="ip" value={item.ip} values={opts.ips} required/>
           <div>Port</div>
-          <.fui fun={@ui.input} name="port" value={item.port} type="number" step="1" min="1024" max="65535" required/>
+          <.fui fun={&UI.input/1} name="port" value={item.port} type="number" step="1" min="1024" max="65535" required/>
           <div>Status</div>
-          <.fui fun={@ui.select} name="status" value={item.status} values={opts.status} required/>
+          <.fui fun={&UI.select/1} name="status" value={item.status} values={opts.status} required/>
         </div>
-        <.fui fun={@ui.button} type="submit" class="col-span-2">Accept</.fui>
+        <.fui fun={&UI.button/1} type="submit" class="col-span-2">Accept</.fui>
       </form>
     </.fui>
     """
@@ -60,7 +60,6 @@ defmodule Flex.SerialExports.Index do
   def handler(opts) do
     idb = Keyword.fetch!(opts, :idb)
     path = Keyword.fetch!(opts, :path)
-    ui = Keyword.fetch!(opts, :ui)
 
     fn
       {:mount, socket, state} ->
@@ -77,7 +76,6 @@ defmodule Flex.SerialExports.Index do
         state = Map.put(state, :tzoffset, tzoffset)
         state = Map.put(state, :modal, nil)
         state = Ln.init(socket, state)
-        state = Map.put(state, :ui, ui)
 
         case length(state.index) > 0 do
           false -> {socket, IUtils.modal({:add, state})}

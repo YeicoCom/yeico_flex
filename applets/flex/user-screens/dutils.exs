@@ -160,7 +160,6 @@ defmodule Flex.UserScreens.DUtils do
 
   def form(assigns) do
     assigns = UI.phxattr(assigns)
-    assigns = Map.put(assigns, :ui, Flex.ui())
 
     ~H"""
       <form id={@id} class={@class} {@phxattr} autocomplete="off">
@@ -304,23 +303,22 @@ defmodule Flex.UserScreens.DUtils do
 
   defp editor(assigns = %{item: item}) do
     assigns = UI.phxattr(assigns)
-    assigns = Map.put(assigns, :ui, Flex.ui())
     assigns = Map.put(assigns, :props, item.props)
     assigns = Map.put(assigns, :errors, item.errors)
 
     ~H"""
     <div>Size WxH</div>
     <div class="grid grid-cols-2 gap-1">
-      <.fui fun={@ui.input} name="w" value={@props.w} error={@errors.w} type="number" step="1"/>
-      <.fui fun={@ui.input} name="h" value={@props.h} error={@errors.h} type="number" step="1"/>
+      <.fui fun={&UI.input/1} name="w" value={@props.w} error={@errors.w} type="number" step="1"/>
+      <.fui fun={&UI.input/1} name="h" value={@props.h} error={@errors.h} type="number" step="1"/>
     </div>
     <div>Grid Visible</div>
-    <.fui fun={@ui.select} name="grid" value={"\t#{@props.grid}"} error={@errors.grid} values={["\ttrue", "\tfalse"]}/>
+    <.fui fun={&UI.select/1} name="grid" value={"\t#{@props.grid}"} error={@errors.grid} values={["\ttrue", "\tfalse"]}/>
     <div>Grid Snap</div>
-    <.fui fun={@ui.input} name="snap" value={@props.snap} error={@errors.snap} type="number" step="1"/>
+    <.fui fun={&UI.input/1} name="snap" value={@props.snap} error={@errors.snap} type="number" step="1"/>
     <div class="col-span-2">Style</div>
     <div class="col-span-2">
-      <.fui fun={@ui.area} name="style" value={@props.style} error={@errors.style} rows="8" class="w-full"/>
+      <.fui fun={&UI.area/1} name="style" value={@props.style} error={@errors.style} rows="8" class="w-full"/>
     </div>
     """
   end

@@ -4,7 +4,7 @@ defmodule Flex.UserScreens.Design do
 
   defp view(assigns) do
     ~H"""
-    <.fui fun={@ui.frame} reverse={true} title="Screen Designer" label={@name} class="flex gap-2">
+    <.fui fun={&UI.frame/1} reverse={true} title="Screen Designer" label={@name} class="flex gap-2">
       <div id="design_frame" class="grow relative" phx-hook="ScreenDesigner">
         <div id="design_port" :if={@vp.frame} class="design-port overflow-hidden">
           <div id="design_style" class="design-panel" style={@screen.props.style}/>
@@ -27,7 +27,7 @@ defmodule Flex.UserScreens.Design do
         <.fui id="props_editor" fun={&DUtils.form/1} editor={@selected.editor} iid={@selected.id} item={@selected.item} rt={@rts[@selected.id]}
           phx-submit="item:change" phx-change="item:change" class="[&_*]:text-xs grid grid-cols-[auto_1fr] gap-y-1 gap-x-2 items-center"/>
         <div class="grow"/>
-        <.fui fun={@ui.link} :if={@selected.id} type="danger" class="text-xs justify-end"
+        <.fui fun={&UI.link/1} :if={@selected.id} type="danger" class="text-xs justify-end"
           phx-click="item:delete" phx-value-id={@selected.id}>Delete</.fui>
       </div>
     </.fui>
@@ -61,7 +61,6 @@ defmodule Flex.UserScreens.Design do
   def handler(opts) do
     path = Keyword.fetch!(opts, :path)
     ddb = Keyword.fetch!(opts, :ddb)
-    ui = Keyword.fetch!(opts, :ui)
 
     fn
       {:mount, socket, state} ->
@@ -75,7 +74,6 @@ defmodule Flex.UserScreens.Design do
         state = Map.put(state, :rts, %{})
         state = Map.put(state, :id, nil)
         state = Ln.init(socket, state)
-        state = Map.put(state, :ui, ui)
         {socket, state}
 
       {:params, socket, state = %{login?: true, user: nil}, params, uri} ->

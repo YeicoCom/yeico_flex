@@ -9,7 +9,7 @@ defmodule Flex.UserScreens.Loop do
   end
 
   defp run_view(id, %{route: route}, %{idb: idb, ddb: ddb}) do
-    Terminal.view(route, View.handler(path: route, fid: id, ui: Flex.ui(), idb: idb, ddb: ddb))
+    Terminal.view(route, View.handler(path: route, fid: id, idb: idb, ddb: ddb))
   end
 
   defp runner_setup(%{id: id, item: item, ctx: ctx}) do

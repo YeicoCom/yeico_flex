@@ -5,29 +5,29 @@ defmodule Flex.ModbusDevices.Index do
 
   defp view(assigns) do
     ~H"""
-    <.fui fun={@ui.frame} title="Modbus Devices">
+    <.fui fun={&UI.frame/1} title="Modbus Devices">
       <div class="flex flex-col w-full h-full overflow-y-auto">
         <div class="px-4 py-2 flex gap-2">
-          <.fui fun={@ui.link} phx-click="click:add"><div class="hero-plus"/>Add Modbus Device</.fui>
+          <.fui fun={&UI.link/1} phx-click="click:add"><div class="hero-plus"/>Add Modbus Device</.fui>
           <div class="grow"/>
-          <.fui fun={@ui.link} phx-click="click:paste">Paste</.fui>
-          <.fui fun={@ui.link} phx-click="click:compact">Compact</.fui>
+          <.fui fun={&UI.link/1} phx-click="click:paste">Paste</.fui>
+          <.fui fun={&UI.link/1} phx-click="click:compact">Compact</.fui>
         </div>
         <div :for={id <- @index} class="flex flex-col p-2">
           <% device = @devices[id] %>
           <% values = @points.values %>
           <div class="flex flex-col p-2 hover:rounded hover:bg-zinc-800">
-            <.fui fun={@ui.link} phx-click="click:edit" phx-value-id={id}>
+            <.fui fun={&UI.link/1} phx-click="click:edit" phx-value-id={id}>
               {device.proto},{device.ip}:{device.port},{device.status},{device.delay},{device.name}
             </.fui>
             <div class="flex gap-2">
-              <.fui fun={@ui.link} phx-click="click:edit" phx-value-id={id}>Edit</.fui>
-              <.fui fun={@ui.link} phx-click="click:action" phx-value-id={id} phx-value-action="enable">Enable</.fui>
-              <.fui fun={@ui.link} phx-click="click:action" phx-value-id={id} phx-value-action="disable">Disable</.fui>
-              <.fui fun={@ui.link} phx-click="click:points" phx-value-id={id}>Points</.fui>
-              <.fui fun={@ui.link} phx-click="click:copy" phx-value-id={id}>Copy</.fui>
+              <.fui fun={&UI.link/1} phx-click="click:edit" phx-value-id={id}>Edit</.fui>
+              <.fui fun={&UI.link/1} phx-click="click:action" phx-value-id={id} phx-value-action="enable">Enable</.fui>
+              <.fui fun={&UI.link/1} phx-click="click:action" phx-value-id={id} phx-value-action="disable">Disable</.fui>
+              <.fui fun={&UI.link/1} phx-click="click:points" phx-value-id={id}>Points</.fui>
+              <.fui fun={&UI.link/1} phx-click="click:copy" phx-value-id={id}>Copy</.fui>
               <div class="grow"/>
-              <.fui fun={@ui.link} phx-click="click:delete" phx-value-id={id} type="danger">Delete</.fui>
+              <.fui fun={&UI.link/1} phx-click="click:delete" phx-value-id={id} type="danger">Delete</.fui>
             </div>
             <% log = @logs[id] %>
             <div :if={device.status==:enabled and log} class={[
@@ -46,12 +46,12 @@ defmodule Flex.ModbusDevices.Index do
                 <% val = values[key].val %>
                 <% tval = if val>0, do: 0, else: 1 %>
                 <div class="flex gap-1 px-1 rounded hover:bg-zinc-900">
-                  <.fui fun={@ui.link} phx-click="click:capture" phx-value-key={key} phx-value-val={val}
+                  <.fui fun={&UI.link/1} phx-click="click:capture" phx-value-key={key} phx-value-val={val}
                     phx-value-type={type} phx-value-enc={encoding} phx-value-tag={tag} title="Capture Value">
                     {name}:{val}
                   </.fui>
                   <div class="grow"/>
-                  <.fui fun={@ui.link} phx-click="click:toggle" phx-value-key={key} phx-value-val={tval}
+                  <.fui fun={&UI.link/1} phx-click="click:toggle" phx-value-key={key} phx-value-val={tval}
                     title="Toggle">
                     <div class="hero-arrows-right-left z-0"/>
                   </.fui>
@@ -60,7 +60,7 @@ defmodule Flex.ModbusDevices.Index do
               <% type in ["WRO"] -> %>
                 <%= for %{name: name, key: key, tag: tag} <- accessors do %>
                 <% val = values[key].val %>
-                <.fui fun={@ui.link} phx-click="click:capture" phx-value-key={key} phx-value-val={val}
+                <.fui fun={&UI.link/1} phx-click="click:capture" phx-value-key={key} phx-value-val={val}
                   phx-value-type={type} phx-value-enc={encoding} phx-value-tag={tag} title="Capture Value" class="px-1">
                   {name}:{val}
                 </.fui>
@@ -77,28 +77,28 @@ defmodule Flex.ModbusDevices.Index do
         </div>
       </div>
     </.fui>
-    <.fui fun={@ui.modal} :if={@modal[:type] == :device} title={@modal.title} class="min-w-[360px] flex flex-col gap-2">
+    <.fui fun={&UI.modal/1} :if={@modal[:type] == :device} title={@modal.title} class="min-w-[360px] flex flex-col gap-2">
       <% device = @modal.input %>
       <form id="modal_form" phx-submit="submit:device" class="flex flex-col gap-4"
         phx-hook="EnterNavigation" phx-update="ignore" autocomplete="off">
         <div class="grid grid-cols-2 gap-2 items-center min-w-[12em]">
           <div>Name</div>
-          <.fui fun={@ui.input} name="name" value={device.name} type="text" required id="modal_autofocus" phx-hook="AutoFocus" pattern="^[ ]*[a-zA-Z]+[a-zA-Z0-9 ]*$"/>
+          <.fui fun={&UI.input/1} name="name" value={device.name} type="text" required id="modal_autofocus" phx-hook="AutoFocus" pattern="^[ ]*[a-zA-Z]+[a-zA-Z0-9 ]*$"/>
           <div>Protocol</div>
-          <.fui fun={@ui.select} name="proto" value={device.proto} values={@options.protos} required/>
+          <.fui fun={&UI.select/1} name="proto" value={device.proto} values={@options.protos} required/>
           <div>IP</div>
-          <.fui fun={@ui.input} name="ip" value={device.ip} type="text" required pattern="^(((?!25?[6-9])[12]\d|[1-9])?\d\.?\b){4}$"/>
+          <.fui fun={&UI.input/1} name="ip" value={device.ip} type="text" required pattern="^(((?!25?[6-9])[12]\d|[1-9])?\d\.?\b){4}$"/>
           <div>Port</div>
-          <.fui fun={@ui.input} name="port" value={device.port} type="number" step="1" min="1" max="65535" required/>
+          <.fui fun={&UI.input/1} name="port" value={device.port} type="number" step="1" min="1" max="65535" required/>
           <div>Delay</div>
-          <.fui fun={@ui.input} name="delay" value={device.delay} type="number" step="1" min="0" max="65535" required/>
+          <.fui fun={&UI.input/1} name="delay" value={device.delay} type="number" step="1" min="0" max="65535" required/>
           <div>Status</div>
-          <.fui fun={@ui.select} name="status" value={device.status} values={@options.status} required/>
+          <.fui fun={&UI.select/1} name="status" value={device.status} values={@options.status} required/>
         </div>
-        <.fui fun={@ui.button} type="submit" class="col-span-2">Accept</.fui>
+        <.fui fun={&UI.button/1} type="submit" class="col-span-2">Accept</.fui>
       </form>
     </.fui>
-    <.fui fun={@ui.modal} :if={@modal[:type] == :points} title={@modal.title}
+    <.fui fun={&UI.modal/1} :if={@modal[:type] == :points} title={@modal.title}
       class="min-w-[360px] max-h-[80%] h-[80%] flex flex-col">
       <% device = @modal.input %>
       <div class="grow overflow-y-hidden">
@@ -111,45 +111,45 @@ defmodule Flex.ModbusDevices.Index do
             <div>Type</div>
             <div>Encoding</div>
             <div>Name(s)</div>
-            <.fui fun={@ui.link} phx-click="click:point:add" phx-value-pi={0} title="Add Point"><div class="hero-plus z-0"/>Point</.fui>
+            <.fui fun={&UI.link/1} phx-click="click:point:add" phx-value-pi={0} title="Add Point"><div class="hero-plus z-0"/>Point</.fui>
           </div>
           <div class="grow overflow-y-scroll flex flex-col gap-1 p-1">
             <% pl = length(device.points) - 1 %>
             <%= for {point, pi} <- Enum.with_index(device.points) do %>
               <div class="grid grid-cols-[3em_4em_4em_5em_12em_1fr] md:grid-cols-[3em_4em_4em_5em_20em_1fr] lg:grid-cols-[3em_4em_4em_5em_32em_1fr] gap-1">
-                <.fui fun={@ui.input} name="slave[]" value={point.slave} type="number" step="1" min="0" max="255" required/>
-                <.fui fun={@ui.input} name="address[]" value={point.address} type="number" step="1" min="0" max="65535" required/>
-                <.fui fun={@ui.select} name="type[]" value={point.type} values={@options.types} required/>
-                <.fui fun={@ui.select} name="encoding[]" value={point.encoding} values={@options.encodings} required/>
+                <.fui fun={&UI.input/1} name="slave[]" value={point.slave} type="number" step="1" min="0" max="255" required/>
+                <.fui fun={&UI.input/1} name="address[]" value={point.address} type="number" step="1" min="0" max="65535" required/>
+                <.fui fun={&UI.select/1} name="type[]" value={point.type} values={@options.types} required/>
+                <.fui fun={&UI.select/1} name="encoding[]" value={point.encoding} values={@options.encodings} required/>
                 <%!-- Force name even for unused because they look ugly on the point table and require a placeholder anyway --%>
-                <.fui fun={@ui.input} name="names[]" value={point.names} type="text" required pattern="^[ ]*[a-zA-Z]+[a-zA-Z0-9 ]*(,[ ]*[a-zA-Z]+[a-zA-Z0-9 ]*)*$"/>
+                <.fui fun={&UI.input/1} name="names[]" value={point.names} type="text" required pattern="^[ ]*[a-zA-Z]+[a-zA-Z0-9 ]*(,[ ]*[a-zA-Z]+[a-zA-Z0-9 ]*)*$"/>
                 <div class="flex gap-1">
-                  <.fui fun={@ui.link} disabled={pi==0} phx-click="click:point:del" phx-value-pi={pi} type="danger" title="Delete Point"><div class="hero-x-mark z-0"/></.fui>
-                  <.fui fun={@ui.link} disabled={pi==0} phx-click="click:point:up" phx-value-pi={pi} title="Move Point Up"><div class="hero-arrow-up z-0"/></.fui>
-                  <.fui fun={@ui.link} disabled={pi==pl} phx-click="click:point:down" phx-value-pi={pi} title="Move Point Down"><div class="hero-arrow-down z-0"/></.fui>
+                  <.fui fun={&UI.link/1} disabled={pi==0} phx-click="click:point:del" phx-value-pi={pi} type="danger" title="Delete Point"><div class="hero-x-mark z-0"/></.fui>
+                  <.fui fun={&UI.link/1} disabled={pi==0} phx-click="click:point:up" phx-value-pi={pi} title="Move Point Up"><div class="hero-arrow-up z-0"/></.fui>
+                  <.fui fun={&UI.link/1} disabled={pi==pl} phx-click="click:point:down" phx-value-pi={pi} title="Move Point Down"><div class="hero-arrow-down z-0"/></.fui>
                 </div>
               </div>
             <% end %>
           </div>
-          <.fui fun={@ui.button} type="submit" class="mt-2">Accept</.fui>
+          <.fui fun={&UI.button/1} type="submit" class="mt-2">Accept</.fui>
         </form>
       </div>
     </.fui>
-    <.fui fun={@ui.modal} :if={@modal[:type] == :capture} title={@modal.title} class="min-w-[360px]">
+    <.fui fun={&UI.modal/1} :if={@modal[:type] == :capture} title={@modal.title} class="min-w-[360px]">
       <% %{step: step, min: min, max: max} = @modal.limits %>
       <% %{key: key, val: val} = @modal.input %>
       <form id="modal_form" phx-submit="submit:capture" class="grid grid-cols-[1fr_6em] gap-2"
         phx-update="ignore" autocomplete="off">
         <input type="hidden" name="key" value={key}/>
-        <.fui fun={@ui.input} name="val" value={val} type="number" step={step} min={min} max={max} required id="modal_autofocus" phx-hook="AutoFocus"/>
-        <.fui fun={@ui.button} type="submit">Accept</.fui>
+        <.fui fun={&UI.input/1} name="val" value={val} type="number" step={step} min={min} max={max} required id="modal_autofocus" phx-hook="AutoFocus"/>
+        <.fui fun={&UI.button/1} type="submit">Accept</.fui>
       </form>
     </.fui>
-    <.fui fun={@ui.modal} :if={@modal[:type] == :paste} title={@modal.title} class="min-w-[360px]">
+    <.fui fun={&UI.modal/1} :if={@modal[:type] == :paste} title={@modal.title} class="min-w-[360px]">
       <form id="modal_form" phx-submit="submit:paste" class="flex flex-col gap-2"
         phx-update="ignore" autocomplete="off" phx-hook="EnterNavigation">
-        <.fui fun={@ui.area} name="data" rows={12} class="text-xs" id="modal_autofocus" phx-hook="AutoFocus"/>
-        <.fui fun={@ui.button} type="submit">Accept</.fui>
+        <.fui fun={&UI.area/1} name="data" rows={12} class="text-xs" id="modal_autofocus" phx-hook="AutoFocus"/>
+        <.fui fun={&UI.button/1} type="submit">Accept</.fui>
       </form>
     </.fui>
     """
@@ -158,7 +158,6 @@ defmodule Flex.ModbusDevices.Index do
   def handler(opts) do
     idb = Keyword.fetch!(opts, :idb)
     path = Keyword.fetch!(opts, :path)
-    ui = Keyword.fetch!(opts, :ui)
 
     fn
       {:mount, socket, state} ->
@@ -176,7 +175,6 @@ defmodule Flex.ModbusDevices.Index do
         state = Map.put(state, :refresh, refresh)
         state = Map.put(state, :modal, nil)
         state = Ln.init(socket, state)
-        state = Map.put(state, :ui, ui)
         # prevent events overwhelm
         Process.send_after(self(), :refresh, refresh)
 

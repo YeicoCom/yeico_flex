@@ -10,7 +10,7 @@ Flex.eval_file("index.exs", [])
 Flex.eval_file("publish.exs", [])
 Flex.eval_file("loop.exs", [])
 
-Flex.run_view("index.exs", Flex.ModbusDevices.Index, ui: ui, idb: idb)
+Flex.run_view("index.exs", Flex.ModbusDevices.Index, idb: idb)
 Flex.run_loop(2_000, Flex.ModbusDevices.Loop, idb: idb)
 Flex.run_loop(0, Flex.ModbusDevices.Publish, [])
 

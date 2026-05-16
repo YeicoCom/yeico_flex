@@ -8,8 +8,8 @@ defmodule Flex.Login do
       <div class="text-3xl text-white">Flex Login</div>
       <form id="login_view" phx-submit="submit:login" class="flex flex-col"
         phx-update="ignore" autocomplete="off" phx-hook="LoginView">
-        <.fui fun={@ui.input} name="pass" type="password" required id="modal_autofocus" phx-hook="AutoFocus"/>
-        <.fui fun={@ui.button} type="submit" class="hidden">Login</.fui>
+        <.fui fun={&UI.input/1} name="pass" type="password" required id="modal_autofocus" phx-hook="AutoFocus"/>
+        <.fui fun={&UI.button/1} type="submit" class="hidden">Login</.fui>
       </form>
     </div>
     """
@@ -17,7 +17,6 @@ defmodule Flex.Login do
 
   def handler(opts) do
     path = Keyword.fetch!(opts, :path)
-    ui = Keyword.fetch!(opts, :ui)
 
     fn
       {:mount, socket = %{assigns: %{params: params}}, state} ->
@@ -28,7 +27,6 @@ defmodule Flex.Login do
         socket = assign(socket, page_title: "Login")
         state = Map.put(state, :referer, referer)
         state = Ln.init(socket, state)
-        state = Map.put(state, :ui, ui)
         {socket, state}
 
       {:params, socket, state = %{referer: referer, user: %{name: "admin"}}, params, uri} ->

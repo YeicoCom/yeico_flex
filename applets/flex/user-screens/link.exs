@@ -44,7 +44,6 @@ defmodule Flex.UserScreens.Link do
 
   def editor(assigns = %{item: item}) do
     assigns = UI.phxattr(assigns)
-    assigns = Map.put(assigns, :ui, Flex.ui())
     assigns = Map.put(assigns, :props, item.props)
     assigns = Map.put(assigns, :errors, item.errors)
     assigns = Map.put(assigns, :screens, ["" | Pt.get_screens()])
@@ -53,16 +52,16 @@ defmodule Flex.UserScreens.Link do
     ~H"""
     <div>Size</div>
     <div class="grid grid-cols-2 gap-1">
-      <.fui fun={@ui.input} name="w" value={@props.w} error={@errors.w} type="number" step="1"/>
-      <.fui fun={@ui.input} name="h" value={@props.h} error={@errors.h} type="number" step="1"/>
+      <.fui fun={&UI.input/1} name="w" value={@props.w} error={@errors.w} type="number" step="1"/>
+      <.fui fun={&UI.input/1} name="h" value={@props.h} error={@errors.h} type="number" step="1"/>
     </div>
     <div>Text</div>
-    <.fui fun={@ui.input} name="text" value={@props.text} error={@errors.text} type="text"/>
+    <.fui fun={&UI.input/1} name="text" value={@props.text} error={@errors.text} type="text"/>
     <div>Screen</div>
-    <.fui fun={@ui.select} name="screen" value={@props.screen} error={@errors.screen} values={@screens}/>
+    <.fui fun={&UI.select/1} name="screen" value={@props.screen} error={@errors.screen} values={@screens}/>
     <div class="col-span-2">Style</div>
     <div class="col-span-2">
-      <.fui fun={@ui.area} name="style" value={@props.style} error={@errors.style} rows="8" class="w-full"/>
+      <.fui fun={&UI.area/1} name="style" value={@props.style} error={@errors.style} rows="8" class="w-full"/>
     </div>
     """
   end

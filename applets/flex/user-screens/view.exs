@@ -40,7 +40,7 @@ defmodule Flex.UserScreens.View do
 
   defp view(assigns) do
     ~H"""
-    <.fui fun={@ui.frame} reverse={true} title="Screen Viewer" label={@name} class="flex gap-2">
+    <.fui fun={&UI.frame/1} reverse={true} title="Screen Viewer" label={@name} class="flex gap-2">
       <.fui fun={&canvas/1} {assigns}/>
     </.fui>
     """
@@ -59,10 +59,10 @@ defmodule Flex.UserScreens.View do
     <div id="login_view" class="h-full flex flex-col gap-4 justify-center items-center" phx-hook="AllPages">
       <div class="text-3xl text-white">{@name}</div>
       <form id="login_form" phx-submit="submit:login" class="flex flex-col gap-4 items-center" phx-update="ignore" autocomplete="off">
-        <.fui fun={@ui.input} name="password" type="password" required id="modal_autofocus" phx-hook="AutoFocus"/>
-        <.fui fun={@ui.button} type="submit" class="hidden">Login</.fui>
+        <.fui fun={&UI.input/1} name="password" type="password" required id="modal_autofocus" phx-hook="AutoFocus"/>
+        <.fui fun={&UI.button/1} type="submit" class="hidden">Login</.fui>
       </form>
-      <.fui fun={@ui.href} href="/">Home</.fui>
+      <.fui fun={&UI.href/1} href="/">Home</.fui>
     </div>
     """
   end
@@ -77,7 +77,6 @@ defmodule Flex.UserScreens.View do
 
   def handler(opts) do
     path = Keyword.fetch!(opts, :path)
-    ui = Keyword.fetch!(opts, :ui)
     fid = Keyword.fetch!(opts, :fid)
     ddb = Keyword.fetch!(opts, :ddb)
 
@@ -94,7 +93,6 @@ defmodule Flex.UserScreens.View do
         state = Map.put(state, :rts, %{})
         state = Map.put(state, :fid, fid)
         state = Map.put(state, :id, nil)
-        state = Map.put(state, :ui, ui)
         {socket, state}
 
       {:params, socket, state, params, uri} ->
