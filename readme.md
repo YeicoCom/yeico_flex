@@ -139,7 +139,7 @@ raise "ouch!"
 ## Fixme
 
 - [ ] Document live view life cycle
-- [ ] Shaky things: browser, mountrap, socat, kill links, unable to await defers, modbus lib
+- [ ] Shaky things: slow boot, browser, mountrap, socat, kill links, unable to await defers, modbus lib
 - [ ] Modbus lib deterministic error detection
 - [ ] Clone controls to easy copy template styling
 - [ ] Prevent read/write to points with empty names
@@ -154,6 +154,14 @@ raise "ouch!"
 - [ ] Review the performance impact of nested bindings (from libs)
 - [ ] Single database for all entities for easier backup/recovery
 - [ ] Global trace/debug disable
+- [ ] Designer: clone item
+- [ ] Designer: delete key
+- [ ] Ensure weston/cog die together
+- [ ] Mountrap browser review after trap enabled in applet loop
+- [ ] Critical: mesa demo monitor went black when playing with the RYx relays
+  - Display image was noisy, improved with vga cable replace, image still ghosty.
+  - cog/browser bug?
+  - relay EMP?
 - [x] Simulated pulse inputs
 - [x] Screen password protection
 - [x] Screen link widget for inter screen navigation
