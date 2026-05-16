@@ -70,7 +70,7 @@ defmodule Flex.ModbusDevices.Publish do
       end
     end)
 
-    receive do: (_ -> nil)
+    Api.receive()
     Api.kill(task)
     :reload
   end

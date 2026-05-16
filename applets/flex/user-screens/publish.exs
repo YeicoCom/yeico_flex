@@ -9,7 +9,7 @@ defmodule Flex.UserScreens.Publish do
       end
     end)
 
-    receive do: (_ -> nil)
+    Api.receive()
     :reload
   end
 end

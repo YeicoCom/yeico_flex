@@ -25,7 +25,7 @@ defmodule Flex.UserScripts.Loop do
     code = String.trim(IUtils.load(cdb, id) || "")
     Lg.send(@log, id, nil, "Started")
     task = if String.length(code) > 0, do: Api.async(&run_code/1, {id, code})
-    receive do: (_ -> nil)
+    Api.receive()
     if task, do: Api.kill(task)
     [reload: id]
   end
