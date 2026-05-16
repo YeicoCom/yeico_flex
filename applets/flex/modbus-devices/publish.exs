@@ -2,41 +2,48 @@ defmodule Flex.ModbusDevices.Publish do
   alias Flex.ModbusDevices.PUtils
   use Flex
 
-  defp timer(bit, value) do
+  defp schedule(bit, pulse, value, nil) do
     cond do
       value > 0 ->
         Pt.put_value(bit, 1)
-        Process.send_after(self(), {:timer, bit, 0}, value)
+        Process.send_after(self(), {:timer, bit, pulse, 0}, value)
 
       value < 0 ->
         Pt.put_value(bit, 0)
-        Process.send_after(self(), {:timer, bit, 1}, -value)
+        Process.send_after(self(), {:timer, bit, pulse, 1}, -value)
 
       true ->
-        :nop
+        nil
     end
   end
 
-  defp pulse(state) do
+  defp schedule(_, _, _, _), do: nil
+
+  defp pulse({keys, timers}) do
     receive do
       {:register, bit, pulse} ->
         value = Pt.subget_value(pulse)
         Pt.put_value(pulse, 0)
-        timer(bit, value)
-        pulse(Map.put(state, pulse, bit))
+        timer = schedule(bit, pulse, value, nil)
+        keys = Map.put(keys, pulse, bit)
+        timers = Map.put(timers, pulse, timer)
+        pulse({keys, timers})
 
-      {:timer, bit, value} ->
+      {:timer, bit, pulse, value} ->
         Pt.put_value(bit, value)
-        pulse(state)
+        timers = Map.put(timers, pulse, nil)
+        pulse({keys, timers})
 
       {"flex:point:" <> _pulse, _, 0} ->
-        pulse(state)
+        pulse({keys, timers})
 
       {"flex:point:" <> pulse, _, value} ->
-        bit = Map.get(state, pulse)
+        timer = Map.get(timers, pulse)
+        bit = Map.get(keys, pulse)
         Pt.put_value(pulse, 0)
-        timer(bit, value)
-        pulse(state)
+        timer = schedule(bit, pulse, value, timer)
+        timers = Map.put(timers, pulse, timer)
+        pulse({keys, timers})
 
       unexpected ->
         Log.warn(unexpected: unexpected)
@@ -44,7 +51,7 @@ defmodule Flex.ModbusDevices.Publish do
   end
 
   def setup _ do
-    task = Api.async(&pulse/1, %{})
+    task = Api.async(&pulse/1, {%{}, %{}})
 
     Api.subget!("flex:modbus-devices:items")
     |> Enum.each(fn {_id, %{name: name, points: points}} ->
