@@ -32,6 +32,7 @@ defmodule Flex.UI do
           <button class="px-4 py-2 bg-zinc-500 rounded hover:bg-lime-500 hero-bars-3 size-10"></button>
           <div class="absolute top-3/4 hidden z-9998 group-hover:block w-48 bg-zinc-700 rounded shadow-xl mt-1">
             <a href="/flex" class="block px-4 py-2 hover:bg-lime-500">Flex Home</a>
+            <a href="/flex/user-files" class="block px-4 py-2 hover:bg-lime-500">User Files</a>
             <a href="/flex/user-scripts" class="block px-4 py-2 hover:bg-lime-500">User Scripts</a>
             <a href="/flex/user-screens" class="block px-4 py-2 hover:bg-lime-500">User Screens</a>
             <a href="/flex/modbus-devices" class="block px-4 py-2 hover:bg-lime-500">Modbus Devices</a>

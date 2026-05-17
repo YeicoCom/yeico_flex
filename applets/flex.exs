@@ -166,6 +166,7 @@ Flex.run_async("/flex/modbus-terminal/setup.exs", [])
 Flex.run_async("/flex/modbus-devices/setup.exs", [])
 Flex.run_async("/flex/user-screens/setup.exs", [])
 Flex.run_async("/flex/user-scripts/setup.exs", [])
+Flex.run_async("/flex/user-files/setup.exs", [])
 
 if Terminal.device?() do
   Flex.run_async("lib-browser.exs", url: "https://127.0.0.1", monitor: false, port: 0)

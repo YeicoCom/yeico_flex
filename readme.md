@@ -138,25 +138,22 @@ raise "ouch!"
 
 ## Fixme
 
+- [ ] Image uploader and manager
+- [ ] Designer: image viewer
+- [ ] Designer: SVG widget
+- [ ] Designer: Analog input slider
 - [ ] Document live view life cycle
 - [ ] Shaky things: slow boot, browser, mountrap, socat, kill links, unable to await defers, modbus lib
 - [ ] Shaky things: api kill may buble kill single when called from non task parent
-- [ ] Modbus lib deterministic error detection
-- [ ] Clone controls to easy copy template styling
+- [ ] Modbus lib deterministic error detection (remove throws?)
 - [ ] Prevent read/write to points with empty names
 - [ ] Show io_lib format escapes help in props editor
 - [ ] Define mqtt strategy
-- [ ] Implement links between user screens
 - [ ] Screen designer stumped after several enable/disable
 - [ ] Inplace testing with a global enable flag (see lib-convert)
-- [ ] Implement SVG widget
-- [ ] Implement numeric input widget
 - [ ] Publish serial ports as point
-- [ ] Review the performance impact of nested bindings (from libs)
 - [ ] Single database for all entities for easier backup/recovery
 - [ ] Global trace/debug disable
-- [ ] Designer: clone item
-- [ ] Designer: delete key
 - [ ] Ensure weston/cog die together
 - [ ] Make back navigation properly reconnect to hooks instead of reloading
 - [ ] Implement cog monitor pixel resolution selection
@@ -170,10 +167,15 @@ raise "ouch!"
   - cmd "ps | grep weston" not showing weston
   - monitor cmd "ls -l /proc/*/exe"?
   - Path.wildcard("/proc/*/exe") |> Enum.map(&File.read_link(&1)) |> Enum.any?(& &1=={:ok, "/usr/bin/weston"})
+- [x] Designer: clone item
+- [x] Designer: delete key
+- [x] Clone controls to easy copy template styling
+- [x] Designer: links between user screens
 - [-] Mountrap browser review after trapping loop and tagged process tree
   - The only positive is that weston seems to be properly killed
   - Hot reload is not reliable, cog not starting
 - [-] each defmodule generates a [flush: {:EXIT, #PID<0.1406.0>, :normal}] log
+- [-] Review the performance impact of nested bindings (from libs): bindings dropped
 - [x] Simulated pulse inputs
 - [x] Screen password protection
 - [x] Screen link widget for inter screen navigation
