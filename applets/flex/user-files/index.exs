@@ -21,6 +21,11 @@ defmodule Flex.UserFiles.Index do
             <.fui fun={&UI.link/1} phx-click="click:action" phx-value-id={id} phx-value-action="enable">Enable</.fui>
             <.fui fun={&UI.link/1} phx-click="click:action" phx-value-id={id} phx-value-action="disable">Disable</.fui>
             <.fui fun={&UI.link/1} phx-click="click:action" phx-value-id={id} phx-value-action="upload">Upload</.fui>
+            <form :if={id==@upload} id={"upload_form_#{id}"} phx-hook="Upload" data-id={id}
+              class="flex flex-col gap-1">
+              <input id="upload_input" type="file" accept="image/*" hidden>
+              <div id="upload_progress" class="flex flex-col"/>
+            </form>
             <div class="grow"></div>
             <.fui fun={&UI.link/1} phx-click="click:delete" phx-value-id={id} type="danger">Delete</.fui>
           </div>
@@ -51,6 +56,7 @@ defmodule Flex.UserFiles.Index do
   def handler(opts) do
     idb = Keyword.fetch!(opts, :idb)
     path = Keyword.fetch!(opts, :path)
+    udir = Keyword.fetch!(opts, :udir)
 
     fn
       {:mount, socket, state} ->
@@ -66,6 +72,7 @@ defmodule Flex.UserFiles.Index do
         state = Map.put(state, :items, Enum.into(items, %{}))
         state = Map.put(state, :tzoffset, tzoffset)
         state = Map.put(state, :logs, logs)
+        state = Map.put(state, :upload, nil)
         state = Map.put(state, :modal, nil)
         state = Ln.init(socket, state)
 
@@ -109,8 +116,9 @@ defmodule Flex.UserFiles.Index do
         {socket, state}
 
       {:event, socket, state, event = "click:action",
-       params = %{"id" => _id, "action" => "upload"}} ->
+       params = %{"id" => id, "action" => "upload"}} ->
         Log.trace(view: path, event: event, params: params)
+        state = Map.put(state, :upload, id)
         {socket, state}
 
       {:event, socket, state = %{items: items}, event = "click:action",
@@ -132,6 +140,18 @@ defmodule Flex.UserFiles.Index do
       {:event, socket, state, event = "click:compact", params} ->
         Log.trace(view: path, event: event, params: params)
         Db.compact(idb)
+        {socket, state}
+
+      {:event, socket, state, event = "upload:cancel", params} ->
+        Log.trace(view: path, event: event, params: params)
+        state = Map.put(state, :upload, nil)
+        {socket, state}
+
+      {:event, socket, state, event = "upload:data",
+       params = %{"id" => id, "name" => name, "pos" => pos, "data" => data}} ->
+        Log.trace(view: path, event: event, params: params)
+        IUtils.append(udir, id, name, pos, data)
+        state = Map.put(state, :upload, if(data, do: id, else: nil))
         {socket, state}
 
       {:event, socket, state, event, params} ->

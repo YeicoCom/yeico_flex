@@ -386,6 +386,45 @@ const hooks = {
             frame.childrenSetup = true
         }
     },
+    Upload: {
+        mounted() {
+            const id = this.el.dataset.id
+            const label = document.getElementById("upload_progress")
+            const input = document.getElementById("upload_input")
+            const uploadChunk = (props) => {
+                setTimeout(() => { this.pushEvent("upload:data", props) }, 0)
+            }
+            this.el.addEventListener('cancel', (event) => {
+                this.pushEvent("upload:cancel", {})
+            })
+            this.el.addEventListener('change', (event) => {
+                const file = event.target.files[0]
+                const reader = new FileReader()
+                const name = file.name.toLowerCase()
+                label.innerHTML = `<div>0.00% ${name}</div>`
+                reader.readAsArrayBuffer(file)
+                reader.onload = (event) => {
+                    const buffer = event.target.result;
+                    const fsize = buffer.byteLength
+                    const view = new Uint8Array(buffer)
+                    const size = 1024 * 16
+                    let pos = 0
+                    for (let i = 0; i < fsize; i += size) {
+                        const chunk = view.slice(i, i + size);
+                        const data = chunk.toBase64()
+                        const dsize = chunk.length
+                        const per = (100 * (pos + dsize) / fsize).toFixed(2)
+                        label.innerHTML = `<div>${per}% ${name}</div>`
+                        uploadChunk({ id, name, fsize, pos, data, dsize })
+                        pos += dsize
+                    }
+                    uploadChunk({ id, name, fsize, pos, data: null, dsize: 0 })
+                }
+                this.el.reset()
+            })
+            input.click()
+        }
+    },
 }
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")

@@ -43,6 +43,24 @@ defmodule Flex.UserFiles.IUtils do
     params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
     Enum.into(params, %{})
   end
+
+  def append(udir, id, name, _pos, nil) do
+    ext = Path.extname(name)
+    path1 = Path.join(udir, "#{id}.tmp")
+    path2 = Path.join(udir, "#{id}#{ext}")
+    path3 = Path.join(udir, id)
+    :ok = File.rename(path1, path2)
+    {:ok, _} = File.rm_rf(path3)
+    :ok = File.ln_s(Path.basename(path2), path3)
+  end
+
+  def append(udir, id, _name, pos, data) do
+    path = Path.join(udir, "#{id}.tmp")
+    mode = if pos > 0, do: [:append], else: [:write]
+    {:ok, file} = File.open(path, mode)
+    :ok = IO.binwrite(file, Base.decode64!(data))
+    :ok = File.close(file)
+  end
 end
 
 :ok
