@@ -152,15 +152,7 @@ defmodule Flex.UserFiles.Index do
         Log.trace(view: path, event: event, params: params)
         IUtils.append(udir, id, name, pos, data)
         state = Map.put(state, :upload, if(data, do: id, else: nil))
-
-        if !data do
-          # force change
-          pair = {id, IUtils.apply(items[id], "disable")}
-          Bus.broadcast!("flex:user-files:update", pair)
-          pair = {id, IUtils.apply(items[id], "enable")}
-          Bus.broadcast!("flex:user-files:update", pair)
-        end
-
+        if !data, do: Bus.broadcast!("flex:user-files:update", {id, items[id]})
         {socket, state}
 
       {:event, socket, state, event, params} ->

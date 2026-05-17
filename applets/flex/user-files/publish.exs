@@ -3,6 +3,8 @@ defmodule Flex.UserFiles.Publish do
   use Flex
 
   def setup _ do
+    Bus.subscribe!("flex:user-files:update", nil)
+
     Api.subget!("flex:user-files:items")
     |> Enum.each(fn {id, %{name: name}} ->
       link = IUtils.find(id)
