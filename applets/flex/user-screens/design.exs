@@ -23,7 +23,11 @@ defmodule Flex.UserScreens.Design do
           phx-click-away="modal:close"/>
       </div>
       <div class="flex flex-col p-1 gap-2 w-[16em] overflow-y-auto">
-        <div class="text-xl">{@selected.type} Properties</div>
+        <div class="text-xl flex items-center">
+          <div>{@selected.type} Properties</div>
+          <div class="grow"/>
+          <div :if={@selected.id} phx-click="item:clone" phx-value-id={@selected.id} class="hero-document-duplicate z-0" title="Clone"/>
+        </div>
         <.fui id="props_editor" fun={&DUtils.form/1} editor={@selected.editor} iid={@selected.id} item={@selected.item} rt={@rts[@selected.id]}
           phx-submit="item:change" phx-change="item:change" class="[&_*]:text-xs grid grid-cols-[auto_1fr] gap-y-1 gap-x-2 items-center"/>
         <div class="grow"/>
@@ -133,6 +137,18 @@ defmodule Flex.UserScreens.Design do
         {_, state} = pop_in(state, [:rts, id])
         {_, state} = pop_in(state, [:screen, :items, id])
         state = Map.put(state, :selected, DUtils.select(state, "Screen", nil))
+        state = Map.put(state, :menu, nil)
+        DUtils.save_screen(ddb, state, false)
+        {socket, state}
+
+      {:event, socket, state = %{selected: %{id: id, item: item = %{type: type}}},
+       event = "item:clone", params = %{"id" => id}} ->
+        Log.trace(view: path, event: event, params: params)
+        id = UUID.uuid1() |> ShortUUID.encode!()
+        item = %{item | index: DUtils.max(state) + 1}
+        state = put_in(state, [:screen, :items, id], item)
+        state = DUtils.init(state, id, item, true)
+        state = Map.put(state, :selected, DUtils.select(state, type, id))
         state = Map.put(state, :menu, nil)
         DUtils.save_screen(ddb, state, false)
         {socket, state}

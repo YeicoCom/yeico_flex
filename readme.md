@@ -158,7 +158,6 @@ raise "ouch!"
 - [ ] Designer: clone item
 - [ ] Designer: delete key
 - [ ] Ensure weston/cog die together
-- [ ] Mountrap browser review after trapping loop and tagged process tree
 - [ ] Implement cog monitor pixel resolution selection
 - [ ] Critical: mesa demo monitor went black when playing with the RYx relays
   - Display image was noisy, improved with vga cable replace, image still ghosty.
@@ -170,6 +169,9 @@ raise "ouch!"
   - cmd "ps | grep weston" not showing weston
   - monitor cmd "ls -l /proc/*/exe"?
   - Path.wildcard("/proc/*/exe") |> Enum.map(&File.read_link(&1)) |> Enum.any?(& &1=={:ok, "/usr/bin/weston"})
+- [-] Mountrap browser review after trapping loop and tagged process tree
+  - The only positive is that weston seems to be properly killed
+  - Hot reload is not reliable, cog not starting
 - [-] each defmodule generates a [flush: {:EXIT, #PID<0.1406.0>, :normal}] log
 - [x] Simulated pulse inputs
 - [x] Screen password protection
