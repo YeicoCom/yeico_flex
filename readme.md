@@ -166,6 +166,7 @@ raise "ouch!"
   - Path.wildcard("/proc/*/exe") |> Enum.map(&File.read_link(&1)) |> Enum.any?(& &1=={:ok, "/usr/bin/weston"})
 - [-] Designer: image/link wont update on upload (runtime works ok)
   - acceptable to avoid breaking current design widget template
+  - design realtime events means bus deregistration on each props save
 - [x] Image uploader and manager
 - [x] Designer: image viewer
 - [x] Designer: SVG widget

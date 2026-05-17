@@ -68,26 +68,6 @@ defmodule Flex.UserScreens.Image do
     """
   end
 
-  def calculate(%{props: %{style: style, text: text, file: file}}, value) do
-    css = VUtils.get_css(style)
-
-    value =
-      case {file, value} do
-        {"", _} -> nil
-        {_, nil} -> Pt.get_value("file:#{file}")
-        _ -> value
-      end
-
-    disabled = !value
-
-    %{
-      css: css,
-      text: text,
-      disabled: disabled,
-      src: if(disabled, do: nil, else: Path.join("/applets", value))
-    }
-  end
-
   def save(state = %{selected: %{item: sitem}, screen: screen}, id, params) do
     # Log.debug(id: id, params: params)
 
@@ -112,18 +92,43 @@ defmodule Flex.UserScreens.Image do
     state
   end
 
-  def handle(item, _, {_, value}) do
+  def calculate(%{props: %{style: style, text: text, file: file}}, value) do
+    css = VUtils.get_css(style)
+
+    value =
+      case {file, value} do
+        {"", _} -> nil
+        {_, nil} -> Pt.get_value("file:#{file}")
+        _ -> value
+      end
+
+    disabled = !value
+
+    %{
+      css: css,
+      text: text,
+      disabled: disabled,
+      src: if(disabled, do: nil, else: Path.join("/applets", value))
+    }
+  end
+
+  def handle(item, _rt, _event = {_, value}) do
     calculate(item, value)
   end
 
-  def init(item = %{props: %{file: ""}}, _) do
+  def init(item = %{props: %{file: ""}}, _design?, _subget) do
     rt = calculate(item, nil)
     {rt, nil}
   end
 
-  def init(item = %{props: %{file: file}}, subget!) do
+  def init(item, _design? = true, _subget) do
+    rt = calculate(item, nil)
+    {rt, nil}
+  end
+
+  def init(item = %{props: %{file: file}}, _design?, subget) do
     key = "file:#{file}"
-    value = subget!.(key)
+    value = subget.(key)
     rt = calculate(item, value)
     {rt, key}
   end

@@ -228,21 +228,19 @@ defmodule Flex.UserScreens.DUtils do
     put_in(state, [:rts, id], rt)
   end
 
-  # acceptable to end up with events: nil -> nil
+  # acceptable to end up with events: nil -> []
   def init(state = %{events: events}, id, item, design?) do
     {rt, key} =
-      @items[item.type].init(item, fn key ->
-        case {design?, Map.has_key?(events, key)} do
+      @items[item.type].init(item, design?, fn key ->
+        case Map.has_key?(events, key) do
           # nil initial values allow the use of || in calculator
-          {false, false} -> Pt.subget_value(key)
-          {false, true} -> Pt.get_value(key)
-          _ -> nil
+          false -> Pt.subget_value(key)
+          true -> Pt.get_value(key)
         end
       end)
 
-    list = events[key]
-    add? = key && not design?
-    list = if add?, do: [id | list || []], else: list
+    list = events[key] || []
+    list = if key, do: [id | list], else: list
     state = put_in(state, [:events, key], list)
     state = put_in(state, [:rts, id], rt)
     state

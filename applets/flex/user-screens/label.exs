@@ -76,16 +76,6 @@ defmodule Flex.UserScreens.Label do
     """
   end
 
-  def calculate(%{props: %{style: style, calc: calc, default: default, text: text}}, value) do
-    bindings = [value: value, default: default, text: text]
-    take = [:text, :disabled, :style]
-    {output, calc, style} = VUtils.eval_rt(calc, bindings, take, style)
-    css = VUtils.get_css(style)
-    text = VUtils.get_typed(calc, :text, :binary) || text
-    disabled = VUtils.get_typed(calc, :disabled, :boolean) || false
-    %{css: css, output: output, text: text, disabled: disabled}
-  end
-
   def save(state = %{selected: %{item: sitem}, screen: screen}, id, params) do
     # Log.debug(id: id, params: params)
 
@@ -112,22 +102,37 @@ defmodule Flex.UserScreens.Label do
     state
   end
 
+  def calculate(%{props: %{style: style, calc: calc, default: default, text: text}}, value) do
+    bindings = [value: value, default: default, text: text]
+    take = [:text, :disabled, :style]
+    {output, calc, style} = VUtils.eval_rt(calc, bindings, take, style)
+    css = VUtils.get_css(style)
+    text = VUtils.get_typed(calc, :text, :binary) || text
+    disabled = VUtils.get_typed(calc, :disabled, :boolean) || false
+    %{css: css, output: output, text: text, disabled: disabled}
+  end
+
   def handle(%{props: %{source: ""}}, rt, _) do
     rt
   end
 
-  def handle(item, _, {_, value}) do
+  def handle(item, _rt, _event = {_, value}) do
     calculate(item, value)
   end
 
-  def init(item = %{props: %{source: ""}}, _) do
+  def init(item = %{props: %{source: ""}}, _design?, _subget) do
     rt = calculate(item, nil)
     {rt, nil}
   end
 
-  def init(item = %{props: %{source: source}}, subget!) do
+  def init(item, _design? = true, _subget) do
+    rt = calculate(item, nil)
+    {rt, nil}
+  end
+
+  def init(item = %{props: %{source: source}}, _design?, subget) do
     key = "source:#{source}"
-    value = subget!.(key)
+    value = subget.(key)
     rt = calculate(item, value)
     {rt, key}
   end
