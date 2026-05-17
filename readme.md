@@ -163,6 +163,7 @@ raise "ouch!"
   - Display image was noisy, improved with vga cable replace, image still ghosty.
   - cog/browser bug?
   - relay EMP?
+- [ ] each defmodule generates a [flush: {:EXIT, #PID<0.1406.0>, :normal}] log
 - [x] Simulated pulse inputs
 - [x] Screen password protection
 - [x] Screen link widget for inter screen navigation
