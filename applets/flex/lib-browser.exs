@@ -124,6 +124,7 @@ weston = fn ->
     url
   ]
 
+  # defer below gets ignored for System.cmd based exec
   Api.defer(fn -> exec.("killall", ["cog"], []) end)
   exec.("weston", args, env)
 end
@@ -135,7 +136,7 @@ loop = fn args ->
 end
 
 clean.()
-Flex.with_tag("browser", fn -> Api.defer(clean) end)
+Api.defer(clean)
 
 Api.loop("browser:dbus", 5_000, loop, %{call: dbus, loop: loop, delay: 5_000})
 Api.loop("browser:udev", 5_000, loop, %{call: udev, loop: loop, delay: 5_000})

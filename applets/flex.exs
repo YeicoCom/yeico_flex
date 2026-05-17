@@ -28,19 +28,16 @@ defmodule Flex do
   defp flush_loop() do
     receive do
       msg ->
-        Log.debug(flush: msg)
+        tag = Process.get(:__tag__)
+        Log.debug(tag: tag, flush: msg)
         flush_loop()
     end
   end
 
-  def with_tag(tag, fun) do
-    prev = Process.put(:__tag__, tag)
-    fun.()
-    Process.put(:__tag__, prev)
-  end
-
   def await_many(list) do
-    Task.await_many(list, :infinity)
+    list
+    |> Enum.filter(& &1)
+    |> Task.await_many(:infinity)
   end
 
   def eval_async(route, opts) do
@@ -83,8 +80,8 @@ defmodule Flex do
     path = path |> Path.rootname() |> String.replace_suffix("/index", "")
     opts = [{:path, path} | opts]
 
-    Api.async("run_view", fn ->
-      with_tag(path, fn -> Terminal.view(path, mod.handler(opts)) end)
+    Api.async("runview:#{path}", fn ->
+      Terminal.view(path, mod.handler(opts))
       flush_loop()
     end)
   end
@@ -93,7 +90,7 @@ defmodule Flex do
     ctx = Process.get(:__flex__)
 
     Api.async(
-      "run_async",
+      "runasync:#{route}",
       fn ->
         Process.put(:__flex__, ctx)
         eval_file(route, opts)
@@ -112,6 +109,17 @@ defmodule Flex do
         error -> {:error, error}
       end
     end)
+  end
+
+  def tree() do
+    Applet.print_tree("flex.exs")
+  end
+
+  def view() do
+    Terminal.Multiple.lookup(:handler)
+    |> Enum.map(fn {pid, path} -> path end)
+    |> Enum.sort()
+    |> Enum.each(&IO.puts/1)
   end
 end
 
@@ -132,15 +140,16 @@ Flex.await_many([
   Flex.eval_async("lib-database.exs", []),
   Flex.eval_async("lib-user-interface.exs", []),
   Flex.eval_async("lib-modbus/setup.exs", []),
-  Flex.eval_async("lib-points.exs", [])
+  Flex.eval_async("lib-points.exs", []),
+  Flex.eval_async("echo-server-loop.exs", [])
 ])
 
 Flex.await_many([
   Flex.eval_async("index.exs", []),
   Flex.eval_async("login.exs", []),
   Flex.eval_async("logout.exs", []),
-  Flex.eval_async("echo-server-loop.exs", []),
-  Flex.eval_async("modbus-slave-loop.exs", [])
+  Flex.eval_async("modbus-slave-loop.exs", []),
+  Terminal.dev?() && Flex.eval_async("ui-tester.exs", [])
 ])
 
 Flex.run_loop("echo:44000", 1_000, Flex.EchoServer.Loop, port: 44000)
@@ -163,7 +172,6 @@ if Terminal.device?() do
 end
 
 if Terminal.dev?() do
-  Flex.eval_file("ui-tester.exs", [])
   Flex.run_view("ui-tester.exs", Flex.UITester, [])
 end
 
