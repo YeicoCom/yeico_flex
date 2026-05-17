@@ -67,10 +67,18 @@ defmodule Flex.UserScreens.Link do
     """
   end
 
-  def calculate(%{props: %{style: style, text: text, screen: screen}}, _value) do
+  def calculate(%{props: %{style: style, text: text, screen: screen}}, value) do
     css = VUtils.get_css(style)
-    disabled = screen == ""
-    %{css: css, text: text, disabled: disabled, href: if(disabled, do: nil, else: screen)}
+
+    value =
+      case {screen, value} do
+        {"", _} -> nil
+        {_, nil} -> Pt.get_value("screen:#{screen}")
+        _ -> value
+      end
+
+    disabled = !value
+    %{css: css, text: text, disabled: disabled, href: if(disabled, do: nil, else: value)}
   end
 
   def save(state = %{selected: %{item: sitem}, screen: screen}, id, params) do
@@ -97,13 +105,20 @@ defmodule Flex.UserScreens.Link do
     state
   end
 
-  def handle(_, rt, _) do
-    rt
+  def handle(item, _, {_, value}) do
+    calculate(item, value)
   end
 
-  def init(item, _) do
+  def init(item = %{props: %{screen: ""}}, _) do
     rt = calculate(item, nil)
     {rt, nil}
+  end
+
+  def init(item = %{props: %{screen: screen}}, subget!) do
+    key = "screen:#{screen}"
+    value = subget!.(key)
+    rt = calculate(item, value)
+    {rt, key}
   end
 end
 
