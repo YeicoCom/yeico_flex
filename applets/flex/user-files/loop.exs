@@ -3,8 +3,17 @@ defmodule Flex.UserFiles.Loop do
 
   @log "flex:user-files:log"
 
-  defp runner_setup(%{id: id}) do
+  defp runner_setup(%{id: id, item: %{name: name}}) do
     Bus.subscribe!("flex:user-files:reload:#{id}", nil)
+
+    with path <- Api.path("static/upload/#{id}"),
+         {:ok, link} <- File.read_link(path) do
+      Mdb.register!("flex:points:files", "#{link}:#{name}")
+      Lg.send(@log, id, nil, "Started #{link}")
+    else
+      _ -> Lg.send(@log, id, nil, "Not found")
+    end
+
     Api.receive()
     [reload: id]
   end
@@ -30,7 +39,7 @@ defmodule Flex.UserFiles.Loop do
     items
   end
 
-  defp master_loop(state = %{idb: idb, runners: runners, logs: logs}) do
+  defp master_loop(state = %{idb: idb, udir: udir, runners: runners, logs: logs}) do
     receive do
       {"flex:user-files:insert", _, params} ->
         id = UUID.uuid1() |> ShortUUID.encode!()
@@ -55,6 +64,8 @@ defmodule Flex.UserFiles.Loop do
 
       {"flex:user-files:delete", _, id} ->
         Db.delete(idb, id)
+        {:ok, _} = File.rm_rf("#{udir}/#{id}")
+        Path.wildcard("#{udir}/#{id}.*") |> Enum.each(&File.rm/1)
         Api.putcast!("flex:user-files:item:#{id}", nil)
         publish_items(idb)
         task = runners[id][:task]
@@ -82,6 +93,7 @@ defmodule Flex.UserFiles.Loop do
 
   def setup opts do
     idb = Keyword.fetch!(opts, :idb)
+    udir = Keyword.fetch!(opts, :udir)
 
     Bus.subscribe!("flex:user-files:insert", nil)
     Bus.subscribe!("flex:user-files:update", nil)
@@ -97,7 +109,7 @@ defmodule Flex.UserFiles.Loop do
 
     runners = Enum.into(runners, %{})
     Api.putcast!("flex:user-files:logs", %{})
-    master_loop(%{idb: idb, runners: runners, logs: %{}})
+    master_loop(%{idb: idb, udir: udir, runners: runners, logs: %{}})
   end
 end
 

@@ -4,3 +4,6 @@ applets/static/*.css
 applets/static/*.js
 applets/static/*/
 applets/secret
+
+applets/static/upload
+

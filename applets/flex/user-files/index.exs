@@ -150,8 +150,8 @@ defmodule Flex.UserFiles.Index do
       {:event, socket, state, event = "upload:data",
        params = %{"id" => id, "name" => name, "pos" => pos, "data" => data}} ->
         Log.trace(view: path, event: event, params: params)
-        IUtils.append(udir, id, name, pos, data)
         state = Map.put(state, :upload, if(data, do: id, else: nil))
+        IUtils.append(udir, id, name, pos, data)
         {socket, state}
 
       {:event, socket, state, event, params} ->

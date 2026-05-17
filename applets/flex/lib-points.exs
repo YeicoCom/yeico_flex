@@ -51,6 +51,13 @@ defmodule Flex.Pt do
     |> Enum.sort()
   end
 
+  def get_files do
+    "flex:points:files"
+    |> Mdb.lookup()
+    |> Enum.map(fn {_, tag} -> tag end)
+    |> Enum.sort()
+  end
+
   def get_limits(:uint16), do: %{step: 1, min: 0, max: 65_535}
   def get_limits(:sint16), do: %{step: 1, min: -32_768, max: 32_767}
   def get_limits(:float), do: %{step: "any", min: nil, max: nil}

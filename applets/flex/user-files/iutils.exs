@@ -4,7 +4,7 @@ defmodule Flex.UserFiles.IUtils do
   @name "User File"
   @status [:disabled, :enabled]
   @options %{status: @status}
-  @new %{name: @name, status: :disabled}
+  @new %{name: @name, status: :enabled}
 
   def style(:error), do: "text-red-500"
   def style(:warn), do: "text-yellow-500"
@@ -52,6 +52,7 @@ defmodule Flex.UserFiles.IUtils do
     :ok = File.rename(path1, path2)
     {:ok, _} = File.rm_rf(path3)
     :ok = File.ln_s(Path.basename(path2), path3)
+    Bus.broadcast!("flex:user-files:reload:#{id}", nil)
   end
 
   def append(udir, id, _name, pos, data) do
