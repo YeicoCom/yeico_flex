@@ -3,7 +3,14 @@ use Terminal
 # MuonTrap kills the whole applet up to the root runner process
 # MuonTrap kills parent erlang process on abnormal os-process exit
 # MounTrap prevents weston from removing /run/weston/wayland-1 socket
+# MuonTrap detect weston killall and restarts weston but duplicates cog
+# System.cmd wont return from weston exec despite weston killall until cog is manually killed as well
 # Full weston+cog restart on save is fast enough on vm110
+# 260516 giving MuonTrap a second chance now with trapping loops and tagged process tree
+# 260516 going back to System.cmd because:
+# - muontrap wont start weston with the added killall cog defer (just before weston exec)
+# - some killall are being left behind
+# - cog wont reliably restart on save
 
 loop = fn cmd, loop ->
   receive do
@@ -14,16 +21,18 @@ loop = fn cmd, loop ->
       loop.(cmd, loop)
 
     unexpected ->
-      Log.warn(unexpected: unexpected)
+      [unexpected: unexpected]
   end
 end
 
 exec = fn cmd, args, env ->
   Log.debug(exec: cmd, args: args)
-  task = Api.async(fn -> loop.(cmd, loop) end)
+  tag = Enum.join([cmd | args], " ")
+  task = Api.async("browser:exec:#{tag}", fn -> loop.(cmd, loop) end)
   into = IO.binstream(task.pid, :line)
   opts = [into: into, stderr_to_stdout: true, env: env]
-  System.cmd(cmd, args, opts)
+  res = System.cmd(cmd, args, opts)
+  send(task.pid, res)
   cmd
 end
 
@@ -49,7 +58,7 @@ udev = fn ->
   # UDEV
   # /run/udev/control (removed when udevd exists)
 
-  task = Api.async(fn -> exec.("udevd", [], []) end)
+  task = Api.async("browser:udevd", fn -> exec.("udevd", [], []) end)
   exec.("udevadm", ["trigger", "--type=subsystems", "--action=add"], [])
   exec.("udevadm", ["trigger", "--type=devices", "--action=add"], [])
   exec.("udevadm", ["settle", "--timeout=30"], [])
@@ -115,12 +124,13 @@ weston = fn ->
     url
   ]
 
+  Api.defer(fn -> exec.("killall", ["cog"], []) end)
   exec.("weston", args, env)
 end
 
 loop = fn args ->
   args.call.()
-  Api.sleep(args.delay)
+  Api.flush(args.delay)
   args.loop.(args)
 end
 
@@ -139,8 +149,10 @@ Api.loop("browser:weston", 5_000, loop, %{call: weston, loop: loop, delay: 1_000
 
 # test with
 # cmd "killall cog" -> reboots weston
-# cmd "killall weston" -> weston wont return until cog is manually killed as well
+# cmd "killall weston" -> not reliable (see muontrap notes at the top)
 # cmd "cogctl --system open https://google.com"
 # cmd "cogctl --system open https://127.0.0.1"
+# cmd "ps | grep weston"
+# cmd "ps | grep cog"
 
 :ok

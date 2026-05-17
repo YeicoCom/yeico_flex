@@ -158,7 +158,8 @@ raise "ouch!"
 - [ ] Designer: clone item
 - [ ] Designer: delete key
 - [ ] Ensure weston/cog die together
-- [ ] Mountrap browser review after trap enabled in applet loop
+- [ ] Mountrap browser review after trapping loop and tagged process tree
+- [ ] Implement cog monitor pixel resolution selection
 - [ ] Critical: mesa demo monitor went black when playing with the RYx relays
   - Display image was noisy, improved with vga cable replace, image still ghosty.
   - cog/browser bug?
