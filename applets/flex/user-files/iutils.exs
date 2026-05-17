@@ -46,8 +46,9 @@ defmodule Flex.UserFiles.IUtils do
 
   def append(udir, id, name, _pos, nil) do
     ext = Path.extname(name)
+    dt = System.os_time(:millisecond)
     path1 = Path.join(udir, "#{id}.tmp")
-    path2 = Path.join(udir, "#{id}#{ext}")
+    path2 = Path.join(udir, "#{id}.#{dt}#{ext}")
     path3 = Path.join(udir, id)
     :ok = File.rename(path1, path2)
     {:ok, _} = File.rm_rf(path3)
@@ -61,6 +62,15 @@ defmodule Flex.UserFiles.IUtils do
     {:ok, file} = File.open(path, mode)
     :ok = IO.binwrite(file, Base.decode64!(data))
     :ok = File.close(file)
+  end
+
+  def find(id) do
+    with path <- Api.path("static/upload/#{id}"),
+         {:ok, link} <- File.read_link(path) do
+      link
+    else
+      _ -> nil
+    end
   end
 end
 

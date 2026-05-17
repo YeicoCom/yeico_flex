@@ -1,30 +1,23 @@
 defmodule Flex.UserFiles.Loop do
+  alias Flex.UserFiles.IUtils
   use Flex
 
   @log "flex:user-files:log"
 
-  defp runner_setup(%{id: id, item: %{name: name}}) do
-    Bus.subscribe!("flex:user-files:reload:#{id}", nil)
-
-    with path <- Api.path("static/upload/#{id}"),
-         {:ok, link} <- File.read_link(path) do
-      Mdb.register!("flex:points:files", "#{link}:#{name}")
-      Lg.send(@log, id, nil, "Started #{link}")
-    else
-      _ -> Lg.send(@log, id, nil, "Not found")
+  defp runner_setup(id, _item) do
+    case IUtils.find(id) do
+      nil -> Lg.send(@log, id, nil, "Not found")
+      link -> Lg.send(@log, id, nil, "Started #{link}")
     end
-
-    Api.receive()
-    [reload: id]
   end
 
   defp run_enabled(id, item) do
-    tag = "userfiles:#{id}:#{item.name}"
-
     case item.status do
-      :enabled -> Api.loop(tag, 0, &runner_setup/1, %{id: id, item: item})
+      :enabled -> runner_setup(id, item)
       _ -> nil
     end
+
+    nil
   end
 
   defp run_item(id, item) do

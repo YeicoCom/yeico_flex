@@ -56,13 +56,13 @@ defmodule Flex.Pt do
   end
 
   def get_files do
-    "flex:points:files"
+    "flex:points:file"
     |> Mdb.lookup()
     |> Enum.map(fn {_, tag} -> tag end)
     |> Enum.sort()
     |> Enum.map(fn tag ->
-      [file, name] = String.split(tag, ":")
-      {file, name}
+      [id, name] = String.split(tag, ":")
+      {id, name}
     end)
   end
 
@@ -73,6 +73,7 @@ defmodule Flex.Pt do
 
   defp get_def("source:float:" <> _), do: 0.0
   defp get_def("sink:float:" <> _), do: 0.0
+  defp get_def("file:" <> _), do: nil
   defp get_def(_), do: 0
 end
 

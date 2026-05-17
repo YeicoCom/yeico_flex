@@ -139,6 +139,7 @@ raise "ouch!"
 ## Fixme
 
 - [ ] Designer: Analog input slider
+- [ ] Designer: image wont update on upload (runtime works ok)
 - [ ] Document live view life cycle
 - [ ] Shaky things: slow boot, browser, mountrap, socat, kill links, unable to await defers, modbus lib
 - [ ] Shaky things: api kill may buble kill single when called from non task parent

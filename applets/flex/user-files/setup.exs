@@ -14,10 +14,13 @@ end
 Flex.eval_file("iutils.exs", [])
 Flex.eval_file("loop.exs", [])
 Flex.eval_file("index.exs", [])
+Flex.eval_file("publish.exs", [])
 
 Flex.run_view("index.exs", Flex.UserFiles.Index, idb: idb, udir: udir)
 Flex.run_loop("userfiles:loop", 2_000, Flex.UserFiles.Loop, idb: idb, udir: udir)
+Flex.run_loop("userfiles:publish", 0, Flex.UserFiles.Publish, [])
 
-Mdb.register!("flex:points:files", "../logo.svg:Yeico Logo")
+Api.putcast!("flex:point:file:yeicologo", "logo.svg")
+Mdb.register!("flex:points:file", "yeicologo:Yeico Logo")
 
 :ok

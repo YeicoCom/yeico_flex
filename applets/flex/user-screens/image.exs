@@ -68,15 +68,23 @@ defmodule Flex.UserScreens.Image do
     """
   end
 
-  def calculate(%{props: %{style: style, text: text, file: file}}, _value) do
+  def calculate(%{props: %{style: style, text: text, file: file}}, value) do
     css = VUtils.get_css(style)
-    disabled = file == ""
+
+    value =
+      case {file, value} do
+        {"", _} -> nil
+        {_, nil} -> Pt.get_value("file:#{file}")
+        _ -> value
+      end
+
+    disabled = !value
 
     %{
       css: css,
       text: text,
       disabled: disabled,
-      src: if(disabled, do: nil, else: Path.join("/applets/upload", file))
+      src: if(disabled, do: nil, else: Path.join("/applets", value))
     }
   end
 
@@ -104,13 +112,20 @@ defmodule Flex.UserScreens.Image do
     state
   end
 
-  def handle(_, rt, _) do
-    rt
+  def handle(item, _, {_, value}) do
+    calculate(item, value)
   end
 
-  def init(item, _) do
+  def init(item = %{props: %{file: ""}}, _) do
     rt = calculate(item, nil)
     {rt, nil}
+  end
+
+  def init(item = %{props: %{file: file}}, subget!) do
+    key = "file:#{file}"
+    value = subget!.(key)
+    rt = calculate(item, value)
+    {rt, key}
   end
 end
 
