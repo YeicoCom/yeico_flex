@@ -155,5 +155,7 @@ Api.loop("browser:weston", 5_000, loop, %{call: weston, loop: loop, delay: 1_000
 # cmd "cogctl --system open https://127.0.0.1"
 # cmd "ps | grep weston"
 # cmd "ps | grep cog"
+# Path.wildcard("/proc/*/exe") |> Enum.map(&File.read_link(&1)) |> Enum.any?(& &1=={:ok, "/usr/bin/weston"})
+# cmd "ls -l /proc/*/exe"
 
 :ok

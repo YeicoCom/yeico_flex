@@ -165,6 +165,11 @@ raise "ouch!"
   - cog/browser bug?
   - relay EMP?
 - [ ] Detect cog crash by monitoring Terminal.Multiple.lookup(:local)
+  - confirm if killall weston blanks the monitor because :local is still there
+  - vm110 blanks the screen after killall but :local is still there
+  - cmd "ps | grep weston" not showing weston
+  - monitor cmd "ls -l /proc/*/exe"?
+  - Path.wildcard("/proc/*/exe") |> Enum.map(&File.read_link(&1)) |> Enum.any?(& &1=={:ok, "/usr/bin/weston"})
 - [-] each defmodule generates a [flush: {:EXIT, #PID<0.1406.0>, :normal}] log
 - [x] Simulated pulse inputs
 - [x] Screen password protection

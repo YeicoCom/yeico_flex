@@ -117,7 +117,7 @@ defmodule Flex do
 
   def view() do
     Terminal.Multiple.lookup(:handler)
-    |> Enum.map(fn {pid, path} -> path end)
+    |> Enum.map(fn {_, path} -> path end)
     |> Enum.sort()
     |> Enum.each(&IO.puts/1)
   end
