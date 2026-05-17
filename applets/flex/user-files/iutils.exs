@@ -43,18 +43,6 @@ defmodule Flex.UserFiles.IUtils do
     params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
     Enum.into(params, %{})
   end
-
-  def load(fdb, id) do
-    Db.get(fdb, id)
-  end
-
-  def save(fdb, id, code, force?) do
-    if force? || Adb.get("flex:user-files:item:#{id}") do
-      Db.put(fdb, id, code)
-    end
-
-    Bus.broadcast!("flex:user-files:reload:#{id}", nil)
-  end
 end
 
 :ok

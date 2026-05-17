@@ -20,7 +20,7 @@ defmodule Flex.UserFiles.Index do
             <.fui fun={&UI.link/1} phx-click="click:edit" phx-value-id={id}>Edit</.fui>
             <.fui fun={&UI.link/1} phx-click="click:action" phx-value-id={id} phx-value-action="enable">Enable</.fui>
             <.fui fun={&UI.link/1} phx-click="click:action" phx-value-id={id} phx-value-action="disable">Disable</.fui>
-            <.fui fun={&UI.href/1} href={"/flex/user-files/code?id=#{id}"}>Code</.fui>
+            <.fui fun={&UI.link/1} phx-click="click:action" phx-value-id={id} phx-value-action="upload">Upload</.fui>
             <div class="grow"></div>
             <.fui fun={&UI.link/1} phx-click="click:delete" phx-value-id={id} type="danger">Delete</.fui>
           </div>
@@ -50,7 +50,6 @@ defmodule Flex.UserFiles.Index do
 
   def handler(opts) do
     idb = Keyword.fetch!(opts, :idb)
-    fdb = Keyword.fetch!(opts, :fdb)
     path = Keyword.fetch!(opts, :path)
 
     fn
@@ -109,6 +108,11 @@ defmodule Flex.UserFiles.Index do
         Bus.broadcast!("flex:user-files:delete", id)
         {socket, state}
 
+      {:event, socket, state, event = "click:action",
+       params = %{"id" => _id, "action" => "upload"}} ->
+        Log.trace(view: path, event: event, params: params)
+        {socket, state}
+
       {:event, socket, state = %{items: items}, event = "click:action",
        params = %{"id" => id, "action" => action}} ->
         Log.trace(view: path, event: event, params: params)
@@ -128,7 +132,6 @@ defmodule Flex.UserFiles.Index do
       {:event, socket, state, event = "click:compact", params} ->
         Log.trace(view: path, event: event, params: params)
         Db.compact(idb)
-        Db.compact(fdb)
         {socket, state}
 
       {:event, socket, state, event, params} ->

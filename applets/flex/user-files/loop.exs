@@ -1,47 +1,25 @@
 defmodule Flex.UserFiles.Loop do
-  alias Flex.UserFiles.IUtils
   use Flex
 
   @log "flex:user-files:log"
 
-  defp run_code({id, code}) do
-    api = Process.get(:__api__)
-
-    Process.put(:__api__, fn
-      :entry -> id
-      :route -> "file"
-      other -> api.(other)
-    end)
-
-    Log.info("Starting...")
-    Api.evals("file", code, [])
-    Api.sleep()
-  end
-
-  defp runner_setup(%{id: id, item: %{name: name}, ctx: %{fdb: fdb}}) do
+  defp runner_setup(%{id: id}) do
     Bus.subscribe!("flex:user-files:reload:#{id}", nil)
-    Udb.register!({:file, id}, name)
-    Mdb.register!(:file, id)
-    code = String.trim(IUtils.load(fdb, id) || "")
-    Lg.send(@log, id, nil, "Started")
-    tag = "userfiles:#{id}:#{name}"
-    task = if String.length(code) > 0, do: Api.async(tag, &run_code/1, {id, code})
     Api.receive()
-    if task, do: Api.kill(task)
     [reload: id]
   end
 
-  defp run_enabled(id, item, ctx) do
+  defp run_enabled(id, item) do
     tag = "userfiles:#{id}:#{item.name}"
 
     case item.status do
-      :enabled -> Api.loop(tag, 0, &runner_setup/1, %{id: id, item: item, ctx: ctx})
+      :enabled -> Api.loop(tag, 0, &runner_setup/1, %{id: id, item: item})
       _ -> nil
     end
   end
 
-  defp run_item(id, item, ctx) do
-    task = run_enabled(id, item, ctx)
+  defp run_item(id, item) do
+    task = run_enabled(id, item)
     %{item: item, task: task}
   end
 
@@ -52,15 +30,14 @@ defmodule Flex.UserFiles.Loop do
     items
   end
 
-  defp master_loop(state = %{idb: idb, fdb: fdb, runners: runners, logs: logs}) do
+  defp master_loop(state = %{idb: idb, runners: runners, logs: logs}) do
     receive do
       {"flex:user-files:insert", _, params} ->
         id = UUID.uuid1() |> ShortUUID.encode!()
         Db.put(idb, id, params)
-        Db.put(fdb, id, "use Terminal\n\n:ok")
         publish_items(idb)
         Lg.send(@log, id, false, "Created")
-        runner = run_item(id, params, %{fdb: fdb})
+        runner = run_item(id, params)
         runners = Map.put(runners, id, runner)
         state = Map.put(state, :runners, runners)
         master_loop(state)
@@ -71,13 +48,12 @@ defmodule Flex.UserFiles.Loop do
         task = runners[id][:task]
         if task, do: Api.kill(task)
         Lg.send(@log, id, false, "Updated")
-        runner = run_item(id, params, %{fdb: fdb})
+        runner = run_item(id, params)
         runners = Map.put(runners, id, runner)
         state = Map.put(state, :runners, runners)
         master_loop(state)
 
       {"flex:user-files:delete", _, id} ->
-        Db.delete(fdb, id)
         Db.delete(idb, id)
         Api.putcast!("flex:user-files:item:#{id}", nil)
         publish_items(idb)
@@ -106,7 +82,6 @@ defmodule Flex.UserFiles.Loop do
 
   def setup opts do
     idb = Keyword.fetch!(opts, :idb)
-    fdb = Keyword.fetch!(opts, :fdb)
 
     Bus.subscribe!("flex:user-files:insert", nil)
     Bus.subscribe!("flex:user-files:update", nil)
@@ -116,13 +91,13 @@ defmodule Flex.UserFiles.Loop do
 
     runners =
       for {id, item} <- items do
-        runner = run_item(id, item, %{fdb: fdb})
+        runner = run_item(id, item)
         {id, runner}
       end
 
     runners = Enum.into(runners, %{})
     Api.putcast!("flex:user-files:logs", %{})
-    master_loop(%{idb: idb, fdb: fdb, runners: runners, logs: %{}})
+    master_loop(%{idb: idb, runners: runners, logs: %{}})
   end
 end
 
