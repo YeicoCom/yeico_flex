@@ -2,10 +2,11 @@ defmodule Flex.UserScreens.DUtils do
   alias Flex.UserScreens.Label
   alias Flex.UserScreens.Button
   alias Flex.UserScreens.Link
+  alias Flex.UserScreens.Image
   alias Flex.UserScreens.VUtils
   use Flex.Live
 
-  @modules [Label, Button, Link]
+  @modules [Label, Button, Link, Image]
   @index for(m <- @modules, do: m.name())
   @items for(m <- @modules, do: {m.name(), m}) |> Enum.into(%{})
 

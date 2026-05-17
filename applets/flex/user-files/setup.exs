@@ -18,4 +18,6 @@ Flex.eval_file("index.exs", [])
 Flex.run_view("index.exs", Flex.UserFiles.Index, idb: idb, udir: udir)
 Flex.run_loop("userfiles:loop", 2_000, Flex.UserFiles.Loop, idb: idb, udir: udir)
 
+Mdb.register!("flex:points:files", "../logo.svg:Yeico Logo")
+
 :ok

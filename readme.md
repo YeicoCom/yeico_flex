@@ -138,9 +138,6 @@ raise "ouch!"
 
 ## Fixme
 
-- [ ] Image uploader and manager
-- [ ] Designer: image viewer
-- [ ] Designer: SVG widget
 - [ ] Designer: Analog input slider
 - [ ] Document live view life cycle
 - [ ] Shaky things: slow boot, browser, mountrap, socat, kill links, unable to await defers, modbus lib
@@ -167,6 +164,10 @@ raise "ouch!"
   - cmd "ps | grep weston" not showing weston
   - monitor cmd "ls -l /proc/*/exe"?
   - Path.wildcard("/proc/*/exe") |> Enum.map(&File.read_link(&1)) |> Enum.any?(& &1=={:ok, "/usr/bin/weston"})
+- [x] Image uploader and manager
+- [x] Designer: image viewer
+- [x] Designer: SVG widget
+- [x] Confirm data-disabled works for all widgets
 - [x] Designer: clone item
 - [x] Designer: delete key
 - [x] Clone controls to easy copy template styling

@@ -25,6 +25,7 @@ defmodule Flex.UserScreens.Label do
       <div id={@id} class={[@class,
         "data-[disabled]:text-zinc-600"
         ]}
+        tabindex="-1"
         data-disabled={@rt.disabled}
         style={[
           "left: #{@x}px; top: #{@y}px;",
@@ -34,6 +35,8 @@ defmodule Flex.UserScreens.Label do
       </div>
       <style id={"#{@id}_Style"}>
       <%= "\##{@id}" %> { <%= @rt.css[nil] %> }
+      <%= "\##{@id}:hover" %> { <%= @rt.css["hover"] %> }
+      <%= "\##{@id}:active" %> { <%= @rt.css["active"] %> }
       <%= "\##{@id}[disabled]" %> { <%= @rt.css["disabled"] %> }
       </style>
     """

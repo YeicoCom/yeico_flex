@@ -11,6 +11,7 @@ Flex.await_many([
   Flex.eval_async("button.exs", []),
   Flex.eval_async("label.exs", []),
   Flex.eval_async("link.exs", []),
+  Flex.eval_async("image.exs", []),
   Flex.eval_async("iutils.exs", [])
 ])
 

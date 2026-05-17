@@ -26,6 +26,7 @@ defmodule Flex.UserScreens.Link do
         "hover:text-lime-500",
         "data-[disabled]:text-zinc-600",
         ]}
+        tabindex="-1"
         data-disabled={@rt.disabled}
         style={[
           "left: #{@x}px; top: #{@y}px;",
@@ -46,7 +47,7 @@ defmodule Flex.UserScreens.Link do
     assigns = UI.phxattr(assigns)
     assigns = Map.put(assigns, :props, item.props)
     assigns = Map.put(assigns, :errors, item.errors)
-    assigns = Map.put(assigns, :screens, ["" | Pt.get_screens()])
+    assigns = Map.put(assigns, :screens, [{"", ""} | Pt.get_screens()])
     assigns = Map.put(assigns, :inspect?, &VUtils.inspect?/1)
 
     ~H"""
@@ -58,7 +59,7 @@ defmodule Flex.UserScreens.Link do
     <div>Text</div>
     <.fui fun={&UI.input/1} name="text" value={@props.text} error={@errors.text} type="text"/>
     <div>Screen</div>
-    <.fui fun={&UI.select/1} name="screen" value={@props.screen} error={@errors.screen} values={@screens}/>
+    <.fui fun={&UI.select/1} name="screen" value={@props.screen} error={@errors.screen} values2={@screens}/>
     <div class="col-span-2">Style</div>
     <div class="col-span-2">
       <.fui fun={&UI.area/1} name="style" value={@props.style} error={@errors.style} rows="8" class="w-full"/>
@@ -68,9 +69,8 @@ defmodule Flex.UserScreens.Link do
 
   def calculate(%{props: %{style: style, text: text, screen: screen}}, _value) do
     css = VUtils.get_css(style)
-    [href | _] = String.split(screen, ":", parts: 2)
-    disabled = href == ""
-    %{css: css, text: text, disabled: disabled, href: if(disabled, do: nil, else: href)}
+    disabled = screen == ""
+    %{css: css, text: text, disabled: disabled, href: if(disabled, do: nil, else: screen)}
   end
 
   def save(state = %{selected: %{item: sitem}, screen: screen}, id, params) do

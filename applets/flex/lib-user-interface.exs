@@ -89,6 +89,7 @@ defmodule Flex.UI do
     assigns = Map.put_new(assigns, :size, nil)
     assigns = Map.put_new(assigns, :value, nil)
     assigns = Map.put_new(assigns, :values, [])
+    assigns = Map.put_new(assigns, :values2, [])
     assigns = Map.put_new(assigns, :required, nil)
     assigns = Map.put_new(assigns, :disabled, nil)
 
@@ -113,6 +114,11 @@ defmodule Flex.UI do
       selected={value==@value} title={value}
       class="p-2 checked:bg-lime-500 checked:text-white">
       {value}
+    </option>
+    <option :for={{value, label} <- @values2} value={value}
+      selected={value==@value} title={label}
+      class="p-2 checked:bg-lime-500 checked:text-white">
+      {label}
     </option>
     </select>
     """

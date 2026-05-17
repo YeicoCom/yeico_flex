@@ -49,6 +49,10 @@ defmodule Flex.Pt do
     |> Mdb.lookup()
     |> Enum.map(fn {_, tag} -> tag end)
     |> Enum.sort()
+    |> Enum.map(fn tag ->
+      [route, name] = String.split(tag, ":")
+      {route, name}
+    end)
   end
 
   def get_files do
@@ -56,6 +60,10 @@ defmodule Flex.Pt do
     |> Mdb.lookup()
     |> Enum.map(fn {_, tag} -> tag end)
     |> Enum.sort()
+    |> Enum.map(fn tag ->
+      [file, name] = String.split(tag, ":")
+      {file, name}
+    end)
   end
 
   def get_limits(:uint16), do: %{step: 1, min: 0, max: 65_535}

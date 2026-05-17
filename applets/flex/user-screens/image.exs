@@ -1,0 +1,117 @@
+defmodule Flex.UserScreens.Image do
+  alias Flex.UserScreens.VUtils
+  use Flex.Live
+
+  @name "Image"
+
+  @props %{
+    w: 100,
+    h: 0,
+    text: @name,
+    file: "",
+    style: ""
+  }
+
+  def name, do: @name
+  def props, do: @props
+
+  def render(assigns) do
+    # https://www.erlang.org/doc/apps/stdlib/io_lib.html#format/2
+    # search: io_lib Format Escapes
+
+    ~H"""
+      <div :if={!@rt.src} id={@id} class={[@class, "data-[disabled]:text-zinc-600"]}
+        tabindex="-1"
+        data-disabled={@rt.disabled}
+        style={[
+          "left: #{@x}px; top: #{@y}px;",
+          @size.(@props.w, @props.h),
+        ]}>{@rt.text}</div>
+      <img :if={@rt.src} id={@id} class={[@class]}
+        data-disabled={@rt.disabled}
+        tabindex="-1"
+        title={@rt.text}
+        style={[
+          "left: #{@x}px; top: #{@y}px;",
+          @size.(@props.w, @props.h),
+        ]} src={@rt.src} draggable="false"/>
+      <style id={"#{@id}_Style"}>
+      <%= "\##{@id}" %> { <%= @rt.css[nil] %> }
+      <%= "\##{@id}:hover" %> { <%= @rt.css["hover"] %> }
+      <%= "\##{@id}:active" %> { <%= @rt.css["active"] %> }
+      <%= "\##{@id}:disabled" %> { <%= @rt.css["disabled"] %> }
+      </style>
+    """
+  end
+
+  def editor(assigns = %{item: item}) do
+    assigns = UI.phxattr(assigns)
+    assigns = Map.put(assigns, :props, item.props)
+    assigns = Map.put(assigns, :errors, item.errors)
+    assigns = Map.put(assigns, :files, [{"", ""} | Pt.get_files()])
+    assigns = Map.put(assigns, :inspect?, &VUtils.inspect?/1)
+
+    ~H"""
+    <div>Size</div>
+    <div class="grid grid-cols-2 gap-1">
+      <.fui fun={&UI.input/1} name="w" value={@props.w} error={@errors.w} type="number" step="1"/>
+      <.fui fun={&UI.input/1} name="h" value={@props.h} error={@errors.h} type="number" step="1"/>
+    </div>
+    <div>Text</div>
+    <.fui fun={&UI.input/1} name="text" value={@props.text} error={@errors.text} type="text"/>
+    <div>File</div>
+    <.fui fun={&UI.select/1} name="file" value={@props.file} error={@errors.file} values2={@files}/>
+    <div class="col-span-2">Style</div>
+    <div class="col-span-2">
+      <.fui fun={&UI.area/1} name="style" value={@props.style} error={@errors.style} rows="8" class="w-full"/>
+    </div>
+    """
+  end
+
+  def calculate(%{props: %{style: style, text: text, file: file}}, _value) do
+    css = VUtils.get_css(style)
+    disabled = file == ""
+
+    %{
+      css: css,
+      text: text,
+      disabled: disabled,
+      src: if(disabled, do: nil, else: Path.join("/applets/upload", file))
+    }
+  end
+
+  def save(state = %{selected: %{item: sitem}, screen: screen}, id, params) do
+    # Log.debug(id: id, params: params)
+
+    %{items: items, props: %{w: w, h: h}} = screen
+    aitem = %{props: props} = items[id]
+    change = %{errors: VUtils.errors(props)}
+    params = VUtils.params(props, params)
+
+    change = VUtils.parse(change, props, params, :w, {:integer, 0, w})
+    change = VUtils.parse(change, props, params, :h, {:integer, 0, h})
+    change = VUtils.parse(change, props, params, :text, :text?)
+    change = VUtils.parse(change, props, params, :file, :text?)
+    change = VUtils.parse(change, props, params, :style, :style)
+
+    props = Map.merge(props, Map.drop(change, [:errors]))
+    aitem = Map.put(aitem, :props, props)
+    state = put_in(state, [:screen, :items, id], aitem)
+    sitem = Map.put(sitem, :props, params)
+    sitem = Map.put(sitem, :errors, change.errors)
+    state = put_in(state, [:selected, :item], sitem)
+    state = put_in(state, [:rts, id], calculate(aitem, nil))
+    state
+  end
+
+  def handle(_, rt, _) do
+    rt
+  end
+
+  def init(item, _) do
+    rt = calculate(item, nil)
+    {rt, nil}
+  end
+end
+
+:ok
