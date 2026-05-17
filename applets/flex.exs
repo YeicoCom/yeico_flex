@@ -25,10 +25,34 @@ defmodule Flex do
     %{parent: parent, path: path}
   end
 
+  defp flush_loop() do
+    receive do
+      msg ->
+        Log.debug(flush: msg)
+        flush_loop()
+    end
+  end
+
   def with_tag(tag, fun) do
     prev = Process.put(:__tag__, tag)
     fun.()
     Process.put(:__tag__, prev)
+  end
+
+  def await_many(list) do
+    Task.await_many(list, :infinity)
+  end
+
+  def eval_async(route, opts) do
+    ctx = Process.get(:__flex__)
+
+    Api.async(
+      "eval_async",
+      fn ->
+        Process.put(:__flex__, ctx)
+        eval_file(route, opts)
+      end
+    )
   end
 
   def eval_file(route, opts) do
@@ -58,7 +82,24 @@ defmodule Flex do
     %{path: path} = get_path(route)
     path = path |> Path.rootname() |> String.replace_suffix("/index", "")
     opts = [{:path, path} | opts]
-    with_tag(path, fn -> Terminal.view(path, mod.handler(opts)) end)
+
+    Api.async("run_view", fn ->
+      with_tag(path, fn -> Terminal.view(path, mod.handler(opts)) end)
+      flush_loop()
+    end)
+  end
+
+  def run_async(route, opts) do
+    ctx = Process.get(:__flex__)
+
+    Api.async(
+      "run_async",
+      fn ->
+        Process.put(:__flex__, ctx)
+        eval_file(route, opts)
+        flush_loop()
+      end
+    )
   end
 
   def eval_code(code, bindings) do
@@ -85,44 +126,45 @@ end
 
 Adb.reset()
 
-Flex.eval_file("lib-logs.exs", [])
-Flex.eval_file("lib-login.exs", [])
-Flex.eval_file("lib-database.exs", [])
-Flex.eval_file("lib-user-interface.exs", [])
-Flex.eval_file("lib-modbus/setup.exs", [])
-Flex.eval_file("lib-points.exs", [])
+Flex.await_many([
+  Flex.eval_async("lib-logs.exs", []),
+  Flex.eval_async("lib-login.exs", []),
+  Flex.eval_async("lib-database.exs", []),
+  Flex.eval_async("lib-user-interface.exs", []),
+  Flex.eval_async("lib-modbus/setup.exs", []),
+  Flex.eval_async("lib-points.exs", [])
+])
 
-Flex.eval_file("echo-server-loop.exs", [])
+Flex.await_many([
+  Flex.eval_async("index.exs", []),
+  Flex.eval_async("login.exs", []),
+  Flex.eval_async("logout.exs", []),
+  Flex.eval_async("echo-server-loop.exs", []),
+  Flex.eval_async("modbus-slave-loop.exs", [])
+])
+
 Flex.run_loop("echo:44000", 1_000, Flex.EchoServer.Loop, port: 44000)
-
-Flex.eval_file("/flex/serial-exports/setup.exs", [])
-Flex.eval_file("/flex/socket-terminal/setup.exs", [])
-
-Flex.eval_file("modbus-slave-loop.exs", [])
-
 Flex.run_loop("slave:tcp:44001", 1_000, Flex.ModbusSlave.Loop, proto: "TCP", port: 44001)
 Flex.run_loop("slave:rtu:44002", 1_000, Flex.ModbusSlave.Loop, proto: "RTU", port: 44002)
 
-Flex.eval_file("/flex/modbus-terminal/setup.exs", [])
-Flex.eval_file("/flex/modbus-devices/setup.exs", [])
-
-Flex.eval_file("/flex/user-screens/setup.exs", [])
-Flex.eval_file("/flex/user-scripts/setup.exs", [])
-
-Flex.eval_file("index.exs", [])
-Flex.eval_file("login.exs", [])
-Flex.eval_file("logout.exs", [])
 Flex.run_view("index.exs", Flex.Index, [])
 Flex.run_view("login.exs", Flex.Login, [])
 Flex.run_view("logout.exs", Flex.Logout, [])
 
+Flex.run_async("/flex/serial-exports/setup.exs", [])
+Flex.run_async("/flex/socket-terminal/setup.exs", [])
+Flex.run_async("/flex/modbus-terminal/setup.exs", [])
+Flex.run_async("/flex/modbus-devices/setup.exs", [])
+Flex.run_async("/flex/user-screens/setup.exs", [])
+Flex.run_async("/flex/user-scripts/setup.exs", [])
+
+if Terminal.device?() do
+  Flex.run_async("lib-browser.exs", url: "https://127.0.0.1", monitor: false, port: 0)
+end
+
 if Terminal.dev?() do
   Flex.eval_file("ui-tester.exs", [])
   Flex.run_view("ui-tester.exs", Flex.UITester, [])
-end
-
-if Terminal.device?() do
-  Flex.eval_file("lib-browser.exs", url: "https://127.0.0.1", monitor: false, port: 0)
 end
 
 :ok
