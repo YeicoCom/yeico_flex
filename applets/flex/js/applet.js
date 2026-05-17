@@ -262,6 +262,13 @@ const hooks = {
             const port = document.getElementById("design_port")
             if (!panel) return
             if (!port) return
+            port.addEventListener("keydown", (e) => {
+                if (!e.srcElement.id.startsWith("item_")) return
+                const id = e.srcElement.id.split("_")[1]
+                const key = e.key
+                const shift = e.shiftKey
+                this.pushEvent("item:keydown", { id, key, shift })
+            })
             port.addEventListener("wheel", (e) => {
                 if (!panel.contains(e.srcElement)) return
                 port.wheelState = port.wheelState || { dx: 0, dy: 0 }

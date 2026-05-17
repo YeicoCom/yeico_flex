@@ -131,6 +131,16 @@ defmodule Flex.UserScreens.Design do
         DUtils.save_screen(ddb, state, false)
         {socket, state}
 
+      {:event, socket, state = %{selected: %{id: id}}, event = "item:keydown",
+       params = %{"id" => id, "key" => "Backspace"}} ->
+        Log.trace(view: path, event: event, params: params)
+        {_, state} = pop_in(state, [:rts, id])
+        {_, state} = pop_in(state, [:screen, :items, id])
+        state = Map.put(state, :selected, DUtils.select(state, "Screen", nil))
+        state = Map.put(state, :menu, nil)
+        DUtils.save_screen(ddb, state, false)
+        {socket, state}
+
       {:event, socket, state = %{selected: %{id: id}}, event = "item:delete",
        params = %{"id" => id}} ->
         Log.trace(view: path, event: event, params: params)
@@ -190,13 +200,6 @@ defmodule Flex.UserScreens.Design do
         Log.trace(view: path, event: event, params: params)
         state = Map.put(state, :menu, nil)
         {socket, DUtils.calc_layout(state, :fit, fit)}
-
-      {:event, socket, state, event = "frame:click", params = %{"sid" => "item_" <> id_type}} ->
-        Log.trace(view: path, event: event, params: params)
-        [id, type] = String.split(id_type, "_")
-        state = Map.put(state, :selected, DUtils.select(state, type, id))
-        state = Map.put(state, :menu, nil)
-        {socket, state}
 
       {:event, socket, state, event = "frame:click", params = %{"x" => x, "y" => y, "p" => p}} ->
         Log.trace(view: path, event: event, params: params)

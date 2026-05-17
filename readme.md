@@ -158,6 +158,7 @@ raise "ouch!"
 - [ ] Designer: clone item
 - [ ] Designer: delete key
 - [ ] Ensure weston/cog die together
+- [ ] Make back navigation properly reconnect to hooks instead of reloading
 - [ ] Implement cog monitor pixel resolution selection
 - [ ] Critical: mesa demo monitor went black when playing with the RYx relays
   - Display image was noisy, improved with vga cable replace, image still ghosty.
