@@ -129,15 +129,26 @@ weston = fn ->
   exec.("weston", args, env)
 end
 
-# test with cmd "cogctl --system open https://google.com"
+# test with:
+# cmd "cogctl --system open https://google.com"
+# cmd "killall cog" -> reboots weston
+# cmd "killall weston" -> not reliable (see muontrap notes at the top)
 # to address the load frame white screen error
 monitor = fn ->
-  count = Process.get(:count, 0)
-  local = Terminal.Multiple.lookup(:local)
-  count = if local == [], do: count + 1, else: 0
-  Process.put(:count, count)
-  if count >= 5, do: Log.warn("Reopen browser localhost at count #{count}")
-  if count >= 5, do: System.shell("cogctl --system open https://127.0.0.1")
+  local = Process.get(:local_count, 0)
+  local? = Terminal.Multiple.lookup(:local)
+  local = if local? == [], do: local + 1, else: 0
+  Process.put(:local_count, local)
+  if local >= 3, do: Log.warn("Reopen browser localhost at count #{local}")
+  if local >= 3, do: System.shell("cogctl --system open https://127.0.0.1")
+  weston = Process.get(:weston_count, 0)
+  exes = Path.wildcard("/proc/*/exe")
+  weston? = exes |> Enum.any?(&(File.read_link(&1) == {:ok, "/usr/bin/weston"}))
+  cog? = exes |> Enum.any?(&(File.read_link(&1) == {:ok, "/usr/bin/cog"}))
+  weston = if weston? and cog?, do: 0, else: weston + 1
+  Process.put(:weston_count, weston)
+  if weston >= 3, do: Log.warn("Killing weston/cog at count #{weston}")
+  if weston >= 3, do: System.shell("killall weston; killall cog")
 end
 
 loop = fn args ->
@@ -159,7 +170,7 @@ Api.sleep(400 + 200)
 # short period because it may need seveal tries on reboot
 Api.loop("browser:weston", 5_000, loop, %{call: weston, loop: loop, delay: 1_000})
 
-Api.loop("browser:monitor", 5_000, loop, %{call: monitor, loop: loop, delay: 1_000})
+Api.loop("browser:monitor", 5_000, loop, %{call: monitor, loop: loop, delay: 2_000})
 
 # test with
 # cmd "killall cog" -> reboots weston
