@@ -4,13 +4,14 @@ defmodule Flex.Config do
   defp view(assigns) do
     ~H"""
     <.fui fun={&UI.frame/1} title="Config" class="flex flex-col justify-center items-center h-full">
-      <form id="resolution_view" phx-submit="submit:resolution"
-        class="flex flex-col gap-2" autocomplete="off">
-        <div :for={{name, modes} <- @cards} class="flex gap-2 items-center">
+      <form id="monitor_view" phx-submit="submit:apply" class="flex flex-col gap-2" autocomplete="off">
+        <div class="text-3xl">Monitor Resolution</div>
+        <div :for={{name, modes} <- @cards} class="grid grid-cols-2 gap-2 items-center">
           <div>{name}</div>
           <.fui fun={&UI.select/1} name={name} values={modes} required/>
         </div>
-        <.fui fun={&UI.button/1} type="submit">Change</.fui>
+        <.fui fun={&UI.button/1} type="submit" class="col-span-2">Apply</.fui>
+        <.fui fun={&UI.button/1} type="button" class="col-span-2" phx-click="submit:reset">Reset</.fui>
       </form>
     </.fui>
     """
@@ -21,13 +22,14 @@ defmodule Flex.Config do
       {:ok, data} -> String.split(data, "\n", trim: true)
       _ -> []
     end
+    |> Enum.uniq()
   end
 
   defp init(false, state), do: Map.put(state, :cards, [])
 
   defp init(true, state) do
     cards =
-      Path.wildcard("/sys/class/drm/card?-{DSI,HDMI,VGA,Virtual}-*/status")
+      Path.wildcard("/sys/class/drm/card?-*-*/status")
       |> Enum.filter(&(File.read(&1) == {:ok, "connected\n"}))
       |> Enum.map(&Path.basename(Path.dirname(&1)))
       |> Enum.map(fn name -> {name, ["off" | modes(name)]} end)
@@ -60,24 +62,31 @@ defmodule Flex.Config do
       {:render, _assigns, state} ->
         view(state)
 
-      {:event, socket, state, event = "submit:resolution", params} ->
+      {:event, socket, state, event = "submit:apply", params} ->
         Log.trace(view: path, event: event, params: params)
+        # DSI,HDMI,VGA,Virtual,LVDS
+        # kingdel requires LVDS-1 off
+        # cat "/data/terminal/config/weston"
 
         if Terminal.device?() do
           config =
             Enum.map(params, fn {name, mode} ->
               [_p0 | parts] = String.split(name, "-")
-
-              """
-              [output]
-              name=#{Enum.join(parts, "-")}
-              mode=#{mode}
-              """
+              "[output]\nname=#{Enum.join(parts, "-")}\nmode=#{mode}"
             end)
             |> Enum.join("\n")
 
           Terminal.wconfig!("weston", config)
+          System.shell("killall cog")
+        end
 
+        {socket, state}
+
+      {:event, socket, state, event = "submit:reset", params} ->
+        Log.trace(view: path, event: event, params: params)
+
+        if Terminal.device?() do
+          Terminal.wconfig!("weston", "")
           System.shell("killall cog")
         end
 

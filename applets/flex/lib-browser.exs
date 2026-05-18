@@ -88,17 +88,12 @@ weston = fn ->
 
   # vm110
   # cmd "cat /sys/class/drm/card0-Virtual-1/modes"
+  # kingdel requires LVDS-1 off
   westini = """
   [core]
   shell=kiosk-shell.so
   require-input=false
   backend=drm
-
-  # kingdel
-  [output]
-  name=LVDS-1
-  mode=off
-
   #{output}
   """
 
