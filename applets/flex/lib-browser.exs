@@ -136,9 +136,8 @@ end
 
 # test with:
 # cmd "cogctl --system open https://google.com"
-# cmd "killall cog" -> reboots weston
-# cmd "killall weston" -> not reliable (see muontrap notes at the top)
-# to address the load frame white screen error
+# cmd "killall weston"
+# cmd "killall cog"
 monitor = fn ->
   local = Process.get(:local_count, 0)
   local? = Terminal.Multiple.lookup(:local)
@@ -147,9 +146,9 @@ monitor = fn ->
   if local >= 3, do: Log.warn("Reopen browser localhost at count #{local}")
   if local >= 3, do: System.shell("cogctl --system open https://127.0.0.1")
   weston = Process.get(:weston_count, 0)
-  exes = Path.wildcard("/proc/*/exe")
-  weston? = exes |> Enum.any?(&(File.read_link(&1) == {:ok, "/usr/bin/weston"}))
-  cog? = exes |> Enum.any?(&(File.read_link(&1) == {:ok, "/usr/bin/cog"}))
+  exes = Path.wildcard("/proc/*/exe") |> Enum.map(&File.read_link/1)
+  weston? = exes |> Enum.any?(&(&1 == {:ok, "/usr/bin/weston"}))
+  cog? = exes |> Enum.any?(&(&1 == {:ok, "/usr/bin/cog"}))
   weston = if weston? and cog?, do: 0, else: weston + 1
   Process.put(:weston_count, weston)
   if weston >= 3, do: Log.warn("Killing weston/cog at count #{weston}")
