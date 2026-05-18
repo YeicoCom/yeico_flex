@@ -129,6 +129,17 @@ weston = fn ->
   exec.("weston", args, env)
 end
 
+# test with cmd "cogctl --system open https://google.com"
+# to address the load frame white screen error
+monitor = fn ->
+  count = Process.get(:count, 0)
+  local = Terminal.Multiple.lookup(:local)
+  count = if local == [], do: count + 1, else: 0
+  Process.put(:count, count)
+  if count >= 5, do: Log.warn("Reopen browser localhost at count #{count}")
+  if count >= 5, do: System.shell("cogctl --system open https://127.0.0.1")
+end
+
 loop = fn args ->
   args.call.()
   Api.flush(args.delay)
@@ -147,6 +158,8 @@ Api.sleep(400 + 200)
 
 # short period because it may need seveal tries on reboot
 Api.loop("browser:weston", 5_000, loop, %{call: weston, loop: loop, delay: 1_000})
+
+Api.loop("browser:monitor", 5_000, loop, %{call: monitor, loop: loop, delay: 1_000})
 
 # test with
 # cmd "killall cog" -> reboots weston

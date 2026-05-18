@@ -158,15 +158,15 @@ raise "ouch!"
   - Display image was noisy, improved with vga cable replace, image still ghosty.
   - cog/browser bug?
   - relay EMP?
-- [ ] When desiging over wireguard on mesa demo unable to load frame error white screen
-  - Just clicked the retry button and voila
-  - Seems perfect for Terminal.Multiple.lookup(:local) monitoring
 - [ ] Detect cog crash by monitoring Terminal.Multiple.lookup(:local)
   - confirm if killall weston blanks the monitor because :local is still there
   - vm110 blanks the screen after killall but :local is still there
   - cmd "ps | grep weston" not showing weston
   - monitor cmd "ls -l /proc/*/exe"?
   - Path.wildcard("/proc/*/exe") |> Enum.map(&File.read_link(&1)) |> Enum.any?(& &1=={:ok, "/usr/bin/weston"})
+- [x] When desiging over wireguard on mesa demo unable to load frame error white screen
+  - Just clicked the retry button and voila
+  - Seems perfect for Terminal.Multiple.lookup(:local) monitoring
 - [-] Designer: image/link wont update on upload (runtime works ok)
   - acceptable to avoid breaking current design widget template
   - design realtime events means bus deregistration on each props save
