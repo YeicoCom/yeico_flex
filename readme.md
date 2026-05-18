@@ -158,6 +158,9 @@ raise "ouch!"
   - Display image was noisy, improved with vga cable replace, image still ghosty.
   - cog/browser bug?
   - relay EMP?
+- [ ] When desiging over wireguard on mesa demo unable to load frame error white screen
+  - Just clicked the retry button and voila
+  - Seems perfect for Terminal.Multiple.lookup(:local) monitoring
 - [ ] Detect cog crash by monitoring Terminal.Multiple.lookup(:local)
   - confirm if killall weston blanks the monitor because :local is still there
   - vm110 blanks the screen after killall but :local is still there
