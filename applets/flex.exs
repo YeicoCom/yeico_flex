@@ -148,6 +148,7 @@ Flex.await_many([
   Flex.eval_async("index.exs", []),
   Flex.eval_async("login.exs", []),
   Flex.eval_async("logout.exs", []),
+  Flex.eval_async("config.exs", []),
   Flex.eval_async("modbus-slave-loop.exs", []),
   Terminal.dev?() && Flex.eval_async("ui-tester.exs", [])
 ])
@@ -170,6 +171,7 @@ Flex.run_async("/flex/user-files/setup.exs", [])
 
 if Terminal.device?() do
   Flex.run_async("lib-browser.exs", url: "https://127.0.0.1", monitor: false, port: 0)
+  Flex.run_view("config.exs", Flex.Config, [])
 end
 
 if Terminal.dev?() do

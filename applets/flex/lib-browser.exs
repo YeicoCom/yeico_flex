@@ -81,10 +81,13 @@ weston = fn ->
 
   Api.await(fn ->
     Path.wildcard("/sys/class/drm/card?-{DSI,HDMI,VGA,Virtual}-*/status")
-    |> Enum.map(&File.read(&1))
-    |> Enum.any?(&(&1 == {:ok, "connected\n"}))
+    |> Enum.any?(&(File.read(&1) == {:ok, "connected\n"}))
   end)
 
+  output = Terminal.rconfig("weston")
+
+  # vm110
+  # cmd "cat /sys/class/drm/card0-Virtual-1/modes"
   westini = """
   [core]
   shell=kiosk-shell.so
@@ -95,6 +98,8 @@ weston = fn ->
   [output]
   name=LVDS-1
   mode=off
+
+  #{output}
   """
 
   File.mkdir_p!("/run/weston")

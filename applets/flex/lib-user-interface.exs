@@ -23,6 +23,8 @@ defmodule Flex.UI do
     assigns = Map.put_new(assigns, :class, nil)
     assigns = Map.put_new(assigns, :reverse, nil)
     assigns = Map.put_new(assigns, :title, "Flex")
+    assigns = Map.put_new(assigns, :dev?, Terminal.dev?())
+    assigns = Map.put_new(assigns, :device?, Terminal.device?())
 
     ~H"""
     <div id="main_frame" phx-window-keydown="modal:close" phx-key="Escape" phx-hook="AllPages"
@@ -39,7 +41,8 @@ defmodule Flex.UI do
             <a href="/flex/modbus-terminal" class="block px-4 py-2 hover:bg-lime-500">Modbus Terminal</a>
             <a href="/flex/socket-terminal" class="block px-4 py-2 hover:bg-lime-500">Socket Terminal</a>
             <a href="/flex/serial-exports" class="block px-4 py-2 hover:bg-lime-500">Serial Exports</a>
-            <a :if={Terminal.dev?()} href="/flex/ui-tester" class="block px-4 py-2 hover:bg-lime-500">UI Tester</a>
+            <a :if={@dev?} href="/flex/ui-tester" class="block px-4 py-2 hover:bg-lime-500">UI Tester</a>
+            <a :if={@device?} href="/flex/config" class="block px-4 py-2 hover:bg-lime-500">Config</a>
             <a href="/flex/logout" class="block px-4 py-2 hover:bg-lime-500">Logout</a>
           </div>
         </div>

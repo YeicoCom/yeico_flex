@@ -153,7 +153,6 @@ raise "ouch!"
 - [ ] Global trace/debug disable
 - [ ] Ensure weston/cog die together
 - [ ] Make back navigation properly reconnect to hooks instead of reloading
-- [ ] Implement cog monitor pixel resolution selection
 - [ ] Critical: mesa demo monitor went black when playing with the RYx relays
   - Display image was noisy, improved with vga cable replace, image still ghosty.
   - cog/browser bug?
@@ -164,6 +163,7 @@ raise "ouch!"
   - cmd "ps | grep weston" not showing weston
   - monitor cmd "ls -l /proc/*/exe"?
   - Path.wildcard("/proc/*/exe") |> Enum.map(&File.read_link(&1)) |> Enum.any?(& &1=={:ok, "/usr/bin/weston"})
+- [x] Implement cog monitor pixel resolution selection
 - [x] When desiging over wireguard on mesa demo unable to load frame error white screen
   - Just clicked the retry button and voila
   - Seems perfect for Terminal.Multiple.lookup(:local) monitoring
