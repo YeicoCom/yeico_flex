@@ -87,7 +87,11 @@ defmodule Flex.UserScreens.Display do
     state
   end
 
-  def calculate(%{props: %{heex: heex, calc: calc, default: default, source: source}}, value) do
+  def calculate(
+        %{props: %{heex: heex, calc: calc, default: default, source: source}},
+        value,
+        ast \\ nil
+      ) do
     bindings = [value: value, default: default]
     {output, calculated} = VUtils.eval_calc(calc, bindings)
     source? = source != ""
@@ -104,28 +108,32 @@ defmodule Flex.UserScreens.Display do
         tag_handler: Phoenix.LiveView.HTMLEngine
       ]
 
-      # ast = EEx.compile_string(heex, opts)
-      # {content, _bindings} = Code.eval_quoted(ast, assigns: assigns)
-      # content
-      EEx.eval_string(heex, [assigns: assigns], opts)
-      |> Phoenix.HTML.Engine.encode_to_iodata!()
+      ast = ast || EEx.compile_string(heex, opts)
+      {content, _bindings} = Code.eval_quoted(ast, assigns: assigns)
+      {ast, Phoenix.HTML.Engine.encode_to_iodata!(content)}
     end
 
-    {error?, inner} =
+    {error?, ast, inner} =
       case Api.safe(render) do
-        {:ok, content} -> {false, fn _, _ -> {:safe, content} end}
-        {:error, _} -> {true, fn _, _ -> {:safe, ""} end}
+        {:ok, {ast, content}} -> {false, ast, fn _, _ -> {:safe, content} end}
+        {:error, _} -> {true, ast, fn _, _ -> {:safe, ""} end}
       end
 
-    %{output: output, source?: source?, error?: error?, content: [%{inner_block: inner}]}
+    %{
+      ast: ast,
+      error?: error?,
+      output: output,
+      source?: source?,
+      content: [%{inner_block: inner}]
+    }
   end
 
   def handle(%{props: %{source: ""}}, rt, _) do
     rt
   end
 
-  def handle(item, _rt, _event = {:point, _key, value}) do
-    calculate(item, value)
+  def handle(item, rt, _event = {:point, _key, value}) do
+    calculate(item, value, rt[:ast])
   end
 
   def init(item = %{props: %{source: ""}}, _design?, _subget) do
