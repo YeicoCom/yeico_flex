@@ -100,13 +100,13 @@ defmodule Flex.ModbusDevices.Loop do
         runner_loop(%{id: id, rts: rts, device: device, conn: conn})
       end
 
-      with {:error, error} <- Api.safe(run) do
-        Lg.send(@log, id, true, error)
+      with {:error, _error} <- Api.safe(run) do
+        Lg.send(@log, id, true, "Command error")
         put_status(device, "error")
       end
     else
-      {:error, error} ->
-        Lg.send(@log, id, true, error)
+      {:error, _error} ->
+        Lg.send(@log, id, true, "Connect error")
         put_status(device, "error")
     end
   end
