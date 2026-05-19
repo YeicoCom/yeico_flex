@@ -326,8 +326,6 @@ defmodule Flex.UserScreens.DUtils do
   # empty and out of range inputs are acceptable for change events
   # client side form validation is only guaranteed in submit events
   defp save(state = %{selected: %{item: sitem}, screen: aitem = %{props: props}}, _id, params) do
-    # Log.debug(id: id, params: params)
-
     change = %{errors: VUtils.errors(props)}
     params = VUtils.params(props, params)
 
@@ -340,7 +338,7 @@ defmodule Flex.UserScreens.DUtils do
     props = Map.merge(props, Map.drop(change, [:errors]))
     aitem = Map.put(aitem, :props, props)
     state = Map.put(state, :screen, aitem)
-    sitem = Map.put(sitem, :props, params)
+    sitem = Map.put(sitem, :props, props)
     sitem = Map.put(sitem, :errors, change.errors)
     state = put_in(state, [:selected, :item], sitem)
 

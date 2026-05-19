@@ -77,8 +77,6 @@ defmodule Flex.UserScreens.Button do
   end
 
   def save(state = %{selected: %{item: sitem}, screen: screen}, id, params) do
-    # Log.debug(id: id, params: params)
-
     %{items: items, props: %{w: w, h: h}} = screen
     aitem = %{props: props} = items[id]
     change = %{errors: VUtils.errors(props)}
@@ -95,7 +93,7 @@ defmodule Flex.UserScreens.Button do
     props = Map.merge(props, Map.drop(change, [:errors]))
     aitem = Map.put(aitem, :props, props)
     state = put_in(state, [:screen, :items, id], aitem)
-    sitem = Map.put(sitem, :props, params)
+    sitem = Map.put(sitem, :props, props)
     sitem = Map.put(sitem, :errors, change.errors)
     state = put_in(state, [:selected, :item], sitem)
     state = put_in(state, [:rts, id], calculate(aitem, nil))

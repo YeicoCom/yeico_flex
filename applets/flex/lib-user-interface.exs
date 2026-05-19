@@ -115,14 +115,10 @@ defmodule Flex.UI do
     ]}>
     <option :for={value <- @values} value={value}
       selected={value==@value} title={value}
-      class="p-2 checked:bg-lime-500 checked:text-white">
-      {value}
-    </option>
+      class="p-2 checked:bg-lime-500 checked:text-white">{value}</option>
     <option :for={{value, label} <- @values2} value={value}
       selected={value==@value} title={label}
-      class="p-2 checked:bg-lime-500 checked:text-white">
-      {label}
-    </option>
+      class="p-2 checked:bg-lime-500 checked:text-white">{label}</option>
     </select>
     """
   end
