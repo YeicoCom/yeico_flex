@@ -66,10 +66,23 @@ defmodule Flex.Pt do
     end)
   end
 
+  def parse(:uint16, val), do: String.to_integer(val)
+  def parse(:sint16, val), do: String.to_integer(val)
+  def parse(:float, val), do: Float.parse(val) |> elem(0)
+  def parse(:bit, val), do: String.to_integer(val)
+  def parse("uint16:" <> _, val), do: parse(:uint16, val)
+  def parse("sint16:" <> _, val), do: parse(:sint16, val)
+  def parse("float:" <> _, val), do: parse(:float, val)
+  def parse("bit:" <> _, val), do: parse(:bit, val)
+
   def get_limits(:uint16), do: %{step: 1, min: 0, max: 65_535}
   def get_limits(:sint16), do: %{step: 1, min: -32_768, max: 32_767}
   def get_limits(:float), do: %{step: "any", min: nil, max: nil}
   def get_limits(:bit), do: %{step: 1, min: 0, max: 1}
+  def get_limits("uint16:" <> _), do: get_limits(:uint16)
+  def get_limits("sint16:" <> _), do: get_limits(:sint16)
+  def get_limits("float:" <> _), do: get_limits(:float)
+  def get_limits("bit:" <> _), do: get_limits(:bit)
 
   defp get_def("source:float:" <> _), do: 0.0
   defp get_def("sink:float:" <> _), do: 0.0

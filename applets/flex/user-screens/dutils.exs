@@ -223,6 +223,23 @@ defmodule Flex.UserScreens.DUtils do
     Db.get(ddb, id) || @new
   end
 
+  def handle(state, id, {:modal, "item:modal", params}) do
+    rt = state.rts[id]
+    item = state.screen.items[id]
+    {rt, modal} = @items[item.type].modal(id, item, rt, params)
+    state = put_in(state, [:rts, id], rt)
+    Map.put(state, :modal, modal)
+  end
+
+  def handle(state, id, {:submit, "submit:modal", params}) do
+    rt = state.rts[id]
+    item = state.screen.items[id]
+    modal = state.modal
+    {rt, modal} = @items[item.type].submit(id, item, rt, params, modal)
+    state = put_in(state, [:rts, id], rt)
+    Map.put(state, :modal, modal)
+  end
+
   def handle(state, id, event) do
     rt = state.rts[id]
     item = state.screen.items[id]

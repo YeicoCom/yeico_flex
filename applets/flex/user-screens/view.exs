@@ -35,12 +35,15 @@ defmodule Flex.UserScreens.View do
       <div class="flex items-center h-full justify-center text-3xl">Disabled</div>
       <% end %>
     </div>
+    <.fui fun={&UI.modal/1} :if={@modal} title={@modal.title} class="min-w-[360px]">
+        <.fui fun={@modal.fun} {@modal.pass}/>
+    </.fui>
     """
   end
 
   defp view(assigns) do
     ~H"""
-    <.fui fun={&UI.frame/1} reverse={true} title="Screen Viewer" label={@name} class="flex gap-2">
+    <.fui fun={&UI.frame/1} reverse={!@modal} title="Screen Viewer" label={@name} class="flex gap-2">
       <.fui fun={&canvas/1} {assigns}/>
     </.fui>
     """
@@ -48,7 +51,7 @@ defmodule Flex.UserScreens.View do
 
   defp bare(assigns) do
     ~H"""
-    <div id="main_frame" class="flex h-full" phx-hook="AllPages">
+    <div id="main_frame" class="flex h-full" phx-hook="AllPages" phx-window-keydown="modal:close" phx-key="Escape">
       <.fui fun={&canvas/1} {assigns}/>
     </div>
     """
@@ -87,6 +90,7 @@ defmodule Flex.UserScreens.View do
         socket = assign(socket, page_title: "Screen Viewer")
         socket = assign(socket, page_suffix: " · Flex")
         state = Map.put(state, :enabled, nil)
+        state = Map.put(state, :modal, nil)
         state = Map.put(state, :events, %{})
         state = Map.put(state, :size, nil)
         state = Map.put(state, :name, nil)
@@ -136,6 +140,17 @@ defmodule Flex.UserScreens.View do
         state = DUtils.handle(state, id, {:event, event, params})
         {socket, state}
 
+      {:event, socket, state, event = "item:modal", params = %{"id" => "item_" <> id_type}} ->
+        Log.trace(view: path, event: event, params: params)
+        [id, _type] = String.split(id_type, "_")
+        state = DUtils.handle(state, id, {:modal, event, params})
+        {socket, state}
+
+      {:event, socket, state, event = "submit:modal", params = %{"iid" => id}} ->
+        Log.trace(view: path, event: event, params: params)
+        state = DUtils.handle(state, id, {:submit, event, params})
+        {socket, state}
+
       {:event, socket, state, event = "hook:resize", params = %{"width" => w, "height" => h}} ->
         Log.trace(view: path, event: event, params: params)
         state = Map.put(state, :size, %{w: w, h: h})
@@ -145,6 +160,11 @@ defmodule Flex.UserScreens.View do
        params = %{"password" => password}} ->
         Log.trace(view: path, event: event, params: params)
         state = Map.put(state, :password, nil)
+        {socket, state}
+
+      {:event, socket, state, event = "modal:close", params} ->
+        Log.trace(view: path, event: event, params: params)
+        state = Map.put(state, :modal, nil)
         {socket, state}
 
       {:event, socket, state, event, params} ->

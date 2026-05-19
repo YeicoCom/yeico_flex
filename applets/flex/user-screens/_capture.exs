@@ -20,14 +20,14 @@ defmodule Flex.UserScreens.Capture do
   def render(assigns) do
     ~H"""
       <div id={@id} class={[@class,
-        "text-lime-600",
+        "text-lime-600 outline-none",
         "active:text-lime-400",
         "hover:text-lime-500",
         "data-[disabled]:text-zinc-600"
         ]}
         tabindex="-1"
         data-disabled={@rt.disabled}
-        phx-click={!@rt.disabled && @runtime && "item:click"}
+        phx-click={!@rt.disabled && @runtime && "item:modal"}
         phx-value-id={!@rt.disabled && @runtime && @id}
         style={[
           "left: #{@x}px; top: #{@y}px;",
@@ -108,7 +108,30 @@ defmodule Flex.UserScreens.Capture do
     css = VUtils.parse_css(style)
     text = VUtils.get_typed(taken, :text, :binary) || text
     disabled = VUtils.get_typed(taken, :disabled, :boolean) || false
-    %{css: css, output: output, text: text, disabled: disabled}
+    %{value: value, css: css, output: output, text: text, disabled: disabled}
+  end
+
+  def capture(assigns) do
+    ~H"""
+    <form id="modal_form" phx-submit="submit:modal" class="grid grid-cols-[1fr_6em] gap-2"
+      phx-update="ignore" autocomplete="off">
+      <input type="hidden" name="iid" value={@id}/>
+      <.fui fun={&UI.input/1} name="val" value={@val} type="number" step={@step} min={@min} max={@max} required id="modal_autofocus" phx-hook="AutoFocus"/>
+      <.fui fun={&UI.button/1} type="submit">Accept</.fui>
+    </form>
+    """
+  end
+
+  def modal(id, %{props: %{sink: sink, default: default}}, rt, _params) do
+    val = rt.value || default
+    %{step: step, min: min, max: max} = Pt.get_limits(sink)
+    assigns = %{id: id, val: val, step: step, min: min, max: max}
+    {rt, %{title: "Capture #{sink}", fun: &capture/1, pass: assigns}}
+  end
+
+  def submit(_id, %{props: %{sink: sink}}, rt, params, _modal) do
+    Pt.put_value("sink:#{sink}", Pt.parse(sink, params["val"]))
+    {rt, nil}
   end
 
   def handle(%{props: %{sink: ""}}, rt, _) do
@@ -117,12 +140,6 @@ defmodule Flex.UserScreens.Capture do
 
   def handle(item, _rt, _event = {:point, _key, value}) do
     calculate(item, value)
-  end
-
-  # fixme: change button login for modal capture
-  def handle(%{props: %{sink: sink, default: default}}, rt, {:event, "item:click", _params}) do
-    Pt.put_value("sink:#{sink}", default)
-    rt
   end
 
   def init(item = %{props: %{sink: ""}}, _design?, _subget) do
