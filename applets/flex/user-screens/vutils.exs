@@ -105,9 +105,9 @@ defmodule Flex.UserScreens.VUtils do
     if valid?.(value), do: value
   end
 
-  def get_css(""), do: %{}
+  def parse_css(""), do: %{}
 
-  def get_css(style) do
+  def parse_css(style) do
     for line <- String.split(style, "\n", trim: true), reduce: %{} do
       css ->
         [k, v] = String.split(line, ": ", parts: 2)
@@ -122,17 +122,20 @@ defmodule Flex.UserScreens.VUtils do
     |> Enum.into(%{})
   end
 
+  # {verbatim output, calculated taken, evaluated style}
   def eval_rt(calc, bindings, take, style) do
-    with {:ok, output, calc} <- eval_calc(calc, bindings, take) do
-      bindings = get_typed(calc, :style, :keyword) || []
-      eval_style(style, bindings, output, calc)
+    with {nil, calculated, taken} <- eval_calc(calc, bindings, take) do
+      bindings = get_typed(calculated, :style, :keyword) || []
+      {error, styled} = eval_style(style, bindings)
+      {error || inspect(taken, pretty: true, width: 0), taken, styled}
     else
-      {:error, output, calc} -> {output, calc, ""}
+      {error, _calculated, taken} -> {error, taken, ""}
     end
   end
 
+  # {error string?, calculated map, taken keyword}
   defp eval_calc("", bindings, take) do
-    {:ok, Keyword.take(bindings, take), Enum.into(bindings, %{})}
+    {nil, Enum.into(bindings, %{}), Keyword.take(bindings, take)}
   end
 
   defp eval_calc(calc, bindings, take) do
@@ -141,29 +144,42 @@ defmodule Flex.UserScreens.VUtils do
       f, d -> :io_lib.format(f, [d]) |> to_string()
     end
 
-    case Flex.eval_code(calc, [{:f, f} | bindings]) do
+    case eval_code(calc, [{:f, f} | bindings]) do
       {{:ok, {_, kw}}, _} ->
-        {:ok, Keyword.take(kw, take), Enum.into(kw, %{})}
+        {nil, Enum.into(kw, %{}), Keyword.take(kw, take)}
 
       {{:error, _error}, _} ->
-        {:error, "Calculator error", %{}}
+        {"Calculator error", %{}, []}
     end
   end
 
-  defp eval_style("", _, output, calc) do
-    {output, calc, ""}
+  defp eval_style("", _) do
+    {nil, ""}
   end
 
-  defp eval_style(style, [], output, calc) do
-    {output, calc, style}
+  defp eval_style(style, []) do
+    {nil, style}
   end
 
-  defp eval_style(style, bindings, output, calc) do
-    case Flex.eval_code("\"\"\"\n#{style}\n\"\"\"", bindings) do
-      {{:ok, {res, _}}, _} when is_binary(res) -> {output, calc, res}
-      {{:ok, {res, _}}, _} -> {[style: res], calc, ""}
-      {{:error, _error}, _} -> {"Style error", calc, ""}
+  defp eval_style(style, bindings) do
+    case eval_code("\"\"\"\n#{style}\n\"\"\"", bindings) do
+      {{:ok, {res, _}}, _} when is_binary(res) -> {nil, res}
+      {{:error, _error}, _} -> {"Style error", ""}
+      {{:ok, {_res, _}}, _} -> {"Style error", ""}
     end
+  end
+
+  defp eval_code(code, bindings) do
+    # with_diagnostics to silence stdio
+    Code.with_diagnostics(fn ->
+      try do
+        {:ok, Code.eval_string(code, bindings)}
+      rescue
+        error -> {:error, error}
+      catch
+        error -> {:error, error}
+      end
+    end)
   end
 
   defp integer(change, props, params, key, {min, max}) do

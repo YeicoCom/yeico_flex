@@ -90,7 +90,7 @@ defmodule Flex.UserScreens.Link do
   end
 
   def calculate(%{props: %{style: style, text: text, screen: screen}}, value) do
-    css = VUtils.get_css(style)
+    css = VUtils.parse_css(style)
 
     value =
       case {screen, value} do

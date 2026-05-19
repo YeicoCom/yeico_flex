@@ -91,7 +91,7 @@ defmodule Flex.UserScreens.Image do
   end
 
   def calculate(%{props: %{style: style, text: text, file: file}}, value) do
-    css = VUtils.get_css(style)
+    css = VUtils.parse_css(style)
 
     value =
       case {file, value} do

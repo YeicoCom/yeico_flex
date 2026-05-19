@@ -99,18 +99,6 @@ defmodule Flex do
     )
   end
 
-  def eval_code(code, bindings) do
-    Code.with_diagnostics(fn ->
-      try do
-        {:ok, Code.eval_string(code, bindings)}
-      rescue
-        error -> {:error, error}
-      catch
-        error -> {:error, error}
-      end
-    end)
-  end
-
   def tree() do
     Applet.print_tree("flex.exs")
   end
