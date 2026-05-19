@@ -110,7 +110,7 @@ defmodule Flex.UserScreens.Image do
     }
   end
 
-  def handle(item, _rt, _event = {_, value}) do
+  def handle(item, _rt, _event = {:point, _key, value}) do
     calculate(item, value)
   end
 

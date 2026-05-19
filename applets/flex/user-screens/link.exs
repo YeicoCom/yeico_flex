@@ -103,7 +103,7 @@ defmodule Flex.UserScreens.Link do
     %{css: css, text: text, disabled: disabled, href: if(disabled, do: nil, else: value)}
   end
 
-  def handle(item, _rt, _event = {_, value}) do
+  def handle(item, _rt, _event = {:point, _key, value}) do
     calculate(item, value)
   end
 

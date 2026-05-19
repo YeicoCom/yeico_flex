@@ -114,12 +114,12 @@ defmodule Flex.UserScreens.Button do
     rt
   end
 
-  def handle(_item = %{props: %{sink: sink, default: default}}, rt, _event = "item:click") do
+  def handle(%{props: %{sink: sink, default: default}}, rt, {:event, "item:click", _params}) do
     Pt.put_value("sink:#{sink}", default)
     rt
   end
 
-  def handle(item, _rt, _event = {_, value}) do
+  def handle(item, _rt, _event = {:point, _key, value}) do
     calculate(item, value)
   end
 

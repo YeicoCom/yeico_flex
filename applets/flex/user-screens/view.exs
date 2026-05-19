@@ -133,7 +133,7 @@ defmodule Flex.UserScreens.View do
       {:event, socket, state, event = "item:click", params = %{"id" => "item_" <> id_type}} ->
         Log.trace(view: path, event: event, params: params)
         [id, _type] = String.split(id_type, "_")
-        state = DUtils.handle(state, id, event)
+        state = DUtils.handle(state, id, {:event, event, params})
         {socket, state}
 
       {:event, socket, state, event = "hook:resize", params = %{"width" => w, "height" => h}} ->
@@ -167,7 +167,7 @@ defmodule Flex.UserScreens.View do
 
         state =
           for id <- ids, reduce: state do
-            state -> DUtils.handle(state, id, {key, value})
+            state -> DUtils.handle(state, id, {:point, key, value})
           end
 
         {socket, state}
