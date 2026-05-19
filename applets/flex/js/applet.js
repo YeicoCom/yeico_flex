@@ -336,26 +336,46 @@ const hooks = {
                 }
             })
             port.addEventListener("pointerdown", (e) => {
-                if (!e.srcElement.id.startsWith("item_")) return
+                if (!e.srcElement.id.startsWith("item_")) {
+                    // display has heex defined children
+                    let parent = e.srcElement.parentElement
+                    while (parent) {
+                        if (parent.id.startsWith("item_")) {
+                            // clientXY relative to browser viewport
+                            // offsetXY relative to elements top-left corner
+                            const rect = parent.getBoundingClientRect()
+                            const event = new PointerEvent(e.type, e)
+                            Object.defineProperties(event, {
+                                offsetX: { value: e.clientX - rect.left, writable: false, enumerable: true },
+                                offsetY: { value: e.clientY - rect.top, writable: false, enumerable: true }
+                            })
+                            parent.dispatchEvent(event);
+                            return
+                        }
+                        parent = parent.parentElement
+                    }
+                    return
+                }
                 const item = e.srcElement
                 const id = item.id
                 const px = item.offsetLeft
                 const py = item.offsetTop
-                const ox = e.offsetX + px
-                const oy = e.offsetY + py
+                const cx = e.clientX
+                const cy = e.clientY
                 const pid = e.pointerId
                 const moved = false
                 const x = px, y = py
-                panel.dragState = { item, id, x, y, ox, oy, px, py, pid, moved }
+                panel.dragState = { item, id, x, y, px, py, cx, cy, pid, moved }
                 panel.setPointerCapture(pid)
                 this.pushEvent("item:drag", { id, x, y, e: "down", m: moved })
             })
             port.addEventListener("mousemove", (e) => {
                 if (panel.dragState) {
                     panel.dragState.moved = true
-                    const { ox, oy, px, py, moved, id } = panel.dragState
-                    const x = px + e.offsetX - ox
-                    const y = py + e.offsetY - oy
+                    const { item, px, py, cx, cy, moved, id } = panel.dragState
+                    const rect = item.parentElement.getBoundingClientRect()
+                    const x = px + e.clientX - cx
+                    const y = py + e.clientY - cy
                     panel.dragState.x = x
                     panel.dragState.y = y
                     panel.dragState.pending = () => {

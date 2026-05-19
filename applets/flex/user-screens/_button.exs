@@ -47,7 +47,6 @@ defmodule Flex.UserScreens.Button do
     assigns = Map.put(assigns, :props, item.props)
     assigns = Map.put(assigns, :errors, item.errors)
     assigns = Map.put(assigns, :sinks, ["" | Pt.get_sinks()])
-    assigns = Map.put(assigns, :inspect?, &VUtils.inspect?/1)
 
     ~H"""
     <div>Size</div>
@@ -71,7 +70,7 @@ defmodule Flex.UserScreens.Button do
     </div>
     <div class="col-span-2">Output</div>
     <div class="col-span-2">
-      <.fui fun={&UI.area/1} value={@inspect?.(@rt.output)} readonly rows="8" class="w-full"/>
+      <.fui fun={&UI.area/1} value={@rt.output} readonly rows="8" class="w-full"/>
     </div>
     """
   end
@@ -102,11 +101,11 @@ defmodule Flex.UserScreens.Button do
 
   def calculate(%{props: %{style: style, calc: calc, default: default, text: text}}, value) do
     bindings = [value: value, default: default, text: text]
-    take = [:text, :disabled, :style]
-    {output, calculated, style} = VUtils.eval_rt(calc, bindings, take, style)
+    take = [:text, :disabled]
+    {output, taken, style} = VUtils.eval_rt(calc, bindings, take, style)
     css = VUtils.parse_css(style)
-    text = VUtils.get_typed(calculated, :text, :binary) || text
-    disabled = VUtils.get_typed(calculated, :disabled, :boolean) || false
+    text = VUtils.get_typed(taken, :text, :binary) || text
+    disabled = VUtils.get_typed(taken, :disabled, :boolean) || false
     %{css: css, output: output, text: text, disabled: disabled}
   end
 

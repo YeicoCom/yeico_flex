@@ -1,7 +1,4 @@
 defmodule Flex.UserScreens.VUtils do
-  def inspect?(v) when is_binary(v), do: v
-  def inspect?(v), do: inspect(v)
-
   def parse(change, props, params, key, :text) do
     tv = params |> Map.get(key) |> String.trim()
     cv = props[key]
@@ -99,9 +96,9 @@ defmodule Flex.UserScreens.VUtils do
     for({k, _} <- props, do: {k, params["#{k}"]}) |> Enum.into(%{})
   end
 
-  def get_typed(map, key, type) do
+  def get_typed(map_or_kw, key, type) do
     valid? = valid?(type)
-    value = map[key]
+    value = map_or_kw[key]
     if valid?.(value), do: value
   end
 
@@ -124,9 +121,10 @@ defmodule Flex.UserScreens.VUtils do
 
   # {verbatim output, calculated taken, evaluated style}
   def eval_rt(calc, bindings, take, style) do
-    with {nil, calculated, taken} <- eval_calc(calc, bindings, take) do
-      bindings = get_typed(calculated, :style, :keyword) || []
-      {error, styled} = eval_style(style, bindings)
+    with {nil, calculated} <- eval_calc(calc, bindings) do
+      taken = Keyword.take(calculated, take)
+      params = get_typed(calculated, :style, :keyword) || []
+      {error, styled} = eval_style(style, params)
       {error || inspect(taken, pretty: true, width: 0), taken, styled}
     else
       {error, _calculated, taken} -> {error, taken, ""}
@@ -134,11 +132,13 @@ defmodule Flex.UserScreens.VUtils do
   end
 
   # {error string?, calculated map, taken keyword}
-  defp eval_calc("", bindings, take) do
-    {nil, Enum.into(bindings, %{}), Keyword.take(bindings, take)}
+  def eval_calc("", bindings) do
+    {nil, bindings}
   end
 
-  defp eval_calc(calc, bindings, take) do
+  def eval_calc(calc, bindings) do
+    # https://www.erlang.org/doc/apps/stdlib/io_lib.html#format/2
+    # search: io_lib Format Escapes
     f = fn
       f, d when is_list(d) -> :io_lib.format(f, d) |> to_string()
       f, d -> :io_lib.format(f, [d]) |> to_string()
@@ -146,10 +146,10 @@ defmodule Flex.UserScreens.VUtils do
 
     case eval_code(calc, [{:f, f} | bindings]) do
       {{:ok, {_, kw}}, _} ->
-        {nil, Enum.into(kw, %{}), Keyword.take(kw, take)}
+        {nil, kw}
 
       {{:error, _error}, _} ->
-        {"Calculator error", %{}, []}
+        {"Calculator error", []}
     end
   end
 

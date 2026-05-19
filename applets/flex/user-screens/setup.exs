@@ -8,10 +8,12 @@ Api.putcast!("flex:user-screens:logs", %{})
 Flex.eval_file("vutils.exs", [])
 
 Flex.await_many([
-  Flex.eval_async("button.exs", []),
-  Flex.eval_async("label.exs", []),
-  Flex.eval_async("link.exs", []),
-  Flex.eval_async("image.exs", []),
+  Flex.eval_async("_button.exs", []),
+  Flex.eval_async("_label.exs", []),
+  Flex.eval_async("_link.exs", []),
+  Flex.eval_async("_image.exs", []),
+  Flex.eval_async("_display.exs", []),
+  Flex.eval_async("_capture.exs", []),
   Flex.eval_async("iutils.exs", [])
 ])
 

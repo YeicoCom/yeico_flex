@@ -16,9 +16,6 @@ defmodule Flex.UserScreens.Image do
   def props, do: @props
 
   def render(assigns) do
-    # https://www.erlang.org/doc/apps/stdlib/io_lib.html#format/2
-    # search: io_lib Format Escapes
-
     ~H"""
       <div :if={!@rt.src} id={@id} class={[@class, "data-[disabled]:text-zinc-600"]}
         tabindex="-1"
@@ -49,7 +46,6 @@ defmodule Flex.UserScreens.Image do
     assigns = Map.put(assigns, :props, item.props)
     assigns = Map.put(assigns, :errors, item.errors)
     assigns = Map.put(assigns, :files, [{"", ""} | Pt.get_files()])
-    assigns = Map.put(assigns, :inspect?, &VUtils.inspect?/1)
 
     ~H"""
     <div>Size</div>

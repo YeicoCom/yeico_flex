@@ -162,6 +162,7 @@ raise "ouch!"
   - cmd "ps | grep weston" not showing weston
   - monitor cmd "ls -l /proc/*/exe"?
   - Path.wildcard("/proc/*/exe") |> Enum.map(&File.read_link(&1)) |> Enum.any?(& &1=={:ok, "/usr/bin/weston"})
+- [-] Add title to every widget: nop, titles wont work on touch screens
 - [-] Ensure weston/cog die together: weston defer not triggered... explicit /proc check
 - [x] Implement cog monitor pixel resolution selection
 - [x] When desiging over wireguard on mesa demo unable to load frame error white screen
