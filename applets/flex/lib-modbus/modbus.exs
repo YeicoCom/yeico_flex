@@ -668,14 +668,14 @@ defmodule Modbus do
   def exec(conn, cmd, opts \\ []) when is_tuple(cmd) do
     %{trans: trans, proto: proto, tid: tid} = conn
     timeout = Keyword.get(opts, :timeout, @toms)
-    tracer = Keyword.get(opts, :tracer, fn _, _ -> :ok end)
+    tracer = Keyword.get(opts, :tracer)
     conn = Map.put(conn, :tid, Protocol.next(proto, tid))
 
     with {:ok, request, length} <- request(proto, cmd, tid),
-         :ok <- tracer.(:output, request),
+         _ <- tracer && tracer.(:output, request),
          :ok <- Transport.write(trans, request),
          {:ok, resp} <- Transport.readn(trans, length, timeout),
-         :ok <- tracer.(:input, resp) do
+         _ <- tracer && tracer.(:input, resp) do
       case parse(proto, cmd, resp, tid) do
         {:error, error} -> {:error, conn, error}
         nil -> {:ok, conn}

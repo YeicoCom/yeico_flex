@@ -24,7 +24,10 @@ defmodule Flex.ModbusDevices.Loop do
           %{pointer: pointer, accessors: accessors} = rts[pi]
           {cmd, decode} = pointer.()
 
-          case Mb.master_exec(conn, cmd, []) do
+          # opts = [tracer: fn d, l -> Api.debug(dir: d, line: Base.encode16(l)) end]
+          opts = []
+
+          case Mb.master_exec(conn, cmd, opts) do
             {:ok, conn} ->
               conn
 
