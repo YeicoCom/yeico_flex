@@ -113,9 +113,8 @@ defmodule Flex.UserScreens.Capture do
 
   def capture(assigns) do
     ~H"""
-    <form id="modal_form" phx-submit="submit:modal" class="grid grid-cols-[1fr_6em] gap-2"
+    <form id="modal_form" phx-submit="submit:modal" phx-value-id={@id} class="grid grid-cols-[1fr_6em] gap-2"
       phx-update="ignore" autocomplete="off">
-      <input type="hidden" name="iid" value={@id}/>
       <.fui fun={&UI.input/1} name="val" value={@val} type="number" step={@step} min={@min} max={@max} required id="modal_autofocus" phx-hook="AutoFocus"/>
       <.fui fun={&UI.button/1} type="submit">Accept</.fui>
     </form>

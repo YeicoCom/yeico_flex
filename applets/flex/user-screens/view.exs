@@ -146,7 +146,7 @@ defmodule Flex.UserScreens.View do
         state = DUtils.handle(state, id, {:modal, event, params})
         {socket, state}
 
-      {:event, socket, state, event = "submit:modal", params = %{"iid" => id}} ->
+      {:event, socket, state, event = "submit:modal", params = %{"id" => id}} ->
         Log.trace(view: path, event: event, params: params)
         state = DUtils.handle(state, id, {:submit, event, params})
         {socket, state}

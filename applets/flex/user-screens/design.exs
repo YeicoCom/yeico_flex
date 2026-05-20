@@ -28,8 +28,9 @@ defmodule Flex.UserScreens.Design do
           <div class="grow"/>
           <div :if={@selected.id} phx-click="item:clone" phx-value-id={@selected.id} class="hero-document-duplicate z-0" title="Clone"/>
         </div>
-        <.fui id="props_editor" fun={&DUtils.form/1} editor={@selected.editor} iid={@selected.id} item={@selected.item} rt={@rts[@selected.id]}
-          phx-submit="item:change" phx-change="item:change" class="[&_*]:text-xs grid grid-cols-[auto_1fr] gap-y-1 gap-x-2 items-center"/>
+        <.fui id="props_editor" fun={&DUtils.form/1} editor={@selected.editor} item={@selected.item} rt={@rts[@selected.id]}
+          phx-submit="item:change" phx-change="item:change"  phx-value-id={@selected.id || 0}
+          class="[&_*]:text-xs grid grid-cols-[auto_1fr] gap-y-1 gap-x-2 items-center"/>
         <div class="grow"/>
         <.fui fun={&UI.link/1} :if={@selected.id} type="danger" class="text-xs justify-end"
           phx-click="item:delete" phx-value-id={@selected.id}>Delete</.fui>
@@ -116,7 +117,7 @@ defmodule Flex.UserScreens.Design do
         {socket, state}
 
       {:event, socket, state = %{selected: %{id: nil, save: save}}, event = "item:change",
-       params = %{"iid" => ""}} ->
+       params = %{"id" => "0"}} ->
         Log.trace(view: path, event: event, params: params)
         state = save.(state, nil, params)
         state = Map.put(state, :menu, nil)
@@ -124,7 +125,7 @@ defmodule Flex.UserScreens.Design do
         {socket, state}
 
       {:event, socket, state = %{selected: %{id: id, save: save}}, event = "item:change",
-       params = %{"iid" => id}} ->
+       params = %{"id" => id}} ->
         Log.trace(view: path, event: event, params: params)
         state = save.(state, id, params)
         state = Map.put(state, :menu, nil)

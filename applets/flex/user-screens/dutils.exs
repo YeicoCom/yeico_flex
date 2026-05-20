@@ -167,7 +167,6 @@ defmodule Flex.UserScreens.DUtils do
     ~H"""
       <form id={@id} class={@class} {@phxattr} autocomplete="off">
         <input type="submit" hidden>
-        <input type="hidden" name="iid" value={@iid}/>
         <.fui fun={@editor} item={@item} rt={@rt}/>
       </form>
     """
