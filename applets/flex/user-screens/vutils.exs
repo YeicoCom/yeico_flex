@@ -127,7 +127,7 @@ defmodule Flex.UserScreens.VUtils do
       {error, styled} = eval_style(style, params)
       {error || inspect(taken, pretty: true, width: 0), taken, styled}
     else
-      {error, _calculated, taken} -> {error, taken, ""}
+      {error, _} -> {error, [], ""}
     end
   end
 
