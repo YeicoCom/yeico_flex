@@ -138,20 +138,21 @@ raise "ouch!"
 
 ## Fixme
 
+- [ ] Define mqtt strategy
+- [ ] Global trace/debug disable
 - [ ] Designer: Analog input slider
 - [ ] Document live view life cycle
+- [ ] Publish serial ports as point
 - [ ] Shaky things: slow boot, browser, mountrap, socat, kill links, unable to await defers, modbus lib
 - [ ] Shaky things: api kill may buble kill single when called from non task parent
 - [ ] Modbus lib deterministic error detection (remove throws?)
 - [ ] Prevent read/write to points with empty names
 - [ ] Show io_lib format escapes help in props editor
-- [ ] Define mqtt strategy
 - [ ] Screen designer stumped after several enable/disable
 - [ ] Inplace testing with a global enable flag (see lib-convert)
-- [ ] Publish serial ports as point
 - [ ] Single database for all entities for easier backup/recovery
-- [ ] Global trace/debug disable
 - [ ] Make back navigation properly reconnect to hooks instead of reloading
+- [ ] Definite manual test procedures for each flex package
 - [ ] Critical: mesa demo monitor went black when playing with the RYx relays
   - Display image was noisy, improved with vga cable replace, image still ghosty.
   - cog/browser bug?
@@ -162,6 +163,9 @@ raise "ouch!"
   - cmd "ps | grep weston" not showing weston
   - monitor cmd "ls -l /proc/*/exe"?
   - Path.wildcard("/proc/*/exe") |> Enum.map(&File.read_link(&1)) |> Enum.any?(& &1=={:ok, "/usr/bin/weston"})
+- [ ] Prop editor wont mark red a preexisting invalid value on item select, only on item save event.
+  - this happend when a point selection changes with an invalid default value which is not correct
+  - then it losses selection and regains it
 - [-] Add title to every widget: nop, titles wont work on touch screens
 - [-] Ensure weston/cog die together: weston defer not triggered... explicit /proc check
 - [x] Implement cog monitor pixel resolution selection
@@ -195,7 +199,6 @@ raise "ouch!"
   - 2.5s m1 redefinition warning delay? only message is delayed
   - module is available for use right away
   - slower than scripts?
-- [ ] Definite manual test procedures for each flex package
 - [x] Publish screens to custom uris
 - [x] Implement user scripts: https://github.com/YeicoCom/chivo_w3/blob/main/assets/js/app.js
 - [x] CubDB screen design db cleanup strategy: immediate delete
@@ -273,7 +276,7 @@ raise "ouch!"
   - h-full parent and overflow-hidden grand parent and h-screen on flex root.
 - [x] Using [0102] instead of \x0102 allows to differenciate bitween [01]a and \x01a
 - [x] Printable groups control chars
-- [ ] Terminal bug?
+- [?] Terminal bug?
 ```
 close: {{:badfun, nil}, [{Applet.Api, :call, 1, [file: ~c"lib/applet/api.ex", line: 251]}, {TerminalWeb.HomeLive, :"-wrap/1-fun-1-", 2, [file: ~c"include/home.exs", line: 176]}, {TerminalWeb.HomeLive, :apply, 4, [file: ~c"include/home.exs", line: 161]}, {TerminalWeb.HomeLive, :handle_event, 3, [file: ~c"include/home.exs", line: 120]}, {Phoenix.LiveView.Channel, :"-view_handle_event/3-fun-0-", 3, [file: ~c"lib/phoenix_live_view/channel.ex", line: 509]}, {:telemetry, :span, 3, [file: ~c"/Users/samuel/Library/Caches/mix/installs/ex-1.19.1-erl-16.1.1/G3ornCiKhOG3d40YuqxB7A/deps/telemetry/src/telemetry.erl", line: 359]}, {Phoenix.LiveView.Channel, :handle_info, 2, [file: ~c"lib/phoenix_live_view/channel.ex", line: 260]}, {:gen_server, :try_handle_info, 3, [file: ~c"gen_server.erl", line: 2434]}]}]
 ```
