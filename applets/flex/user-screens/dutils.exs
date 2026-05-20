@@ -35,7 +35,7 @@ defmodule Flex.UserScreens.DUtils do
     s: 1,
     dx: 0,
     dy: 0,
-    fit: "Auto",
+    fit: "All",
     frame: nil,
     port: nil,
     panel: nil
