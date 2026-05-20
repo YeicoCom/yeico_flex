@@ -55,15 +55,15 @@ defmodule Flex.ModbusDevices.Publish do
 
     Api.subget!("flex:modbus-devices:items")
     |> Enum.each(fn {_id, %{name: name, points: points}} ->
-      Mdb.register!("flex:points:source", "status:#{name}")
+      Pt.reg_point("source", "status:#{name}")
 
       for point <- points do
         for %{dir: dir, tag: tag, key: key} <- PUtils.accessors(point) do
-          Mdb.register!("flex:points:#{dir}", tag)
+          Pt.reg_point(dir, tag)
 
           if dir == :sink and String.starts_with?(tag, "bit:") do
             ptag = String.replace_prefix(tag, "bit:", "pulse:")
-            Mdb.register!("flex:points:#{dir}", ptag)
+            Pt.reg_point(dir, ptag)
             send(task.pid, {:register, key, "#{dir}:#{ptag}"})
           end
         end

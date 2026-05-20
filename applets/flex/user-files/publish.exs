@@ -10,8 +10,8 @@ defmodule Flex.UserFiles.Publish do
       link = IUtils.find(id)
 
       if link do
-        Api.putcast!("flex:point:file:#{id}", "upload/#{link}")
-        Mdb.register!("flex:points:file", "#{id}:#{name}")
+        Pt.put_value("file:#{id}", "upload/#{link}")
+        Pt.reg_point("file", "#{id}:#{name}")
       end
     end)
 

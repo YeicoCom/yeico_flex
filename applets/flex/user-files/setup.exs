@@ -20,7 +20,7 @@ Flex.run_view("index.exs", Flex.UserFiles.Index, idb: idb, udir: udir)
 Flex.run_loop("userfiles:loop", 2_000, Flex.UserFiles.Loop, idb: idb, udir: udir)
 Flex.run_loop("userfiles:publish", 0, Flex.UserFiles.Publish, [])
 
-Api.putcast!("flex:point:file:yeicologo", "logo.svg")
-Mdb.register!("flex:points:file", "yeicologo:Yeico Logo")
+Pt.put_value("file:yeicologo", "logo.svg")
+Pt.reg_point("file", "yeicologo:Yeico Logo")
 
 :ok

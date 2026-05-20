@@ -9,7 +9,6 @@ defmodule Flex.Pt do
     "#{type}:#{name}"
   end
 
-  # FIXME float is not covered by 0 default
   # default value here must cover all types below
   # keys must be typed to avoid type mixing
   def get_value(key) do
@@ -19,15 +18,19 @@ defmodule Flex.Pt do
     end
   end
 
-  def put_value(key, val) do
-    Api.putcast!("flex:point:#{key}", val)
-  end
-
   def subget_value(key) do
     case Api.subget!("flex:point:#{key}") do
       nil -> get_def(key)
       val -> val
     end
+  end
+
+  def put_value(key, val) do
+    Api.putcast!("flex:point:#{key}", val)
+  end
+
+  def reg_point(type, tag) do
+    Mdb.register!("flex:points:#{type}", tag)
   end
 
   def get_sources do

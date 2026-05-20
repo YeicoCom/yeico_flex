@@ -5,8 +5,8 @@ defmodule Flex.UserScreens.Publish do
     Api.subget!("flex:user-screens:items")
     |> Enum.each(fn {id, %{route: route, name: name}} ->
       if String.starts_with?(route, "/") do
-        Api.putcast!("flex:point:screen:#{id}", route)
-        Mdb.register!("flex:points:screen", "#{id}:#{name}")
+        Pt.put_value("screen:#{id}", route)
+        Pt.reg_point("screen", "#{id}:#{name}")
       end
     end)
 
