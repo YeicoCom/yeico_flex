@@ -10,6 +10,8 @@ defmodule Flex.UserScreens.Capture do
     text: @name,
     sink: "",
     default: "0",
+    minimum: nil,
+    maximum: nil,
     style: "",
     calc: ""
   }
@@ -62,6 +64,10 @@ defmodule Flex.UserScreens.Capture do
     <.fui fun={&UI.select/1} name="sink" value={@props.sink} error={@errors.sink} values={@sinks}/>
     <div>Default</div>
     <.fui fun={&UI.input/1} name="default" value={@props.default} error={@errors.default}/>
+    <div>Minimum</div>
+    <.fui fun={&UI.input/1} name="minimum" value={@props.minimum} error={@errors.minimum}/>
+    <div>Maximum</div>
+    <.fui fun={&UI.input/1} name="maximum" value={@props.maximum} error={@errors.maximum}/>
     <div class="col-span-2">Style</div>
     <div class="col-span-2">
       <.fui fun={&UI.area/1} name="style" value={@props.style} error={@errors.style} rows="8" class="w-full"/>
@@ -88,6 +94,8 @@ defmodule Flex.UserScreens.Capture do
     change = VUtils.parse(change, props, params, :text, :text?)
     change = VUtils.parse(change, props, params, :sink, :text?)
     change = VUtils.parse(change, props, params, :default, {:point, params.sink})
+    change = VUtils.parse(change, props, params, :minimum, {:point?, params.sink})
+    change = VUtils.parse(change, props, params, :maximum, {:point?, params.sink})
     change = VUtils.parse(change, props, params, :style, :style)
     change = VUtils.parse(change, props, params, :calc, :text?)
 
@@ -101,13 +109,14 @@ defmodule Flex.UserScreens.Capture do
     state
   end
 
-  def calculate(%{props: %{style: style, calc: calc, default: default, text: text}}, value) do
+  def calculate(%{props: props}, value) do
+    %{style: style, calc: calc, default: default, text: text, sink: sink} = props
     bindings = [value: value, default: default, text: text]
     take = [:text, :disabled]
     {output, taken, style} = VUtils.eval_rt(calc, bindings, take, style)
     css = VUtils.parse_css(style)
     text = VUtils.get_typed(taken, :text, :binary) || text
-    disabled = VUtils.get_typed(taken, :disabled, :boolean) || false
+    disabled = sink == "" or (VUtils.get_typed(taken, :disabled, :boolean) || false)
     %{value: value, css: css, output: output, text: text, disabled: disabled}
   end
 
@@ -121,10 +130,20 @@ defmodule Flex.UserScreens.Capture do
     """
   end
 
-  def modal(id, %{props: %{sink: sink, default: default}}, rt, _params) do
+  def modal(id, %{props: props}, rt, _params) do
+    %{sink: sink, default: default, minimum: cmin, maximum: cmax} = props
+    %{step: step, min: pmin, max: pmax} = Pt.get_limits(sink)
     val = rt.value || default
-    %{step: step, min: min, max: max} = Pt.get_limits(sink)
-    assigns = %{id: id, val: val, step: step, min: min, max: max}
+
+    assigns =
+      %{
+        id: id,
+        val: val,
+        step: step,
+        min: coalesce(cmin, pmin, &max/2),
+        max: coalesce(cmax, pmax, &min/2)
+      }
+
     {rt, %{title: "Capture #{sink}", fun: &capture/1, pass: assigns}}
   end
 
@@ -157,6 +176,10 @@ defmodule Flex.UserScreens.Capture do
     rt = calculate(item, value)
     {rt, key}
   end
+
+  defp coalesce(nil, m2, _fun), do: m2
+  defp coalesce(m1, nil, _fun), do: m1
+  defp coalesce(m1, m2, fun), do: fun.(m1, m2)
 end
 
 :ok

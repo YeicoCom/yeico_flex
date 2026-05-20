@@ -85,6 +85,13 @@ defmodule Flex.UserScreens.VUtils do
       {:point, "status:" <> _} -> integer(change, props, params, key, {0, 3})
       {:point, "pulse:" <> _} -> integer(change, props, params, key, {-32_768, 32_767})
       {:point, _} -> text?(change, props, params, key)
+      {:point?, "bit:" <> _} -> integer(change, props, params, key, {0, 1}, true)
+      {:point?, "uint16:" <> _} -> integer(change, props, params, key, {0, 65_535}, true)
+      {:point?, "sint16:" <> _} -> integer(change, props, params, key, {-32_768, 32_767}, true)
+      {:point?, "float:" <> _} -> float(change, props, params, key, {nil, nil}, true)
+      {:point?, "status:" <> _} -> integer(change, props, params, key, {0, 3}, true)
+      {:point?, "pulse:" <> _} -> integer(change, props, params, key, {-32_768, 32_767}, true)
+      {:point?, _} -> text?(change, props, params, key)
     end
   end
 
@@ -182,11 +189,15 @@ defmodule Flex.UserScreens.VUtils do
     end)
   end
 
-  defp integer(change, props, params, key, {min, max}) do
+  defp integer(change, props, params, key, {min, max}, null? \\ false) do
     tv = params |> Map.get(key) |> String.trim()
+    tv = if(null? && tv == "", do: nil, else: tv)
     cv = props[key]
 
-    case Integer.parse(tv) do
+    case tv && Integer.parse(tv) do
+      nil ->
+        if(tv == cv, do: change, else: Map.put(change, key, nil))
+
       {v, _} when not is_nil(min) and v < min ->
         put_in(change, [:errors, key], "Must be >= #{min}")
 
@@ -204,11 +215,15 @@ defmodule Flex.UserScreens.VUtils do
     end
   end
 
-  defp float(change, props, params, key, {min, max}) do
+  defp float(change, props, params, key, {min, max}, null? \\ false) do
     tv = params |> Map.get(key) |> String.trim()
+    tv = if(null? && tv == "", do: nil, else: tv)
     cv = props[key]
 
-    case Float.parse(tv) do
+    case tv && Float.parse(tv) do
+      nil ->
+        if(tv == cv, do: change, else: Map.put(change, key, nil))
+
       {v, _} when not is_nil(min) and v < min ->
         put_in(change, [:errors, key], "Must be >= #{min}")
 
