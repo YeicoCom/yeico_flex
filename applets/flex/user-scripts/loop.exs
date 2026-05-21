@@ -24,7 +24,7 @@ defmodule Flex.UserScripts.Loop do
     Mdb.register!(:script, id)
     code = String.trim(IUtils.load(cdb, id) || "")
     Lg.send(@log, id, nil, "Started")
-    tag = "userscripts:#{id}:#{name}"
+    tag = "userscripts:#{id}:#{name}:run"
     task = if String.length(code) > 0, do: Api.async(tag, &run_code/1, {id, code})
     Api.receive()
     if task, do: Api.kill(task)

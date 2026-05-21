@@ -138,8 +138,6 @@ raise "ouch!"
 
 ## Fixme
 
-- [ ] Add user backeds: scripts on their one beam vm
-- [ ] Script: show logs in local time
 - [ ] Designer: resize item by border drag
 - [ ] Designer: zindex reposition tool
 - [ ] Designer: heex syntax highlight
@@ -171,6 +169,7 @@ raise "ouch!"
 - [ ] Prop editor wont mark red a preexisting invalid value on item select, only on item save event.
   - this happend when a point selection changes with an invalid default value which is not correct
   - then it losses selection and regains it
+- [x] Add user backeds: scripts on their one beam vm
 - [x] Script: check value range for Flex.Point.put
 - [-] Add title to every widget: nop, titles wont work on touch screens
 - [-] Ensure weston/cog die together: weston defer not triggered... explicit /proc check

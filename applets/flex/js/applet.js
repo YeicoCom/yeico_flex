@@ -123,7 +123,7 @@ const hooks = {
     LineHistory: {
         mounted() {
             setFocus(this.el)
-            const key = `history-${this.el.dataset.key}`
+            const key = `flex:history-${this.el.dataset.key}`
             this.handleEvent("history:append", (params) => {
                 let { line, lines } = this.el.history
                 lines[0] = params.line
@@ -200,7 +200,7 @@ const hooks = {
         mounted() {
             // recover from disconnect by undo pushed down code
             const params = new URLSearchParams(window.location.search)
-            const codeKey = `script-editor:${params.get("id")}`
+            const codeKey = `flex:script-editor:${params.get("id")}`
             let editor = new Editor(this.el.id, codeKey, (editor) => {
                 this.pushEvent("hook:save", { code: editor.toString() })
             })

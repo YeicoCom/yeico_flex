@@ -37,6 +37,7 @@ defmodule Flex.UI do
             <a href="/flex/user-files" class="block px-4 py-2 hover:bg-lime-500">User Files</a>
             <a href="/flex/user-scripts" class="block px-4 py-2 hover:bg-lime-500">User Scripts</a>
             <a href="/flex/user-screens" class="block px-4 py-2 hover:bg-lime-500">User Screens</a>
+            <a href="/flex/user-backends" class="block px-4 py-2 hover:bg-lime-500">User Backends</a>
             <a href="/flex/modbus-devices" class="block px-4 py-2 hover:bg-lime-500">Modbus Devices</a>
             <a href="/flex/modbus-terminal" class="block px-4 py-2 hover:bg-lime-500">Modbus Terminal</a>
             <a href="/flex/socket-terminal" class="block px-4 py-2 hover:bg-lime-500">Socket Terminal</a>
