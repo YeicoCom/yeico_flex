@@ -34,24 +34,16 @@ defmodule Flex.Pt do
   end
 
   def get_sources do
-    "flex:points:source"
-    |> Mdb.lookup()
-    |> Enum.map(fn {_, tag} -> tag end)
-    |> Enum.sort()
+    "source" |> list()
   end
 
   def get_sinks do
-    "flex:points:sink"
-    |> Mdb.lookup()
-    |> Enum.map(fn {_, tag} -> tag end)
-    |> Enum.sort()
+    "sink" |> list()
   end
 
   def get_screens do
-    "flex:points:screen"
-    |> Mdb.lookup()
-    |> Enum.map(fn {_, tag} -> tag end)
-    |> Enum.sort()
+    "screen"
+    |> list()
     |> Enum.map(fn tag ->
       [route, name] = String.split(tag, ":")
       {route, name}
@@ -59,10 +51,8 @@ defmodule Flex.Pt do
   end
 
   def get_files do
-    "flex:points:file"
-    |> Mdb.lookup()
-    |> Enum.map(fn {_, tag} -> tag end)
-    |> Enum.sort()
+    "file"
+    |> list()
     |> Enum.map(fn tag ->
       [id, name] = String.split(tag, ":")
       {id, name}
@@ -86,6 +76,13 @@ defmodule Flex.Pt do
   def get_limits("sint16:" <> _), do: get_limits(:sint16)
   def get_limits("float:" <> _), do: get_limits(:float)
   def get_limits("bit:" <> _), do: get_limits(:bit)
+
+  def list(type) do
+    "flex:points:#{type}"
+    |> Mdb.lookup()
+    |> Enum.map(fn {_, tag} -> tag end)
+    |> Enum.sort()
+  end
 
   defp get_def("source:float:" <> _), do: 0.0
   defp get_def("sink:float:" <> _), do: 0.0

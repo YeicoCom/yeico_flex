@@ -139,6 +139,8 @@ raise "ouch!"
 ## Fixme
 
 - [ ] Add user backeds: scripts on their one beam vm
+- [ ] Script: check value range for Flex.Point.put
+- [ ] Script: show logs in local time
 - [ ] Designer: resize item by border drag
 - [ ] Designer: zindex reposition tool
 - [ ] Designer: heex syntax highlight
