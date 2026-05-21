@@ -138,9 +138,13 @@ raise "ouch!"
 
 ## Fixme
 
-- [ ] Define mqtt strategy
+- [ ] Add user backeds: scripts on their one beam vm
+- [ ] Designer: resize item by border drag
+- [ ] Designer: zindex reposition tool
+- [ ] Designer: heex syntax highlight
+- [ ] Designer: analog input slider
+- [ ] Define mqtt strategy: run in a script or backend
 - [ ] Global trace/debug disable
-- [ ] Designer: Analog input slider
 - [ ] Document live view life cycle
 - [ ] Publish serial ports as point
 - [ ] Shaky things: slow boot, browser, mountrap, socat, kill links, unable to await defers, modbus lib
@@ -235,6 +239,8 @@ raise "ouch!"
   - cursor-default to remove safari text cursor (managed externally)
   - [&_*]:cursor-default required for button and anchor
   - [&_*]:text-xs required for form inputs
+  - border-box already the tailwind default
+  - pending: outline-none (display item after modal closed)
 - [x] z-order checks
   - top-left global menu get on top of screen designer
   - hero icons in modbus points editor are visible
