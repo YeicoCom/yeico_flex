@@ -142,6 +142,8 @@ raise "ouch!"
 - [ ] Designer: zindex reposition tool
 - [ ] Designer: heex syntax highlight
 - [ ] Designer: analog input slider
+- [ ] CodeEditor: auto format and auto complete
+- [ ] Separated flex points agent
 - [ ] Define mqtt strategy: run in a script or backend
 - [ ] Global trace/debug disable
 - [ ] Document live view life cycle
