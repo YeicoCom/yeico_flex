@@ -335,24 +335,37 @@ const hooks = {
                     port.dragState = null
                 }
             })
+            const debug = true
+            if (debug) panel.addEventListener("pointerdown", (e) => { console.log("panel", e.offsetX, e.offsetY) })
+            const panelScale = function () {
+                const rect = panel.getBoundingClientRect()
+                const fx = panel.offsetWidth / rect.width
+                const fy = panel.offsetHeight / rect.height
+                return { fx, fy }
+            }
             port.addEventListener("pointerdown", (e) => {
                 if (!e.srcElement.id.startsWith("item_")) {
                     // display has heex defined children
-                    let parent = e.srcElement.parentElement
-                    while (parent) {
-                        if (parent.id.startsWith("item_")) {
+                    let item = e.srcElement.parentElement
+                    while (item) {
+                        if (item.id.startsWith("item_")) {
+                            if (debug) console.log("child", e.offsetX, e.offsetY)
                             // clientXY relative to browser viewport
-                            // offsetXY relative to elements top-left corner
-                            const rect = parent.getBoundingClientRect()
+                            // offsetXY relative to elements top-left corner (in scaled coordinates)
+                            const { fx, fy } = panelScale()
+                            const rect = item.getBoundingClientRect()
                             const event = new PointerEvent(e.type, e)
+                            const offsetX = (e.clientX - rect.left) * fx
+                            const offsetY = (e.clientY - rect.top) * fy
+                            if (debug) console.log("forwarded", offsetX, offsetY)
                             Object.defineProperties(event, {
-                                offsetX: { value: e.clientX - rect.left, writable: false, enumerable: true },
-                                offsetY: { value: e.clientY - rect.top, writable: false, enumerable: true }
+                                offsetX: { value: offsetX, writable: false, enumerable: true },
+                                offsetY: { value: offsetY, writable: false, enumerable: true }
                             })
-                            parent.dispatchEvent(event);
+                            item.dispatchEvent(event);
                             return
                         }
-                        parent = parent.parentElement
+                        item = item.parentElement
                     }
                     return
                 }
@@ -373,9 +386,9 @@ const hooks = {
                 if (panel.dragState) {
                     panel.dragState.moved = true
                     const { item, px, py, cx, cy, moved, id } = panel.dragState
-                    const rect = item.parentElement.getBoundingClientRect()
-                    const x = px + e.clientX - cx
-                    const y = py + e.clientY - cy
+                    const { fx, fy } = panelScale()
+                    const x = px + (e.clientX - cx) * fx
+                    const y = py + (e.clientY - cy) * fy
                     panel.dragState.x = x
                     panel.dragState.y = y
                     panel.dragState.pending = () => {
