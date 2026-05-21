@@ -23,7 +23,8 @@ defmodule Flex.UserBackends.Runner do
       {"TERMINAL_NODE", Node.self() |> to_string()},
       {"TERMINAL_TMP", Terminal.tmp()},
       {"TERMINAL_ROOT", Terminal.root()},
-      {"TERMINAL_HOME", Terminal.home()}
+      {"TERMINAL_HOME", Terminal.home()},
+      {"TERMINAL_HOST", Api.hostname()}
     ]
 
     args = [

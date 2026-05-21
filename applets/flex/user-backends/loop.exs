@@ -35,7 +35,7 @@ defmodule Flex.UserBackends.Loop do
     tag = "userbackends:#{id}:#{item.name}"
 
     case item.status do
-      :enabled -> Api.loop(tag, 0, &runner_setup/1, %{id: id, item: item, ctx: ctx})
+      :enabled -> Api.loop(tag, 2_000, &runner_setup/1, %{id: id, item: item, ctx: ctx})
       _ -> nil
     end
   end
