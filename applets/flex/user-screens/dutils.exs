@@ -44,7 +44,7 @@ defmodule Flex.UserScreens.DUtils do
   # frame:resize -> updates frame w,h -> recalculates
   # frame:fit -> updates screen fit and resets vp view -> recalculates
 
-  def port(fit, fw, fh, vw, vh) do
+  def port(fit, fw, fh, vw, vh, rt? \\ false) do
     s =
       case fit do
         "All" -> min(fw / vw, fh / vh)
@@ -56,7 +56,7 @@ defmodule Flex.UserScreens.DUtils do
     w = min(fw, s * vw)
     h = min(fh, s * vh)
     x = (fw - w) / 2
-    y = (fh - h) / 2
+    y = if(rt?, do: (fh - h) / 2, else: 0)
     %{s: s, x: x, y: y, w: w, h: h}
   end
 
@@ -152,7 +152,7 @@ defmodule Flex.UserScreens.DUtils do
 
   def item(assigns) do
     assigns = Map.put(assigns, :size, &size/2)
-    assigns = Map.put(assigns, :pass, Map.take(assigns, [:x, :y, :rt, :props, :size, :runtime]))
+    assigns = Map.put(assigns, :pass, Map.take(assigns, [:x, :y, :rt, :props, :size, :rt?]))
     assigns = Map.put(assigns, :fun, Function.capture(@items[assigns.type], :render, 1))
 
     ~H"""
@@ -287,7 +287,10 @@ defmodule Flex.UserScreens.DUtils do
     py = vy + dy
     vw = vs * sw
     vh = vs * sh
-    state = put_in(state, [:vp, :port], %{s: ps, w: pw, h: ph} = port(fit, fw, fh, vw, vh))
+
+    state =
+      put_in(state, [:vp, :port], %{s: ps, w: pw, h: ph} = port(fit, fw, fh, vw, vh))
+
     px = if @box?, do: max(min(px, 0), pw - sw * ps), else: px
     py = if @box?, do: max(min(py, 0), ph - sh * ps), else: py
     state = put_in(state, [:vp, :panel], %{s: ps, x: px, y: py, w: sw, h: sh})

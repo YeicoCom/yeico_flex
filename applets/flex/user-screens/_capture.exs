@@ -29,8 +29,8 @@ defmodule Flex.UserScreens.Capture do
         ]}
         tabindex="-1"
         data-disabled={@rt.disabled}
-        phx-click={!@rt.disabled && @runtime && "item:modal"}
-        phx-value-id={!@rt.disabled && @runtime && @id}
+        phx-click={!@rt.disabled && @rt? && "item:modal"}
+        phx-value-id={!@rt.disabled && @rt? && @id}
         style={[
           "left: #{@x}px; top: #{@y}px;",
           @size.(@props.w, @props.h),

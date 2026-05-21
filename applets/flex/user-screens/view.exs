@@ -10,7 +10,7 @@ defmodule Flex.UserScreens.View do
       <div :if={@size} id="design_port" class="design-port overflow-hidden">
         <div id="design_panel" class="design-panel text-white select-none text-base [&_*]:cursor-default leading-none"
           draggable="false" style={@screen.props.style}>
-          <.fui :for={{id, item} <- @index} fun={&DUtils.item/1} id={id} {item} rt={@rts[id]} selected={false} runtime={true}/>
+          <.fui :for={{id, item} <- @index} fun={&DUtils.item/1} id={id} {item} rt={@rts[id]} selected={false} rt?={@rt?}/>
         </div>
       </div>
       <style :if={@size}>
@@ -94,6 +94,7 @@ defmodule Flex.UserScreens.View do
         state = Map.put(state, :events, %{})
         state = Map.put(state, :size, nil)
         state = Map.put(state, :name, nil)
+        state = Map.put(state, :rt?, true)
         state = Map.put(state, :rts, %{})
         state = Map.put(state, :fid, fid)
         state = Map.put(state, :id, nil)
@@ -119,13 +120,14 @@ defmodule Flex.UserScreens.View do
 
       {:render, _assigns,
        state = %{
+         rt?: rt?,
          enabled: true,
          size: %{w: fw, h: fh},
          screen: %{items: items, props: %{w: sw, h: sh}}
        }} ->
         index = Enum.sort_by(items, fn {_, item} -> item.index end)
         state = Map.put(state, :index, index)
-        port = %{s: s} = DUtils.port("All", fw, fh, sw, sh)
+        port = %{s: s} = DUtils.port("All", fw, fh, sw, sh, rt?)
         panel = %{s: s, x: 0, y: 0, w: sw, h: sh}
         state = Map.put(state, :port, port)
         state = Map.put(state, :panel, panel)

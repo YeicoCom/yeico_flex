@@ -16,7 +16,7 @@ defmodule Flex.UserScreens.Design do
             <div :for={p <- 10..90//10} class="absolute text-[6px] left-[1px]" style={"top: #{p}%;"}>{p}%</div>
           </div>
           <div id="design_panel" class="design-panel text-white select-none text-base [&_*]:cursor-default leading-none" draggable="false">
-            <.fui :for={{id, item} <- @index} fun={&DUtils.item/1} id={id} {item} rt={@rts[id]} selected={id==@selected.id} runtime={false}/>
+            <.fui :for={{id, item} <- @index} fun={&DUtils.item/1} id={id} {item} rt={@rts[id]} selected={id==@selected.id} rt?={@rt?}/>
           </div>
         </div>
         <.fui id="design_menu" :if={@menu} fun={&DUtils.menu/1} x={@menu.x} y={@menu.y} items={@menu.items?}
@@ -76,6 +76,7 @@ defmodule Flex.UserScreens.Design do
         state = Map.put(state, :events, %{})
         state = Map.put(state, :menu, nil)
         state = Map.put(state, :name, nil)
+        state = Map.put(state, :rt?, false)
         state = Map.put(state, :rts, %{})
         state = Map.put(state, :id, nil)
         state = Ln.init(socket, state)

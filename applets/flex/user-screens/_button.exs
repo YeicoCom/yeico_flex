@@ -25,8 +25,8 @@ defmodule Flex.UserScreens.Button do
         "bg-blue-600 active:bg-blue-400 hover:bg-blue-500",
         "disabled:bg-zinc-600 disabled:text-zinc-400"]}
         disabled={@rt.disabled}
-        phx-click={!@rt.disabled && @runtime && "item:click"}
-        phx-value-id={!@rt.disabled && @runtime && @id}
+        phx-click={!@rt.disabled && @rt? && "item:click"}
+        phx-value-id={!@rt.disabled && @rt? && @id}
         style={[
           "left: #{@x}px; top: #{@y}px;",
           @size.(@props.w, @props.h),
