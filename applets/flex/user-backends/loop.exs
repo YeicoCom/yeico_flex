@@ -16,6 +16,7 @@ defmodule Flex.UserBackends.Loop do
 
     Log.info("Starting...")
     Runner.run(id, code)
+    Process.exit(self(), :kill)
   end
 
   defp runner_setup(%{id: id, item: %{name: name}, ctx: %{cdb: cdb}}) do

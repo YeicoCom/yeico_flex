@@ -15,7 +15,7 @@ defmodule Flex.UserScripts.Loop do
 
     Log.info("Starting...")
     Api.evals("script", code, [])
-    Api.sleep()
+    Process.exit(self(), :kill)
   end
 
   defp runner_setup(%{id: id, item: %{name: name}, ctx: %{cdb: cdb}}) do
@@ -57,7 +57,7 @@ defmodule Flex.UserScripts.Loop do
       {"flex:user-scripts:insert", _, params} ->
         id = UUID.uuid1() |> ShortUUID.encode!()
         Db.put(idb, id, params)
-        Db.put(cdb, id, "use Terminal\n\n:ok")
+        Db.put(cdb, id, "use Terminal\n\nApi.sleep()")
         publish_items(idb)
         Lg.send(@log, id, false, "Created")
         runner = run_item(id, params, %{cdb: cdb})
