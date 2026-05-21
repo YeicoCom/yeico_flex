@@ -13,8 +13,14 @@ defmodule Flex.UserBackends.IUtils do
     def info(msg), do: log("info", msg)
     def warn(msg), do: log("warn", msg)
     def error(msg), do: log("error", msg)
-    defp log(level, msg) when is_binary(msg), do: IO.puts([level, " ", msg])
-    defp log(level, msg), do: IO.puts([level, " ", inspect(msg)])
+    defp log(level, msg) when is_binary(msg) do
+      IO.puts([level, " ", msg])
+      msg
+    end
+    defp log(level, msg) do
+      log(level, inspect(msg))
+      msg
+    end
   end
 
   Log.info("hi")
