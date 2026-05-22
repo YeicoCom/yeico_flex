@@ -7,7 +7,8 @@ defmodule Flex.UserScreens.Display do
   @props %{
     w: 0,
     h: 0,
-    source: "",
+    type: "source",
+    point: "",
     default: "0",
     heex: "<div>Display</div>",
     calc: ""
@@ -37,7 +38,8 @@ defmodule Flex.UserScreens.Display do
     assigns = UI.phxattr(assigns)
     assigns = Map.put(assigns, :props, item.props)
     assigns = Map.put(assigns, :errors, item.errors)
-    assigns = Map.put(assigns, :sources, ["" | Pt.get_sources()])
+    points = if item.props.type == "source", do: Pt.get_sources(), else: Pt.get_sinks()
+    assigns = Map.put(assigns, :points, ["" | points])
 
     ~H"""
     <div>Size</div>
@@ -45,8 +47,10 @@ defmodule Flex.UserScreens.Display do
       <.fui fun={&UI.input/1} name="w" value={@props.w} error={@errors.w} type="number" step="1"/>
       <.fui fun={&UI.input/1} name="h" value={@props.h} error={@errors.h} type="number" step="1"/>
     </div>
-    <div>Source</div>
-    <.fui fun={&UI.select/1} name="source" value={@props.source} error={@errors.source} values={@sources}/>
+    <div>Type</div>
+    <.fui fun={&UI.select/1} name="type" value={@props.type} error={@errors.type} values={["source", "sink"]}/>
+    <div>Point</div>
+    <.fui fun={&UI.select/1} name="point" value={@props.point} error={@errors.point} values={@points}/>
     <div>Default</div>
     <.fui fun={&UI.input/1} name="default" value={@props.default} error={@errors.default}/>
     <div class="col-span-2">Heex</div>
@@ -72,8 +76,9 @@ defmodule Flex.UserScreens.Display do
 
     change = VUtils.parse(change, props, params, :w, {:integer, 0, w})
     change = VUtils.parse(change, props, params, :h, {:integer, 0, h})
-    change = VUtils.parse(change, props, params, :source, :text?)
-    change = VUtils.parse(change, props, params, :default, {:point, params.source})
+    change = VUtils.parse(change, props, params, :type, :text?)
+    change = VUtils.parse(change, props, params, :point, :text?)
+    change = VUtils.parse(change, props, params, :default, {:point, params.point})
     change = VUtils.parse(change, props, params, :heex, :text?)
     change = VUtils.parse(change, props, params, :calc, :text?)
 
@@ -88,17 +93,17 @@ defmodule Flex.UserScreens.Display do
   end
 
   def calculate(
-        %{props: %{heex: heex, calc: calc, default: default, source: source}},
+        %{props: %{heex: heex, calc: calc, default: default, point: point}},
         value,
         ast \\ nil
       ) do
     bindings = [value: value, default: default]
     {output, calculated} = VUtils.eval_calc(calc, bindings)
-    source? = source != ""
+    point? = point != ""
     assigns = Map.new(calculated)
     assigns = Map.put_new(assigns, :value, value)
     assigns = Map.put_new(assigns, :default, default)
-    assigns = Map.put(assigns, :source?, source?)
+    assigns = Map.put(assigns, :point?, point?)
 
     render = fn ->
       opts = [
@@ -123,12 +128,12 @@ defmodule Flex.UserScreens.Display do
       ast: ast,
       error?: error?,
       output: output,
-      source?: source?,
+      point?: point?,
       content: [%{inner_block: inner}]
     }
   end
 
-  def handle(%{props: %{source: ""}}, rt, _) do
+  def handle(%{props: %{point: ""}}, rt, _) do
     rt
   end
 
@@ -136,7 +141,7 @@ defmodule Flex.UserScreens.Display do
     calculate(item, value, rt[:ast])
   end
 
-  def init(item = %{props: %{source: ""}}, _design?, _subget) do
+  def init(item = %{props: %{point: ""}}, _design?, _subget) do
     rt = calculate(item, nil)
     {rt, nil}
   end
@@ -146,8 +151,8 @@ defmodule Flex.UserScreens.Display do
     {rt, nil}
   end
 
-  def init(item = %{props: %{source: source}}, _design?, subget) do
-    key = "source:#{source}"
+  def init(item = %{props: %{type: type, point: point}}, _design?, subget) do
+    key = "#{type}:#{point}"
     value = subget.(key)
     rt = calculate(item, value)
     {rt, key}

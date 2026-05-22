@@ -8,7 +8,8 @@ defmodule Flex.UserScreens.Label do
     w: 0,
     h: 0,
     text: @name,
-    source: "",
+    type: "source",
+    point: "",
     default: "0",
     style: "",
     calc: ""
@@ -43,7 +44,8 @@ defmodule Flex.UserScreens.Label do
     assigns = UI.phxattr(assigns)
     assigns = Map.put(assigns, :props, item.props)
     assigns = Map.put(assigns, :errors, item.errors)
-    assigns = Map.put(assigns, :sources, ["" | Pt.get_sources()])
+    points = if item.props.type == "source", do: Pt.get_sources(), else: Pt.get_sinks()
+    assigns = Map.put(assigns, :points, ["" | points])
 
     ~H"""
     <div>Size</div>
@@ -53,8 +55,10 @@ defmodule Flex.UserScreens.Label do
     </div>
     <div>Text</div>
     <.fui fun={&UI.input/1} name="text" value={@props.text} error={@errors.text} type="text"/>
-    <div>Source</div>
-    <.fui fun={&UI.select/1} name="source" value={@props.source} error={@errors.source} values={@sources}/>
+    <div>Type</div>
+    <.fui fun={&UI.select/1} name="type" value={@props.type} error={@errors.type} values={["source", "sink"]}/>
+    <div>Point</div>
+    <.fui fun={&UI.select/1} name="point" value={@props.point} error={@errors.point} values={@points}/>
     <div>Default</div>
     <.fui fun={&UI.input/1} name="default" value={@props.default} error={@errors.default}/>
     <div class="col-span-2">Style</div>
@@ -81,8 +85,9 @@ defmodule Flex.UserScreens.Label do
     change = VUtils.parse(change, props, params, :w, {:integer, 0, w})
     change = VUtils.parse(change, props, params, :h, {:integer, 0, h})
     change = VUtils.parse(change, props, params, :text, :text?)
-    change = VUtils.parse(change, props, params, :source, :text?)
-    change = VUtils.parse(change, props, params, :default, {:point, params.source})
+    change = VUtils.parse(change, props, params, :type, :text?)
+    change = VUtils.parse(change, props, params, :point, :text?)
+    change = VUtils.parse(change, props, params, :default, {:point, params.point})
     change = VUtils.parse(change, props, params, :style, :style)
     change = VUtils.parse(change, props, params, :calc, :text?)
 
@@ -106,7 +111,7 @@ defmodule Flex.UserScreens.Label do
     %{css: css, output: output, text: text, disabled: disabled}
   end
 
-  def handle(%{props: %{source: ""}}, rt, _) do
+  def handle(%{props: %{point: ""}}, rt, _) do
     rt
   end
 
@@ -114,7 +119,7 @@ defmodule Flex.UserScreens.Label do
     calculate(item, value)
   end
 
-  def init(item = %{props: %{source: ""}}, _design?, _subget) do
+  def init(item = %{props: %{point: ""}}, _design?, _subget) do
     rt = calculate(item, nil)
     {rt, nil}
   end
@@ -124,8 +129,8 @@ defmodule Flex.UserScreens.Label do
     {rt, nil}
   end
 
-  def init(item = %{props: %{source: source}}, _design?, subget) do
-    key = "source:#{source}"
+  def init(item = %{props: %{type: type, point: point}}, _design?, subget) do
+    key = "#{type}:#{point}"
     value = subget.(key)
     rt = calculate(item, value)
     {rt, key}
