@@ -144,6 +144,7 @@ raise "ouch!"
 - [ ] Designer: analog input slider
 - [ ] Designer: prevent loss from concurrent editing
 - [ ] Designer: ensure outline even with zero size no content
+- [ ] Refactor devices index to item var name
 - [ ] Refactor to single drive like item browser
 - [ ] CodeEditor: auto format and auto complete
 - [ ] Separated flex points agent
@@ -174,6 +175,12 @@ raise "ouch!"
 - [ ] Prop editor wont mark red a preexisting invalid value on item select, only on item save event.
   - this happend when a point selection changes with an invalid default value which is not correct
   - then it losses selection and regains it
+- [x] User script/backend loop crash on deleted code save
+  - loop recovers it self, so no big deal
+  - code editor check name not null before save
+- [x] User script/backend save wont restart immediatelly
+  - Reload eats the loops delay
+  - Need to kill it from the very top
 - [x] Add user backeds: scripts on their one beam vm
 - [x] Script: check value range for Flex.Point.put
 - [-] Add title to every widget: nop, titles wont work on touch screens

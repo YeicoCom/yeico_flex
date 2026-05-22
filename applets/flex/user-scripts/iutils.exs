@@ -57,7 +57,7 @@ defmodule Flex.UserScripts.IUtils do
       Db.put(cdb, id, code)
     end
 
-    Bus.broadcast!("flex:user-scripts:reload:#{id}", nil)
+    Bus.broadcast!("flex:user-scripts:reload", id)
   end
 end
 

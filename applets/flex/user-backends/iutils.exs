@@ -81,7 +81,7 @@ defmodule Flex.UserBackends.IUtils do
       Db.put(cdb, id, code)
     end
 
-    Bus.broadcast!("flex:user-backends:reload:#{id}", nil)
+    Bus.broadcast!("flex:user-backends:reload", id)
   end
 end
 

@@ -52,9 +52,10 @@ defmodule Flex.UserBackends.Code do
         state = Map.put(state, :streams, assigns.streams)
         view(state)
 
-      {:event, socket, state = %{id: id}, event = "hook:save", params = %{"code" => code}} ->
+      {:event, socket, state = %{id: id, name: name}, event = "hook:save",
+       params = %{"code" => code}} ->
         Log.trace(view: path, event: event, params: params)
-        IUtils.save(cdb, id, code, false)
+        if name, do: IUtils.save(cdb, id, code, false)
         {socket, state}
 
       {:event, socket, state, event, params} ->

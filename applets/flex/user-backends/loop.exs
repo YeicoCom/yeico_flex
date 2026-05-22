@@ -20,23 +20,23 @@ defmodule Flex.UserBackends.Loop do
   end
 
   defp runner_setup(%{id: id, item: %{name: name}, ctx: %{cdb: cdb}}) do
-    Bus.subscribe!("flex:user-backends:reload:#{id}", nil)
     Udb.register!({:backend, id}, name)
-    Mdb.register!(:backend, id)
     code = String.trim(IUtils.load(cdb, id) || "")
     Lg.send(@log, id, nil, "Started")
     tag = "userbackends:#{id}:#{name}:run"
-    task = if String.length(code) > 0, do: Api.async(tag, &run_code/1, {id, code})
+    if String.length(code) > 0, do: Api.async(tag, &run_code/1, {id, code})
     Api.receive()
-    if task, do: Api.kill(task)
-    [reload: id]
+    Process.exit(self(), :kill)
+  end
+
+  defp run_loop(id, item, ctx) do
+    tag = "userbackends:#{id}:#{item.name}"
+    Api.loop(tag, item.delay, &runner_setup/1, %{id: id, item: item, ctx: ctx})
   end
 
   defp run_enabled(id, item, ctx) do
-    tag = "userbackends:#{id}:#{item.name}"
-
     case item.status do
-      :enabled -> Api.loop(tag, item.delay, &runner_setup/1, %{id: id, item: item, ctx: ctx})
+      :enabled -> run_loop(id, item, ctx)
       _ -> nil
     end
   end
@@ -90,6 +90,15 @@ defmodule Flex.UserBackends.Loop do
         state = Map.put(state, :runners, runners)
         master_loop(state)
 
+      {"flex:user-backends:reload", _, id} ->
+        # raises on deleted item save from code editor
+        %{task: task, item: item} = runners[id]
+        if task, do: Api.kill(task)
+        runner = run_item(id, item, %{cdb: cdb})
+        runners = Map.put(runners, id, runner)
+        state = Map.put(state, :runners, runners)
+        master_loop(state)
+
       {"flex:user-backends:log", _, log} ->
         logs = Lg.replace(logs, log)
         ids = Map.keys(runners)
@@ -110,6 +119,7 @@ defmodule Flex.UserBackends.Loop do
     idb = Keyword.fetch!(opts, :idb)
     cdb = Keyword.fetch!(opts, :cdb)
 
+    Bus.subscribe!("flex:user-backends:reload", nil)
     Bus.subscribe!("flex:user-backends:insert", nil)
     Bus.subscribe!("flex:user-backends:update", nil)
     Bus.subscribe!("flex:user-backends:delete", nil)

@@ -19,23 +19,23 @@ defmodule Flex.UserScripts.Loop do
   end
 
   defp runner_setup(%{id: id, item: %{name: name}, ctx: %{cdb: cdb}}) do
-    Bus.subscribe!("flex:user-scripts:reload:#{id}", nil)
     Udb.register!({:script, id}, name)
-    Mdb.register!(:script, id)
     code = String.trim(IUtils.load(cdb, id) || "")
     Lg.send(@log, id, nil, "Started")
     tag = "userscripts:#{id}:#{name}:run"
-    task = if String.length(code) > 0, do: Api.async(tag, &run_code/1, {id, code})
+    if String.length(code) > 0, do: Api.async(tag, &run_code/1, {id, code})
     Api.receive()
-    if task, do: Api.kill(task)
-    [reload: id]
+    Process.exit(self(), :kill)
+  end
+
+  defp run_loop(id, item, ctx) do
+    tag = "userscripts:#{id}:#{item.name}"
+    Api.loop(tag, item.delay, &runner_setup/1, %{id: id, item: item, ctx: ctx})
   end
 
   defp run_enabled(id, item, ctx) do
-    tag = "userscripts:#{id}:#{item.name}"
-
     case item.status do
-      :enabled -> Api.loop(tag, item.delay, &runner_setup/1, %{id: id, item: item, ctx: ctx})
+      :enabled -> run_loop(id, item, ctx)
       _ -> nil
     end
   end
@@ -77,6 +77,15 @@ defmodule Flex.UserScripts.Loop do
         state = Map.put(state, :runners, runners)
         master_loop(state)
 
+      {"flex:user-scripts:reload", _, id} ->
+        # raises on deleted item save from code editor
+        %{task: task, item: item} = runners[id]
+        if task, do: Api.kill(task)
+        runner = run_item(id, item, %{cdb: cdb})
+        runners = Map.put(runners, id, runner)
+        state = Map.put(state, :runners, runners)
+        master_loop(state)
+
       {"flex:user-scripts:delete", _, id} ->
         Db.delete(cdb, id)
         Db.delete(idb, id)
@@ -109,6 +118,7 @@ defmodule Flex.UserScripts.Loop do
     idb = Keyword.fetch!(opts, :idb)
     cdb = Keyword.fetch!(opts, :cdb)
 
+    Bus.subscribe!("flex:user-scripts:reload", nil)
     Bus.subscribe!("flex:user-scripts:insert", nil)
     Bus.subscribe!("flex:user-scripts:update", nil)
     Bus.subscribe!("flex:user-scripts:delete", nil)
