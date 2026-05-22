@@ -24,10 +24,10 @@ defmodule Flex.ModbusDevices.PUtils do
           "down" -> switch(points, pi)
         end
 
-      {device, action} ->
+      {item, action} ->
         case action do
-          "enable" -> Map.put(device, :status, :enabled)
-          "disable" -> Map.put(device, :status, :disabled)
+          "enable" -> Map.put(item, :status, :enabled)
+          "disable" -> Map.put(item, :status, :disabled)
         end
     end
   end
@@ -55,7 +55,7 @@ defmodule Flex.ModbusDevices.PUtils do
     end
   end
 
-  def parse(device = %{points: points}, params) do
+  def parse(item = %{points: points}, params) do
     type = params["type"]
     encoding = params["encoding"]
     slave = params["slave"] |> Enum.map(&toint?/1)
@@ -75,7 +75,7 @@ defmodule Flex.ModbusDevices.PUtils do
       end
 
     points = points |> Enum.reverse()
-    Map.put(device, :points, points)
+    Map.put(item, :points, points)
   end
 
   defp switch(points, pi) do

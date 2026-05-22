@@ -14,11 +14,11 @@ defmodule Flex.ModbusDevices.Index do
           <.fui fun={&UI.link/1} phx-click="click:compact">Compact</.fui>
         </div>
         <div :for={id <- @index} class="flex flex-col p-2">
-          <% device = @devices[id] %>
+          <% item = @items[id] %>
           <% values = @points.values %>
           <div class="flex flex-col p-2 hover:rounded hover:bg-zinc-800">
             <.fui fun={&UI.link/1} phx-click="click:edit" phx-value-id={id}>
-              {device.name},{device.proto},{device.ip}:{device.port},{device.delay},{device.status}
+              {item.name},{item.proto},{item.ip}:{item.port},{item.delay},{item.status}
             </.fui>
             <div class="flex gap-2">
               <.fui fun={&UI.link/1} phx-click="click:edit" phx-value-id={id}>Edit</.fui>
@@ -30,7 +30,7 @@ defmodule Flex.ModbusDevices.Index do
               <.fui fun={&UI.link/1} phx-click="click:delete" phx-value-id={id} type="danger">Delete</.fui>
             </div>
             <% log = @logs[id] %>
-            <div :if={device.status==:enabled and log} class={["font-mono",
+            <div :if={item.status==:enabled and log} class={["font-mono",
               log.error? && "text-red-500",
               !log.error? && "text-neutral-500",
             ]}>{log.dt} {log.msg}</div>
@@ -77,34 +77,34 @@ defmodule Flex.ModbusDevices.Index do
         </div>
       </div>
     </.fui>
-    <.fui fun={&UI.modal/1} :if={@modal[:type] == :device} title={@modal.title} class="min-w-[360px] flex flex-col gap-2">
-      <% device = @modal.input %>
-      <form id="modal_form" phx-submit="submit:device" class="flex flex-col gap-4"
+    <.fui fun={&UI.modal/1} :if={@modal[:type] == :item} title={@modal.title} class="min-w-[360px] flex flex-col gap-2">
+      <% item = @modal.input %>
+      <form id="modal_form" phx-submit="submit:item" class="flex flex-col gap-4"
         phx-hook="EnterNavigation" phx-update="ignore" autocomplete="off">
         <div class="grid grid-cols-2 gap-2 items-center min-w-[12em]">
           <div>Name</div>
-          <.fui fun={&UI.input/1} name="name" value={device.name} type="text" required id="modal_autofocus" phx-hook="AutoFocus" pattern="^[ ]*[a-zA-Z]+[a-zA-Z0-9 ]*$"/>
+          <.fui fun={&UI.input/1} name="name" value={item.name} type="text" required id="modal_autofocus" phx-hook="AutoFocus" pattern="^[ ]*[a-zA-Z]+[a-zA-Z0-9 ]*$"/>
           <div>Protocol</div>
-          <.fui fun={&UI.select/1} name="proto" value={device.proto} values={@options.protos} required/>
+          <.fui fun={&UI.select/1} name="proto" value={item.proto} values={@options.protos} required/>
           <div>IP</div>
-          <.fui fun={&UI.input/1} name="ip" value={device.ip} type="text" required pattern="^(((?!25?[6-9])[12]\d|[1-9])?\d\.?\b){4}$"/>
+          <.fui fun={&UI.input/1} name="ip" value={item.ip} type="text" required pattern="^(((?!25?[6-9])[12]\d|[1-9])?\d\.?\b){4}$"/>
           <div>Port</div>
-          <.fui fun={&UI.input/1} name="port" value={device.port} type="number" step="1" min="1" max="65535" required/>
+          <.fui fun={&UI.input/1} name="port" value={item.port} type="number" step="1" min="1" max="65535" required/>
           <div>Delay</div>
-          <.fui fun={&UI.input/1} name="delay" value={device.delay} type="number" step="1" min="0" max="65535" required/>
+          <.fui fun={&UI.input/1} name="delay" value={item.delay} type="number" step="1" min="0" max="65535" required/>
           <div>Status</div>
-          <.fui fun={&UI.select/1} name="status" value={device.status} values={@options.status} required/>
+          <.fui fun={&UI.select/1} name="status" value={item.status} values={@options.status} required/>
         </div>
         <.fui fun={&UI.button/1} type="submit" class="col-span-2">Accept</.fui>
       </form>
     </.fui>
     <.fui fun={&UI.modal/1} :if={@modal[:type] == :points} title={@modal.title}
       class="min-w-[360px] max-h-[80%] h-[80%] flex flex-col">
-      <% device = @modal.input %>
+      <% item = @modal.input %>
       <div class="grow overflow-y-hidden">
         <form id="modal_form" phx-submit="submit:points" phx-change="change:points"
           class="h-full flex flex-col gap-1" phx-hook="EnterNavigation" autocomplete="off">
-          <div>{device.proto},{device.ip}:{device.port},{device.status},{device.name}</div>
+          <div>{item.name},{item.proto},{item.ip}:{item.port},{item.status}</div>
           <div class="grid grid-cols-[3em_4em_4em_5em_12em_1fr] md:grid-cols-[3em_4em_4em_5em_20em_1fr] lg:grid-cols-[3em_4em_4em_5em_32em_1fr] gap-1">
             <div>Slave</div>
             <div>Address</div>
@@ -114,8 +114,8 @@ defmodule Flex.ModbusDevices.Index do
             <.fui fun={&UI.link/1} phx-click="click:point:add" phx-value-pi={0} title="Add Point"><div class="hero-plus z-0"/>Point</.fui>
           </div>
           <div class="grow overflow-y-scroll flex flex-col gap-1 p-1">
-            <% pl = length(device.points) - 1 %>
-            <%= for {point, pi} <- Enum.with_index(device.points) do %>
+            <% pl = length(item.points) - 1 %>
+            <%= for {point, pi} <- Enum.with_index(item.points) do %>
               <div class="grid grid-cols-[3em_4em_4em_5em_12em_1fr] md:grid-cols-[3em_4em_4em_5em_20em_1fr] lg:grid-cols-[3em_4em_4em_5em_32em_1fr] gap-1">
                 <.fui fun={&UI.input/1} name="slave[]" value={point.slave} type="number" step="1" min="0" max="255" required/>
                 <.fui fun={&UI.input/1} name="address[]" value={point.address} type="number" step="1" min="0" max="65535" required/>
@@ -164,12 +164,12 @@ defmodule Flex.ModbusDevices.Index do
         refresh = 100
         tzoffset = socket.assigns.tzoffset || 0
         logs = Api.subget!("flex:modbus-devices:logs")
-        devices = Api.subget!("flex:modbus-devices:items")
+        items = Api.subget!("flex:modbus-devices:items")
         socket = assign(socket, applet_css: "/applets/flex.css")
         socket = assign(socket, applet_js: "/applets/flex.js")
         socket = assign(socket, page_title: "Modbus Devices")
         socket = assign(socket, page_suffix: " · Flex")
-        state = IUtils.runtime(state, devices)
+        state = IUtils.runtime(state, items)
         state = Map.put(state, :logs, Lg.shift(tzoffset, logs))
         state = Map.put(state, :tzoffset, tzoffset)
         state = Map.put(state, :refresh, refresh)
@@ -179,7 +179,7 @@ defmodule Flex.ModbusDevices.Index do
         Process.send_after(self(), :refresh, refresh)
 
         case length(state.index) > 0 do
-          false -> {socket, IUtils.modal({:device, state})}
+          false -> {socket, IUtils.modal({:item, state})}
           true -> {socket, state}
         end
 
@@ -200,14 +200,14 @@ defmodule Flex.ModbusDevices.Index do
         state = Map.put(state, :modal, nil)
         {socket, state}
 
-      {:event, socket, state = %{modal: %{id: nil}}, event = "submit:device", params} ->
+      {:event, socket, state = %{modal: %{id: nil}}, event = "submit:item", params} ->
         Log.trace(view: path, event: event, params: params)
         Bus.broadcast!("flex:modbus-devices:insert", IUtils.parse(params, []))
         state = Map.put(state, :modal, nil)
         {socket, state}
 
       {:event, socket, state = %{modal: %{id: id, input: %{points: points}}},
-       event = "submit:device", params} ->
+       event = "submit:item", params} ->
         Log.trace(view: path, event: event, params: params)
         Bus.broadcast!("flex:modbus-devices:update", {id, IUtils.parse(params, points)})
         state = Map.put(state, :modal, nil)
@@ -216,10 +216,10 @@ defmodule Flex.ModbusDevices.Index do
       {:event, socket, state, event = "submit:paste", params = %{"data" => data}} ->
         Log.trace(view: path, event: event, params: params)
 
-        with ["modbus-device", hash, data64] <- String.split(data, ":"),
+        with ["modbus-item", hash, data64] <- String.split(data, ":"),
              ^hash <- :crypto.hash(:md5, data64) |> Base.encode16(),
              {:ok, code} <- Base.decode64(data64),
-             {%{id: id, type: "modbus-device", item: item}, _} <- Code.eval_string(code) do
+             {%{id: id, type: "modbus-item", item: item}, _} <- Code.eval_string(code) do
           Bus.broadcast!("flex:modbus-devices:update", {id, item})
           state = Map.put(state, :modal, nil)
           {socket, state}
@@ -227,10 +227,10 @@ defmodule Flex.ModbusDevices.Index do
           _ -> {socket, state}
         end
 
-      {:event, socket, state = %{devices: devices}, event = "click:copy", params = %{"id" => id}} ->
+      {:event, socket, state = %{items: items}, event = "click:copy", params = %{"id" => id}} ->
         Log.trace(view: path, event: event, params: params)
-        type = "modbus-device"
-        item = %{devices[id] | status: :disabled}
+        type = "modbus-item"
+        item = %{items[id] | status: :disabled}
         payload = %{id: id, type: type, item: item}
         data64 = inspect(payload, limit: :infinity) |> Base.encode64()
         hash = :crypto.hash(:md5, data64) |> Base.encode16()
@@ -252,26 +252,25 @@ defmodule Flex.ModbusDevices.Index do
         Bus.broadcast!("flex:modbus-devices:delete", id)
         {socket, state}
 
-      {:event, socket, state = %{devices: devices}, event = "click:action",
+      {:event, socket, state = %{items: items}, event = "click:action",
        params = %{"id" => id, "action" => action}} ->
         Log.trace(view: path, event: event, params: params)
-        Bus.broadcast!("flex:modbus-devices:update", {id, PUtils.apply({devices[id], action})})
+        Bus.broadcast!("flex:modbus-devices:update", {id, PUtils.apply({items[id], action})})
         {socket, state}
 
       {:event, socket, state, event = "click:add", params} ->
         Log.trace(view: path, event: event, params: params)
-        state = IUtils.modal({:device, state})
+        state = IUtils.modal({:item, state})
         {socket, state}
 
-      {:event, socket, state = %{devices: devices}, event = "click:edit", params = %{"id" => id}} ->
+      {:event, socket, state = %{items: items}, event = "click:edit", params = %{"id" => id}} ->
         Log.trace(view: path, event: event, params: params)
-        state = IUtils.modal({:device, state, id, devices[id]})
+        state = IUtils.modal({:item, state, id, items[id]})
         {socket, state}
 
-      {:event, socket, state = %{devices: devices}, event = "click:points",
-       params = %{"id" => id}} ->
+      {:event, socket, state = %{items: items}, event = "click:points", params = %{"id" => id}} ->
         Log.trace(view: path, event: event, params: params)
-        state = IUtils.modal({:points, state, id, devices[id]})
+        state = IUtils.modal({:points, state, id, items[id]})
         {socket, state}
 
       {:event, socket, state = %{modal: %{input: %{points: points}}},
@@ -282,17 +281,16 @@ defmodule Flex.ModbusDevices.Index do
         state = put_in(state, [:modal, :input, :points], points)
         {socket, state}
 
-      {:event, socket, state = %{modal: %{input: device}}, event = "change:points", params} ->
+      {:event, socket, state = %{modal: %{input: item}}, event = "change:points", params} ->
         Log.trace(view: path, event: event, params: params)
-        device = PUtils.parse(device, params)
-        state = put_in(state, [:modal, :input], device)
+        item = PUtils.parse(item, params)
+        state = put_in(state, [:modal, :input], item)
         {socket, state}
 
-      {:event, socket, state = %{modal: %{id: id, input: device}}, event = "submit:points",
-       params} ->
+      {:event, socket, state = %{modal: %{id: id, input: item}}, event = "submit:points", params} ->
         Log.trace(view: path, event: event, params: params)
-        device = PUtils.parse(device, params)
-        Bus.broadcast!("flex:modbus-devices:update", {id, device})
+        item = PUtils.parse(item, params)
+        Bus.broadcast!("flex:modbus-devices:update", {id, item})
         state = Map.put(state, :modal, nil)
         {socket, state}
 
@@ -326,9 +324,9 @@ defmodule Flex.ModbusDevices.Index do
         state = Map.put(state, :points, IUtils.values(points))
         {socket, state}
 
-      {:info, socket, state, event = {"flex:modbus-devices:items", _, devices}} ->
+      {:info, socket, state, event = {"flex:modbus-devices:items", _, items}} ->
         Log.trace(view: path, info: event)
-        state = IUtils.runtime(state, devices)
+        state = IUtils.runtime(state, items)
         {socket, state}
 
       {:info, socket, state = %{tzoffset: tzoffset},

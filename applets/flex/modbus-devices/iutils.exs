@@ -42,10 +42,10 @@ defmodule Flex.ModbusDevices.IUtils do
     points |> Enum.into(%{}) |> Map.put(:values, values)
   end
 
-  def runtime(state, devices) do
-    state = Map.put(state, :index, index(devices))
-    state = Map.put(state, :points, points(devices))
-    state = Map.put(state, :devices, Enum.into(devices, %{}))
+  def runtime(state, items) do
+    state = Map.put(state, :index, index(items))
+    state = Map.put(state, :points, points(items))
+    state = Map.put(state, :items, Enum.into(items, %{}))
     state
   end
 
@@ -65,20 +65,20 @@ defmodule Flex.ModbusDevices.IUtils do
         state = Map.put(state, :modal, modal)
         Map.put(state, :options, nil)
 
-      {:points, state, id, device = %{points: points}} ->
+      {:points, state, id, item = %{points: points}} ->
         points = if length(points) > 0, do: points, else: [PUtils.new()]
-        device = Map.put(device, :points, points)
-        modal = %{title: "Edit Modbus Points", id: id, input: device, type: :points}
+        item = Map.put(item, :points, points)
+        modal = %{title: "Edit Modbus Points", id: id, input: item, type: :points}
         state = Map.put(state, :modal, modal)
         Map.put(state, :options, PUtils.options())
 
-      {:device, state, id, device} ->
-        modal = %{title: "Edit Modbus Device", id: id, input: device, type: :device}
+      {:item, state, id, item} ->
+        modal = %{title: "Edit Modbus Device", id: id, input: item, type: :item}
         state = Map.put(state, :modal, modal)
         Map.put(state, :options, @options)
 
-      {:device, state} ->
-        modal = %{title: "Add Modbus Device", id: nil, input: @new, type: :device}
+      {:item, state} ->
+        modal = %{title: "Add Modbus Device", id: nil, input: @new, type: :item}
         state = Map.put(state, :modal, modal)
         Map.put(state, :options, @options)
 
@@ -92,8 +92,8 @@ defmodule Flex.ModbusDevices.IUtils do
     Enum.map(pairs, fn {k, _} -> k end)
   end
 
-  defp points(devices) do
-    for {id, %{points: points}} <- devices do
+  defp points(items) do
+    for {id, %{points: points}} <- items do
       {id,
        for point <- points do
          {point, PUtils.accessors(point)}
