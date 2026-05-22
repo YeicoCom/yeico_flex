@@ -29,7 +29,7 @@ defmodule Flex.UserScreens.Index do
             <.fui fun={&UI.link/1} phx-click="click:delete" phx-value-id={id} type="danger">Delete</.fui>
           </div>
           <% log = @logs[id] %>
-          <div :if={item.status==:enabled and log} class={[
+          <div :if={item.status==:enabled and log} class={["font-mono",
             log.error? && "text-red-500",
             !log.error? && "text-neutral-500",
           ]}>{log.dt} {log.msg}</div>
