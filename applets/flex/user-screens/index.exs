@@ -16,7 +16,7 @@ defmodule Flex.UserScreens.Index do
         <div :for={id <- @index} class="flex flex-col p-2 hover:rounded hover:bg-zinc-800">
           <% item = @items[id] %>
           <.fui fun={&UI.link/1} phx-click="click:edit" phx-value-id={id}>
-            {item.name},{item.route}
+            {item.name},{item.route},{item.status},
           </.fui>
           <div class="flex gap-2">
             <.fui fun={&UI.link/1} phx-click="click:edit" phx-value-id={id}>Edit</.fui>

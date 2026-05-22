@@ -14,7 +14,7 @@ defmodule Flex.SerialExports.Index do
         <div :for={id <- @index} class="flex flex-col p-2 hover:rounded hover:bg-zinc-800">
           <% item = @items[id] %>
           <.fui fun={&UI.link/1} phx-click="click:edit" phx-value-id={id}>
-            {item.tty},{item.bauds}@{item.bits},{item.ip}:{item.port},{item.status}
+            {item.name},{item.tty},{item.bauds}@{item.bits},{item.ip}:{item.port},{item.status}
           </.fui>
           <div class="flex gap-2">
             <.fui fun={&UI.link/1} phx-click="click:edit" phx-value-id={id}>Edit</.fui>
@@ -37,9 +37,10 @@ defmodule Flex.SerialExports.Index do
       <% %{item: item, opts: opts} = @modal %>
       <form id="modal_form" phx-submit="modal:submit" class="flex flex-col gap-4"
         phx-hook="EnterNavigation" phx-update="ignore" autocomplete="off">
-        <.fui fun={&UI.select/1} name="tty" value={item.tty} values={opts.ttys} class="min-w-[120px] overflow-x-auto" size="4" required
-          id="modal_autofocus" phx-hook="AutoFocus"/>
+        <.fui fun={&UI.select/1} name="tty" value={item.tty} values={opts.ttys} class="min-w-[120px] overflow-x-auto" size="4" required id="modal_autofocus" phx-hook="AutoFocus"/>
         <div class="grid grid-cols-2 gap-2 items-center min-w-[12em]">
+          <div>Name</div>
+          <.fui fun={&UI.input/1} name="name" value={item.name} type="text" required pattern="^[ ]*[a-zA-Z]+[a-zA-Z0-9 ]*$"/>
           <div>Bauds</div>
           <.fui fun={&UI.select/1} name="bauds" value={item.bauds} values={opts.bauds} required/>
           <div>Bits</div>

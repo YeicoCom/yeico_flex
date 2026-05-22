@@ -13,7 +13,15 @@ defmodule Flex.SerialExports.IUtils do
     |> Enum.sort()
   end
 
+  @bits ["8n1"]
+  @name "Serial Export"
+  @bauds [9600, 115_200]
+  @ips ["127.0.0.1", "0.0.0.0"]
+  @status [:enabled, :disabled]
+  @options %{status: @status, bauds: @bauds, bits: @bits, ips: @ips}
+
   @new %{
+    name: @name,
     tty: "/dev/ttyUSB0",
     bauds: 115_200,
     bits: "8n1",
@@ -22,12 +30,7 @@ defmodule Flex.SerialExports.IUtils do
     status: :enabled
   }
 
-  @bits ["8n1"]
-  @name "Serial Export"
-  @bauds [9600, 115_200]
-  @ips ["127.0.0.1", "0.0.0.0"]
-  @status [:enabled, :disabled]
-  @options %{status: @status, bauds: @bauds, bits: @bits, ips: @ips}
+  def merge(item), do: Map.merge(@new, item)
 
   def modal(args) do
     case args do
@@ -66,6 +69,7 @@ defmodule Flex.SerialExports.IUtils do
   end
 
   def parse(params) do
+    params = Map.update!(params, "name", &(String.replace(&1, ~r/ +/, " ") |> String.trim()))
     params = Map.update!(params, "status", &String.to_atom/1)
     params = Map.update!(params, "bauds", &String.to_integer/1)
     params = Map.update!(params, "port", &String.to_integer/1)

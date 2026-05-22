@@ -16,6 +16,8 @@ defmodule Flex.ModbusDevices.IUtils do
 
   @options %{status: @status, protos: @protos}
 
+  def merge(item), do: Map.merge(@new, item)
+
   def parse(params, points) do
     params = Map.update!(params, "name", &(String.replace(&1, ~r/ +/, " ") |> String.trim()))
     params = Map.update!(params, "status", &String.to_atom/1)

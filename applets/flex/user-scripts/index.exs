@@ -14,7 +14,7 @@ defmodule Flex.UserScripts.Index do
         <div :for={id <- @index} class="flex flex-col p-2 hover:rounded hover:bg-zinc-800">
           <% item = @items[id] %>
           <.fui fun={&UI.link/1} phx-click="click:edit" phx-value-id={id}>
-            {item.name}
+            {item.name},{item.delay},{item.status}
           </.fui>
           <div class="flex gap-2">
             <.fui fun={&UI.link/1} phx-click="click:edit" phx-value-id={id}>Edit</.fui>
@@ -38,7 +38,9 @@ defmodule Flex.UserScripts.Index do
         phx-hook="EnterNavigation" phx-update="ignore" autocomplete="off">
         <div class="grid grid-cols-2 gap-2 items-center min-w-[12em]">
           <div>Name</div>
-          <.fui fun={&UI.input/1} name="name" value={item.name} required id="modal_autofocus" phx-hook="AutoFocus"/>
+          <.fui fun={&UI.input/1} name="name" value={item.name} required id="modal_autofocus" phx-hook="AutoFocus" pattern="^[ ]*[a-zA-Z]+[a-zA-Z0-9 ]*$"/>
+          <div>Delay</div>
+          <.fui fun={&UI.input/1} name="delay" value={item.delay} type="number" step="1" min="0" max="65535" required/>
           <div>Status</div>
           <.fui fun={&UI.select/1} name="status" value={item.status} values={opts.status} required/>
         </div>

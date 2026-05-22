@@ -35,7 +35,7 @@ defmodule Flex.UserScripts.Loop do
     tag = "userscripts:#{id}:#{item.name}"
 
     case item.status do
-      :enabled -> Api.loop(tag, 2_000, &runner_setup/1, %{id: id, item: item, ctx: ctx})
+      :enabled -> Api.loop(tag, item.delay, &runner_setup/1, %{id: id, item: item, ctx: ctx})
       _ -> nil
     end
   end
@@ -47,6 +47,7 @@ defmodule Flex.UserScripts.Loop do
 
   defp publish_items(idb) do
     items = Db.select(idb, []) |> Enum.sort_by(fn {_, v} -> v.name end)
+    items = Enum.map(items, fn {id, item} -> {id, IUtils.merge(item)} end)
     Api.putcast!("flex:user-scripts:items", items)
     for {id, item} <- items, do: Api.putcast!("flex:user-scripts:item:#{id}", item)
     items

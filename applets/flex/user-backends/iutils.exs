@@ -4,7 +4,7 @@ defmodule Flex.UserBackends.IUtils do
   @name "User Backend"
   @status [:disabled, :enabled]
   @options %{status: @status}
-  @new %{name: @name, status: :disabled}
+  @new %{name: @name, delay: 2_000, status: :disabled}
 
   @template """
   defmodule Log do
@@ -27,6 +27,8 @@ defmodule Flex.UserBackends.IUtils do
 
   Process.sleep(:infinity)
   """
+
+  def merge(item), do: Map.merge(@new, item)
 
   def template, do: @template
 
@@ -63,6 +65,8 @@ defmodule Flex.UserBackends.IUtils do
   def apply(item, "disable"), do: Map.put(item, :status, :disabled)
 
   def parse(params) do
+    params = Map.update!(params, "name", &(String.replace(&1, ~r/ +/, " ") |> String.trim()))
+    params = Map.update!(params, "delay", &String.to_integer/1)
     params = Map.update!(params, "status", &String.to_atom/1)
     params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
     Enum.into(params, %{})

@@ -1,4 +1,5 @@
 defmodule Flex.SerialExports.Loop do
+  alias Flex.SerialExports.IUtils
   use Flex
 
   # /dev/tty.usbserial FTDI usb serial adapter on macos
@@ -158,7 +159,8 @@ defmodule Flex.SerialExports.Loop do
   end
 
   defp publish_items(idb) do
-    items = Db.select(idb, []) |> Enum.to_list()
+    items = Db.select(idb, []) |> Enum.sort_by(fn {_, v} -> v.name end)
+    items = Enum.map(items, fn {id, item} -> {id, IUtils.merge(item)} end)
     Api.putcast!("flex:serial-exports:items", items)
     items
   end

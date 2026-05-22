@@ -27,6 +27,7 @@ defmodule Flex.UserFiles.Loop do
 
   defp publish_items(idb) do
     items = Db.select(idb, []) |> Enum.sort_by(fn {_, v} -> v.name end)
+    items = Enum.map(items, fn {id, item} -> {id, IUtils.merge(item)} end)
     Api.putcast!("flex:user-files:items", items)
     for {id, item} <- items, do: Api.putcast!("flex:user-files:item:#{id}", item)
     items

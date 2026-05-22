@@ -6,6 +6,8 @@ defmodule Flex.UserFiles.IUtils do
   @options %{status: @status}
   @new %{name: @name, status: :enabled}
 
+  def merge(item), do: Map.merge(@new, item)
+
   def style(:error), do: "text-red-500"
   def style(:warn), do: "text-yellow-500"
   def style(:info), do: "text-blue-500"
@@ -39,6 +41,7 @@ defmodule Flex.UserFiles.IUtils do
   def apply(item, "disable"), do: Map.put(item, :status, :disabled)
 
   def parse(params) do
+    params = Map.update!(params, "name", &(String.replace(&1, ~r/ +/, " ") |> String.trim()))
     params = Map.update!(params, "status", &String.to_atom/1)
     params = Enum.map(params, fn {k, v} -> {String.to_atom(k), v} end)
     Enum.into(params, %{})

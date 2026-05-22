@@ -1,8 +1,10 @@
 defmodule Flex.UserScreens.IUtils do
   @name "User Screen"
-  @new %{name: @name, route: "", password: "", status: :disabled}
   @status [:disabled, :enabled]
   @options %{status: @status}
+  @new %{name: @name, route: "", password: "", status: :disabled}
+
+  def merge(item), do: Map.merge(@new, item)
 
   def modal(args) do
     case args do

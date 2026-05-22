@@ -1,4 +1,5 @@
 defmodule Flex.UserScreens.Loop do
+  alias Flex.UserScreens.IUtils
   alias Flex.UserScreens.View
   use Flex
 
@@ -33,9 +34,8 @@ defmodule Flex.UserScreens.Loop do
   end
 
   defp publish_items(idb) do
-    # items = Db.select(idb, []) |> Enum.sort_by(fn {_, v} -> v.name end)
-    # Enum.each(items, fn {k, v} -> Db.put(idb, k, Map.update(v, :password, "", & &1)) end)
     items = Db.select(idb, []) |> Enum.sort_by(fn {_, v} -> v.name end)
+    items = Enum.map(items, fn {id, item} -> {id, IUtils.merge(item)} end)
     Api.putcast!("flex:user-screens:items", items)
     for {id, item} <- items, do: Api.putcast!("flex:user-screens:item:#{id}", item)
     items

@@ -143,6 +143,7 @@ raise "ouch!"
 - [ ] Designer: heex syntax highlight
 - [ ] Designer: analog input slider
 - [ ] Designer: prevent loss from concurrent editing
+- [ ] Designer: ensure outline even with zero size no content
 - [ ] Refactor to single drive like item browser
 - [ ] CodeEditor: auto format and auto complete
 - [ ] Separated flex points agent

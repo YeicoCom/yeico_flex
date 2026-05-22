@@ -18,7 +18,7 @@ defmodule Flex.ModbusDevices.Index do
           <% values = @points.values %>
           <div class="flex flex-col p-2 hover:rounded hover:bg-zinc-800">
             <.fui fun={&UI.link/1} phx-click="click:edit" phx-value-id={id}>
-              {device.proto},{device.ip}:{device.port},{device.status},{device.delay},{device.name}
+              {device.name},{device.proto},{device.ip}:{device.port},{device.delay},{device.status}
             </.fui>
             <div class="flex gap-2">
               <.fui fun={&UI.link/1} phx-click="click:edit" phx-value-id={id}>Edit</.fui>
