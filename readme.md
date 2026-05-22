@@ -138,6 +138,7 @@ raise "ouch!"
 
 ## Fixme
 
+- [ ] Make serial work over the browser
 - [ ] Designer: resize item by border drag
 - [ ] Designer: zindex reposition tool
 - [ ] Designer: heex syntax highlight
