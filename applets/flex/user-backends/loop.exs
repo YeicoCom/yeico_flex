@@ -5,7 +5,7 @@ defmodule Flex.UserBackends.Loop do
 
   @log "flex:user-backends:log"
 
-  defp run_code({id, code}) do
+  defp run_code({id, name, code}) do
     api = Process.get(:__api__)
 
     Process.put(:__api__, fn
@@ -15,7 +15,7 @@ defmodule Flex.UserBackends.Loop do
     end)
 
     Log.info("Starting...")
-    Runner.run(id, code)
+    Runner.run(id, name, code)
     Process.exit(self(), :kill)
   end
 
@@ -24,7 +24,7 @@ defmodule Flex.UserBackends.Loop do
     code = String.trim(IUtils.load(cdb, id) || "")
     Lg.send(@log, id, nil, "Started")
     tag = "userbackends:#{id}:#{name}:run"
-    if String.length(code) > 0, do: Api.async(tag, &run_code/1, {id, code})
+    if String.length(code) > 0, do: Api.async(tag, &run_code/1, {id, name, code})
     Api.receive()
     Process.exit(self(), :kill)
   end

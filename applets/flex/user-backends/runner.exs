@@ -1,8 +1,8 @@
 defmodule Flex.UserBackends.Runner do
   use Terminal
 
-  def run(id, code) do
-    name = "backend_#{id}"
+  def run(id, name, code) do
+    node = "backend_#{id}"
     path = Terminal.fpath("@run/flex/#{name}.exs")
     File.write!(path, code)
     {"", 0} = System.cmd("epmd", ["-daemon"])
@@ -31,15 +31,18 @@ defmodule Flex.UserBackends.Runner do
       "--cookie",
       cookie,
       "--name",
-      "#{name}@#{hostname}.local",
+      "#{node}@#{hostname}.local",
       path
     ]
 
-    wait(name, :pang)
+    wait(node, :pang)
     into = IO.binstream(self(), :line)
     opts = [into: into, stderr_to_stdout: true, env: env, cd: Terminal.home()]
-    task = Api.async("userbackends:runner:#{id}", fn -> MuonTrap.cmd("elixir", args, opts) end)
-    wait(name, :pong)
+
+    tag = "userbackends:#{id}:#{name}:elixir"
+    task = Api.async(tag, fn -> MuonTrap.cmd("elixir", args, opts) end)
+
+    wait(node, :pong)
     loop(id, task)
   end
 
