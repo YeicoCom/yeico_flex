@@ -56,15 +56,15 @@ defmodule Flex.UserScreens.Display do
     <div class="col-span-2">Template</div>
     <div class="col-span-2">
       <.fui fun={&UI.code/1} name="heex" value={@props.heex} error={@errors.heex}
-        class="w-full h-[8em]" id={"#{@id}_heex"} lang="markup"/>
+        class="w-full h-[16em]" id={"#{@id}_heex"} lang="markup"/>
     </div>
     <div class="col-span-2">Calculator</div>
     <div class="col-span-2">
-      <.fui fun={&UI.area/1} name="calc" value={@props.calc} error={@errors.calc} rows="8" class="w-full"/>
+      <.fui fun={&UI.area/1} name="calc" value={@props.calc} error={@errors.calc} rows="6" class="w-full"/>
     </div>
     <div class="col-span-2">Output</div>
     <div class="col-span-2">
-      <.fui fun={&UI.area/1} value={@rt.output} readonly rows="8" class="w-full"/>
+      <.fui fun={&UI.area/1} value={@rt.output} readonly rows="6" class="w-full"/>
     </div>
     """
   end

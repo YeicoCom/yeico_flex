@@ -62,15 +62,15 @@ defmodule Flex.UserScreens.Button do
     <.fui fun={&UI.input/1} name="default" value={@props.default} error={@errors.default}/>
     <div class="col-span-2">Style</div>
     <div class="col-span-2">
-      <.fui fun={&UI.area/1} name="style" value={@props.style} error={@errors.style} rows="8" class="w-full"/>
+      <.fui fun={&UI.area/1} name="style" value={@props.style} error={@errors.style} rows="6" class="w-full"/>
     </div>
     <div class="col-span-2">Calculator</div>
     <div class="col-span-2">
-      <.fui fun={&UI.area/1} name="calc" value={@props.calc} error={@errors.calc} rows="8" class="w-full"/>
+      <.fui fun={&UI.area/1} name="calc" value={@props.calc} error={@errors.calc} rows="6" class="w-full"/>
     </div>
     <div class="col-span-2">Output</div>
     <div class="col-span-2">
-      <.fui fun={&UI.area/1} value={@rt.output} readonly rows="8" class="w-full"/>
+      <.fui fun={&UI.area/1} value={@rt.output} readonly rows="6" class="w-full"/>
     </div>
     """
   end

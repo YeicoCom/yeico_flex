@@ -65,15 +65,15 @@ defmodule Flex.UserScreens.Capture do
     <.fui fun={&UI.input/1} name="maximum" value={@props.maximum} error={@errors.maximum}/>
     <div class="col-span-2">Style</div>
     <div class="col-span-2">
-      <.fui fun={&UI.area/1} name="style" value={@props.style} error={@errors.style} rows="8" class="w-full"/>
+      <.fui fun={&UI.area/1} name="style" value={@props.style} error={@errors.style} rows="6" class="w-full"/>
     </div>
     <div class="col-span-2">Calculator</div>
     <div class="col-span-2">
-      <.fui fun={&UI.area/1} name="calc" value={@props.calc} error={@errors.calc} rows="8" class="w-full"/>
+      <.fui fun={&UI.area/1} name="calc" value={@props.calc} error={@errors.calc} rows="6" class="w-full"/>
     </div>
     <div class="col-span-2">Output</div>
     <div class="col-span-2">
-      <.fui fun={&UI.area/1} value={@rt.output} readonly rows="8" class="w-full"/>
+      <.fui fun={&UI.area/1} value={@rt.output} readonly rows="6" class="w-full"/>
     </div>
     """
   end

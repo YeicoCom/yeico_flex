@@ -348,7 +348,7 @@ defmodule Flex.UserScreens.DUtils do
     <.fui fun={&UI.input/1} name="snap" value={@props.snap} error={@errors.snap} type="number" step="1"/>
     <div class="col-span-2">Style</div>
     <div class="col-span-2">
-      <.fui fun={&UI.area/1} name="style" value={@props.style} error={@errors.style} rows="8" class="w-full"/>
+      <.fui fun={&UI.area/1} name="style" value={@props.style} error={@errors.style} rows="6" class="w-full"/>
     </div>
     """
   end
