@@ -105,13 +105,16 @@ defmodule Flex.UserScreens.Capture do
   end
 
   def calculate(%{props: props}, value) do
-    %{style: style, calc: calc, default: default, text: text, sink: sink} = props
-    bindings = [value: value, default: default, text: text]
+    %{style: style, calc: calc, default: default, text: text} = props
+    %{sink: sink, minimum: minimum, maximum: maximum} = props
+    disabled = sink == ""
+    bindings = [value: value, default: default, text: text, disabled: disabled]
+    bindings = [minimum: minimum, maximum: maximum] ++ bindings
     take = [:text, :disabled]
     {output, taken, style} = VUtils.eval_rt(calc, bindings, take, style)
     css = VUtils.parse_css(style)
-    text = VUtils.get_typed(taken, :text, :binary) || text
-    disabled = sink == "" or (VUtils.get_typed(taken, :disabled, :boolean) || false)
+    text = VUtils.get_typed(taken, :text, :binary)
+    disabled = VUtils.get_typed(taken, :disabled, :boolean)
     %{value: value, css: css, output: output, text: text, disabled: disabled}
   end
 

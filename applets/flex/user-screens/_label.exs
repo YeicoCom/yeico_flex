@@ -100,12 +100,12 @@ defmodule Flex.UserScreens.Label do
   end
 
   def calculate(%{props: %{style: style, calc: calc, default: default, text: text}}, value) do
-    bindings = [value: value, default: default, text: text]
+    bindings = [value: value, default: default, text: text, disabled: false]
     take = [:text, :disabled]
     {output, taken, style} = VUtils.eval_rt(calc, bindings, take, style)
     css = VUtils.parse_css(style)
-    text = VUtils.get_typed(taken, :text, :binary) || text
-    disabled = VUtils.get_typed(taken, :disabled, :boolean) || false
+    text = VUtils.get_typed(taken, :text, :binary)
+    disabled = VUtils.get_typed(taken, :disabled, :boolean)
     %{css: css, output: output, text: text, disabled: disabled}
   end
 

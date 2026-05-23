@@ -132,7 +132,7 @@ defmodule Flex.UserScreens.VUtils do
       taken = Keyword.take(calculated, take)
       params = get_typed(calculated, :style, :keyword) || []
       {error, styled} = eval_style(style, params)
-      {error || inspect(taken, pretty: true, width: 0), taken, styled}
+      {error || pretty_vars(calculated), taken, styled}
     else
       {error, _} -> {error, [], ""}
     end
@@ -161,7 +161,7 @@ defmodule Flex.UserScreens.VUtils do
   end
 
   def pretty_vars(keyword) do
-    keyword = Enum.filter(keyword, fn {k, v} -> !is_function(v) end)
+    keyword = Enum.filter(keyword, fn {_k, v} -> !is_function(v) end)
     keyword = Enum.sort_by(keyword, fn {k, _v} -> k end)
     inspect(keyword, pretty: true, width: 0)
   end

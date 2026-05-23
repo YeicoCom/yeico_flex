@@ -101,12 +101,13 @@ defmodule Flex.UserScreens.Button do
 
   def calculate(%{props: props}, value) do
     %{style: style, calc: calc, default: default, text: text, sink: sink} = props
-    bindings = [value: value, default: default, text: text]
+    disabled = sink == ""
+    bindings = [value: value, default: default, text: text, disabled: disabled]
     take = [:text, :disabled]
     {output, taken, style} = VUtils.eval_rt(calc, bindings, take, style)
     css = VUtils.parse_css(style)
-    text = VUtils.get_typed(taken, :text, :binary) || text
-    disabled = sink == "" or (VUtils.get_typed(taken, :disabled, :boolean) || false)
+    text = VUtils.get_typed(taken, :text, :binary)
+    disabled = VUtils.get_typed(taken, :disabled, :boolean)
     %{css: css, output: output, text: text, disabled: disabled}
   end
 
