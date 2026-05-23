@@ -6,7 +6,7 @@ defmodule Flex.UserScreens.Link do
 
   @props %{
     w: 0,
-    h: 0,
+    h: 30,
     text: @name,
     screen: "",
     style: ""
@@ -21,7 +21,8 @@ defmodule Flex.UserScreens.Link do
         "text-lime-600",
         "active:text-lime-400",
         "hover:text-lime-500",
-        "data-[disabled]:text-zinc-600",
+        "data-[disabled]:text-zinc-500",
+        "content-center text-center"
         ]}
         tabindex="-1"
         data-disabled={@rt.disabled}

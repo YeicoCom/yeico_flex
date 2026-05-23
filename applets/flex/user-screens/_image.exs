@@ -5,7 +5,7 @@ defmodule Flex.UserScreens.Image do
   @name "Image"
 
   @props %{
-    w: 100,
+    w: 60,
     h: 0,
     text: @name,
     file: "",
@@ -17,7 +17,9 @@ defmodule Flex.UserScreens.Image do
 
   def render(assigns) do
     ~H"""
-      <div :if={!@rt.src} id={@id} class={[@class, "data-[disabled]:text-zinc-600"]}
+      <div :if={!@rt.src} id={@id} class={[@class,
+        "data-[disabled]:text-zinc-500"
+        ]}
         tabindex="-1"
         data-disabled={@rt.disabled}
         style={[

@@ -6,7 +6,7 @@ defmodule Flex.UserScreens.Button do
 
   @props %{
     w: 0,
-    h: 0,
+    h: 30,
     text: @name,
     sink: "",
     default: "0",

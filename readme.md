@@ -138,6 +138,7 @@ raise "ouch!"
 
 ## Fixme
 
+- [ ] Unable to delete button with backspace on linux
 - [ ] Make serial work over the browser
 - [ ] Designer: resize item by border drag
 - [ ] Designer: zindex reposition tool

@@ -6,7 +6,7 @@ defmodule Flex.UserScreens.Capture do
 
   @props %{
     w: 0,
-    h: 0,
+    h: 30,
     text: @name,
     sink: "",
     default: "0",
@@ -25,7 +25,8 @@ defmodule Flex.UserScreens.Capture do
         "text-lime-600 outline-none",
         "active:text-lime-400",
         "hover:text-lime-500",
-        "data-[disabled]:text-zinc-600"
+        "data-[disabled]:text-zinc-500",
+        "content-center text-center"
         ]}
         tabindex="-1"
         data-disabled={@rt.disabled}
