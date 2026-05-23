@@ -139,6 +139,8 @@ raise "ouch!"
 ## Fixme
 
 - [ ] Display template auto formatting
+  - npm install codejar --prefix applets/flex
+  - npm install prismjs --prefix applets/flex (removed)
 - [ ] Selection outline offset larger towards bottom-right?
 - [ ] Emulated button click feels flaky
 - [ ] Make serial work over the browser

@@ -176,7 +176,6 @@ defmodule Flex.UI do
 
   def area(assigns) do
     assigns = phxattr(assigns)
-    # wont honor focus ring color if type nil
     assigns = Map.put_new(assigns, :id, nil)
     assigns = Map.put_new(assigns, :class, nil)
     assigns = Map.put_new(assigns, :name, nil)
@@ -290,6 +289,38 @@ defmodule Flex.UI do
       @disabled && "text-neutral-500 pointer-events-none",
       @class
     ]}>{render_slot(@inner_block)}</a>
+    """
+  end
+
+  def code(assigns) do
+    assigns = phxattr(assigns)
+    assigns = Map.put_new(assigns, :id, nil)
+    assigns = Map.put_new(assigns, :class, nil)
+    assigns = Map.put_new(assigns, :name, nil)
+    assigns = Map.put_new(assigns, :value, nil)
+    # validation
+    assigns = Map.put_new(assigns, :error, nil)
+    # lang selection
+    assigns = Map.put_new(assigns, :lang, nil)
+
+    ~H"""
+    <div title={@error}>
+      <div
+      id={@id}
+      {@phxattr}
+      phx-update="ignore"
+      phx-hook="CodeArea"
+      data-lang={@lang}
+      class={[
+        "px-2 py-1 border-0 rounded-lg ring-1",
+        "ring-zinc-600 outline-none",
+        "bg-zinc-600 text-neutral-200",
+        "focus:ring-lime-500",
+        "hover:ring-lime-500",
+        @class
+      ]}/>
+      <textarea name={@name} class="hidden">{@value}</textarea>
+    </div>
     """
   end
 end

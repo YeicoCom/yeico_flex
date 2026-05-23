@@ -28,8 +28,8 @@ defmodule Flex.UserScreens.Design do
           <div class="grow"/>
           <div :if={@selected.id} phx-click="item:clone" phx-value-id={@selected.id} class="hero-document-duplicate z-0" title="Clone"/>
         </div>
-        <.fui id="props_editor" fun={&DUtils.form/1} editor={@selected.editor} item={@selected.item} rt={@rts[@selected.id]}
-          phx-submit="item:change" phx-change="item:change"  phx-value-id={@selected.id || 0}
+        <.fui id="props_editor" fun={&DUtils.form/1} selected={@selected} rt={@rts[@selected.id]}
+          phx-submit="item:change" phx-change="item:change" phx-value-id={@selected.id || 0}
           class="[&_*]:text-xs grid grid-cols-[auto_1fr] gap-y-1 gap-x-2 items-center"/>
         <div class="grow"/>
         <.fui fun={&UI.link/1} :if={@selected.id} type="danger" class="text-xs justify-end"

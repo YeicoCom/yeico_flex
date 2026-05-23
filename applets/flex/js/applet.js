@@ -3,6 +3,7 @@ import { Socket } from "phoenix"
 import { LiveSocket } from "phoenix_live_view"
 import topbar from "topbar"
 import Editor from "./editor"
+import { CodeJar } from "codejar"
 
 const eventThrottlingMs = 50
 const ignoreClickDelayMs = 100
@@ -456,6 +457,27 @@ const hooks = {
                 this.el.reset()
             })
             input.click()
+        }
+    },
+    CodeArea: {
+        mounted() {
+            const lang = this.el.dataset.lang
+            const highlight = (editor) => {
+                // requires a <code/> html element
+                // requires applet.js: import Prism from "prismjs"
+                // requires applet.css: @import "prismjs/themes/prism.css";
+                // const code = editor.textContent
+                // editor.innerHTML = Prism.highlight(code, Prism.languages[lang], lang)
+                // console.log(editor.innerHTML)
+            }
+            const jar = CodeJar(this.el, highlight)
+            const [area] = this.el.parentElement.getElementsByTagName("textarea")
+            jar.updateCode(area.value)
+            jar.onUpdate(code => {
+                area.value = code
+                const event = new Event("change", { bubbles: true })
+                area.dispatchEvent(event)
+            })
         }
     }
 }

@@ -55,7 +55,8 @@ defmodule Flex.UserScreens.Display do
     <.fui fun={&UI.input/1} name="default" value={@props.default} error={@errors.default}/>
     <div class="col-span-2">Template</div>
     <div class="col-span-2">
-      <.fui fun={&UI.area/1} name="heex" value={@props.heex} error={@errors.heex} rows="8" class="w-full"/>
+      <.fui fun={&UI.code/1} name="heex" value={@props.heex} error={@errors.heex}
+        class="w-full h-[8em]" id={"#{@id}_heex"} lang="markup"/>
     </div>
     <div class="col-span-2">Calculator</div>
     <div class="col-span-2">
