@@ -154,6 +154,8 @@ defmodule Flex.UserScreens.DUtils do
     assigns = Map.put(assigns, :size, &size/2)
     assigns = Map.put(assigns, :pass, Map.take(assigns, [:x, :y, :rt, :props, :size, :rt?]))
     assigns = Map.put(assigns, :fun, Function.capture(@items[assigns.type], :render, 1))
+    assigns = Map.put_new(assigns, :selected, nil)
+    assigns = Map.put_new(assigns, :grid, nil)
 
     ~H"""
     <.fui fun={@fun} id={"item_#{@id}_#{@type}"} {@pass}

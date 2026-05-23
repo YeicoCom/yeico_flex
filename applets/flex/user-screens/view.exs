@@ -10,7 +10,7 @@ defmodule Flex.UserScreens.View do
       <div :if={@size} id="design_port" class="design-port overflow-hidden">
         <div id="design_panel" class="design-panel text-white select-none text-base [&_*]:cursor-default leading-none"
           draggable="false" style={@screen.props.style}>
-          <.fui :for={{id, item} <- @index} fun={&DUtils.item/1} id={id} {item} rt={@rts[id]} selected={false} rt?={@rt?}/>
+          <.fui :for={{id, item} <- @index} fun={&DUtils.item/1} id={id} {item} rt={@rts[id]} rt?={@rt?}/>
         </div>
       </div>
       <style :if={@size}>
