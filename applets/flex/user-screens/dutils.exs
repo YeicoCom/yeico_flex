@@ -264,6 +264,14 @@ defmodule Flex.UserScreens.DUtils do
     state
   end
 
+  def remove(state, id) do
+    {_, state} = pop_in(state, [:rts, id])
+    {_, state} = pop_in(state, [:screen, :items, id])
+    state = Map.put(state, :selected, select(state, "Screen", nil))
+    state = Map.put(state, :menu, nil)
+    state
+  end
+
   def max(%{screen: %{items: items}}) do
     case map_size(items) do
       0 ->

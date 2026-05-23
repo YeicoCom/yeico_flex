@@ -227,6 +227,10 @@ const hooks = {
     ScreenDesigner: {
         mounted() {
             const frame = this.el
+            this.handleEvent("item:select", ({ id, type }) => {
+                const item = document.getElementById(`item_${id}_${type}`)
+                item.focus()
+            })
             const pushSize = (el) => {
                 const width = el.clientWidth
                 const height = el.clientHeight

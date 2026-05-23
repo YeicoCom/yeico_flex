@@ -136,20 +136,21 @@ defmodule Flex.UserScreens.Design do
       {:event, socket, state = %{selected: %{id: id}}, event = "item:keydown",
        params = %{"id" => id, "key" => "Backspace"}} ->
         Log.trace(view: path, event: event, params: params)
-        {_, state} = pop_in(state, [:rts, id])
-        {_, state} = pop_in(state, [:screen, :items, id])
-        state = Map.put(state, :selected, DUtils.select(state, "Screen", nil))
-        state = Map.put(state, :menu, nil)
+        state = DUtils.remove(state, id)
+        DUtils.save_screen(ddb, state, false)
+        {socket, state}
+
+      {:event, socket, state = %{selected: %{id: id}}, event = "item:keydown",
+       params = %{"id" => id, "key" => "Delete"}} ->
+        Log.trace(view: path, event: event, params: params)
+        state = DUtils.remove(state, id)
         DUtils.save_screen(ddb, state, false)
         {socket, state}
 
       {:event, socket, state = %{selected: %{id: id}}, event = "item:delete",
        params = %{"id" => id}} ->
         Log.trace(view: path, event: event, params: params)
-        {_, state} = pop_in(state, [:rts, id])
-        {_, state} = pop_in(state, [:screen, :items, id])
-        state = Map.put(state, :selected, DUtils.select(state, "Screen", nil))
-        state = Map.put(state, :menu, nil)
+        state = DUtils.remove(state, id)
         DUtils.save_screen(ddb, state, false)
         {socket, state}
 
@@ -163,6 +164,7 @@ defmodule Flex.UserScreens.Design do
         state = Map.put(state, :selected, DUtils.select(state, type, id))
         state = Map.put(state, :menu, nil)
         DUtils.save_screen(ddb, state, false)
+        socket = push_event(socket, "item:select", %{id: id, type: type})
         {socket, state}
 
       {:event, socket,
@@ -184,6 +186,7 @@ defmodule Flex.UserScreens.Design do
         state = Map.put(state, :selected, DUtils.select(state, type, id))
         state = Map.put(state, :menu, nil)
         DUtils.save_screen(ddb, state, false)
+        socket = push_event(socket, "item:select", %{id: id, type: type})
         {socket, state}
 
       {:event, socket, state = %{screen: screen}, event = "item:drag",

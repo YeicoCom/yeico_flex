@@ -176,6 +176,8 @@ raise "ouch!"
 - [ ] Prop editor wont mark red a preexisting invalid value on item select, only on item save event.
   - this happend when a point selection changes with an invalid default value which is not correct
   - then it losses selection and regains it
+- [x] Make item keyboard deletable immediately after add/clone
+  - explicit item focus by pushing a message
 - [x] Unable to delete button with backspace on linux
   - reason is because it was disabled
   - once enabled event triggers correctly
