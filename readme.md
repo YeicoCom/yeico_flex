@@ -138,9 +138,6 @@ raise "ouch!"
 
 ## Fixme
 
-- [ ] Display template auto formatting
-  - npm install codejar --prefix applets/flex
-  - npm install prismjs --prefix applets/flex (removed)
 - [ ] Selection outline offset larger towards bottom-right?
 - [ ] Emulated button click feels flaky
 - [ ] Make serial work over the browser
@@ -149,7 +146,6 @@ raise "ouch!"
 - [ ] Designer: heex syntax highlight
 - [ ] Designer: analog input slider
 - [ ] Designer: prevent loss from concurrent editing
-- [ ] Designer: ensure outline even with zero size no content
 - [ ] Refactor to single drive like item browser
 - [ ] CodeEditor: auto format and auto complete
 - [ ] Separated flex points agent
@@ -180,6 +176,13 @@ raise "ouch!"
 - [ ] Prop editor wont mark red a preexisting invalid value on item select, only on item save event.
   - this happend when a point selection changes with an invalid default value which is not correct
   - then it losses selection and regains it
+- [x] Designer: ensure outline even with zero size no content
+  - gray outline shown when grid is visible
+  - auto select nearest item on double click
+- [x] Display template auto formatting
+  - npm install codejar --prefix applets/flex
+  - npm install prismjs --prefix applets/flex (removed)
+  - no syntax highlight for the moment
 - [x] Optimize screen item classes
 - [x] Refactor devices index to item var name
 - [x] Make item keyboard deletable immediately after add/clone

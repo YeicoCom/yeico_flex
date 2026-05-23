@@ -417,6 +417,27 @@ const hooks = {
                     panel.dragState = null
                 }
             })
+            // select nearest item
+            panel.addEventListener("dblclick", (e) => {
+                if (e.srcElement != panel) return
+                let item = null
+                let dist = Number.MAX_VALUE
+                for (const child of panel.children) {
+                    if (!child.id.startsWith("item_")) continue
+                    const dx = child.offsetLeft - e.offsetX
+                    const dy = child.offsetTop - e.offsetY
+                    const d = dx * dx + dy * dy
+                    if (d < dist) {
+                        item = child
+                        dist = d
+                    }
+                }
+                if (item) {
+                    item.focus()
+                    const id = item.id
+                    this.pushEvent("item:select", { id })
+                }
+            })
             frame.childrenSetup = true
         }
     },

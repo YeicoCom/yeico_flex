@@ -190,6 +190,13 @@ defmodule Flex.UserScreens.Design do
         socket = push_event(socket, "item:select", %{id: id, type: type})
         {socket, state}
 
+      {:event, socket, state, event = "item:select", params = %{"id" => "item_" <> id_type}} ->
+        Log.trace(view: path, event: event, params: params)
+        [id, type] = String.split(id_type, "_")
+        state = Map.put(state, :selected, DUtils.select(state, type, id))
+        state = Map.put(state, :menu, nil)
+        {socket, state}
+
       {:event, socket, state = %{screen: screen}, event = "item:drag",
        params = %{"id" => "item_" <> id_type, "x" => x, "y" => y, "e" => _e, "m" => _m}} ->
         Log.trace(view: path, event: event, params: params)
