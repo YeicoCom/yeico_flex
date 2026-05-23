@@ -156,7 +156,8 @@ defmodule Flex.UserScreens.DUtils do
     assigns = Map.put(assigns, :fun, Function.capture(@items[assigns.type], :render, 1))
 
     ~H"""
-    <.fui fun={@fun} id={"item_#{@id}_#{@type}"} {@pass} class={["item-base", "item-#{@type}", @selected && "item-selected"]}/>
+    <.fui fun={@fun} id={"item_#{@id}_#{@type}"} {@pass}
+      class={["item-base", "item-#{@type}", @selected && "item-selected", !@selected && @grid && "item-designer"]}/>
     """
   end
 

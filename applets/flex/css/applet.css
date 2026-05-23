@@ -103,6 +103,11 @@ line-height: normal; or div height will collapse to zero.
     outline-offset: 2px;
 }
 
+.item-designer {
+    outline: 2px solid #52525b;
+    outline-offset: 2px;
+}
+
 .item-Button {
     padding: 4px 8px;
     background-color: #2563eb;
