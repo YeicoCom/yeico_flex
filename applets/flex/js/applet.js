@@ -493,12 +493,22 @@ const hooks = {
             }
             const jar = CodeJar(this.el, highlight)
             const [area] = this.el.parentElement.getElementsByTagName("textarea")
-            jar.updateCode(area.value)
-            jar.onUpdate(code => {
+            const onUpdate = (code) => {
                 area.value = code
                 const event = new Event("change", { bubbles: true })
                 area.dispatchEvent(event)
-            })
+            }
+            jar.updateCode(area.value)
+            jar.onUpdate(onUpdate)
+            // intercept browser native history handling
+            this.el.addEventListener("beforeinput", (event) => {
+                if (event.inputType === "historyUndo" || event.inputType === "historyRedo") {
+                    setTimeout(() => {
+                        jar.updateCode(jar.toString())
+                        onUpdate(jar.toString())
+                    }, 0);
+                }
+            });
         }
     }
 }
