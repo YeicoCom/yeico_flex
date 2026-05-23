@@ -145,7 +145,6 @@ raise "ouch!"
 - [ ] Designer: analog input slider
 - [ ] Designer: prevent loss from concurrent editing
 - [ ] Designer: ensure outline even with zero size no content
-- [ ] Refactor devices index to item var name
 - [ ] Refactor to single drive like item browser
 - [ ] CodeEditor: auto format and auto complete
 - [ ] Separated flex points agent
@@ -176,6 +175,7 @@ raise "ouch!"
 - [ ] Prop editor wont mark red a preexisting invalid value on item select, only on item save event.
   - this happend when a point selection changes with an invalid default value which is not correct
   - then it losses selection and regains it
+- [x] Refactor devices index to item var name
 - [x] Make item keyboard deletable immediately after add/clone
   - explicit item focus by pushing a message
 - [x] Unable to delete button with backspace on linux
