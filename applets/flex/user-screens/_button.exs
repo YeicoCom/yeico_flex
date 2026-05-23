@@ -20,24 +20,26 @@ defmodule Flex.UserScreens.Button do
   def render(assigns) do
     # button supports disabled pseudo class, div does not
     # div supports both hover and active pseudo classes
+    # moved to emulated button to support delete on backspace while disabled
     ~H"""
-      <button id={@id} class={[@class, "px-4 py-2 rounded",
+      <div id={@id} class={[@class, "px-4 py-2 rounded",
         "bg-blue-600 active:bg-blue-400 hover:bg-blue-500",
-        "disabled:bg-zinc-600 disabled:text-zinc-400"]}
-        disabled={@rt.disabled}
+        "data-[disabled]:bg-zinc-600 data-[disabled]:text-zinc-400"]}
+        data-disabled={@rt.disabled}
         phx-click={!@rt.disabled && @rt? && "item:click"}
         phx-value-id={!@rt.disabled && @rt? && @id}
+        tabindex="-1"
         style={[
           "left: #{@x}px; top: #{@y}px;",
           @size.(@props.w, @props.h),
         ]}>
         {@rt.text}
-      </button>
+      </div>
       <style id={"#{@id}_Style"}>
       <%= "\##{@id}" %> { <%= @rt.css[nil] %> }
       <%= "\##{@id}:hover" %> { <%= @rt.css["hover"] %> }
       <%= "\##{@id}:active" %> { <%= @rt.css["active"] %> }
-      <%= "\##{@id}:disabled" %> { <%= @rt.css["disabled"] %> }
+      <%= "\##{@id}[disabled]" %> { <%= @rt.css["disabled"] %> }
       </style>
     """
   end

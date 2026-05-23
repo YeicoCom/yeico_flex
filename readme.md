@@ -138,7 +138,6 @@ raise "ouch!"
 
 ## Fixme
 
-- [ ] Unable to delete button with backspace on linux
 - [ ] Make serial work over the browser
 - [ ] Designer: resize item by border drag
 - [ ] Designer: zindex reposition tool
@@ -177,6 +176,10 @@ raise "ouch!"
 - [ ] Prop editor wont mark red a preexisting invalid value on item select, only on item save event.
   - this happend when a point selection changes with an invalid default value which is not correct
   - then it losses selection and regains it
+- [x] Unable to delete button with backspace on linux
+  - reason is because it was disabled
+  - once enabled event triggers correctly
+  - move to emulated button to support delete on backspace while disabled
 - [x] User script/backend loop crash on deleted code save
   - loop recovers it self, so no big deal
   - code editor check name not null before save

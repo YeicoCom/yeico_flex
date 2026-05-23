@@ -335,8 +335,6 @@ const hooks = {
                     port.dragState = null
                 }
             })
-            const debug = true
-            if (debug) panel.addEventListener("pointerdown", (e) => { console.log("panel", e.offsetX, e.offsetY) })
             const panelScale = function () {
                 const rect = panel.getBoundingClientRect()
                 const fx = panel.offsetWidth / rect.width
@@ -349,7 +347,6 @@ const hooks = {
                     let item = e.srcElement.parentElement
                     while (item) {
                         if (item.id.startsWith("item_")) {
-                            if (debug) console.log("child", e.offsetX, e.offsetY)
                             // clientXY relative to browser viewport
                             // offsetXY relative to elements top-left corner (in scaled coordinates)
                             const { fx, fy } = panelScale()
@@ -357,7 +354,6 @@ const hooks = {
                             const event = new PointerEvent(e.type, e)
                             const offsetX = (e.clientX - rect.left) * fx
                             const offsetY = (e.clientY - rect.top) * fy
-                            if (debug) console.log("forwarded", offsetX, offsetY)
                             Object.defineProperties(event, {
                                 offsetX: { value: offsetX, writable: false, enumerable: true },
                                 offsetY: { value: offsetY, writable: false, enumerable: true }
