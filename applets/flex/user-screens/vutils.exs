@@ -160,6 +160,12 @@ defmodule Flex.UserScreens.VUtils do
     end
   end
 
+  def pretty_vars(keyword) do
+    keyword = Enum.filter(keyword, fn {k, v} -> !is_function(v) end)
+    keyword = Enum.sort_by(keyword, fn {k, _v} -> k end)
+    inspect(keyword, pretty: true, width: 0)
+  end
+
   defp eval_style("", _) do
     {nil, ""}
   end

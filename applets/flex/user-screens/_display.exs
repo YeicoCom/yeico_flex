@@ -99,11 +99,9 @@ defmodule Flex.UserScreens.Display do
         ast \\ nil
       ) do
     bindings = [value: value, default: default]
-    {output, calculated} = VUtils.eval_calc(calc, bindings)
+    {error, calculated} = VUtils.eval_calc(calc, bindings)
     point? = point != ""
     assigns = Map.new(calculated)
-    assigns = Map.put_new(assigns, :value, value)
-    assigns = Map.put_new(assigns, :default, default)
     assigns = Map.put(assigns, :point?, point?)
 
     render = fn ->
@@ -128,9 +126,9 @@ defmodule Flex.UserScreens.Display do
     %{
       ast: ast,
       error?: error?,
-      output: output,
       point?: point?,
-      content: [%{inner_block: inner}]
+      content: [%{inner_block: inner}],
+      output: error || VUtils.pretty_vars(calculated)
     }
   end
 
