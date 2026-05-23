@@ -10,7 +10,7 @@ defmodule Flex.UserScreens.Display do
     type: "source",
     point: "",
     default: "0",
-    heex: "<div>Display</div>",
+    heex: "<div>Display</div>\n<style>\n@scope {div {color: green;}}\n</style>",
     calc: ""
   }
 

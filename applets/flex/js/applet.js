@@ -457,7 +457,7 @@ const hooks = {
             })
             input.click()
         }
-    },
+    }
 }
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
