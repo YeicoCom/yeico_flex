@@ -22,13 +22,10 @@ defmodule Flex.UserScreens.Button do
     # div supports both hover and active pseudo classes
     # moved to emulated button to support delete on backspace while disabled
     ~H"""
-      <div id={@id} class={[@class, "px-4 py-2",
-        "content-center text-center rounded leading-none",
-        "bg-blue-600 active:bg-blue-400 hover:bg-blue-500",
-        "data-[disabled]:bg-zinc-600 data-[disabled]:text-zinc-400"]}
-        data-disabled={@rt.disabled}
+      <div id={@id} class={@class}
         phx-click={!@rt.disabled && @rt? && "item:click"}
         phx-value-id={!@rt.disabled && @rt? && @id}
+        disabled={@rt.disabled}
         tabindex="-1"
         style={[
           "left: #{@x}px; top: #{@y}px;",

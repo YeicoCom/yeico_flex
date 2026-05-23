@@ -17,19 +17,17 @@ defmodule Flex.UserScreens.Image do
 
   def render(assigns) do
     ~H"""
-      <div :if={!@rt.src} id={@id} class={[@class,
-        "data-[disabled]:text-zinc-500"
-        ]}
+      <div :if={!@rt.src} id={@id} class={@class}
+        disabled={@rt.disabled}
         tabindex="-1"
-        data-disabled={@rt.disabled}
         style={[
           "left: #{@x}px; top: #{@y}px;",
           @size.(@props.w, @props.h),
         ]}>{@rt.text}</div>
-      <img :if={@rt.src} id={@id} class={[@class]}
-        data-disabled={@rt.disabled}
-        tabindex="-1"
+      <img :if={@rt.src} id={@id} class={@class}
+        disabled={@rt.disabled}
         title={@rt.text}
+        tabindex="-1"
         style={[
           "left: #{@x}px; top: #{@y}px;",
           @size.(@props.w, @props.h),
@@ -38,7 +36,7 @@ defmodule Flex.UserScreens.Image do
       <%= "\##{@id}" %> { <%= @rt.css[nil] %> }
       <%= "\##{@id}:hover" %> { <%= @rt.css["hover"] %> }
       <%= "\##{@id}:active" %> { <%= @rt.css["active"] %> }
-      <%= "\##{@id}:disabled" %> { <%= @rt.css["disabled"] %> }
+      <%= "\##{@id}:[disabled]" %> { <%= @rt.css["disabled"] %> }
       </style>
     """
   end

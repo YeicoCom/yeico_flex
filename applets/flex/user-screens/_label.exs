@@ -20,12 +20,9 @@ defmodule Flex.UserScreens.Label do
 
   def render(assigns) do
     ~H"""
-      <div id={@id} class={[@class,
-        "data-[disabled]:text-zinc-600",
-        "content-center text-center rounded"
-        ]}
+      <div id={@id} class={@class}
+        disabled={@rt.disabled}
         tabindex="-1"
-        data-disabled={@rt.disabled}
         style={[
           "left: #{@x}px; top: #{@y}px;",
           @size.(@props.w, @props.h),

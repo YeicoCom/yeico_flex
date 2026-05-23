@@ -138,6 +138,8 @@ raise "ouch!"
 
 ## Fixme
 
+- [ ] Selection outline offset larger towards bottom-right?
+- [ ] Emulated button click feels flaky
 - [ ] Make serial work over the browser
 - [ ] Designer: resize item by border drag
 - [ ] Designer: zindex reposition tool
@@ -175,6 +177,7 @@ raise "ouch!"
 - [ ] Prop editor wont mark red a preexisting invalid value on item select, only on item save event.
   - this happend when a point selection changes with an invalid default value which is not correct
   - then it losses selection and regains it
+- [x] Optimize screen item classes
 - [x] Refactor devices index to item var name
 - [x] Make item keyboard deletable immediately after add/clone
   - explicit item focus by pushing a message

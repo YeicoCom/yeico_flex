@@ -19,14 +19,14 @@ defmodule Flex.UserScreens.Display do
 
   def render(assigns) do
     ~H"""
-      <div id={@id} class={[@class]}
+      <div id={@id} class={@class}
         tabindex="-1"
         style={[
           "left: #{@x}px; top: #{@y}px;",
           @size.(@props.w, @props.h),
         ]}>
         <%= if @rt.error? do %>
-        <div style="width: 10px;height: 10px;background-color: red;"/>
+        <div style="width: 10px; height: 10px; background-color: red;"/>
         <% else %>
         {render_slot(@rt.content)}
         <% end %>

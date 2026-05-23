@@ -79,3 +79,102 @@ input::-webkit-inner-spin-button {
 select:disabled {
     opacity: 1;
 }
+
+/* 
+https://tailscan.com/colors 
+
+pointer-events: none; prevents item selection during design.
+line-height: normal; or div height will collapse to zero.
+*/
+.item-base {
+    box-sizing: border-box;
+    line-height: 1em;
+    position: absolute;
+    font-size: 16px;
+    color: white;
+    outline: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+.item-selected {
+    outline: 2px solid #84cc16;
+    outline-offset: 2px;
+}
+
+.item-Button {
+    padding: 4px 8px;
+    background-color: #2563eb;
+    border-radius: 0.25rem;
+    align-content: center;
+    text-align: center;
+}
+
+.item-Button:hover {
+    background-color: #3b82f6;
+}
+
+.item-Button:active {
+    background-color: #60a5fa;
+}
+
+.item-Button[disabled] {
+    background-color: #52525b;
+    color: #a1a1aa;
+}
+
+.item-Label {
+    border-radius: 0.25rem;
+    align-content: center;
+    text-align: center;
+}
+
+.item-Label[disabled] {
+    color: #52525b;
+}
+
+.item-Capture {
+    align-content: center;
+    text-align: center;
+    color: #65a30d;
+}
+
+.item-Capture:hover {
+    color: #84cc16;
+}
+
+.item-Capture:active {
+    color: #a3e635;
+}
+
+.item-Capture[disabled] {
+    color: #52525b;
+}
+
+.item-Link {
+    align-content: center;
+    text-align: center;
+    color: #65a30d;
+}
+
+.item-Link:hover {
+    color: #84cc16;
+}
+
+.item-Link:active {
+    color: #a3e635;
+}
+
+.item-Link[disabled] {
+    color: #52525b;
+}
+
+.item-Image {
+    align-content: center;
+    text-align: center;
+}
+
+.item-Image[disabled] {
+    color: #52525b;
+}

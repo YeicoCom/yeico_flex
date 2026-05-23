@@ -21,17 +21,11 @@ defmodule Flex.UserScreens.Capture do
 
   def render(assigns) do
     ~H"""
-      <div id={@id} class={[@class,
-        "text-lime-600 outline-none",
-        "active:text-lime-400",
-        "hover:text-lime-500",
-        "data-[disabled]:text-zinc-500",
-        "content-center text-center"
-        ]}
-        tabindex="-1"
-        data-disabled={@rt.disabled}
+      <div id={@id} class={@class}
         phx-click={!@rt.disabled && @rt? && "item:modal"}
         phx-value-id={!@rt.disabled && @rt? && @id}
+        disabled={@rt.disabled}
+        tabindex="-1"
         style={[
           "left: #{@x}px; top: #{@y}px;",
           @size.(@props.w, @props.h),

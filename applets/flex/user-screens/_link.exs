@@ -17,15 +17,9 @@ defmodule Flex.UserScreens.Link do
 
   def render(assigns) do
     ~H"""
-      <a id={@id} class={[@class,
-        "text-lime-600",
-        "active:text-lime-400",
-        "hover:text-lime-500",
-        "data-[disabled]:text-zinc-500",
-        "content-center text-center"
-        ]}
+      <a id={@id} class={@class}
+        disabled={@rt.disabled}
         tabindex="-1"
-        data-disabled={@rt.disabled}
         style={[
           "left: #{@x}px; top: #{@y}px;",
           @size.(@props.w, @props.h),
