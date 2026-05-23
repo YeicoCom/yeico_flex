@@ -83,7 +83,7 @@ defmodule Flex.UserScreens.Button do
 
     change = VUtils.parse(change, props, params, :w, {:integer, 0, w})
     change = VUtils.parse(change, props, params, :h, {:integer, 0, h})
-    change = VUtils.parse(change, props, params, :text, :text)
+    change = VUtils.parse(change, props, params, :text, :text?)
     change = VUtils.parse(change, props, params, :sink, :text?)
     change = VUtils.parse(change, props, params, :default, {:point, params.sink})
     change = VUtils.parse(change, props, params, :style, :style)
