@@ -508,7 +508,12 @@ const hooks = {
                         onUpdate(jar.toString())
                     }, 0);
                 }
-            });
+            })
+            // intercept copy event to copy unformatted text
+            this.el.addEventListener("copy", (event) => {
+                event.preventDefault()
+                runSafe(() => { navigator.clipboard.writeText(window.getSelection().toString()) })
+            })
         }
     }
 }
