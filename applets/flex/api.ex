@@ -25,33 +25,6 @@ defmodule Flex do
     %{parent: parent, path: path}
   end
 
-  defp flush_loop() do
-    receive do
-      msg ->
-        tag = Process.get(:__tag__)
-        Log.debug(tag: tag, flush: msg)
-        flush_loop()
-    end
-  end
-
-  def await_many(list) do
-    list
-    |> Enum.filter(& &1)
-    |> Task.await_many(:infinity)
-  end
-
-  def eval_async(route, opts) do
-    ctx = Process.get(:__flex__)
-
-    Api.async(
-      "eval_async",
-      fn ->
-        Process.put(:__flex__, ctx)
-        eval_file(route, opts)
-      end
-    )
-  end
-
   def eval_file(route, opts) do
     %{parent: parent, path: path} = get_path(route)
     Process.put(:__flex__, Path.dirname(path))
@@ -60,7 +33,7 @@ defmodule Flex do
     result
   end
 
-  def eval_test(route, opts) do
+  def run_test(route, opts) do
     if Terminal.dev?() do
       if System.get_env("FLEX_TEST") do
         eval_file(route, opts)
@@ -85,17 +58,8 @@ defmodule Flex do
     Process.put(:__tag__, tag)
   end
 
-  def run_async(route, opts) do
-    ctx = Process.get(:__flex__)
-
-    Api.async(
-      "runasync:#{route}",
-      fn ->
-        Process.put(:__flex__, ctx)
-        eval_file(route, opts)
-        flush_loop()
-      end
-    )
+  def run(fun) do
+    fun.()
   end
 
   def tree() do

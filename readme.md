@@ -138,7 +138,7 @@ raise "ouch!"
 
 ## Fixme
 
-- [ ] Ensure applet log inspect has infinite limit
+- [ ] Modules compilation taking ~10s on vps04 flex.y.c
 - [ ] Selection outline offset larger towards bottom-right?
 - [ ] Emulated button click feels flaky
 - [ ] Make serial work over the browser
@@ -177,6 +177,11 @@ raise "ouch!"
 - [ ] Prop editor wont mark red a preexisting invalid value on item select, only on item save event.
   - this happend when a point selection changes with an invalid default value which is not correct
   - then it losses selection and regains it
+- [x] Ensure applet log inspect has infinite limit: update pending on all nodes
+- [x] Module compilation errors still showing up on stdout
+  - Code.compiler_options(ignore_module_conflict: true) not working here
+  - It is fine for local developemnt
+  - How to handle when running on a remote host? show only if !dev?
 - [x] Parallel compiler keeps failing about module already defined in memory
   - after definition files was renamed
   - restart terminal to fix it
