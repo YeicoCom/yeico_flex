@@ -6,7 +6,13 @@ Code.compiler_options(ignore_module_conflict: true)
 case Api.path()
      |> Path.join("flex/**/*.ex")
      |> Path.wildcard()
-     |> Kernel.ParallelCompiler.compile(return_diagnostics: true) do
+     |> (fn files ->
+           # run async to avoid flooding of flush exit logs
+           alias Kernel.ParallelCompiler, as: KPC
+           opts = [return_diagnostics: true]
+           task = Task.async(fn -> KPC.compile(files, opts) end)
+           Task.await(task, :infinity)
+         end).() do
   {:ok, _modules, _diagnostics} ->
     Api.debug("Compilation success")
 
