@@ -28,5 +28,3 @@ defmodule Flex.Ln do
     push_event(socket, "session:create", %{put: "/put?#{query}", user: user})
   end
 end
-
-:ok

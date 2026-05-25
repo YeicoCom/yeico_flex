@@ -28,5 +28,3 @@ defmodule Flex.EchoServer.Loop do
     accept(socket)
   end
 end
-
-:ok

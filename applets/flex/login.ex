@@ -60,5 +60,3 @@ defmodule Flex.Login do
     end
   end
 end
-
-:ok

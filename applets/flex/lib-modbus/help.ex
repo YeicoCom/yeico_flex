@@ -33,5 +33,3 @@ defmodule Modbus.Help do
     """
   end
 end
-
-:ok

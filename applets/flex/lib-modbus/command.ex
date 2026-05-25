@@ -118,5 +118,3 @@ defmodule Modbus.Command do
     end
   end
 end
-
-:ok

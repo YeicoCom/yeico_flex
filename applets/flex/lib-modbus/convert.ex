@@ -81,5 +81,3 @@ defmodule Modbus.Convert do
     [w0, w1]
   end
 end
-
-:ok

@@ -30,5 +30,3 @@ defmodule Flex.ModbusSlave.Loop do
     accept(socket, %{apply: apply})
   end
 end
-
-:ok

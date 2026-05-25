@@ -38,5 +38,3 @@ defmodule Modbus.Slave do
     Protocol.pack_res(proto, cmd, values, tid)
   end
 end
-
-:ok

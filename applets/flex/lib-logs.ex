@@ -35,5 +35,3 @@ defmodule Flex.Lg do
     |> Enum.into(%{})
   end
 end
-
-:ok

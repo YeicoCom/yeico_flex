@@ -55,5 +55,3 @@ defmodule Modbus.Parser do
     end)
   end
 end
-
-:ok

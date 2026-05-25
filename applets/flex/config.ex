@@ -106,5 +106,3 @@ defmodule Flex.Config do
     end
   end
 end
-
-:ok

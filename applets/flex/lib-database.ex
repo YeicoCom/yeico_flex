@@ -13,5 +13,3 @@ defmodule Flex.Db do
     cubdb
   end
 end
-
-:ok

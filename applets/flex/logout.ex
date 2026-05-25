@@ -47,5 +47,3 @@ defmodule Flex.Logout do
     end
   end
 end
-
-:ok

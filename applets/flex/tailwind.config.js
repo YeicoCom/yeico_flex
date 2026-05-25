@@ -7,7 +7,8 @@ const fs = require("fs")
 module.exports = {
   content: [
     "./js/**/*.js",
-    "./**/*.exs"
+    "./**/*.exs",
+    "./**/*.ex"
   ],
   plugins: [
     require("@tailwindcss/forms"),

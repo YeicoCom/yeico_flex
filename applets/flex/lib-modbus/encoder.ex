@@ -68,5 +68,3 @@ defmodule Modbus.Encoder do
     }
   end
 end
-
-:ok

@@ -138,6 +138,7 @@ raise "ouch!"
 
 ## Fixme
 
+- [ ] Ensure applet log inspect has infinite limit
 - [ ] Selection outline offset larger towards bottom-right?
 - [ ] Emulated button click feels flaky
 - [ ] Make serial work over the browser
@@ -176,6 +177,9 @@ raise "ouch!"
 - [ ] Prop editor wont mark red a preexisting invalid value on item select, only on item save event.
   - this happend when a point selection changes with an invalid default value which is not correct
   - then it losses selection and regains it
+- [x] Parallel compiler keeps failing about module already defined in memory
+  - after definition files was renamed
+  - restart terminal to fix it
 - [x] Designer: ensure outline even with zero size no content
   - gray outline shown when grid is visible
   - auto select nearest item on double click

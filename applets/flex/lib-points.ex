@@ -126,5 +126,3 @@ defmodule Flex.Point do
   def publish(type, tag), do: Flex.Pt.reg_point(type, tag)
   def list(type), do: Flex.Pt.list(type)
 end
-
-:ok

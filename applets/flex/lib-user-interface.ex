@@ -324,5 +324,3 @@ defmodule Flex.UI do
     """
   end
 end
-
-:ok

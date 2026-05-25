@@ -60,5 +60,3 @@ defmodule Flex.Index do
     end
   end
 end
-
-:ok
