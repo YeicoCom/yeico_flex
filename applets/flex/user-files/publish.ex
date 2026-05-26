@@ -16,7 +16,7 @@ defmodule Flex.UserFiles.Publish do
     end)
 
     Api.receive()
-    :reload
+    [reload: __MODULE__]
   end
 end
 

@@ -1,5 +1,4 @@
-# for nodes pending applet update
-Code.compiler_options(ignore_module_conflict: true)
+alias Kernel.ParallelCompiler, as: KPC
 
 build = Path.join(assets, "_build")
 if optimize?, do: File.rm_rf!(build)
@@ -8,19 +7,13 @@ File.mkdir_p!(build)
 case applets
      |> Path.join("flex/**/*.ex")
      |> Path.wildcard()
-     |> (fn files ->
-           # run async to avoid flooding of flush exit logs
-           alias Kernel.ParallelCompiler, as: KPC
-           opts = [return_diagnostics: true]
-           task = Task.async(fn -> KPC.compile_to_path(files, build, opts) end)
-           Task.await(task, :infinity)
-         end).() do
+     |> KPC.compile_to_path(build, return_diagnostics: true) do
   {:ok, _modules, _diagnostics} ->
     puts.("#{route}: make.exs success")
 
   {:error, _errors, _diagnostics} ->
+    # warnings and errors are sent to stdout no matter what
     puts.("#{route}: make.exs error")
-    # warnings and errors are sent to stdout anyway
     # for d <- diagnostics[:runtime_warnings], do: puts.("#{route}: make.exs warn #{inspect(d)}")
     # for d <- diagnostics[:compile_warnings], do: puts.("#{route}: make.exs warn #{inspect(d)}")
     # if "dev" != System.get_env("TERMINAL_ENV") do
