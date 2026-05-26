@@ -5,6 +5,7 @@ import topbar from "topbar"
 import { CodeJar } from "codejar"
 import Editor from "./editor"
 import { } from "./barcode"
+import { } from "./qrcode"
 
 const eventThrottlingMs = 50
 const ignoreClickDelayMs = 100

@@ -22,7 +22,7 @@ class FlexBarcode extends HTMLElement {
         ]
     }
 
-    #updateBarcode() {
+    #rebuildElement() {
         this.shadowRoot.innerHTML = "<svg/>"
         const svg = this.shadowRoot.firstChild
         for (const name of FlexBarcode.observedAttributes) {
@@ -34,11 +34,11 @@ class FlexBarcode extends HTMLElement {
     }
 
     connectedCallback() {
-        this.#updateBarcode()
+        this.#rebuildElement()
     }
 
     attributeChangedCallback(attrName, oldVal, newVal) {
-        this.#updateBarcode()
+        this.#rebuildElement()
     }
 }
 
