@@ -138,11 +138,11 @@ raise "ouch!"
 
 ## Fixme
 
-- [ ] Frame/menu relayout
 - [ ] Support iolink iodd
 - [ ] Designer: heex syntax highlight
 - [ ] CodeEditor: auto format and auto complete
 - [ ] Standardize modbus encodings
+- [ ] Make back navigation properly reconnect to hooks instead of reloading
 - [ ] Onscreen keyboard?
 - [ ] Selection outline offset looks larger towards bottom-right?
 - [ ] Heex svg + scope style not updating immediatelly
@@ -166,7 +166,6 @@ raise "ouch!"
 - [ ] Screen designer stumped after several enable/disable
 - [ ] Inplace testing with a global enable flag (see lib-convert)
 - [ ] Single database for all entities for easier backup/recovery
-- [ ] Make back navigation properly reconnect to hooks instead of reloading
 - [ ] Definite manual test procedures for each flex package
 - [ ] Critical: mesa demo monitor went black when playing with the RYx relays
   - Display image was noisy, improved with vga cable replace, image still ghosty.
@@ -181,6 +180,7 @@ raise "ouch!"
 - [ ] Prop editor wont mark red a preexisting invalid value on item select, only on item save event.
   - this happend when a point selection changes with an invalid default value which is not correct
   - then it losses selection and regains it
+- [x] Frame/menu relayout
 - [x] Define mqtt strategy: run in a script or backend
 - [x] Modules compilation taking ~10s on vps04 flex.y.c
   - terminal sdk support for make.exs to push precompiled modules

@@ -6,7 +6,7 @@ defmodule Flex.SocketTerminal.Index do
     ~H"""
     <.fui fun={&UI.frame/1} title="Socket Terminal">
       <div class="flex flex-col w-full h-full gap-2">
-        <div class="px-2 flex">
+        <div class="pt-2 px-2 flex gap-2">
           <.fui fun={&UI.link/1} phx-click="click:connect">
             <div class="hero-link"/>Connect to Socket
           </.fui>

@@ -28,11 +28,17 @@ defmodule Flex.UI do
 
     ~H"""
     <div id="main_frame" phx-window-keydown="modal:close" phx-key="Escape" phx-hook="AllPages"
-      class="flex flex-col gap-4 p-4 h-screen select-none text-base [&_*]:cursor-default">
-      <div class={[@reverse && "z-20", "flex gap-4 p-4 items-center bg-zinc-800 rounded"]}>
-        <div class="relative group text-white content-center">
-          <button class="px-4 py-2 bg-zinc-500 rounded hover:bg-lime-500 hero-bars-3 size-10"></button>
-          <div class="absolute top-3/4 hidden z-9998 group-hover:block w-48 bg-zinc-700 rounded shadow-xl mt-1">
+      class="flex flex-col gap-0 p-0 h-screen select-none text-base [&_*]:cursor-default">
+      <div class="flex gap-2 p-2 items-center bg-zinc-800 text-white">
+        <div class="text-lg font-bold">{@title}</div>
+        <div class="grow"/>
+        <div :if={@label}>{@label}</div>
+        <image src="/applets/logo.svg" class="h-6"/>
+      </div>
+      <div class="flex h-full">
+        <div class={[@reverse && "z-20", "relative group flex h-full"]}>
+          <div class="w-1"/>
+          <div class="absolute hidden group-hover:block h-full w-max bg-zinc-800 text-white">
             <a href="/flex" class="block px-4 py-2 hover:bg-lime-500">Flex Home</a>
             <a href="/flex/user-files" class="block px-4 py-2 hover:bg-lime-500">User Files</a>
             <a href="/flex/user-scripts" class="block px-4 py-2 hover:bg-lime-500">User Scripts</a>
@@ -47,13 +53,9 @@ defmodule Flex.UI do
             <a href="/flex/logout" class="block px-4 py-2 hover:bg-lime-500">Logout</a>
           </div>
         </div>
-        <div class="text-[2em] text-white">{@title}</div>
-        <div class="grow"></div>
-        <div :if={@label} class="text-[1.5em] text-white">{@label}</div>
-        <image src="/applets/logo.svg" class="h-10"/>
-      </div>
-      <div class={[@reverse && "z-10", "grow text-neutral-300 overflow-hidden", @class]}>
-        {render_slot(@inner_block)}
+        <div class={[@reverse && "z-10", "grow text-neutral-300 overflow-hidden", @class]}>
+          {render_slot(@inner_block)}
+        </div>
       </div>
     </div>
     """

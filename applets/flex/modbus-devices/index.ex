@@ -7,7 +7,7 @@ defmodule Flex.ModbusDevices.Index do
     ~H"""
     <.fui fun={&UI.frame/1} title="Modbus Devices">
       <div class="flex flex-col w-full h-full overflow-y-auto">
-        <div class="px-4 py-2 flex gap-2">
+        <div class="px-2 py-2 flex gap-2">
           <.fui fun={&UI.link/1} phx-click="click:add"><div class="hero-plus"/>Add Modbus Device</.fui>
           <div class="grow"/>
           <.fui fun={&UI.link/1} phx-click="click:paste">Paste</.fui>
