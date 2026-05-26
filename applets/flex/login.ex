@@ -8,7 +8,8 @@ defmodule Flex.Login do
       <div class="text-3xl text-white">Flex Login</div>
       <form id="login_view" phx-submit="submit:login" class="flex flex-col"
         phx-update="ignore" autocomplete="off" phx-hook="LoginView">
-        <.fui fun={&UI.input/1} name="pass" type="password" required id="modal_autofocus" phx-hook="AutoFocus"/>
+        <.fui fun={&UI.input/1} name="pass" type="password" required id="modal_autofocus" phx-hook="AutoFocus"
+          class="text-center"/>
         <.fui fun={&UI.button/1} type="submit" class="hidden">Login</.fui>
       </form>
     </div>

@@ -138,24 +138,28 @@ raise "ouch!"
 
 ## Fixme
 
-- [ ] Modules compilation taking ~10s on vps04 flex.y.c
-- [ ] Selection outline offset larger towards bottom-right?
-- [ ] Emulated button click feels flaky
+- [ ] Frame/menu relayout
+- [ ] Support iolink iodd
+- [ ] Designer: heex syntax highlight
+- [ ] CodeEditor: auto format and auto complete
+- [ ] Standardize modbus encodings
+- [ ] Onscreen keyboard?
+- [ ] Selection outline offset looks larger towards bottom-right?
+- [ ] Heex svg + scope style not updating immediatelly
+- [ ] Heex editor unable to redo once?
+- [ ] Emulated button click feels flaky: touch screen?
 - [ ] Make serial work over the browser
 - [ ] Designer: resize item by border drag
 - [ ] Designer: zindex reposition tool
-- [ ] Designer: heex syntax highlight
 - [ ] Designer: analog input slider
 - [ ] Designer: prevent loss from concurrent editing
 - [ ] Refactor to single drive like item browser
-- [ ] CodeEditor: auto format and auto complete
 - [ ] Separated flex points agent
-- [ ] Define mqtt strategy: run in a script or backend
 - [ ] Global trace/debug disable
 - [ ] Document live view life cycle
 - [ ] Publish serial ports as point
 - [ ] Shaky things: slow boot, browser, mountrap, socat, kill links, unable to await defers, modbus lib
-- [ ] Shaky things: api kill may buble kill single when called from non task parent
+- [ ] Shaky things: api kill may buble kill single when called from non task parent, emulated button
 - [ ] Modbus lib deterministic error detection (remove throws?)
 - [ ] Prevent read/write to points with empty names
 - [ ] Show io_lib format escapes help in props editor
@@ -177,6 +181,11 @@ raise "ouch!"
 - [ ] Prop editor wont mark red a preexisting invalid value on item select, only on item save event.
   - this happend when a point selection changes with an invalid default value which is not correct
   - then it losses selection and regains it
+- [x] Define mqtt strategy: run in a script or backend
+- [x] Modules compilation taking ~10s on vps04 flex.y.c
+  - terminal sdk support for make.exs to push precompiled modules
+  - make.exs responsible for compiling
+  - flex.exs responsible for reloading
 - [x] Ensure applet log inspect has infinite limit: update pending on all nodes
 - [x] Module compilation errors still showing up on stdout
   - Code.compiler_options(ignore_module_conflict: true) not working here
