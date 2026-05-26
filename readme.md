@@ -138,6 +138,7 @@ raise "ouch!"
 
 ## Fixme
 
+- [ ] Barcode support
 - [ ] Support iolink iodd
 - [ ] Designer: heex syntax highlight
 - [ ] CodeEditor: auto format and auto complete
@@ -180,6 +181,10 @@ raise "ouch!"
 - [ ] Prop editor wont mark red a preexisting invalid value on item select, only on item save event.
   - this happend when a point selection changes with an invalid default value which is not correct
   - then it losses selection and regains it
+- [?] Custom font support
+  - LibreBarcode128 goes off when font-size is specified
+  - LibreBarcode128 wont report correct line height
+  - LibreBarcode128 check if css scaling makes it unreadable
 - [x] Frame/menu relayout
 - [x] Define mqtt strategy: run in a script or backend
 - [x] Modules compilation taking ~10s on vps04 flex.y.c
