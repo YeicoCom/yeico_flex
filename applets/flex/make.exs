@@ -2,7 +2,7 @@
 Code.compiler_options(ignore_module_conflict: true)
 
 build = Path.join(assets, "_build")
-File.rm_rf!(build)
+if optimize?, do: File.rm_rf!(build)
 File.mkdir_p!(build)
 
 case applets
