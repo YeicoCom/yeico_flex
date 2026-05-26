@@ -6,6 +6,7 @@
     "codemirror-lang-elixir": "^4.0.0",
     "heroicons": "^2.2.0",
     "install": "^0.13.0",
+    "jsbarcode": "^3.12.3",
     "topbar": "^3.0.0"
   }
 }

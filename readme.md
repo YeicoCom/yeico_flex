@@ -142,6 +142,7 @@ raise "ouch!"
 - [ ] Designer: heex syntax highlight
 - [ ] CodeEditor: auto format and auto complete
 - [ ] HTML custom components: barcode39, barcode128, QR
+- [ ] HTML custom components: plots, toggles, ...
 - [ ] Standardize modbus encodings
 - [ ] Make back navigation properly reconnect to hooks instead of reloading
 - [ ] Onscreen keyboard?

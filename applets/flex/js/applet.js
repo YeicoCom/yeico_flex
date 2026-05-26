@@ -2,8 +2,9 @@ import "phoenix_html"
 import { Socket } from "phoenix"
 import { LiveSocket } from "phoenix_live_view"
 import topbar from "topbar"
-import Editor from "./editor"
 import { CodeJar } from "codejar"
+import Editor from "./editor"
+import { } from "./barcode"
 
 const eventThrottlingMs = 50
 const ignoreClickDelayMs = 100
