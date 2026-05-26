@@ -53,7 +53,7 @@ defmodule Flex.ModbusDevices.Index do
                   <div class="grow"/>
                   <.fui fun={&UI.link/1} phx-click="click:toggle" phx-value-key={key} phx-value-val={tval}
                     title="Toggle">
-                    <div class="hero-arrows-right-left z-0"/>
+                    <div class="hero-arrows-right-left"/>
                   </.fui>
                 </div>
                 <% end %>
@@ -111,7 +111,7 @@ defmodule Flex.ModbusDevices.Index do
             <div>Type</div>
             <div>Encoding</div>
             <div>Name(s)</div>
-            <.fui fun={&UI.link/1} phx-click="click:point:add" phx-value-pi={0} title="Add Point"><div class="hero-plus z-0"/>Point</.fui>
+            <.fui fun={&UI.link/1} phx-click="click:point:add" phx-value-pi={0} title="Add Point"><div class="hero-plus"/>Point</.fui>
           </div>
           <div class="grow overflow-y-scroll flex flex-col gap-1 p-1">
             <% pl = length(item.points) - 1 %>
@@ -124,9 +124,9 @@ defmodule Flex.ModbusDevices.Index do
                 <%!-- Force name even for unused because they look ugly on the point table and require a placeholder anyway --%>
                 <.fui fun={&UI.input/1} name="names[]" value={point.names} type="text" required pattern="^[ ]*[a-zA-Z]+[a-zA-Z0-9 ]*(,[ ]*[a-zA-Z]+[a-zA-Z0-9 ]*)*$"/>
                 <div class="flex gap-1">
-                  <.fui fun={&UI.link/1} disabled={pi==0} phx-click="click:point:del" phx-value-pi={pi} type="danger" title="Delete Point"><div class="hero-x-mark z-0"/></.fui>
-                  <.fui fun={&UI.link/1} disabled={pi==0} phx-click="click:point:up" phx-value-pi={pi} title="Move Point Up"><div class="hero-arrow-up z-0"/></.fui>
-                  <.fui fun={&UI.link/1} disabled={pi==pl} phx-click="click:point:down" phx-value-pi={pi} title="Move Point Down"><div class="hero-arrow-down z-0"/></.fui>
+                  <.fui fun={&UI.link/1} disabled={pi==0} phx-click="click:point:del" phx-value-pi={pi} type="danger" title="Delete Point"><div class="hero-x-mark"/></.fui>
+                  <.fui fun={&UI.link/1} disabled={pi==0} phx-click="click:point:up" phx-value-pi={pi} title="Move Point Up"><div class="hero-arrow-up"/></.fui>
+                  <.fui fun={&UI.link/1} disabled={pi==pl} phx-click="click:point:down" phx-value-pi={pi} title="Move Point Down"><div class="hero-arrow-down"/></.fui>
                 </div>
               </div>
             <% end %>

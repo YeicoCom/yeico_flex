@@ -43,7 +43,7 @@ defmodule Flex.UserScreens.View do
 
   defp view(assigns) do
     ~H"""
-    <.fui fun={&UI.frame/1} reverse={!@modal} title="Screen Viewer" label={@name} class="flex gap-2">
+    <.fui fun={&UI.frame/1} title="Screen Viewer" label={@name} class="flex gap-2">
       <.fui fun={&canvas/1} {assigns}/>
     </.fui>
     """

@@ -21,7 +21,6 @@ defmodule Flex.UI do
     assigns = Map.put_new(assigns, :id, nil)
     assigns = Map.put_new(assigns, :label, nil)
     assigns = Map.put_new(assigns, :class, nil)
-    assigns = Map.put_new(assigns, :reverse, nil)
     assigns = Map.put_new(assigns, :title, "Flex")
     assigns = Map.put_new(assigns, :dev?, Terminal.dev?())
     assigns = Map.put_new(assigns, :device?, Terminal.device?())
@@ -36,9 +35,9 @@ defmodule Flex.UI do
         <image src="/applets/logo.svg" class="h-6"/>
       </div>
       <div class="flex h-full">
-        <div class={[@reverse && "z-20", "relative group flex h-full"]}>
+        <div class="group flex h-full">
           <div class="w-1"/>
-          <div class="absolute hidden group-hover:block h-full w-max bg-zinc-800 text-white">
+          <div class="hidden group-hover:block h-full w-max bg-zinc-800 text-white">
             <a href="/flex" class="block px-4 py-2 hover:bg-lime-500">Flex Home</a>
             <a href="/flex/user-files" class="block px-4 py-2 hover:bg-lime-500">User Files</a>
             <a href="/flex/user-scripts" class="block px-4 py-2 hover:bg-lime-500">User Scripts</a>
@@ -53,7 +52,7 @@ defmodule Flex.UI do
             <a href="/flex/logout" class="block px-4 py-2 hover:bg-lime-500">Logout</a>
           </div>
         </div>
-        <div class={[@reverse && "z-10", "grow text-neutral-300 overflow-hidden", @class]}>
+        <div class={["grow text-neutral-300 overflow-hidden", @class]}>
           {render_slot(@inner_block)}
         </div>
       </div>
@@ -77,7 +76,7 @@ defmodule Flex.UI do
             <div class="text-white text-lg font-semibold">{@title}</div>
             <button type="button" title="Close" phx-click={@close}
               class="hover:bg-gray-600 hover:text-white rounded-lg w-8 h-8 inline-flex justify-center items-center">
-              <span class="hero-x-mark-solid z-0" />
+              <span class="hero-x-mark-solid" />
             </button>
           </div>
           {render_slot(@inner_block)}

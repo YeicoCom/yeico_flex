@@ -4,7 +4,7 @@ defmodule Flex.UserScripts.Code do
 
   defp view(assigns) do
     ~H"""
-    <.fui fun={&UI.frame/1} reverse={true} title="Script Editor" label={@name} class="grid grid-cols-2">
+    <.fui fun={&UI.frame/1} title="Script Editor" label={@name} class="grid grid-cols-2">
       <div id="script_editor" class="h-full overflow-y-scroll" phx-hook="ScriptEditor" phx-update="ignore"/>
       <div phx-update="stream" id="logs" class="flex flex-col overflow-y-auto text-xs select-text font-mono" phx-hook="AutoScroll">
         <div :for={{id, %{stamp: stamp, level: level, style: style, line: line}} <- @streams.logs}

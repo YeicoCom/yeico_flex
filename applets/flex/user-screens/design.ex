@@ -4,7 +4,7 @@ defmodule Flex.UserScreens.Design do
 
   defp view(assigns) do
     ~H"""
-    <.fui fun={&UI.frame/1} reverse={true} title="Screen Designer" label={@name} class="flex gap-2">
+    <.fui fun={&UI.frame/1} title="Screen Designer" label={@name} class="flex gap-2">
       <div id="design_frame" class="grow relative" phx-hook="ScreenDesigner">
         <div id="design_port" :if={@vp.frame} class="design-port overflow-hidden">
           <div id="design_style" class="design-panel" style={@screen.props.style}/>
@@ -27,7 +27,7 @@ defmodule Flex.UserScreens.Design do
         <div class="text-xl flex items-center">
           <div>{@selected.type} Properties</div>
           <div class="grow"/>
-          <div :if={@selected.id} phx-click="item:clone" phx-value-id={@selected.id} class="hero-document-duplicate z-0" title="Clone"/>
+          <div :if={@selected.id} phx-click="item:clone" phx-value-id={@selected.id} class="hero-document-duplicate" title="Clone"/>
         </div>
         <.fui id="props_editor" fun={&DUtils.form/1} selected={@selected} rt={@rts[@selected.id]}
           phx-submit="item:change" phx-change="item:change" phx-value-id={@selected.id || 0}
