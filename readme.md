@@ -138,13 +138,15 @@ raise "ouch!"
 
 ## Fixme
 
-- [ ] Barcode support
 - [ ] Support iolink iodd
 - [ ] Designer: heex syntax highlight
 - [ ] CodeEditor: auto format and auto complete
+- [ ] HTML custom components: barcode39, barcode128, QR
 - [ ] Standardize modbus encodings
 - [ ] Make back navigation properly reconnect to hooks instead of reloading
 - [ ] Onscreen keyboard?
+- [ ] Plox? https://github.com/gridpoint-com/plox
+- [ ] QR? https://github.com/iodevs/qr_code
 - [ ] Selection outline offset looks larger towards bottom-right?
 - [ ] Heex svg + scope style not updating immediatelly
 - [ ] Heex editor unable to redo once?
