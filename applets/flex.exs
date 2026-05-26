@@ -1,27 +1,21 @@
 use Terminal
 
-# for nodes pending applet update
-Code.compiler_options(ignore_module_conflict: true)
+Api.path()
+|> Path.join("flex/_build")
+|> (fn build ->
+      Code.delete_path(build)
+      Code.append_path(build)
+    end).()
 
-case Api.path()
-     |> Path.join("flex/**/*.ex")
-     |> Path.wildcard()
-     |> (fn files ->
-           # run async to avoid flooding of flush exit logs
-           alias Kernel.ParallelCompiler, as: KPC
-           opts = [return_diagnostics: true]
-           task = Task.async(fn -> KPC.compile(files, opts) end)
-           Task.await(task, :infinity)
-         end).() do
-  {:ok, _modules, _diagnostics} ->
-    Api.debug("Compilation success")
-
-  {:error, errors, diagnostics} ->
-    for d <- diagnostics[:runtime_warnings], do: Api.warn(inspect(d))
-    for d <- diagnostics[:compile_warnings], do: Api.warn(inspect(d))
-    # errors are send to stdout anyway and that is fine
-    if !Terminal.dev?(), do: for(e <- errors, do: Api.error(inspect(e)))
-end
+Api.path()
+|> Path.join("flex/_build/*.beam")
+|> Path.wildcard()
+|> Enum.map(&Path.basename(&1, ".beam"))
+|> Enum.map(&String.to_atom(&1))
+|> Enum.each(fn m ->
+  :code.purge(m)
+  :code.load_file(m)
+end)
 
 Adb.reset()
 
