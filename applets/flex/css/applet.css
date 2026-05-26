@@ -193,11 +193,43 @@ Use as follows:
 	transform-origin: top left; 
 	transform: scale(3); 
 */
+
+/* latin */
 @font-face {
-    font-family: 'LibreBarcode128';
-    src: url('/applets/LibreBarcode128-Regular.ttf');
+    font-family: 'Libre Barcode 128';
     font-style: normal;
     font-weight: 400;
     font-display: swap;
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    src: url('/applets/LibreBarcode128-Regular.ttf');
+}
+
+/* latin */
+@font-face {
+    font-family: 'Libre Barcode 128 Text';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    src: url('/applets/LibreBarcode128Text-Regular.ttf');
+}
+
+/* latin */
+@font-face {
+    font-family: 'Libre Barcode 39';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    src: url('/applets/LibreBarcode39-Regular.ttf');
+}
+
+/* latin */
+@font-face {
+    font-family: 'Libre Barcode 39 Text';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    src: url('/applets/LibreBarcode39Text-Regular.ttf');
 }
