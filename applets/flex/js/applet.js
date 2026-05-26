@@ -45,7 +45,7 @@ function enterNavigate(el) {
         const isSubmit = el.type === "submit"
         if (isSelect || isInput || isArea) {
             const listener = (event) => {
-                if (event.key === 'Enter' && !event.shiftKey) {
+                if (event.key === "Enter" && !event.shiftKey) {
                     if (!isSubmit || el.disabled) {
                         event.preventDefault();
                         for (let j = 1; j < len; j++) {
@@ -61,10 +61,10 @@ function enterNavigate(el) {
             }
             if (el.previousListener) {
                 // listeners preserved on update
-                el.removeEventListener('keydown', el.previousListener)
+                el.removeEventListener("keydown", el.previousListener)
             }
             el.previousListener = listener
-            el.addEventListener('keydown', listener)
+            el.addEventListener("keydown", listener)
         }
     }
 }
@@ -140,7 +140,7 @@ const hooks = {
             let lines = JSON.parse(localStorage.getItem(key) || "[0]")
             lines[0] = this.el.value
             this.el.history = { line: 0, lines: lines }
-            this.el.addEventListener('keydown', (event) => {
+            this.el.addEventListener("keydown", (event) => {
                 let { line, lines } = this.el.history
                 let len = 0
                 switch (event.key) {
@@ -163,7 +163,7 @@ const hooks = {
                 }
             })
             //user typing
-            this.el.addEventListener('input', (event) => {
+            this.el.addEventListener("input", (event) => {
                 let { line, lines } = this.el.history
                 lines[0] = this.el.value
                 this.el.history = { line: 0, lines }
@@ -451,10 +451,10 @@ const hooks = {
             const uploadChunk = (props) => {
                 setTimeout(() => { this.pushEvent("upload:data", props) }, 0)
             }
-            this.el.addEventListener('cancel', (event) => {
+            this.el.addEventListener("cancel", (event) => {
                 this.pushEvent("upload:cancel", {})
             })
-            this.el.addEventListener('change', (event) => {
+            this.el.addEventListener("change", (event) => {
                 const file = event.target.files[0]
                 const reader = new FileReader()
                 const name = file.name.toLowerCase()

@@ -141,11 +141,10 @@ raise "ouch!"
 - [ ] Support iolink iodd
 - [ ] Designer: heex syntax highlight
 - [ ] CodeEditor: auto format and auto complete
-- [ ] HTML custom components: barcode39, barcode128, QR
 - [ ] HTML custom components: plots, toggles, ...
 - [ ] Standardize modbus encodings
-- [ ] Make back navigation properly reconnect to hooks instead of reloading
 - [ ] Onscreen keyboard?
+- [ ] Make back navigation properly reconnect to hooks instead of reloading
 - [ ] Plox? https://github.com/gridpoint-com/plox
 - [ ] QR? https://github.com/iodevs/qr_code
 - [ ] Selection outline offset looks larger towards bottom-right?
@@ -184,6 +183,7 @@ raise "ouch!"
 - [ ] Prop editor wont mark red a preexisting invalid value on item select, only on item save event.
   - this happend when a point selection changes with an invalid default value which is not correct
   - then it losses selection and regains it
+- [x] HTML custom components: barcode39, barcode128, QR
 - [?] Custom font support
   - LibreBarcode128 goes off when font-size is specified
   - LibreBarcode128 wont report correct line height
