@@ -186,6 +186,25 @@ raise "ouch!"
 - [ ] Prop editor wont mark red a preexisting invalid value on item select, only on item save event.
   - this happend when a point selection changes with an invalid default value which is not correct
   - then it losses selection and regains it
+- [ ] Allen-Bradley (Rockwell Automation): 
+  - EtherNet/IP
+  - CIP (Common Industrial Protocol)
+  - OPC UA (Open Platform Communications Unified Architecture)
+  - DeviceNet/ControlNet/Data Highway Plus (DH+) & DH-485/DF1
+  - https://github.com/cmseaton42/node-ethernet-ip
+  - https://github.com/rossmann-engineering/EEIP.NET
+  - https://github.com/EIPStackGroup/OpENer
+- [ ] Siemens
+  - PROFINET
+  - PROFIBUS
+  - S7 Communication (S7comm / S7CommPlus)
+  - OPC UA
+  - Industrial Ethernet (TCP/IP / ISO-on-TCP)
+  - https://github.com/siemens
+  - https://snap7.sourceforge.net/
+  - https://github.com/plcpeople/nodeS7
+  - https://github.com/S7NetPlus/s7netplus
+  - https://github.com/netdata-be/libnodave
 - [x] Review scrolling still works for all index listins and modbus points
 - [x] HTML custom components: barcode39, barcode128, QR
 - [?] Custom font support
