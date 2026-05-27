@@ -5,6 +5,8 @@ applets/static/*.js
 applets/static/*/
 applets/secret
 
+!applets/static/fonts
+!applets/static/menu
 applets/static/upload
 applets/flex/_build
 
