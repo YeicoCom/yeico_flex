@@ -35,10 +35,10 @@ defmodule Flex.UI do
         <a href="/flex/user-scripts" class="hover:bg-lime-500 hero-code-bracket" title="User Scripts"/>
         <a href="/flex/user-screens" class="hover:bg-lime-500 hero-tv" title="User Screens"/>
         <a href="/flex/user-backends" class="hover:bg-lime-500 hero-code-bracket-square" title="User Backends"/>
-        <a href="/flex/modbus-devices" class="hover:bg-lime-500 hero-table-cells" title="Modbus Devices"/>
-        <a href="/flex/modbus-terminal" class="hover:bg-lime-500 hero-window" title="Modbus Terminal"/>
+        <a href="/flex/modbus-devices" class="hover:bg-lime-500 hero-modbus-devices" title="Modbus Devices"/>
+        <a href="/flex/modbus-terminal" class="hover:bg-lime-500 hero-modbus-terminal" title="Modbus Terminal"/>
         <a href="/flex/socket-terminal" class="hover:bg-lime-500 hero-command-line" title="Socket Terminal"/>
-        <a href="/flex/serial-exports" class="hover:bg-lime-500 hero-arrows-up-down" title="Serial Exports"/>
+        <a href="/flex/serial-exports" class="hover:bg-lime-500 hero-export-serial" title="Serial Exports"/>
         <a :if={@dev?} href="/flex/ui-tester" class="hover:bg-lime-500 hero-cog" title="UI Tester"/>
         <a :if={@device?} href="/flex/config" class="hover:bg-lime-500 hero-wrench" title="Config"/>
         <div class="grow"/>
