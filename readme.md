@@ -125,7 +125,7 @@ text = f.("Button ~s", default)
 ```
 - Script
 ```elixir
-use Flex
+use Flex.Use
 
 Log.trace "Hello"
 Log.debug "Hello"
@@ -139,6 +139,7 @@ raise "ouch!"
 ## Fixme
 
 - [ ] flex modules refactoring
+- [ ] wrap applet/terminal api in flex module
 - [ ] cli tool to manage flex items: scripts, backends, files, etc...
 - [ ] publish a backend api package to mix install: log, point, etc...
 - [ ] Support iolink iodd

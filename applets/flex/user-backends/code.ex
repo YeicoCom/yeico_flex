@@ -1,6 +1,6 @@
 defmodule Flex.UserBackends.Code do
   alias Flex.UserBackends.IUtils
-  use Flex.Live
+  use Flex.Use.Live
 
   defp view(assigns) do
     ~H"""

@@ -1,5 +1,5 @@
 defmodule Flex.ModbusDevices.PUtils do
-  use Flex
+  use Flex.Use
 
   @new %{type: "RDI", slave: 1, address: 0, encoding: "NONE", names: ""}
   @types ["RDI", "RDO", "WDO", "RRI", "RRO", "WRO"]

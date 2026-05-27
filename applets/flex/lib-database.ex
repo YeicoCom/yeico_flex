@@ -1,5 +1,5 @@
 defmodule Flex.Db do
-  use Flex
+  use Flex.Use
 
   defdelegate select(cubdb, opts), to: CubDB
   defdelegate put(cubdb, key, value), to: CubDB

@@ -1,5 +1,5 @@
 defmodule Flex.Lg do
-  use Flex
+  use Flex.Use
 
   defp post(key, id, error?, msg) do
     dt = NaiveDateTime.utc_now()

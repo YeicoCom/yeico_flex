@@ -1,6 +1,6 @@
 defmodule Flex.SerialExports.Index do
   alias Flex.SerialExports.IUtils
-  use Flex.Live
+  use Flex.Use.Live
 
   def view(assigns) do
     ~H"""

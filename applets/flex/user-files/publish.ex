@@ -1,6 +1,6 @@
 defmodule Flex.UserFiles.Publish do
   alias Flex.UserFiles.IUtils
-  use Flex
+  use Flex.Use
 
   def setup _ do
     Bus.subscribe!("flex:user-files:update", nil)

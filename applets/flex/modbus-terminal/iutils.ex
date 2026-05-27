@@ -1,5 +1,5 @@
 defmodule Flex.ModbusTerminal.IUtils do
-  use Flex.Live
+  use Flex.Use.Live
 
   @protos ["TCP", "RTU"]
   @options %{protos: @protos}

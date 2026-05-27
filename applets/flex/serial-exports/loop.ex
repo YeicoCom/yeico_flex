@@ -1,6 +1,6 @@
 defmodule Flex.SerialExports.Loop do
   alias Flex.SerialExports.IUtils
-  use Flex
+  use Flex.Use
 
   # /dev/tty.usbserial FTDI usb serial adapter on macos
   # /dev/tty.usbmodem Honeywell Voyager XP 1472G Lector de Código de Barras Omnidireccional 1D/2D

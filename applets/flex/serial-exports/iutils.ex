@@ -1,5 +1,5 @@
 defmodule Flex.SerialExports.IUtils do
-  use Flex
+  use Flex.Use
 
   def list do
     (Path.wildcard("/dev/tty.usbserial*") ++

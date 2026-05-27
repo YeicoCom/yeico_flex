@@ -1,6 +1,6 @@
 defmodule Flex.UserScreens.Image do
   alias Flex.UserScreens.VUtils
-  use Flex.Live
+  use Flex.Use.Live
 
   @name "Image"
 

@@ -1,5 +1,5 @@
 defmodule Flex.SocketTerminal.IUtils do
-  use Flex.Live
+  use Flex.Use.Live
 
   @toms 4_000
   @title "Socket Connection"

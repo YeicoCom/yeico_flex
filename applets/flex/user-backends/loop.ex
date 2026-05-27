@@ -1,7 +1,7 @@
 defmodule Flex.UserBackends.Loop do
   alias Flex.UserBackends.IUtils
   alias Flex.UserBackends.Runner
-  use Flex
+  use Flex.Use
 
   @log "flex:user-backends:log"
 

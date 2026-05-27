@@ -6,7 +6,7 @@ defmodule Flex.UserScreens.DUtils do
   alias Flex.UserScreens.Capture
   alias Flex.UserScreens.Display
   alias Flex.UserScreens.VUtils
-  use Flex.Live
+  use Flex.Use.Live
 
   @modules [Label, Button, Capture, Image, Link, Display]
   @index for(m <- @modules, do: m.name())

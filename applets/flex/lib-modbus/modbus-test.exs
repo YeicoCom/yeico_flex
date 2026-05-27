@@ -1,4 +1,4 @@
-use Flex
+use Flex.Use
 alias Modbus.Slave
 
 test = fn cmd, res ->

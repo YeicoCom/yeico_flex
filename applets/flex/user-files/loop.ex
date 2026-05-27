@@ -1,6 +1,6 @@
 defmodule Flex.UserFiles.Loop do
   alias Flex.UserFiles.IUtils
-  use Flex
+  use Flex.Use
 
   @log "flex:user-files:log"
 

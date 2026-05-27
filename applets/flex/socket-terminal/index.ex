@@ -1,6 +1,6 @@
 defmodule Flex.SocketTerminal.Index do
   alias Flex.SocketTerminal.IUtils
-  use Flex.Live
+  use Flex.Use.Live
 
   def view(assigns) do
     ~H"""

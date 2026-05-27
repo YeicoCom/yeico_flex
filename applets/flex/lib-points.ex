@@ -1,5 +1,5 @@
 defmodule Flex.Pt do
-  use Flex
+  use Flex.Use
 
   def get_key(dir, type, name) do
     "#{dir}:#{type}:#{name}"
@@ -117,12 +117,4 @@ defmodule Flex.Pt do
   defp get_def("screen:" <> _), do: nil
   defp get_def("file:" <> _), do: nil
   defp get_def(_), do: 0
-end
-
-defmodule Flex.Point do
-  def get(key), do: Flex.Pt.get_value(key)
-  def put(key, value), do: Flex.Pt.put_value(key, value)
-  def subget(key), do: Flex.Pt.subget_value(key)
-  def publish(type, tag), do: Flex.Pt.reg_point(type, tag)
-  def list(type), do: Flex.Pt.list(type)
 end

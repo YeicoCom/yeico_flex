@@ -1,5 +1,5 @@
 defmodule Flex.Logout do
-  use Flex.Live
+  use Flex.Use.Live
 
   defp view(assigns) do
     ~H"""

@@ -1,7 +1,7 @@
 defmodule Modbus.Command do
   alias Modbus.Encoder
   alias Modbus.Parser
-  use Flex
+  use Flex.Use
 
   defp check_max(v, max) when is_integer(v) do
     if v <= 0 or v > max, do: throw("Invalid data range")

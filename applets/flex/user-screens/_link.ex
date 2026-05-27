@@ -1,6 +1,6 @@
 defmodule Flex.UserScreens.Link do
   alias Flex.UserScreens.VUtils
-  use Flex.Live
+  use Flex.Use.Live
 
   @name "Link"
 

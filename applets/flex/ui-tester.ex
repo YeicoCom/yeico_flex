@@ -1,5 +1,5 @@
 defmodule Flex.UITester do
-  use Flex.Live
+  use Flex.Use.Live
 
   @select ["Item 1", "Item 2"]
   @options %{select: @select}

@@ -1,6 +1,6 @@
 defmodule Flex.ModbusDevices.Publish do
   alias Flex.ModbusDevices.PUtils
-  use Flex
+  use Flex.Use
 
   defp schedule(bit, pulse, value, nil) do
     cond do

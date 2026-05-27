@@ -1,7 +1,7 @@
 defmodule Flex.UserScreens.View do
   alias Flex.UserScreens.IUtils
   alias Flex.UserScreens.DUtils
-  use Flex.Live
+  use Flex.Use.Live
 
   defp canvas(assigns) do
     ~H"""

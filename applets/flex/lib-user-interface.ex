@@ -1,5 +1,5 @@
 defmodule Flex.UI do
-  use Flex.Live
+  use Flex.Use.Live
 
   # data-KEY for hooks
   # phx-value-KEY for events

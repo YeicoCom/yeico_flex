@@ -1,6 +1,6 @@
 defmodule Flex.UserFiles.Index do
   alias Flex.UserFiles.IUtils
-  use Flex.Live
+  use Flex.Use.Live
 
   defp view(assigns) do
     ~H"""

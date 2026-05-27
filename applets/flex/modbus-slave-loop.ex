@@ -1,5 +1,5 @@
 defmodule Flex.ModbusSlave.Loop do
-  use Flex
+  use Flex.Use
 
   defp handle({conn = %{socket: socket}, params = %{apply: apply}}) do
     receive do

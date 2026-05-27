@@ -1,5 +1,5 @@
 defmodule Flex.UserBackends.IUtils do
-  use Flex
+  use Flex.Use
 
   @name "User Backend"
   @status [:disabled, :enabled]

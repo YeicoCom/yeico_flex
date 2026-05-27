@@ -1,7 +1,7 @@
 defmodule Flex.ModbusDevices.Index do
   alias Flex.ModbusDevices.PUtils
   alias Flex.ModbusDevices.IUtils
-  use Flex.Live
+  use Flex.Use.Live
 
   defp view(assigns) do
     ~H"""

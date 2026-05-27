@@ -1,7 +1,7 @@
 defmodule Flex.ModbusDevices.Loop do
   alias Flex.ModbusDevices.IUtils
   alias Flex.ModbusDevices.PUtils
-  use Flex
+  use Flex.Use
 
   @log "flex:modbus-devices:log"
 

@@ -1,7 +1,7 @@
 defmodule Flex.UserScreens.Loop do
   alias Flex.UserScreens.IUtils
   alias Flex.UserScreens.View
-  use Flex
+  use Flex.Use
 
   @log "flex:user-screens:log"
 

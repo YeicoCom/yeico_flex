@@ -1,5 +1,5 @@
 defmodule Flex.UserScreens.Publish do
-  use Flex
+  use Flex.Use
 
   def setup _ do
     Api.subget!("flex:user-screens:items")

@@ -1,5 +1,5 @@
 defmodule Flex.EchoServer.Loop do
-  use Flex
+  use Flex.Use
 
   defp handle(conn = %{socket: socket}) do
     receive do

@@ -1,6 +1,6 @@
 defmodule Flex.ModbusTerminal.Index do
   alias Flex.ModbusTerminal.IUtils
-  use Flex.Live
+  use Flex.Use.Live
 
   def view(assigns) do
     ~H"""

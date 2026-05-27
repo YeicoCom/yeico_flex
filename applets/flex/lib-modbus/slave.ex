@@ -1,6 +1,6 @@
 defmodule Modbus.Slave do
   alias Modbus.Protocol
-  use Flex
+  use Flex.Use
 
   defp get(key, slave, type, address, count) do
     model = Adb.get(key, %{})

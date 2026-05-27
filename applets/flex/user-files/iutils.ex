@@ -1,5 +1,5 @@
 defmodule Flex.UserFiles.IUtils do
-  use Flex
+  use Flex.Use
 
   @name "User File"
   @status [:disabled, :enabled]

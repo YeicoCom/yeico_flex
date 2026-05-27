@@ -1,5 +1,5 @@
 defmodule Flex.Ln do
-  use Flex.Live
+  use Flex.Use.Live
 
   def init(%{assigns: %{session: session}}, state) do
     state = Map.put(state, :login?, !!Terminal.rconfig("pass"))

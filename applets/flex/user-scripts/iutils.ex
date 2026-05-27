@@ -1,5 +1,5 @@
 defmodule Flex.UserScripts.IUtils do
-  use Flex
+  use Flex.Use
 
   @name "User Script"
   @status [:disabled, :enabled]
