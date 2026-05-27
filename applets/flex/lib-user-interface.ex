@@ -27,32 +27,30 @@ defmodule Flex.UI do
 
     ~H"""
     <div id="main_frame" phx-window-keydown="modal:close" phx-key="Escape" phx-hook="AllPages"
-      class="flex flex-col h-screen select-none text-base [&_*]:cursor-default">
-      <div class="flex gap-2 p-2 items-center bg-zinc-800 text-white">
-        <div class="text-lg font-bold">{@title}</div>
+      class="flex h-screen select-none text-base [&_*]:cursor-default">
+      <div class="flex flex-col gap-2 p-2 text-white [&_*]:size-8">
+        <image src="/applets/logo.svg" class="h-8"/>
+        <a href="/flex" class="hover:bg-lime-500 hero-home" title="Flex Home"/>
+        <a href="/flex/user-files" class="hover:bg-lime-500 hero-document" title="User Files"/>
+        <a href="/flex/user-scripts" class="hover:bg-lime-500 hero-code-bracket" title="User Scripts"/>
+        <a href="/flex/user-screens" class="hover:bg-lime-500 hero-tv" title="User Screens"/>
+        <a href="/flex/user-backends" class="hover:bg-lime-500 hero-code-bracket-square" title="User Backends"/>
+        <a href="/flex/modbus-devices" class="hover:bg-lime-500 hero-table-cells" title="Modbus Devices"/>
+        <a href="/flex/modbus-terminal" class="hover:bg-lime-500 hero-window" title="Modbus Terminal"/>
+        <a href="/flex/socket-terminal" class="hover:bg-lime-500 hero-command-line" title="Socket Terminal"/>
+        <a href="/flex/serial-exports" class="hover:bg-lime-500 hero-arrows-up-down" title="Serial Exports"/>
+        <a :if={@dev?} href="/flex/ui-tester" class="hover:bg-lime-500 hero-cog" title="UI Tester"/>
+        <a :if={@device?} href="/flex/config" class="hover:bg-lime-500 hero-wrench" title="Config"/>
         <div class="grow"/>
-        <div :if={@label}>{@label}</div>
-        <image src="/applets/logo.svg" class="h-6"/>
+        <a href="/flex/logout" class="hover:bg-lime-500 hero-arrow-right-end-on-rectangle" title="Logout"/>
       </div>
-      <div class="grow flex overflow-hidden">
-        <div class="group flex">
-          <div class="w-1 group-hover:hidden"/>
-          <div class="hidden group-hover:block h-full w-max bg-zinc-800 text-white">
-            <a href="/flex" class="block px-4 py-2 hover:bg-lime-500">Flex Home</a>
-            <a href="/flex/user-files" class="block px-4 py-2 hover:bg-lime-500">User Files</a>
-            <a href="/flex/user-scripts" class="block px-4 py-2 hover:bg-lime-500">User Scripts</a>
-            <a href="/flex/user-screens" class="block px-4 py-2 hover:bg-lime-500">User Screens</a>
-            <a href="/flex/user-backends" class="block px-4 py-2 hover:bg-lime-500">User Backends</a>
-            <a href="/flex/modbus-devices" class="block px-4 py-2 hover:bg-lime-500">Modbus Devices</a>
-            <a href="/flex/modbus-terminal" class="block px-4 py-2 hover:bg-lime-500">Modbus Terminal</a>
-            <a href="/flex/socket-terminal" class="block px-4 py-2 hover:bg-lime-500">Socket Terminal</a>
-            <a href="/flex/serial-exports" class="block px-4 py-2 hover:bg-lime-500">Serial Exports</a>
-            <a :if={@dev?} href="/flex/ui-tester" class="block px-4 py-2 hover:bg-lime-500">UI Tester</a>
-            <a :if={@device?} href="/flex/config" class="block px-4 py-2 hover:bg-lime-500">Config</a>
-            <a href="/flex/logout" class="block px-4 py-2 hover:bg-lime-500">Logout</a>
-          </div>
+      <div class="grow flex flex-col">
+        <div class="flex gap-2 p-2 items-center text-white">
+          <div class="text-lg font-bold">{@title}</div>
+          <div class="grow"/>
+          <div :if={@label}>{@label}</div>
         </div>
-        <div class={["grow text-neutral-300", @class]}>
+        <div class={["grow overflow-hidden text-neutral-300", @class]}>
           {render_slot(@inner_block)}
         </div>
       </div>

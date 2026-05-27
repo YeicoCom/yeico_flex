@@ -139,6 +139,7 @@ raise "ouch!"
 ## Fixme
 
 - [ ] Make menu tablet compatible
+- [ ] Review scrolling still works in all cases
 - [ ] Support iolink iodd
 - [ ] Designer: heex syntax highlight
 - [ ] CodeEditor: auto format and auto complete
