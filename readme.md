@@ -144,6 +144,7 @@ raise "ouch!"
 - [ ] publish a backend api package to mix install: log, point, etc...
 - [ ] Support iolink iodd
 - [ ] Designer: heex syntax highlight
+- [ ] macos file watcher triggering flex.css modified after ~4s of tailwind done log
 - [ ] CodeEditor: auto format and auto complete (livebook has autocomplete)
   - requires access to the actual vm to show the actual available modules
 - [ ] HTML custom components: plots, toggles, ...
