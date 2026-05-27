@@ -138,6 +138,7 @@ raise "ouch!"
 
 ## Fixme
 
+- [ ] Make menu tablet compatible
 - [ ] Support iolink iodd
 - [ ] Designer: heex syntax highlight
 - [ ] CodeEditor: auto format and auto complete

@@ -27,15 +27,15 @@ defmodule Flex.UI do
 
     ~H"""
     <div id="main_frame" phx-window-keydown="modal:close" phx-key="Escape" phx-hook="AllPages"
-      class="flex flex-col gap-0 p-0 h-screen select-none text-base [&_*]:cursor-default">
+      class="flex flex-col h-screen select-none text-base [&_*]:cursor-default">
       <div class="flex gap-2 p-2 items-center bg-zinc-800 text-white">
         <div class="text-lg font-bold">{@title}</div>
         <div class="grow"/>
         <div :if={@label}>{@label}</div>
         <image src="/applets/logo.svg" class="h-6"/>
       </div>
-      <div class="flex h-full">
-        <div class="group flex h-full">
+      <div class="grow flex overflow-hidden">
+        <div class="group flex">
           <div class="w-1 group-hover:hidden"/>
           <div class="hidden group-hover:block h-full w-max bg-zinc-800 text-white">
             <a href="/flex" class="block px-4 py-2 hover:bg-lime-500">Flex Home</a>
@@ -52,7 +52,7 @@ defmodule Flex.UI do
             <a href="/flex/logout" class="block px-4 py-2 hover:bg-lime-500">Logout</a>
           </div>
         </div>
-        <div class={["grow text-neutral-300 overflow-hidden", @class]}>
+        <div class={["grow text-neutral-300", @class]}>
           {render_slot(@inner_block)}
         </div>
       </div>
