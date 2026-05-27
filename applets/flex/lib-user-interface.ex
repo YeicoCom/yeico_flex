@@ -36,7 +36,7 @@ defmodule Flex.UI do
       </div>
       <div class="flex h-full">
         <div class="group flex h-full">
-          <div class="w-1"/>
+          <div class="w-1 group-hover:hidden"/>
           <div class="hidden group-hover:block h-full w-max bg-zinc-800 text-white">
             <a href="/flex" class="block px-4 py-2 hover:bg-lime-500">Flex Home</a>
             <a href="/flex/user-files" class="block px-4 py-2 hover:bg-lime-500">User Files</a>
