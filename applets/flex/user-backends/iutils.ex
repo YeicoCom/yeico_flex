@@ -7,35 +7,21 @@ defmodule Flex.UserBackends.IUtils do
   @new %{name: @name, delay: 2_000, status: :disabled}
 
   @template """
-  defmodule Log do
-    def trace(msg), do: log("trace", msg)
-    def debug(msg), do: log("debug", msg)
-    def info(msg), do: log("info", msg)
-    def warn(msg), do: log("warn", msg)
-    def error(msg), do: log("error", msg)
-    defp log(level, msg) when is_binary(msg) do
-      IO.puts([level, " ", msg])
-      msg
-    end
-    defp log(level, msg) do
-      log(level, inspect(msg))
-      msg
-    end
-  end
+  use Flex.Backend
 
-  Log.info("hi")
+  Log.debug("Hello Backend!")
 
   Process.sleep(:infinity)
   """
 
-  def merge(item), do: Map.merge(@new, item)
-
   def template, do: @template
+
+  def merge(item), do: Map.merge(@new, item)
 
   def style(:error), do: "text-red-500"
   def style(:warn), do: "text-yellow-500"
   def style(:info), do: "text-blue-500"
-  def style(:debug), do: "text-teal-500"
+  def style(:debug), do: "text-cyan-500"
   def style(:trace), do: "text-gray-500"
   def style(:unhandled), do: "text-red-700"
 

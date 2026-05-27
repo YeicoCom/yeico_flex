@@ -138,10 +138,8 @@ raise "ouch!"
 
 ## Fixme
 
-- [ ] flex modules refactor towards use Flex.Script
 - [ ] wrap applet/terminal api in flex module
 - [ ] cli tool to manage flex items: scripts, backends, files, etc...
-- [ ] publish a backend api package to mix install: log, point, etc...
 - [ ] Support iolink iodd
 - [ ] Designer: heex syntax highlight
 - [ ] macos file watcher triggering flex.css modified after ~4s of tailwind done log
@@ -210,6 +208,12 @@ raise "ouch!"
   - https://github.com/plcpeople/nodeS7
   - https://github.com/S7NetPlus/s7netplus
   - https://github.com/netdata-be/libnodave
+- [?] backend with compile errors fails to restart after several attempts: hanging on ping/pang?
+  - added a task await timeout like last resource
+  - left under observation
+- [x] flex modules refactor towards use Flex.Script
+- [x] publish a backend api package to mix install: log, point, etc...
+  - better yet, add Flex.Backend* modules to the backend code lib path
 - [x] Make menu tablet compatible: left vertical bar of icon buttons
 - [x] Review scrolling still works for all index listins and modbus points
 - [x] HTML custom components: barcode39, barcode128, QR

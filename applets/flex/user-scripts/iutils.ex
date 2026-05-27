@@ -6,12 +6,22 @@ defmodule Flex.UserScripts.IUtils do
   @options %{status: @status}
   @new %{name: @name, delay: 2_000, status: :disabled}
 
+  @template """
+  use Flex.Script
+
+  Log.debug("Hello Script!")
+
+  Process.sleep(:infinity)
+  """
+
+  def template, do: @template
+
   def merge(item), do: Map.merge(@new, item)
 
   def style(:error), do: "text-red-500"
   def style(:warn), do: "text-yellow-500"
   def style(:info), do: "text-blue-500"
-  def style(:debug), do: "text-teal-500"
+  def style(:debug), do: "text-cyan-500"
   def style(:trace), do: "text-gray-500"
   def style(:unhandled), do: "text-red-700"
 

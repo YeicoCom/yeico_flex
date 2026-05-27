@@ -58,7 +58,7 @@ defmodule Flex.UserScripts.Loop do
       {"flex:user-scripts:insert", _, params} ->
         id = UUID.uuid1() |> ShortUUID.encode!()
         Db.put(idb, id, params)
-        Db.put(cdb, id, "use Flex.Script\n\nApi.sleep()")
+        Db.put(cdb, id, IUtils.template())
         publish_items(idb)
         Logs.send(@log, id, false, "Created")
         runner = run_item(id, params, %{cdb: cdb})

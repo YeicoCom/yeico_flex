@@ -3,7 +3,10 @@ defmodule Flex.UserBackends.Runner do
 
   def run(id, name, code) do
     node = "backend_#{id}"
-    path = Terminal.fpath("@run/flex/#{name}.exs")
+    libs = Terminal.dpath("@run/flex/#{node}")
+    beams = Path.join(Api.path(), "flex/_build/Elixir.Flex.Backend*.beam")
+    System.shell("rsync -avr --delete #{beams} #{libs}/ebin/")
+    path = Terminal.fpath("@run/flex/#{node}.exs")
     File.write!(path, code)
     {"", 0} = System.cmd("epmd", ["-daemon"])
 
@@ -24,7 +27,8 @@ defmodule Flex.UserBackends.Runner do
       {"TERMINAL_TMP", Terminal.tmp()},
       {"TERMINAL_ROOT", Terminal.root()},
       {"TERMINAL_HOME", Terminal.home()},
-      {"TERMINAL_HOST", Api.hostname()}
+      {"TERMINAL_HOST", Api.hostname()},
+      {"ERL_LIBS", libs}
     ]
 
     args = [
@@ -40,13 +44,18 @@ defmodule Flex.UserBackends.Runner do
     opts = [into: into, stderr_to_stdout: true, env: env, cd: Terminal.home()]
 
     tag = "userbackends:#{id}:#{name}:elixir"
-    task = Api.async(tag, fn -> MuonTrap.cmd("elixir", args, opts) end)
+
+    Api.async(tag, fn ->
+      {_res, code} = MuonTrap.cmd("elixir", args, opts)
+      Log.warn("Exited with code #{code}")
+      Process.exit(self(), :kill)
+    end)
 
     wait(node, :pong)
-    loop(id, task)
+    loop(id)
   end
 
-  defp loop(id, task = %{ref: ref}) do
+  defp loop(id) do
     receive do
       {:io_request, from, reply_as, {:put_chars, encoding, line}} ->
         send(from, {:io_reply, reply_as, :ok})
@@ -63,10 +72,7 @@ defmodule Flex.UserBackends.Runner do
           end
         end
 
-        loop(id, task)
-
-      {^ref, {:ok, {_res, code}}} ->
-        Log.warn("Exited with code #{code}")
+        loop(id)
 
       unexpected ->
         Log.warn(unexpected: unexpected)
@@ -75,7 +81,7 @@ defmodule Flex.UserBackends.Runner do
 
   # nerves fw node wont auto connect
   # fake ping to leave connection optional
-  defp wait(name, res) do
+  defp wait(name, res, toms \\ 5_000) do
     name = name |> to_charlist()
     local = ~c"127.0.0.1"
 
@@ -90,7 +96,10 @@ defmodule Flex.UserBackends.Runner do
         end
     end
 
-    Api.await(fun)
+    # mountrap stuck after several attemps to run a backend with compile errors
+    # last resource task await timeout kills the calling process on timeout
+    task = Api.async(fn -> Api.await(fun) end)
+    Api.await(task, toms)
   end
 end
 
