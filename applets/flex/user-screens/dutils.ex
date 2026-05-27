@@ -254,8 +254,8 @@ defmodule Flex.UserScreens.DUtils do
       @items[item.type].init(item, design?, fn key ->
         case Map.has_key?(events, key) do
           # nil initial values allow the use of || in calculator
-          false -> Pt.subget_value(key)
-          true -> Pt.get_value(key)
+          false -> Points.subget_value(key)
+          true -> Points.get_value(key)
         end
       end)
 

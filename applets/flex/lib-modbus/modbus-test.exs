@@ -1,5 +1,5 @@
-use Flex.Use
 alias Modbus.Slave
+use Terminal
 
 test = fn cmd, res ->
   ptcp = Modbus.Tcp.Protocol

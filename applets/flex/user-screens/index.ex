@@ -73,7 +73,7 @@ defmodule Flex.UserScreens.Index do
       {:mount, socket, state} ->
         tzoffset = socket.assigns.tzoffset || 0
         logs = Api.subget!("flex:user-screens:logs")
-        logs = Lg.shift(tzoffset, logs)
+        logs = Logs.shift(tzoffset, logs)
         items = Api.subget!("flex:user-screens:items")
         socket = assign(socket, applet_css: "/applets/flex.css")
         socket = assign(socket, applet_js: "/applets/flex.js")
@@ -84,7 +84,7 @@ defmodule Flex.UserScreens.Index do
         state = Map.put(state, :index, IUtils.index(items))
         state = Map.put(state, :logs, logs)
         state = Map.put(state, :modal, nil)
-        state = Ln.init(socket, state)
+        state = Login.init(socket, state)
 
         case length(state.index) > 0 do
           false -> {socket, IUtils.modal({:add, state})}
@@ -93,7 +93,7 @@ defmodule Flex.UserScreens.Index do
 
       {:params, socket, state = %{login?: true, user: nil}, params, uri} ->
         Log.trace(view: path, params: params, uri: uri)
-        socket = Ln.forward(socket, path, uri)
+        socket = Login.forward(socket, path, uri)
         {socket, state}
 
       {:params, socket, state, params, uri} ->
@@ -190,7 +190,7 @@ defmodule Flex.UserScreens.Index do
 
       {:info, socket, state = %{tzoffset: tzoffset}, event = {"flex:user-screens:logs", _, logs}} ->
         Log.trace(view: path, info: event)
-        state = Map.put(state, :logs, Lg.shift(tzoffset, logs))
+        state = Map.put(state, :logs, Logs.shift(tzoffset, logs))
         {socket, state}
 
       {:info, socket, state, event} ->

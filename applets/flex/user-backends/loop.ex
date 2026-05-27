@@ -22,7 +22,7 @@ defmodule Flex.UserBackends.Loop do
   defp runner_setup(%{id: id, item: %{name: name}, ctx: %{cdb: cdb}}) do
     Udb.register!({:backend, id}, name)
     code = String.trim(IUtils.load(cdb, id) || "")
-    Lg.send(@log, id, nil, "Started")
+    Logs.send(@log, id, nil, "Started")
     tag = "userbackends:#{id}:#{name}:run"
     if String.length(code) > 0, do: Api.async(tag, &run_code/1, {id, name, code})
     Api.receive()
@@ -61,7 +61,7 @@ defmodule Flex.UserBackends.Loop do
         Db.put(idb, id, params)
         Db.put(cdb, id, IUtils.template())
         publish_items(idb)
-        Lg.send(@log, id, false, "Created")
+        Logs.send(@log, id, false, "Created")
         runner = run_item(id, params, %{cdb: cdb})
         runners = Map.put(runners, id, runner)
         state = Map.put(state, :runners, runners)
@@ -72,7 +72,7 @@ defmodule Flex.UserBackends.Loop do
         publish_items(idb)
         task = runners[id][:task]
         if task, do: Api.kill(task)
-        Lg.send(@log, id, false, "Updated")
+        Logs.send(@log, id, false, "Updated")
         runner = run_item(id, params, %{cdb: cdb})
         runners = Map.put(runners, id, runner)
         state = Map.put(state, :runners, runners)
@@ -85,7 +85,7 @@ defmodule Flex.UserBackends.Loop do
         publish_items(idb)
         task = runners[id][:task]
         if task, do: Api.kill(task)
-        Lg.send(@log, id, false, "Deleted")
+        Logs.send(@log, id, false, "Deleted")
         runners = Map.delete(runners, id)
         state = Map.put(state, :runners, runners)
         master_loop(state)
@@ -100,7 +100,7 @@ defmodule Flex.UserBackends.Loop do
         master_loop(state)
 
       {"flex:user-backends:log", _, log} ->
-        logs = Lg.replace(logs, log)
+        logs = Logs.replace(logs, log)
         ids = Map.keys(runners)
         logs = Map.take(logs, ids)
         Api.putcast!("flex:user-backends:logs", logs)

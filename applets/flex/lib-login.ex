@@ -1,4 +1,4 @@
-defmodule Flex.Ln do
+defmodule Flex.Login do
   use Flex.Use.Live
 
   def init(%{assigns: %{session: session}}, state) do

@@ -40,7 +40,7 @@ defmodule Flex.SerialExports.Loop do
           true
         else
           result ->
-            Lg.send(@log, id, true, result)
+            Logs.send(@log, id, true, result)
             raise("Invalid #{tty}: #{inspect(result)}")
         end
 
@@ -50,11 +50,11 @@ defmodule Flex.SerialExports.Loop do
       result = {:ok, %File.Stat{type: :regular}} ->
         cmd = sudo_cmd("rm -f #{tty}")
         System.shell(cmd, stderr_to_stdout: true)
-        Lg.send(@log, id, true, result)
+        Logs.send(@log, id, true, result)
         raise("Invalid #{tty}: #{inspect(result)}")
 
       result ->
-        Lg.send(@log, id, true, result)
+        Logs.send(@log, id, true, result)
         raise("Invalid #{tty}: #{inspect(result)}")
     end
   end
@@ -110,16 +110,16 @@ defmodule Flex.SerialExports.Loop do
       # both :eol and :noeol treated as full line
       {^port, {:data, {type, data}}} ->
         Log.trace(tty: tty, type: type, data: data)
-        Lg.send(@log, id, true, data)
+        Logs.send(@log, id, true, data)
         runner_loop(state)
 
       {^port, {:data, data}} ->
         Log.trace(tty: tty, data: data)
-        Lg.send(@log, id, true, data)
+        Logs.send(@log, id, true, data)
         runner_loop(state)
 
       unexpected ->
-        Lg.send(@log, id, false, "Closed")
+        Logs.send(@log, id, false, "Closed")
         Log.warn(tty: tty, unexpected: unexpected)
     end
   end
@@ -135,12 +135,12 @@ defmodule Flex.SerialExports.Loop do
     end
 
     # this wont be seen because of immediate enoent error
-    Lg.send(@log, id, nil, "Starting")
+    Logs.send(@log, id, nil, "Starting")
     check_tty(id, item)
     cmd = build_cmd(item)
     cmd = sudo_cmd(cmd)
     port = run_cmd(item, id, cmd)
-    Lg.send(@log, id, nil, "Started")
+    Logs.send(@log, id, nil, "Started")
     runner_loop(%{id: id, item: item, cmd: cmd, port: port})
   end
 
@@ -171,7 +171,7 @@ defmodule Flex.SerialExports.Loop do
         id = UUID.uuid1() |> ShortUUID.encode!()
         Db.put(idb, id, params)
         publish_items(idb)
-        Lg.send(@log, id, false, "Created")
+        Logs.send(@log, id, false, "Created")
         runner = run_item(id, params)
         runners = Map.put(runners, id, runner)
         state = Map.put(state, :runners, runners)
@@ -182,7 +182,7 @@ defmodule Flex.SerialExports.Loop do
         publish_items(idb)
         task = runners[id][:task]
         if task, do: Api.kill(task)
-        Lg.send(@log, id, false, "Updated")
+        Logs.send(@log, id, false, "Updated")
         runner = run_item(id, params)
         runners = Map.put(runners, id, runner)
         state = Map.put(state, :runners, runners)
@@ -193,13 +193,13 @@ defmodule Flex.SerialExports.Loop do
         publish_items(idb)
         task = runners[id][:task]
         if task, do: Api.kill(task)
-        Lg.send(@log, id, false, "Deleted")
+        Logs.send(@log, id, false, "Deleted")
         runners = Map.delete(runners, id)
         state = Map.put(state, :runners, runners)
         master_loop(state)
 
       {"flex:serial-exports:log", _, log} ->
-        logs = Lg.replace(logs, log)
+        logs = Logs.replace(logs, log)
         ids = Map.keys(runners)
         logs = Map.take(logs, ids)
         Api.putcast!("flex:serial-exports:logs", logs)

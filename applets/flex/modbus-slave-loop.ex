@@ -23,8 +23,8 @@ defmodule Flex.ModbusSlave.Loop do
 
   def setup opts do
     port = Keyword.fetch!(opts, :port)
-    proto = Keyword.fetch!(opts, :proto) |> Mb.get_proto()
-    apply = fn data -> Mb.slave_apply(proto, "flex:modbus-slave:model", data) end
+    proto = Keyword.fetch!(opts, :proto) |> Modbus.get_proto()
+    apply = fn data -> Modbus.slave_apply(proto, "flex:modbus-slave:model", data) end
     {:ok, socket} = Tcp.listen("127.0.0.1", port, active: true)
     Log.info("Modbus slave #{proto.id()} port: #{socket.port}")
     accept(socket, %{apply: apply})

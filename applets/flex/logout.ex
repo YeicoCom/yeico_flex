@@ -1,4 +1,4 @@
-defmodule Flex.Logout do
+defmodule Flex.Auth.Logout do
   use Flex.Use.Live
 
   defp view(assigns) do

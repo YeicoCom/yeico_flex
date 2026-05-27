@@ -39,7 +39,7 @@ defmodule Flex.UserScreens.Link do
     assigns = UI.phxattr(assigns)
     assigns = Map.put(assigns, :props, item.props)
     assigns = Map.put(assigns, :errors, item.errors)
-    assigns = Map.put(assigns, :screens, [{"", ""} | Pt.get_screens()])
+    assigns = Map.put(assigns, :screens, [{"", ""} | Points.get_screens()])
 
     ~H"""
     <div>Size</div>
@@ -86,7 +86,7 @@ defmodule Flex.UserScreens.Link do
     value =
       case {screen, value} do
         {"", _} -> nil
-        {_, nil} -> Pt.get_value("screen:#{screen}")
+        {_, nil} -> Points.get_value("screen:#{screen}")
         _ -> value
       end
 

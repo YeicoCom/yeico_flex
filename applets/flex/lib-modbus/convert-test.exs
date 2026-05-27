@@ -1,4 +1,3 @@
-use Flex.Use
 alias Modbus.Convert
 
 0x8000 = Convert.from(:u16be, 32768)

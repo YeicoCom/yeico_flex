@@ -78,12 +78,12 @@ defmodule Flex.SocketTerminal.Index do
         state = Map.put(state, :options, options)
         state = Map.put(state, :output, output)
         state = Map.put(state, :logid, 0)
-        state = Ln.init(socket, state)
+        state = Login.init(socket, state)
         {socket, state}
 
       {:params, socket, state = %{login?: true, user: nil}, params, uri} ->
         Log.trace(view: path, params: params, uri: uri)
-        socket = Ln.forward(socket, path, uri)
+        socket = Login.forward(socket, path, uri)
         {socket, state}
 
       {:params, socket, state, params, uri} ->

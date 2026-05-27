@@ -64,17 +64,17 @@ defmodule Flex.ModbusTerminal.Index do
         state = Map.put(state, :conn, %{task: nil, input: initial, on: false})
         state = Map.put(state, :modal, %{title: IUtils.title(), input: initial})
         state = Map.put(state, :options, IUtils.options())
-        state = Map.put(state, :help, Mb.help_full())
-        state = Map.put(state, :tip, Mb.help_short())
+        state = Map.put(state, :help, Modbus.help_full())
+        state = Map.put(state, :tip, Modbus.help_short())
         state = Map.put(state, :output, %{line: nil})
         state = Map.put(state, :tzoffset, tzoffset)
         state = Map.put(state, :logid, 0)
-        state = Ln.init(socket, state)
+        state = Login.init(socket, state)
         {socket, state}
 
       {:params, socket, state = %{login?: true, user: nil}, params, uri} ->
         Log.trace(view: path, params: params, uri: uri)
-        socket = Ln.forward(socket, path, uri)
+        socket = Login.forward(socket, path, uri)
         {socket, state}
 
       {:params, socket, state, params, uri} ->
@@ -101,7 +101,7 @@ defmodule Flex.ModbusTerminal.Index do
        event = "output:submit", params = %{"line" => line}} ->
         Log.trace(view: path, event: event, params: params)
 
-        case Mb.safe_parse(line) do
+        case Modbus.safe_parse(line) do
           {:ok, res} ->
             send(pid, {:exec, res})
             output = Map.put(output, :line, nil)

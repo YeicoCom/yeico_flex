@@ -46,7 +46,7 @@ defmodule Flex.UserScreens.Button do
     assigns = UI.phxattr(assigns)
     assigns = Map.put(assigns, :props, item.props)
     assigns = Map.put(assigns, :errors, item.errors)
-    assigns = Map.put(assigns, :sinks, ["" | Pt.get_sinks()])
+    assigns = Map.put(assigns, :sinks, ["" | Points.get_sinks()])
 
     ~H"""
     <div>Size</div>
@@ -116,7 +116,7 @@ defmodule Flex.UserScreens.Button do
   end
 
   def handle(%{props: %{sink: sink, default: default}}, rt, {:event, "item:click", _params}) do
-    Pt.put_value("sink:#{sink}", default)
+    Points.put_value("sink:#{sink}", default)
     rt
   end
 

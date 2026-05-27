@@ -13,7 +13,7 @@ defmodule Flex.ModbusTerminal.IUtils do
     line = encode(type, line)
     dt = NaiveDateTime.utc_now()
     log = %{id: logid, dt: dt, style: style(type), line: line}
-    log = Lg.shift(tzoffset, log)
+    log = Logs.shift(tzoffset, log)
     socket = stream(socket, :logs, [log])
     state = Map.update!(state, :logid, &(&1 + 1))
     {socket, state}
@@ -25,8 +25,8 @@ defmodule Flex.ModbusTerminal.IUtils do
     proto = Keyword.fetch!(opts, :proto)
     parent = Keyword.fetch!(opts, :parent)
 
-    with {:ok, conn} <- Mb.master_open(ip: ip, port: port, proto: Mb.get_proto(proto)) do
-      Api.defer(fn -> Mb.master_close(conn) end)
+    with {:ok, conn} <- Modbus.master_open(ip: ip, port: port, proto: Modbus.get_proto(proto)) do
+      Api.defer(fn -> Modbus.master_close(conn) end)
       send(parent, {:socket, self(), :success, "Connected to #{proto}:#{ip}:#{port}"})
 
       tracer = fn type, data ->
@@ -45,7 +45,7 @@ defmodule Flex.ModbusTerminal.IUtils do
   defp loop(conn, params = %{parent: parent, tracer: tracer}) do
     receive do
       {:exec, %{cmd: cmd, get: get}} ->
-        case Mb.master_exec(conn, cmd, tracer: tracer) do
+        case Modbus.master_exec(conn, cmd, tracer: tracer) do
           {:ok, conn} ->
             send(parent, {:socket, self(), :success, :ok})
             loop(conn, params)

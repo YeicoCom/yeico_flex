@@ -2,7 +2,7 @@ alias Kernel.ParallelCompiler, as: KPC
 Code.compiler_options(ignore_module_conflict: true)
 
 build = Path.join(assets, "_build")
-if optimize? or force?, do: File.rm_rf!(build)
+if optimize? or full?, do: File.rm_rf!(build)
 File.mkdir_p!(build)
 
 case applets

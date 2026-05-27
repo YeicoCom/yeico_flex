@@ -1,4 +1,4 @@
-defmodule Flex.Pt do
+defmodule Flex.Points do
   use Flex.Use
 
   def get_key(dir, type, name) do

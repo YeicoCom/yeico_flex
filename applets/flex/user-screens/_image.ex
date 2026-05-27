@@ -45,7 +45,7 @@ defmodule Flex.UserScreens.Image do
     assigns = UI.phxattr(assigns)
     assigns = Map.put(assigns, :props, item.props)
     assigns = Map.put(assigns, :errors, item.errors)
-    assigns = Map.put(assigns, :files, [{"", ""} | Pt.get_files()])
+    assigns = Map.put(assigns, :files, [{"", ""} | Points.get_files()])
 
     ~H"""
     <div>Size</div>
@@ -92,7 +92,7 @@ defmodule Flex.UserScreens.Image do
     value =
       case {file, value} do
         {"", _} -> nil
-        {_, nil} -> Pt.get_value("file:#{file}")
+        {_, nil} -> Points.get_value("file:#{file}")
         _ -> value
       end
 

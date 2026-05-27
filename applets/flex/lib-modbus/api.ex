@@ -1,7 +1,7 @@
-defmodule Flex.Mb do
-  def master_open(opts), do: Modbus.open(opts)
-  def master_close(conn), do: Modbus.close(conn)
-  def master_exec(conn, cmd, opts \\ []), do: Modbus.exec(conn, cmd, opts)
+defmodule Flex.Modbus do
+  def master_open(opts), do: Modbus.Master.open(opts)
+  def master_close(conn), do: Modbus.Master.close(conn)
+  def master_exec(conn, cmd, opts \\ []), do: Modbus.Master.exec(conn, cmd, opts)
   def slave_apply(proto, key, data), do: Modbus.Slave.apply(proto, key, data)
   def get_encoder(encoding), do: Modbus.Encoder.for(encoding)
   def get_proto("TCP"), do: Modbus.Tcp.Protocol

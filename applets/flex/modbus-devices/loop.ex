@@ -9,10 +9,10 @@ defmodule Flex.ModbusDevices.Loop do
     key = "source:status:#{name}"
 
     case status do
-      "disabled" -> Pt.put_value(key, 0)
-      "starting" -> Pt.put_value(key, 1)
-      "started" -> Pt.put_value(key, 2)
-      "error" -> Pt.put_value(key, 3)
+      "disabled" -> Points.put_value(key, 0)
+      "starting" -> Points.put_value(key, 1)
+      "started" -> Points.put_value(key, 2)
+      "error" -> Points.put_value(key, 3)
     end
   end
 
@@ -28,7 +28,7 @@ defmodule Flex.ModbusDevices.Loop do
           # opts = [tracer: fn d, l -> Api.debug(dir: d, line: Base.encode16(l)) end]
           opts = []
 
-          case Mb.master_exec(conn, cmd, opts) do
+          case Modbus.master_exec(conn, cmd, opts) do
             {:ok, conn} ->
               conn
 
@@ -51,7 +51,7 @@ defmodule Flex.ModbusDevices.Loop do
       rts ->
         accessors = PUtils.accessors(point)
         %{type: type, slave: slave, address: address, encoding: encoding} = point
-        %{encode: encode, decode: decode, factor: factor} = Mb.get_encoder(encoding)
+        %{encode: encode, decode: decode, factor: factor} = Modbus.get_encoder(encoding)
         count = length(accessors)
 
         pointer =
@@ -86,14 +86,14 @@ defmodule Flex.ModbusDevices.Loop do
   end
 
   defp runner_setup(%{id: id, item: item = %{ip: ip, port: port, proto: proto}}) do
-    proto = Mb.get_proto(proto)
+    proto = Modbus.get_proto(proto)
     rts = calc_runtimes(item)
 
     put_status(item, "starting")
-    Lg.send(@log, id, nil, "Starting")
+    Logs.send(@log, id, nil, "Starting")
 
-    with {:ok, conn} <- Mb.master_open(ip: ip, port: port, proto: proto) do
-      Lg.send(@log, id, nil, "Started")
+    with {:ok, conn} <- Modbus.master_open(ip: ip, port: port, proto: proto) do
+      Logs.send(@log, id, nil, "Started")
       put_status(item, "started")
       if length(item.points) == 0, do: Api.sleep()
 
@@ -102,12 +102,12 @@ defmodule Flex.ModbusDevices.Loop do
       end
 
       with {:error, _error} <- Api.safe(run) do
-        Lg.send(@log, id, true, "Command error")
+        Logs.send(@log, id, true, "Command error")
         put_status(item, "error")
       end
     else
       {:error, _error} ->
-        Lg.send(@log, id, true, "Connect error")
+        Logs.send(@log, id, true, "Connect error")
         put_status(item, "error")
     end
   end
@@ -143,7 +143,7 @@ defmodule Flex.ModbusDevices.Loop do
         id = UUID.uuid1() |> ShortUUID.encode!()
         Db.put(idb, id, params)
         publish_items(idb)
-        Lg.send(@log, id, false, "Created")
+        Logs.send(@log, id, false, "Created")
         runner = run_item(id, params)
         runners = Map.put(runners, id, runner)
         state = Map.put(state, :runners, runners)
@@ -154,7 +154,7 @@ defmodule Flex.ModbusDevices.Loop do
         publish_items(idb)
         task = runners[id][:task]
         if task, do: Api.kill(task)
-        Lg.send(@log, id, false, "Updated")
+        Logs.send(@log, id, false, "Updated")
         runner = run_item(id, params)
         runners = Map.put(runners, id, runner)
         state = Map.put(state, :runners, runners)
@@ -165,13 +165,13 @@ defmodule Flex.ModbusDevices.Loop do
         publish_items(idb)
         task = runners[id][:task]
         if task, do: Api.kill(task)
-        Lg.send(@log, id, false, "Deleted")
+        Logs.send(@log, id, false, "Deleted")
         runners = Map.delete(runners, id)
         state = Map.put(state, :runners, runners)
         master_loop(state)
 
       {"flex:modbus-devices:log", _, log} ->
-        logs = Lg.replace(logs, log)
+        logs = Logs.replace(logs, log)
         ids = Map.keys(runners)
         logs = Map.take(logs, ids)
         Api.putcast!("flex:modbus-devices:logs", logs)

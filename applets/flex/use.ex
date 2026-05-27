@@ -5,11 +5,11 @@ defmodule Flex.Use do
     quote do
       use Terminal
       alias Flex.Db
-      alias Flex.Mb
-      alias Flex.Pt
       alias Flex.UI
-      alias Flex.Lg
-      alias Flex.Ln
+      alias Flex.Logs
+      alias Flex.Login
+      alias Flex.Modbus
+      alias Flex.Points
     end
   end
 end

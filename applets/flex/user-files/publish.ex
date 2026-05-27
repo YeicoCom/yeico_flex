@@ -10,8 +10,8 @@ defmodule Flex.UserFiles.Publish do
       link = IUtils.find(id)
 
       if link do
-        Pt.put_value("file:#{id}", "upload/#{link}")
-        Pt.reg_point("file", "#{id}:#{name}")
+        Points.put_value("file:#{id}", "upload/#{link}")
+        Points.reg_point("file", "#{id}:#{name}")
       end
     end)
 

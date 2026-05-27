@@ -6,8 +6,8 @@ defmodule Flex.UserFiles.Loop do
 
   defp runner_setup(id, _item) do
     case IUtils.find(id) do
-      nil -> Lg.send(@log, id, nil, "Not found")
-      link -> Lg.send(@log, id, nil, "Started #{link}")
+      nil -> Logs.send(@log, id, nil, "Not found")
+      link -> Logs.send(@log, id, nil, "Started #{link}")
     end
   end
 
@@ -39,7 +39,7 @@ defmodule Flex.UserFiles.Loop do
         id = UUID.uuid1() |> ShortUUID.encode!()
         Db.put(idb, id, params)
         publish_items(idb)
-        Lg.send(@log, id, false, "Created")
+        Logs.send(@log, id, false, "Created")
         runner = run_item(id, params)
         runners = Map.put(runners, id, runner)
         state = Map.put(state, :runners, runners)
@@ -50,7 +50,7 @@ defmodule Flex.UserFiles.Loop do
         publish_items(idb)
         task = runners[id][:task]
         if task, do: Api.kill(task)
-        Lg.send(@log, id, false, "Updated")
+        Logs.send(@log, id, false, "Updated")
         runner = run_item(id, params)
         runners = Map.put(runners, id, runner)
         state = Map.put(state, :runners, runners)
@@ -64,13 +64,13 @@ defmodule Flex.UserFiles.Loop do
         publish_items(idb)
         task = runners[id][:task]
         if task, do: Api.kill(task)
-        Lg.send(@log, id, false, "Deleted")
+        Logs.send(@log, id, false, "Deleted")
         runners = Map.delete(runners, id)
         state = Map.put(state, :runners, runners)
         master_loop(state)
 
       {"flex:user-files:log", _, log} ->
-        logs = Lg.replace(logs, log)
+        logs = Logs.replace(logs, log)
         ids = Map.keys(runners)
         logs = Map.take(logs, ids)
         Api.putcast!("flex:user-files:logs", logs)

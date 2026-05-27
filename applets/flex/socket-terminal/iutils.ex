@@ -36,7 +36,7 @@ defmodule Flex.SocketTerminal.IUtils do
 
     dt = NaiveDateTime.utc_now()
     log = %{id: logid, dt: dt, style: style(type), text: text, hexa: hexa}
-    log = Lg.shift(tzoffset, log)
+    log = Logs.shift(tzoffset, log)
     socket = stream(socket, :logs, [log])
     state = Map.update!(state, :logid, &(&1 + 1))
     {socket, state}

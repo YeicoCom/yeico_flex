@@ -1,20 +1,20 @@
 defmodule Flex.Boot do
   use Terminal
 
-  defp get_path(route) do
+  defp expand(path) do
     parent = Process.get(:__flex__) || "/flex"
 
     path =
-      case String.starts_with?(route, "/flex") do
-        false -> Path.join(parent, route)
-        true -> route
+      case String.starts_with?(path, "/flex") do
+        false -> Path.join(parent, path)
+        true -> path
       end
 
     %{parent: parent, path: path}
   end
 
-  def eval_file(route, opts) do
-    %{parent: parent, path: path} = get_path(route)
+  def eval(route, opts) do
+    %{parent: parent, path: path} = expand(route)
     Process.put(:__flex__, Path.dirname(path))
     result = Api.evalf(path, opts)
     Process.put(:__flex__, parent)
@@ -24,7 +24,7 @@ defmodule Flex.Boot do
   def test(route, opts) do
     if Terminal.dev?() do
       if System.get_env("FLEX_TEST") do
-        eval_file(route, opts)
+        eval(route, opts)
       end
     end
   end
@@ -34,11 +34,8 @@ defmodule Flex.Boot do
     Api.loop(tag, dms, setup, opts)
   end
 
-  # dir/index.exs -> dir
-  # dir/other.exs -> dir/other
-  def view(route, mod, opts) do
-    %{path: path} = get_path(route)
-    path = Path.rootname(path) |> String.replace_suffix("/index", "")
+  def view(path, mod, opts) do
+    %{path: path} = expand(path)
     opts = [{:path, path} | opts]
     tag = Process.get(:__tag__)
     Process.put(:__tag__, "view:#{path}")

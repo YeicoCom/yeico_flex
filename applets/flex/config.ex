@@ -1,4 +1,4 @@
-defmodule Flex.Config do
+defmodule Flex.ConfigView do
   use Flex.Use.Live
 
   defp view(assigns) do
@@ -47,12 +47,12 @@ defmodule Flex.Config do
         socket = assign(socket, page_suffix: " · Flex")
         socket = assign(socket, page_title: "Config")
         state = init(Terminal.device?(), state)
-        state = Ln.init(socket, state)
+        state = Login.init(socket, state)
         {socket, state}
 
       {:params, socket, state = %{login?: true, user: nil}, params, uri} ->
         Log.trace(view: path, params: params, uri: uri)
-        socket = Ln.forward(socket, path, uri)
+        socket = Login.forward(socket, path, uri)
         {socket, state}
 
       {:params, socket, state, params, uri} ->

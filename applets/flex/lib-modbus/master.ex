@@ -1,4 +1,4 @@
-defmodule Modbus do
+defmodule Modbus.Master do
   alias Modbus.Transport
   alias Modbus.Protocol
 

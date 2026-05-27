@@ -45,7 +45,7 @@ defmodule Flex.UserScreens.Capture do
     assigns = UI.phxattr(assigns)
     assigns = Map.put(assigns, :props, item.props)
     assigns = Map.put(assigns, :errors, item.errors)
-    assigns = Map.put(assigns, :sinks, ["" | Pt.get_sinks()])
+    assigns = Map.put(assigns, :sinks, ["" | Points.get_sinks()])
 
     ~H"""
     <div>Size</div>
@@ -130,7 +130,7 @@ defmodule Flex.UserScreens.Capture do
 
   def modal(id, %{props: props}, rt, _params) do
     %{sink: sink, default: default, minimum: cmin, maximum: cmax} = props
-    %{step: step, min: pmin, max: pmax} = Pt.get_limits(sink)
+    %{step: step, min: pmin, max: pmax} = Points.get_limits(sink)
     val = rt.value || default
 
     assigns =
@@ -146,7 +146,7 @@ defmodule Flex.UserScreens.Capture do
   end
 
   def submit(_id, %{props: %{sink: sink}}, rt, params, _modal) do
-    Pt.put_value("sink:#{sink}", Pt.parse(sink, params["val"]))
+    Points.put_value("sink:#{sink}", Points.parse(sink, params["val"]))
     {rt, nil}
   end
 

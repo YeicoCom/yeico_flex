@@ -170,11 +170,11 @@ defmodule Flex.ModbusDevices.Index do
         socket = assign(socket, page_title: "Modbus Devices")
         socket = assign(socket, page_suffix: " · Flex")
         state = IUtils.runtime(state, items)
-        state = Map.put(state, :logs, Lg.shift(tzoffset, logs))
+        state = Map.put(state, :logs, Logs.shift(tzoffset, logs))
         state = Map.put(state, :tzoffset, tzoffset)
         state = Map.put(state, :refresh, refresh)
         state = Map.put(state, :modal, nil)
-        state = Ln.init(socket, state)
+        state = Login.init(socket, state)
         # prevent events overwhelm
         Process.send_after(self(), :refresh, refresh)
 
@@ -185,7 +185,7 @@ defmodule Flex.ModbusDevices.Index do
 
       {:params, socket, state = %{login?: true, user: nil}, params, uri} ->
         Log.trace(view: path, params: params, uri: uri)
-        socket = Ln.forward(socket, path, uri)
+        socket = Login.forward(socket, path, uri)
         {socket, state}
 
       {:params, socket, state, params, uri} ->
@@ -332,7 +332,7 @@ defmodule Flex.ModbusDevices.Index do
       {:info, socket, state = %{tzoffset: tzoffset},
        event = {"flex:modbus-devices:logs", _, logs}} ->
         Log.trace(view: path, info: event)
-        state = Map.put(state, :logs, Lg.shift(tzoffset, logs))
+        state = Map.put(state, :logs, Logs.shift(tzoffset, logs))
         {socket, state}
 
       {:info, socket, state, event} ->

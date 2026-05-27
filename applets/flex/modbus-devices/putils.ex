@@ -11,7 +11,7 @@ defmodule Flex.ModbusDevices.PUtils do
 
   def limits(point) do
     %{type: type} = dirtype(point)
-    Pt.get_limits(type)
+    Points.get_limits(type)
   end
 
   def apply(arg) do
@@ -34,13 +34,13 @@ defmodule Flex.ModbusDevices.PUtils do
 
   def accessors(point = %{names: names, encoding: encoding}) do
     %{dir: dir, type: type} = dirtype(point)
-    %{parse: parse} = Mb.get_encoder(encoding)
+    %{parse: parse} = Modbus.get_encoder(encoding)
 
     for name <- split(names) do
-      tag = Pt.get_tag(type, name)
-      key = Pt.get_key(dir, type, name)
-      get = fn -> Pt.get_value(key) end
-      put = fn value -> Pt.put_value(key, value) end
+      tag = Points.get_tag(type, name)
+      key = Points.get_key(dir, type, name)
+      get = fn -> Points.get_value(key) end
+      put = fn value -> Points.put_value(key, value) end
 
       %{
         tag: tag,

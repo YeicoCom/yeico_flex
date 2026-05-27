@@ -138,7 +138,7 @@ raise "ouch!"
 
 ## Fixme
 
-- [ ] flex modules refactoring
+- [ ] flex modules refactor towards use Flex.Script
 - [ ] wrap applet/terminal api in flex module
 - [ ] cli tool to manage flex items: scripts, backends, files, etc...
 - [ ] publish a backend api package to mix install: log, point, etc...

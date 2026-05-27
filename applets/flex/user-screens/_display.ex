@@ -38,7 +38,7 @@ defmodule Flex.UserScreens.Display do
     assigns = UI.phxattr(assigns)
     assigns = Map.put(assigns, :props, item.props)
     assigns = Map.put(assigns, :errors, item.errors)
-    points = if item.props.type == "source", do: Pt.get_sources(), else: Pt.get_sinks()
+    points = if item.props.type == "source", do: Points.get_sources(), else: Points.get_sinks()
     assigns = Map.put(assigns, :points, ["" | points])
 
     ~H"""

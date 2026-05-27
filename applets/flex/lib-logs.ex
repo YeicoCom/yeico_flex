@@ -1,4 +1,4 @@
-defmodule Flex.Lg do
+defmodule Flex.Logs do
   use Flex.Use
 
   defp post(key, id, error?, msg) do

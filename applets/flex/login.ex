@@ -1,4 +1,4 @@
-defmodule Flex.Login do
+defmodule Flex.Auth.Login do
   use Flex.Use.Live
 
   defp view(assigns) do
@@ -27,7 +27,7 @@ defmodule Flex.Login do
         socket = assign(socket, page_suffix: " · Flex")
         socket = assign(socket, page_title: "Login")
         state = Map.put(state, :referer, referer)
-        state = Ln.init(socket, state)
+        state = Login.init(socket, state)
         {socket, state}
 
       {:params, socket, state = %{referer: referer, user: %{name: "admin"}}, params, uri} ->
@@ -44,7 +44,7 @@ defmodule Flex.Login do
 
       {:event, socket, state, event = "submit:login", params = %{"pass" => pass}} ->
         Log.trace(view: path, event: event, params: params)
-        socket = Ln.login(socket, state, pass)
+        socket = Login.login(socket, state, pass)
         {socket, state}
 
       {:event, socket, state, event, params} ->
