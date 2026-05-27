@@ -145,6 +145,8 @@ raise "ouch!"
 - [ ] HTML custom components: plots, toggles, ...
 - [ ] Standardize modbus encodings
 - [ ] Onscreen keyboard?
+- [ ] Clone screen
+- [ ] Backlight configuration: comfile2 backligth not found at /sys/class/backlight
 - [ ] Make back navigation properly reconnect to hooks instead of reloading
 - [ ] Plox? https://github.com/gridpoint-com/plox
 - [ ] QR? https://github.com/iodevs/qr_code
