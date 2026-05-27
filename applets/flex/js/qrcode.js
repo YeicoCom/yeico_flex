@@ -12,7 +12,6 @@ class FlexQR extends HTMLElement {
     static get observedAttributes() {
         return [
             "data-text",
-            "data-scale",
             "data-width",
             "data-margin",
             "data-version",
@@ -26,13 +25,12 @@ class FlexQR extends HTMLElement {
         this.shadowRoot.innerHTML = "<canvas/>"
         const canvas = this.shadowRoot.firstChild
         const text = this.getAttribute("data-text")
-        const scale = this.getAttribute("data-scale")
         const width = this.getAttribute("data-width")
         const margin = this.getAttribute("data-margin")
         const version = this.getAttribute("data-version")
         const maskPattern = this.getAttribute("data-maskpattern")
         const errorCorrectionLevel = this.getAttribute("data-errorcorrectionlevel")
-        const options = { scale, width, margin, version, maskPattern, errorCorrectionLevel }
+        const options = { width, margin, version, maskPattern, errorCorrectionLevel }
         try { QRCode.toCanvas(canvas, text, options) } catch (e) { console.log(e) }
     }
 
