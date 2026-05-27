@@ -138,10 +138,13 @@ raise "ouch!"
 
 ## Fixme
 
-- [ ] Make menu tablet compatible
+- [ ] flex modules refactoring
+- [ ] cli tool to manage flex items: scripts, backends, files, etc...
+- [ ] publish a backend api package to mix install: log, point, etc...
 - [ ] Support iolink iodd
 - [ ] Designer: heex syntax highlight
 - [ ] CodeEditor: auto format and auto complete (livebook has autocomplete)
+  - requires access to the actual vm to show the actual available modules
 - [ ] HTML custom components: plots, toggles, ...
 - [ ] Standardize modbus encodings
 - [ ] Onscreen keyboard?
@@ -205,6 +208,7 @@ raise "ouch!"
   - https://github.com/plcpeople/nodeS7
   - https://github.com/S7NetPlus/s7netplus
   - https://github.com/netdata-be/libnodave
+- [x] Make menu tablet compatible: left vertical bar of icon buttons
 - [x] Review scrolling still works for all index listins and modbus points
 - [x] HTML custom components: barcode39, barcode128, QR
 - [?] Custom font support
