@@ -7,6 +7,10 @@ import Editor from "./editor"
 import { } from "./barcode"
 import { } from "./qrcode"
 
+if (!navigator.userAgent.includes("YeicoTerminal")) {
+    document.body.style.animation = "none"
+}
+
 const eventThrottlingMs = 50
 const ignoreClickDelayMs = 100
 

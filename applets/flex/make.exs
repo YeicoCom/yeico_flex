@@ -1,4 +1,5 @@
 alias Kernel.ParallelCompiler, as: KPC
+Code.compiler_options(ignore_module_conflict: true)
 
 build = Path.join(assets, "_build")
 if optimize?, do: File.rm_rf!(build)

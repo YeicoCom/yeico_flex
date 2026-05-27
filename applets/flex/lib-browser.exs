@@ -26,7 +26,7 @@ loop = fn cmd, loop ->
 end
 
 exec = fn cmd, args, env ->
-  Log.debug(exec: cmd, args: args)
+  Log.debug(exec: cmd, args: args, env: env)
   tag = Enum.join([cmd | args], " ")
   task = Api.async("browser:exec:#{tag}", fn -> loop.(cmd, loop) end)
   into = IO.binstream(task.pid, :line)
@@ -101,19 +101,22 @@ weston = fn ->
   File.chmod!("/run/weston", 0o700)
   File.write!("/run/weston/weston.ini", westini)
   File.chmod!("/run/weston/weston.ini", 0o700)
+
   env = [{"XDG_RUNTIME_DIR", "/run/weston"}]
 
   # http://ip:port/
   # Requires BR2_PACKAGE_SHARED_MIME_INFO /usr/share/mime
+
   env =
-    case monitor do
-      port when is_integer(port) and port > 0 ->
+    case {monitor, port} do
+      {true, port} when is_integer(port) and port > 0 ->
         [{"WEBKIT_INSPECTOR_HTTP_SERVER", "0.0.0.0:#{port}"} | env]
 
       _ ->
         env
     end
 
+  # navigator.userAgent
   args = [
     "--log=/run/weston/weston.log",
     "--config=/run/weston/weston.ini",
@@ -121,6 +124,8 @@ weston = fn ->
     "/usr/bin/cog",
     "--ignore-tls-errors",
     "--bg-color=black",
+    "--user-agent",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/60.5 Safari/605.1.15 YeicoTerminal/0.0.1 (terminal@yeico.com)",
     url
   ]
 
