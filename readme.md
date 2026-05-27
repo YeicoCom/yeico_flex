@@ -139,10 +139,9 @@ raise "ouch!"
 ## Fixme
 
 - [ ] Make menu tablet compatible
-- [ ] Review scrolling still works in all cases
 - [ ] Support iolink iodd
 - [ ] Designer: heex syntax highlight
-- [ ] CodeEditor: auto format and auto complete
+- [ ] CodeEditor: auto format and auto complete (livebook has autocomplete)
 - [ ] HTML custom components: plots, toggles, ...
 - [ ] Standardize modbus encodings
 - [ ] Onscreen keyboard?
@@ -185,6 +184,7 @@ raise "ouch!"
 - [ ] Prop editor wont mark red a preexisting invalid value on item select, only on item save event.
   - this happend when a point selection changes with an invalid default value which is not correct
   - then it losses selection and regains it
+- [x] Review scrolling still works for all index listins and modbus points
 - [x] HTML custom components: barcode39, barcode128, QR
 - [?] Custom font support
   - LibreBarcode128 goes off when font-size is specified
