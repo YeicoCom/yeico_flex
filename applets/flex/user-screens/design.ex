@@ -4,7 +4,7 @@ defmodule Flex.UserScreens.Design do
 
   defp view(assigns) do
     ~H"""
-    <.fui fun={&UI.frame/1} title="Screen Designer" label={@name} class="flex gap-2">
+    <.fui fun={&UI.frame/1} title="Screen Designer" label={@name} badge={@users} class="flex gap-2">
       <div id="design_frame" class="grow relative" phx-hook="ScreenDesigner">
         <div id="design_port" :if={@vp.frame} class="design-port overflow-hidden">
           <div id="design_style" class="design-panel" style={@screen.props.style}/>
@@ -75,6 +75,7 @@ defmodule Flex.UserScreens.Design do
         socket = assign(socket, page_title: "Screen Designer")
         socket = assign(socket, page_suffix: " · Flex")
         state = Map.put(state, :events, %{})
+        state = Map.put(state, :users, nil)
         state = Map.put(state, :menu, nil)
         state = Map.put(state, :name, nil)
         state = Map.put(state, :rt?, false)
@@ -88,9 +89,14 @@ defmodule Flex.UserScreens.Design do
         socket = Login.forward(socket, path, uri)
         {socket, state}
 
-      {:params, socket, state, params = %{"id" => id}, uri} ->
+      {:params, socket = %{assigns: %{connected?: connected?}}, state, params = %{"id" => id},
+       uri} ->
         Log.trace(view: path, params: params, uri: uri)
         Bus.subscribe!("flex:user-screens:change:#{id}")
+        if connected?, do: Api.defer(fn -> Bus.broadcast!("flex:user-screens:users", nil) end)
+        if connected?, do: Bus.subscribe!("flex:user-screens:users")
+        if connected?, do: Mdb.register!({:screen, id}, nil)
+        Bus.broadcast!("flex:user-screens:users", nil)
         state = DUtils.calc_layout(state, :init, DUtils.load_screen(ddb, id))
         state = Map.put(state, :selected, DUtils.select(state, "Screen", nil))
         # it may not exist: use screen[:name] assessor
@@ -253,6 +259,11 @@ defmodule Flex.UserScreens.Design do
       {:info, socket, state = %{id: id}, event = {"flex:user-screens:change:" <> id, _, pid}} ->
         Log.trace(view: path, info: event)
         socket = if(self() != pid, do: push_event(socket, "hook:reload", %{}), else: socket)
+        {socket, state}
+
+      {:info, socket, state = %{id: id}, event = {"flex:user-screens:users", _, _}} ->
+        Log.trace(view: path, info: event)
+        state = Map.put(state, :users, Mdb.lookup({:screen, id}) |> Enum.count())
         {socket, state}
 
       {:info, socket, state, event} ->

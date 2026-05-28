@@ -143,6 +143,7 @@ raise "ouch!"
 - [ ] wrap applet/terminal api in flex module
 - [ ] Support iolink iodd
 - [ ] Designer: heex syntax highlight
+- [ ] Mdb.register! when view is not yet connected wont self remove!
 - [ ] macos file watcher triggering flex.css modified after ~4s of tailwind done log
 - [ ] CodeEditor: auto format and auto complete (livebook has autocomplete)
   - requires access to the actual vm to show the actual available modules

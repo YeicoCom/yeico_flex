@@ -20,6 +20,7 @@ defmodule Flex.UI do
   def frame(assigns) do
     assigns = Map.put_new(assigns, :id, nil)
     assigns = Map.put_new(assigns, :label, nil)
+    assigns = Map.put_new(assigns, :badge, nil)
     assigns = Map.put_new(assigns, :class, nil)
     assigns = Map.put_new(assigns, :title, "Flex")
     assigns = Map.put_new(assigns, :dev?, Terminal.dev?())
@@ -47,6 +48,7 @@ defmodule Flex.UI do
       <div class="grow flex flex-col">
         <div class="flex gap-2 p-2 items-center text-white">
           <div class="text-lg font-bold">{@title}</div>
+          <div :if={@badge} class="rounded-full text-xs bg-gray-700 px-2">{@badge}</div>
           <div class="grow"/>
           <div :if={@label}>{@label}</div>
         </div>

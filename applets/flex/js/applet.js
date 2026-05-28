@@ -203,7 +203,7 @@ const hooks = {
             })
         }
     },
-    ScriptEditor: {
+    CodeEditor: {
         mounted() {
             // recover from disconnect by undo pushed down code
             const params = new URLSearchParams(window.location.search)

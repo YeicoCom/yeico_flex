@@ -4,8 +4,8 @@ defmodule Flex.UserBackends.Code do
 
   defp view(assigns) do
     ~H"""
-    <.fui fun={&UI.frame/1} title="Backend Editor" label={@name} class="grid grid-cols-2">
-      <div id="backend_editor" class="overflow-y-scroll bg-[#282c34]" phx-hook="ScriptEditor" phx-update="ignore"/>
+    <.fui fun={&UI.frame/1} title="Backend Editor" label={@name} badge={@users} class="grid grid-cols-2">
+      <div id="backend_editor" class="overflow-y-scroll bg-[#282c34]" phx-hook="CodeEditor" phx-update="ignore"/>
       <div phx-update="stream" id="logs" class="flex flex-col overflow-y-scroll text-xs select-text font-mono" phx-hook="AutoScroll">
         <div :for={{id, %{stamp: stamp, level: level, style: style, line: line}} <- @streams.logs}
           id={id} class={style}>{stamp} {level} {line}</div>
@@ -27,6 +27,7 @@ defmodule Flex.UserBackends.Code do
         socket = assign(socket, page_suffix: " · Flex")
         socket = stream(socket, :logs, [])
         state = Map.put(state, :tzoffset, tzoffset)
+        state = Map.put(state, :users, nil)
         state = Map.put(state, :name, nil)
         state = Map.put(state, :logid, 0)
         state = Map.put(state, :id, nil)
@@ -38,10 +39,15 @@ defmodule Flex.UserBackends.Code do
         socket = Login.forward(socket, path, uri)
         {socket, state}
 
-      {:params, socket, state, params = %{"id" => id}, uri} ->
+      {:params, socket = %{assigns: %{connected?: connected?}}, state, params = %{"id" => id},
+       uri} ->
         Log.trace(view: path, params: params, uri: uri)
         Bus.subscribe!("flex:user-backends:change:#{id}")
         Applet.subscribe!(:trace, id, nil)
+        if connected?, do: Api.defer(fn -> Bus.broadcast!("flex:user-backends:users", nil) end)
+        if connected?, do: Bus.subscribe!("flex:user-backends:users")
+        if connected?, do: Mdb.register!({:backend, id}, nil)
+        Bus.broadcast!("flex:user-backends:users", nil)
         # it may not exist: use backend[:name] assessor
         backend = Api.subget!("flex:user-backends:item:#{id}")
         state = Map.put(state, :name, backend[:name])
@@ -89,6 +95,11 @@ defmodule Flex.UserBackends.Code do
       {:info, socket, state = %{id: id}, event = {"flex:user-backends:change:" <> id, _, pid}} ->
         Log.trace(view: path, info: event)
         socket = if(self() != pid, do: push_event(socket, "hook:reload", %{}), else: socket)
+        {socket, state}
+
+      {:info, socket, state = %{id: id}, event = {"flex:user-backends:users", _, _}} ->
+        Log.trace(view: path, info: event)
+        state = Map.put(state, :users, Mdb.lookup({:backend, id}) |> Enum.count())
         {socket, state}
 
       {:info, socket, state, event} ->
