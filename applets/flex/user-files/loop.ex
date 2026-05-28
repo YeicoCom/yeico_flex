@@ -6,8 +6,8 @@ defmodule Flex.UserFiles.Loop do
 
   defp runner_setup(id, _item) do
     case IUtils.find(id) do
-      nil -> Logs.send(@log, id, nil, "Not found")
-      link -> Logs.send(@log, id, nil, "Started #{link}")
+      nil -> Logs.send(@log, id, false, "Not found")
+      link -> Logs.send(@log, id, false, "Started #{link}")
     end
   end
 

@@ -90,10 +90,10 @@ defmodule Flex.ModbusDevices.Loop do
     rts = calc_runtimes(item)
 
     put_status(item, "starting")
-    Logs.send(@log, id, nil, "Starting")
+    Logs.send(@log, id, false, "Starting")
 
     with {:ok, conn} <- Modbus.master_open(ip: ip, port: port, proto: proto) do
-      Logs.send(@log, id, nil, "Started")
+      Logs.send(@log, id, false, "Started")
       put_status(item, "started")
       if length(item.points) == 0, do: Api.sleep()
 

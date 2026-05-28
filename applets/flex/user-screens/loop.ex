@@ -14,7 +14,7 @@ defmodule Flex.UserScreens.Loop do
   end
 
   defp runner_setup(%{id: id, item: item, ctx: ctx}) do
-    Logs.send(@log, id, nil, "Started")
+    Logs.send(@log, id, false, "Started")
     run_view(id, item, ctx)
     Api.sleep()
   end

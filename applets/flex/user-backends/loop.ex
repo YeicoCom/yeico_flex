@@ -22,10 +22,10 @@ defmodule Flex.UserBackends.Loop do
   defp runner_setup(%{id: id, item: %{name: name}, ctx: %{cdb: cdb}}) do
     Udb.register!({:backend, id}, name)
     code = String.trim(IUtils.load(cdb, id) || "")
-    Logs.send(@log, id, nil, "Started")
+    Logs.send(@log, id, false, "Started")
     tag = "userbackends:#{id}:#{name}:run"
     code? = String.length(code) > 0
-    if code?, do: Api.defer(fn -> Logs.send(@log, id, nil, "Exited") end)
+    if code?, do: Api.defer(fn -> Logs.send(@log, id, false, "Exited") end)
     if code?, do: Api.async(tag, &run_code/1, {id, name, code})
     Api.receive()
     Process.exit(self(), :kill)

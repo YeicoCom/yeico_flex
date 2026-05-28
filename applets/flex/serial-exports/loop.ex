@@ -135,12 +135,12 @@ defmodule Flex.SerialExports.Loop do
     end
 
     # this wont be seen because of immediate enoent error
-    Logs.send(@log, id, nil, "Starting")
+    Logs.send(@log, id, false, "Starting")
     check_tty(id, item)
     cmd = build_cmd(item)
     cmd = sudo_cmd(cmd)
     port = run_cmd(item, id, cmd)
-    Logs.send(@log, id, nil, "Started")
+    Logs.send(@log, id, false, "Started")
     runner_loop(%{id: id, item: item, cmd: cmd, port: port})
   end
 
