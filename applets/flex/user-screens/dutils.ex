@@ -211,6 +211,7 @@ defmodule Flex.UserScreens.DUtils do
       if diff do
         Db.put(ddb, id, screen)
         Bus.broadcast!("flex:user-screens:design:#{id}", screen)
+        Bus.broadcast!("flex:user-screens:change:#{id}", self())
       end
     end
   end

@@ -90,6 +90,7 @@ defmodule Flex.UserScreens.Design do
 
       {:params, socket, state, params = %{"id" => id}, uri} ->
         Log.trace(view: path, params: params, uri: uri)
+        Bus.subscribe!("flex:user-screens:change:#{id}")
         state = DUtils.calc_layout(state, :init, DUtils.load_screen(ddb, id))
         state = Map.put(state, :selected, DUtils.select(state, "Screen", nil))
         # it may not exist: use screen[:name] assessor
@@ -247,6 +248,11 @@ defmodule Flex.UserScreens.Design do
       {:info, socket, state = %{id: id}, event = {"flex:user-screens:item:" <> id, _, _}} ->
         Log.trace(view: path, info: event)
         socket = push_event(socket, "hook:reload", %{})
+        {socket, state}
+
+      {:info, socket, state = %{id: id}, event = {"flex:user-screens:change:" <> id, _, pid}} ->
+        Log.trace(view: path, info: event)
+        socket = if(self() != pid, do: push_event(socket, "hook:reload", %{}), else: socket)
         {socket, state}
 
       {:info, socket, state, event} ->
