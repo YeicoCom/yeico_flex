@@ -58,16 +58,15 @@ defmodule Flex.UserFiles.Index do
       {:mount, socket, state} ->
         tzoffset = socket.assigns.tzoffset || 0
         logs = Api.subget!("flex:user-files:logs")
-        logs = Logs.shift(tzoffset, logs)
         items = Api.subget!("flex:user-files:items")
         socket = assign(socket, applet_css: "/applets/flex.css")
         socket = assign(socket, applet_js: "/applets/flex.js")
         socket = assign(socket, page_title: "User Files")
         socket = assign(socket, page_suffix: " · Flex")
+        state = Map.put(state, :logs, Logs.shift(tzoffset, logs))
         state = Map.put(state, :index, IUtils.index(items))
         state = Map.put(state, :items, Enum.into(items, %{}))
         state = Map.put(state, :tzoffset, tzoffset)
-        state = Map.put(state, :logs, logs)
         state = Map.put(state, :upload, nil)
         state = Map.put(state, :modal, nil)
         state = Login.init(socket, state)
@@ -161,8 +160,8 @@ defmodule Flex.UserFiles.Index do
         state = Map.put(state, :index, IUtils.index(items))
         {socket, state}
 
-      {:info, socket, state = %{tzoffset: tzoffset}, event = {"flex:user-files:logs", _, logs}} ->
-        Log.trace(view: path, info: event)
+      {:info, socket, state = %{tzoffset: tzoffset}, _event = {"flex:user-files:logs", _, logs}} ->
+        # Log.trace(view: path, info: event)
         state = Map.put(state, :logs, Logs.shift(tzoffset, logs))
         {socket, state}
 

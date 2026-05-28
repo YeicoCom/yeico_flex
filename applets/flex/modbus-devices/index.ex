@@ -326,8 +326,8 @@ defmodule Flex.ModbusDevices.Index do
         {socket, state}
 
       {:info, socket, state = %{tzoffset: tzoffset},
-       event = {"flex:modbus-devices:logs", _, logs}} ->
-        Log.trace(view: path, info: event)
+       _event = {"flex:modbus-devices:logs", _, logs}} ->
+        # Log.trace(view: path, info: event)
         state = Map.put(state, :logs, Logs.shift(tzoffset, logs))
         {socket, state}
 

@@ -145,8 +145,8 @@ defmodule Flex.SerialExports.Index do
         {socket, state}
 
       {:info, socket, state = %{tzoffset: tzoffset},
-       event = {"flex:serial-exports:logs", _, logs}} ->
-        Log.trace(view: path, info: event)
+       _event = {"flex:serial-exports:logs", _, logs}} ->
+        # Log.trace(view: path, info: event)
         state = Map.put(state, :logs, Logs.shift(tzoffset, logs))
         {socket, state}
 

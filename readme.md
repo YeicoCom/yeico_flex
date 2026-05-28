@@ -144,7 +144,6 @@ raise "ouch!"
 - [ ] single designer per screen
 - [ ] Support iolink iodd
 - [ ] Designer: heex syntax highlight
-- [ ] Review/rethink the index/logs -> index/status?
 - [ ] macos file watcher triggering flex.css modified after ~4s of tailwind done log
 - [ ] CodeEditor: auto format and auto complete (livebook has autocomplete)
   - requires access to the actual vm to show the actual available modules
@@ -211,6 +210,8 @@ raise "ouch!"
   - https://github.com/plcpeople/nodeS7
   - https://github.com/S7NetPlus/s7netplus
   - https://github.com/netdata-be/libnodave
+- [x] Review/rethink the index/logs -> index/status?
+  - keep last N, show all if any error, otherwise only show last
 - [?] backend with compile errors fails to restart after several attempts: hanging on ping/pang?
   - added a task await timeout like last resource
   - left under observation
