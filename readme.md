@@ -140,7 +140,7 @@ raise "ouch!"
 
 - [ ] DSL for text based flow programming
 - [ ] DSL for text based screen design
-- [ ] DSL for text based modbus devices definition
+- [ ] DSL for text based modbus device definition
 - [ ] cli tool to manage flex items: scripts, backends, files, etc...
 - [ ] wrap applet/terminal api in flex module
 - [ ] Support iolink iodd
