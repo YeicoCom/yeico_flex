@@ -1,4 +1,6 @@
 defmodule Flex.Backend.Log do
+  @opts [limit: :infinity, printable_limit: :infinity, width: :infinity]
+
   def trace(msg), do: log("trace", msg)
   def debug(msg), do: log("debug", msg)
   def info(msg), do: log("info", msg)
@@ -11,7 +13,7 @@ defmodule Flex.Backend.Log do
   end
 
   defp log(level, msg) do
-    log(level, inspect(msg))
+    log(level, inspect(msg, @opts))
     msg
   end
 end
