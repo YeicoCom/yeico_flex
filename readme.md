@@ -141,7 +141,6 @@ raise "ouch!"
 - [ ] DSL for text based flow programming
 - [ ] cli tool to manage flex items: scripts, backends, files, etc...
 - [ ] wrap applet/terminal api in flex module
-- [ ] single designer per screen
 - [ ] Support iolink iodd
 - [ ] Designer: heex syntax highlight
 - [ ] macos file watcher triggering flex.css modified after ~4s of tailwind done log
@@ -150,7 +149,6 @@ raise "ouch!"
 - [ ] HTML custom components: plots, toggles, ...
 - [ ] Standardize modbus encodings
 - [ ] Onscreen keyboard?
-- [ ] Clone screen
 - [ ] Backlight configuration: comfile2 backligth not found at /sys/class/backlight
 - [ ] Make back navigation properly reconnect to hooks instead of reloading
 - [ ] Plox? https://github.com/gridpoint-com/plox
@@ -210,6 +208,12 @@ raise "ouch!"
   - https://github.com/plcpeople/nodeS7
   - https://github.com/S7NetPlus/s7netplus
   - https://github.com/netdata-be/libnodave
+- [x] Clone screen
+- [x] single designer per screen and code editor
+  - lock on busy with manual unlock request is messy to implement right
+  - implemented reload on non local changes because it is much simpler
+  - may lose concurrent changes on code editor since changes propagation is delayed until save
+  - low risk of unnoticed screen changes loss
 - [x] Review/rethink the index/logs -> index/status?
   - keep last N, show all if any error, otherwise only show last
 - [?] backend with compile errors fails to restart after several attempts: hanging on ping/pang?

@@ -379,4 +379,26 @@ defmodule Flex.UserScreens.DUtils do
       false -> state
     end
   end
+
+  def serialize(ddb, id, item, nid \\ nil) do
+    type = "user-screen"
+    payload = %{id: nid || id, type: type, item: item, design: load_screen(ddb, id)}
+    data64 = inspect(payload, limit: :infinity) |> Base.encode64()
+    hash = :crypto.hash(:md5, data64) |> Base.encode16()
+    "#{type}:#{hash}:#{data64}"
+  end
+
+  def paste(ddb, data) do
+    with ["user-screen", hash, data64] <- String.split(data, ":"),
+         ^hash <- :crypto.hash(:md5, data64) |> Base.encode16(),
+         {:ok, code} <- Base.decode64(data64),
+         {%{id: id, type: "user-screen", item: item, design: design}, _} <-
+           Code.eval_string(code) do
+      save_screen(ddb, %{id: id, screen: design}, true)
+      Bus.broadcast!("flex:user-screens:update", {id, item})
+      true
+    else
+      _ -> false
+    end
+  end
 end
