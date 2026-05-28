@@ -18,10 +18,17 @@ defmodule Flex.Backend.Log do
   end
 end
 
+defmodule Flex.Backend.Api do
+  def sleep(ms \\ :infinity) do
+    Process.sleep(ms)
+  end
+end
+
 defmodule Flex.Backend do
   defmacro __using__(_) do
     quote do
       alias Flex.Backend.Log
+      alias Flex.Backend.Api
     end
   end
 end

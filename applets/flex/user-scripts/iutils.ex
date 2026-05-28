@@ -11,7 +11,7 @@ defmodule Flex.UserScripts.IUtils do
 
   Log.debug("Hello Script!")
 
-  Process.sleep(:infinity)
+  Api.sleep()
   """
 
   def template, do: @template

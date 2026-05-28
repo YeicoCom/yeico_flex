@@ -11,7 +11,7 @@ defmodule Flex.UserBackends.IUtils do
 
   Log.debug("Hello Backend!")
 
-  Process.sleep(:infinity)
+  Api.sleep()
   """
 
   def template, do: @template
