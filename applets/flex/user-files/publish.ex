@@ -19,5 +19,3 @@ defmodule Flex.UserFiles.Publish do
     [reload: __MODULE__]
   end
 end
-
-:ok

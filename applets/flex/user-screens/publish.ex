@@ -14,5 +14,3 @@ defmodule Flex.UserScreens.Publish do
     [reload: __MODULE__]
   end
 end
-
-:ok

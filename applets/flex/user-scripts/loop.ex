@@ -138,5 +138,3 @@ defmodule Flex.UserScripts.Loop do
     master_loop(%{idb: idb, cdb: cdb, runners: runners, logs: %{}})
   end
 end
-
-:ok

@@ -141,6 +141,7 @@ raise "ouch!"
 - [ ] DSL for text based flow programming
 - [ ] cli tool to manage flex items: scripts, backends, files, etc...
 - [ ] wrap applet/terminal api in flex module
+- [ ] single designer per screen
 - [ ] Support iolink iodd
 - [ ] Designer: heex syntax highlight
 - [ ] Review/rethink the index/logs -> index/status?

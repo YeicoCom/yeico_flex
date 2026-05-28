@@ -158,5 +158,3 @@ defmodule Flex.UserBackends.Index do
     end
   end
 end
-
-:ok

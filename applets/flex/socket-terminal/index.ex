@@ -171,5 +171,3 @@ defmodule Flex.SocketTerminal.Index do
     end
   end
 end
-
-:ok

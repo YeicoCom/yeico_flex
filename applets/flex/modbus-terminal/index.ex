@@ -163,5 +163,3 @@ defmodule Flex.ModbusTerminal.Index do
     end
   end
 end
-
-:ok

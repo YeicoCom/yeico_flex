@@ -379,5 +379,3 @@ defmodule Flex.UserScreens.DUtils do
     end
   end
 end
-
-:ok

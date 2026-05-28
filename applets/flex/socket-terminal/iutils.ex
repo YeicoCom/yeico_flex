@@ -169,5 +169,3 @@ defmodule Flex.SocketTerminal.IUtils do
     end
   end
 end
-
-:ok

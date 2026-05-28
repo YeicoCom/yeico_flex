@@ -180,5 +180,3 @@ defmodule Flex.UserFiles.Index do
     end
   end
 end
-
-:ok

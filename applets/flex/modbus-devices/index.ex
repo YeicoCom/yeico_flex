@@ -345,5 +345,3 @@ defmodule Flex.ModbusDevices.Index do
     end
   end
 end
-
-:ok

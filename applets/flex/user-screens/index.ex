@@ -203,5 +203,3 @@ defmodule Flex.UserScreens.Index do
     end
   end
 end
-
-:ok

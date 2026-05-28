@@ -79,5 +79,3 @@ defmodule Flex.ModbusTerminal.IUtils do
   defp encode(:output, line), do: Base.encode16(line)
   defp encode(_, line), do: line
 end
-
-:ok

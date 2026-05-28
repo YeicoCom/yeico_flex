@@ -111,5 +111,3 @@ defmodule Flex.ModbusDevices.PUtils do
   defp dirtype(%{type: "RRO", encoding: enc}), do: %{dir: :source, type: enctype(enc)}
   defp dirtype(%{type: "WRO", encoding: enc}), do: %{dir: :sink, type: enctype(enc)}
 end
-
-:ok

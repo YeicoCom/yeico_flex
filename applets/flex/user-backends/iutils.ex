@@ -70,5 +70,3 @@ defmodule Flex.UserBackends.IUtils do
     Bus.broadcast!("flex:user-backends:reload", id)
   end
 end
-
-:ok

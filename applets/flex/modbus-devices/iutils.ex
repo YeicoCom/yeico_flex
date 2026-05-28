@@ -102,5 +102,3 @@ defmodule Flex.ModbusDevices.IUtils do
     |> values()
   end
 end
-
-:ok

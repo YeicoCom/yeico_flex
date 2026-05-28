@@ -164,5 +164,3 @@ defmodule Flex.SerialExports.Index do
     end
   end
 end
-
-:ok

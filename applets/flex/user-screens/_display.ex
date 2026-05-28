@@ -157,5 +157,3 @@ defmodule Flex.UserScreens.Display do
     {rt, key}
   end
 end
-
-:ok

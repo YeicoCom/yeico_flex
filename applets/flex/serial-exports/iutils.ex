@@ -77,5 +77,3 @@ defmodule Flex.SerialExports.IUtils do
     Enum.into(params, %{})
   end
 end
-
-:ok

@@ -134,5 +134,3 @@ defmodule Flex.UserScreens.Label do
     {rt, key}
   end
 end
-
-:ok

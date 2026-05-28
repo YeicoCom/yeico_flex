@@ -55,5 +55,3 @@ defmodule Flex.UserScreens.IUtils do
   def password?(""), do: nil
   def password?(password), do: password
 end
-
-:ok

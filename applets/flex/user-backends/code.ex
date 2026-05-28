@@ -95,5 +95,3 @@ defmodule Flex.UserBackends.Code do
     end
   end
 end
-
-:ok

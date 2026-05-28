@@ -115,5 +115,3 @@ defmodule Flex.UserScreens.Link do
     {rt, key}
   end
 end
-
-:ok

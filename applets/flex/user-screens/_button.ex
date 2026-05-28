@@ -141,5 +141,3 @@ defmodule Flex.UserScreens.Button do
     {rt, key}
   end
 end
-
-:ok

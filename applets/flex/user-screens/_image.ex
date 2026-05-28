@@ -127,5 +127,3 @@ defmodule Flex.UserScreens.Image do
     {rt, key}
   end
 end
-
-:ok

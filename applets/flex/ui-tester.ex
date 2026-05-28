@@ -79,5 +79,3 @@ defmodule Flex.UITester do
     end
   end
 end
-
-:ok

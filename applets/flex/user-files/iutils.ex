@@ -76,5 +76,3 @@ defmodule Flex.UserFiles.IUtils do
     end
   end
 end
-
-:ok

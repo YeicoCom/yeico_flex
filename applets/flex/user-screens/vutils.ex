@@ -278,5 +278,3 @@ defmodule Flex.UserScreens.VUtils do
     end
   end
 end
-
-:ok

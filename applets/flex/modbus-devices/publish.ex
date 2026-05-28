@@ -75,5 +75,3 @@ defmodule Flex.ModbusDevices.Publish do
     [reload: __MODULE__]
   end
 end
-
-:ok

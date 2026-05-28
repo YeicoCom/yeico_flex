@@ -114,5 +114,3 @@ defmodule Flex.UserScreens.Loop do
     master_loop(%{idb: idb, ddb: ddb, runners: runners, logs: %{}})
   end
 end
-
-:ok

@@ -96,5 +96,3 @@ defmodule Flex.UserScripts.Code do
     end
   end
 end
-
-:ok

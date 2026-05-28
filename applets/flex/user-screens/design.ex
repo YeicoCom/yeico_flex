@@ -259,5 +259,3 @@ defmodule Flex.UserScreens.Design do
     end
   end
 end
-
-:ok

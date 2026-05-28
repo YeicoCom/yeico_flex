@@ -205,5 +205,3 @@ defmodule Flex.ModbusDevices.Loop do
     master_loop(%{idb: idb, runners: runners, logs: %{}})
   end
 end
-
-:ok

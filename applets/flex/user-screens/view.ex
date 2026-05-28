@@ -204,5 +204,3 @@ defmodule Flex.UserScreens.View do
     end
   end
 end
-
-:ok

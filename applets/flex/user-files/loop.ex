@@ -106,5 +106,3 @@ defmodule Flex.UserFiles.Loop do
     master_loop(%{idb: idb, udir: udir, runners: runners, logs: %{}})
   end
 end
-
-:ok

@@ -108,5 +108,3 @@ defmodule Flex.UserBackends.Runner do
     Api.await(task, toms)
   end
 end
-
-:ok

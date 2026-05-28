@@ -158,5 +158,3 @@ defmodule Flex.UserScripts.Index do
     end
   end
 end
-
-:ok

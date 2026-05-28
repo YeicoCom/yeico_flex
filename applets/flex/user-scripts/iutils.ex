@@ -70,5 +70,3 @@ defmodule Flex.UserScripts.IUtils do
     Bus.broadcast!("flex:user-scripts:reload", id)
   end
 end
-
-:ok

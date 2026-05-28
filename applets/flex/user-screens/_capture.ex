@@ -179,5 +179,3 @@ defmodule Flex.UserScreens.Capture do
   defp coalesce(m1, nil, _fun), do: m1
   defp coalesce(m1, m2, fun), do: fun.(m1, m2)
 end
-
-:ok
