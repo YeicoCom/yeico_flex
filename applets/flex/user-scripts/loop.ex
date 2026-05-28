@@ -23,7 +23,9 @@ defmodule Flex.UserScripts.Loop do
     code = String.trim(IUtils.load(cdb, id) || "")
     Logs.send(@log, id, nil, "Started")
     tag = "userscripts:#{id}:#{name}:run"
-    if String.length(code) > 0, do: Api.async(tag, &run_code/1, {id, code})
+    code? = String.length(code) > 0
+    if code?, do: Api.defer(fn -> Logs.send(@log, id, nil, "Exited") end)
+    if code?, do: Api.async(tag, &run_code/1, {id, code})
     Api.receive()
     Process.exit(self(), :kill)
   end

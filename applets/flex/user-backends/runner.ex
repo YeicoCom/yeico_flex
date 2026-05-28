@@ -1,6 +1,11 @@
 defmodule Flex.UserBackends.Runner do
   use Terminal
 
+  def clean(id) do
+    File.rm_rf!(Terminal.dpath("@run/flex/backend_#{id}"))
+    File.rm_rf!(Terminal.fpath("@run/flex/backend_#{id}.exs"))
+  end
+
   def run(id, name, code) do
     node = "backend_#{id}"
     libs = Terminal.dpath("@run/flex/#{node}")
@@ -53,6 +58,7 @@ defmodule Flex.UserBackends.Runner do
 
     wait(node, :pong)
     loop(id)
+    Process.exit(self(), :kill)
   end
 
   defp loop(id) do

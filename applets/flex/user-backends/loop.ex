@@ -24,7 +24,9 @@ defmodule Flex.UserBackends.Loop do
     code = String.trim(IUtils.load(cdb, id) || "")
     Logs.send(@log, id, nil, "Started")
     tag = "userbackends:#{id}:#{name}:run"
-    if String.length(code) > 0, do: Api.async(tag, &run_code/1, {id, name, code})
+    code? = String.length(code) > 0
+    if code?, do: Api.defer(fn -> Logs.send(@log, id, nil, "Exited") end)
+    if code?, do: Api.async(tag, &run_code/1, {id, name, code})
     Api.receive()
     Process.exit(self(), :kill)
   end
@@ -86,8 +88,7 @@ defmodule Flex.UserBackends.Loop do
         task = runners[id][:task]
         if task, do: Api.kill(task)
         Logs.send(@log, id, false, "Deleted")
-        File.rm_rf!(Terminal.dpath("@run/flex/backend_#{id}"))
-        File.rm_rf!(Terminal.fpath("@run/flex/backend_#{id}.exs"))
+        Runner.clean(id)
         runners = Map.delete(runners, id)
         state = Map.put(state, :runners, runners)
         master_loop(state)
