@@ -68,5 +68,6 @@ defmodule Flex.UserBackends.IUtils do
     end
 
     Bus.broadcast!("flex:user-backends:reload", id)
+    Bus.broadcast!("flex:user-backends:change:#{id}", self())
   end
 end

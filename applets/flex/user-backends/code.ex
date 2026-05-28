@@ -40,6 +40,7 @@ defmodule Flex.UserBackends.Code do
 
       {:params, socket, state, params = %{"id" => id}, uri} ->
         Log.trace(view: path, params: params, uri: uri)
+        Bus.subscribe!("flex:user-backends:change:#{id}")
         Applet.subscribe!(:trace, id, nil)
         # it may not exist: use backend[:name] assessor
         backend = Api.subget!("flex:user-backends:item:#{id}")
@@ -83,6 +84,11 @@ defmodule Flex.UserBackends.Code do
         # below line only required if copy/paste is implemented
         # but pasting can be directly performed on code mirror editor
         # socket = push_event(socket, "hook:init", %{code: IUtils.load.(id)})
+        {socket, state}
+
+      {:info, socket, state = %{id: id}, event = {"flex:user-backends:change:" <> id, _, pid}} ->
+        Log.trace(view: path, info: event)
+        socket = if(self() != pid, do: push_event(socket, "hook:reload", %{}), else: socket)
         {socket, state}
 
       {:info, socket, state, event} ->
