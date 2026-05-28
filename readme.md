@@ -139,6 +139,7 @@ raise "ouch!"
 ## Fixme
 
 - [ ] DSL for text based flow programming
+- [ ] DSL for text based screen design
 - [ ] cli tool to manage flex items: scripts, backends, files, etc...
 - [ ] wrap applet/terminal api in flex module
 - [ ] Support iolink iodd
