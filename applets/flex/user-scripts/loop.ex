@@ -101,7 +101,7 @@ defmodule Flex.UserScripts.Loop do
         master_loop(state)
 
       {"flex:user-scripts:log", _, log} ->
-        logs = Logs.replace(logs, log)
+        logs = Logs.append(logs, log)
         ids = Map.keys(runners)
         logs = Map.take(logs, ids)
         Api.putcast!("flex:user-scripts:logs", logs)

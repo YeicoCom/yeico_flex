@@ -29,11 +29,7 @@ defmodule Flex.ModbusDevices.Index do
               <div class="grow"/>
               <.fui fun={&UI.link/1} phx-click="click:delete" phx-value-id={id} type="danger">Delete</.fui>
             </div>
-            <% log = @logs[id] %>
-            <div :if={item.status==:enabled and log} class={["font-mono",
-              log.error? && "text-red-500",
-              !log.error? && "text-neutral-500",
-            ]}>{log.dt} {log.msg}</div>
+            <.fui fun={&Logs.render/1} status={item.status} logs={@logs} id={id}/>
           </div>
           <div class="flex flex-col p-1 gap-2 font-mono">
             <div :for={{%{type: type, slave: slave, address: address, encoding: encoding}, accessors} <- @points[id]}

@@ -171,7 +171,7 @@ defmodule Flex.ModbusDevices.Loop do
         master_loop(state)
 
       {"flex:modbus-devices:log", _, log} ->
-        logs = Logs.replace(logs, log)
+        logs = Logs.append(logs, log)
         ids = Map.keys(runners)
         logs = Map.take(logs, ids)
         Api.putcast!("flex:modbus-devices:logs", logs)

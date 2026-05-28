@@ -103,7 +103,7 @@ defmodule Flex.UserBackends.Loop do
         master_loop(state)
 
       {"flex:user-backends:log", _, log} ->
-        logs = Logs.replace(logs, log)
+        logs = Logs.append(logs, log)
         ids = Map.keys(runners)
         logs = Map.take(logs, ids)
         Api.putcast!("flex:user-backends:logs", logs)

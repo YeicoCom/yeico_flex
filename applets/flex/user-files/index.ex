@@ -29,11 +29,7 @@ defmodule Flex.UserFiles.Index do
             <div class="grow"></div>
             <.fui fun={&UI.link/1} phx-click="click:delete" phx-value-id={id} type="danger">Delete</.fui>
           </div>
-          <% log = @logs[id] %>
-          <div :if={item.status==:enabled and log} class={["font-mono",
-            log.error? && "text-red-500",
-            !log.error? && "text-neutral-500",
-          ]}>{log.dt} {log.msg}</div>
+          <.fui fun={&Logs.render/1} status={item.status} logs={@logs} id={id}/>
         </div>
       </div>
     </.fui>
