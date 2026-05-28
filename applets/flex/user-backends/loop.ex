@@ -86,6 +86,8 @@ defmodule Flex.UserBackends.Loop do
         task = runners[id][:task]
         if task, do: Api.kill(task)
         Logs.send(@log, id, false, "Deleted")
+        File.rm_rf!(Terminal.dpath("@run/flex/backend_#{id}"))
+        File.rm_rf!(Terminal.fpath("@run/flex/backend_#{id}.exs"))
         runners = Map.delete(runners, id)
         state = Map.put(state, :runners, runners)
         master_loop(state)
