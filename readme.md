@@ -138,8 +138,9 @@ raise "ouch!"
 
 ## Fixme
 
-- [ ] wrap applet/terminal api in flex module
+- [ ] DSL for text based flow programming
 - [ ] cli tool to manage flex items: scripts, backends, files, etc...
+- [ ] wrap applet/terminal api in flex module
 - [ ] Support iolink iodd
 - [ ] Designer: heex syntax highlight
 - [ ] macos file watcher triggering flex.css modified after ~4s of tailwind done log
