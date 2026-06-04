@@ -121,7 +121,7 @@ defmodule Flex.ModbusTerminal.Index do
         params = Enum.into(params, %{})
         if task, do: Api.kill(task)
         tag = "modbusterminal:#{params.ip}:#{params.port}:#{params.proto}"
-        task = Api.async(tag, &IUtils.setup/1, opts)
+        task = Api.async(&IUtils.setup/1, opts, tag: tag)
         conn = %{input: params, task: task, on: true}
         state = Map.put(state, :conn, conn)
         state = Map.put(state, :modal, nil)

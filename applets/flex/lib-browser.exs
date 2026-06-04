@@ -28,7 +28,7 @@ end
 exec = fn cmd, args, env ->
   Log.debug(exec: cmd, args: args, env: env)
   tag = Enum.join([cmd | args], " ")
-  task = Api.async("browser:exec:#{tag}", fn -> loop.(cmd, loop) end)
+  task = Api.async(fn -> loop.(cmd, loop) end, tag: "browser:exec:#{tag}")
   into = IO.binstream(task.pid, :line)
   opts = [into: into, stderr_to_stdout: true, env: env]
   res = System.cmd(cmd, args, opts)
@@ -58,7 +58,7 @@ udev = fn ->
   # UDEV
   # /run/udev/control (removed when udevd exists)
 
-  task = Api.async("browser:udevd", fn -> exec.("udevd", [], []) end)
+  task = Api.async(fn -> exec.("udevd", [], []) end, tag: "browser:udevd")
   exec.("udevadm", ["trigger", "--type=subsystems", "--action=add"], [])
   exec.("udevadm", ["trigger", "--type=devices", "--action=add"], [])
   exec.("udevadm", ["settle", "--timeout=30"], [])
@@ -164,17 +164,17 @@ end
 clean.()
 Api.defer(clean)
 
-Api.loop("browser:dbus", 5_000, loop, %{call: dbus, loop: loop, delay: 5_000})
-Api.loop("browser:udev", 5_000, loop, %{call: udev, loop: loop, delay: 5_000})
+Api.loop(loop, %{call: dbus, loop: loop, delay: 5_000}, rdms: 5_000, tag: "browser:dbus")
+Api.loop(loop, %{call: udev, loop: loop, delay: 5_000}, rdms: 5_000, tag: "browser:udev")
 
 # 400 works 10x on kingdel1, vm110, touch1
 # 300 works 10x on vm110, touch1 fails on kingdel1
 Api.sleep(400 + 200)
 
 # short period because it may need seveal tries on reboot
-Api.loop("browser:weston", 5_000, loop, %{call: weston, loop: loop, delay: 1_000})
+Api.loop(loop, %{call: weston, loop: loop, delay: 1_000}, rdms: 5_000, tag: "browser:weston")
 
-Api.loop("browser:monitor", 5_000, loop, %{call: monitor, loop: loop, delay: 2_000})
+Api.loop(loop, %{call: monitor, loop: loop, delay: 2_000}, rdms: 5_000, tag: "browser:monitor")
 
 # test with
 # cmd "killall cog" -> reboots weston

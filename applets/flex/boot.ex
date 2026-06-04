@@ -29,9 +29,9 @@ defmodule Flex.Boot do
     end
   end
 
-  def loop(tag, dms, mod, opts) do
+  def loop(tag, rdms, mod, opts) do
     setup = Function.capture(mod, :setup, 1)
-    Api.loop(tag, dms, setup, opts)
+    Api.loop(setup, opts, rdms: rdms, tag: tag)
   end
 
   def view(path, mod, opts) do

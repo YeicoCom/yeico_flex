@@ -50,12 +50,13 @@ defmodule Flex.UserBackends.Runner do
 
     tag = "userbackends:#{id}:#{name}:elixir"
 
-    Api.async(tag, fn ->
+    fun = fn ->
       {_res, code} = MuonTrap.cmd("elixir", args, opts)
       Log.warn("Exited with code #{code}")
       Process.exit(self(), :kill)
-    end)
+    end
 
+    Api.async(fun, tag: tag)
     wait(node, :pong)
     loop(id)
     Process.exit(self(), :kill)

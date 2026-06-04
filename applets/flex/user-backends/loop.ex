@@ -26,14 +26,14 @@ defmodule Flex.UserBackends.Loop do
     tag = "userbackends:#{id}:#{name}:run"
     code? = String.length(code) > 0
     if code?, do: Api.defer(fn -> Logs.send(@log, id, false, "Exited") end)
-    if code?, do: Api.async(tag, &run_code/1, {id, name, code})
+    if code?, do: Api.async(&run_code/1, {id, name, code}, tag: tag)
     Api.receive()
     Process.exit(self(), :kill)
   end
 
   defp run_loop(id, item, ctx) do
     tag = "userbackends:#{id}:#{item.name}"
-    Api.loop(tag, item.delay, &runner_setup/1, %{id: id, item: item, ctx: ctx})
+    Api.loop(&runner_setup/1, %{id: id, item: item, ctx: ctx}, rdms: item.delay, tag: tag)
   end
 
   defp run_enabled(id, item, ctx) do

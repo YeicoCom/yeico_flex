@@ -16,7 +16,7 @@ defmodule Flex.EchoServer.Loop do
     {:ok, conn} = Tcp.accept(socket)
     cid = "#{conn.peer.ip}:#{conn.peer.port}"
     Log.info("Echo server client: #{cid}")
-    task = Api.async("echo:client:#{cid}", &handle/1, conn)
+    task = Api.async(&handle/1, conn, tag: "echo:client:#{cid}")
     Tcp.owner(conn, task)
     accept(socket)
   end

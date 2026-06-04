@@ -16,7 +16,7 @@ defmodule Flex.ModbusSlave.Loop do
     {:ok, conn} = Tcp.accept(socket)
     cid = "#{conn.peer.ip}:#{conn.peer.port}"
     Log.info("Modbus slave client: #{cid}")
-    task = Api.async("slave:client:#{cid}", &handle/1, {conn, params})
+    task = Api.async(&handle/1, {conn, params}, tag: "slave:client:#{cid}")
     Tcp.owner(conn, task)
     accept(socket, params)
   end

@@ -1,10 +1,10 @@
 defmodule Flex2.Async do
   def spawn(tag, fun) do
-    Applet.Api.async(tag, wrap(fun))
+    Applet.Api.async(wrap(fun), tag: tag)
   end
 
   def spawn(tag, fun, arg) do
-    Applet.Api.async(tag, wrap(fun), arg)
+    Applet.Api.async(wrap(fun), arg, tag: tag)
   end
 
   def wrap(fun) when is_function(fun, 0) do

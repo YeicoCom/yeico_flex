@@ -129,7 +129,7 @@ defmodule Flex.SocketTerminal.Index do
         opts = Keyword.merge(params, parent: self(), imode: imode)
         params = Enum.into(params, %{})
         tag = "socketterminal:#{params.ip}:#{params.port}"
-        task = Api.async(tag, &IUtils.setup/1, opts)
+        task = Api.async(&IUtils.setup/1, opts, tag: tag)
         conn = %{input: params, task: task, on: true}
         state = Map.put(state, :conn, conn)
         state = Map.put(state, :modal, nil)

@@ -23,7 +23,7 @@ defmodule Flex.UserScreens.Loop do
     tag = "userscreens:#{id}:#{item.name}:#{item.route}"
 
     case item.status do
-      :enabled -> Api.async(tag, &runner_setup/1, %{id: id, item: item, ctx: ctx})
+      :enabled -> Api.async(&runner_setup/1, %{id: id, item: item, ctx: ctx}, tag: tag)
       _ -> nil
     end
   end
