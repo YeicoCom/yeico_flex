@@ -125,3 +125,5 @@ end
 if Terminal.dev?() do
   Boot.view("ui-tester", Flex.UITester, [])
 end
+
+:ok

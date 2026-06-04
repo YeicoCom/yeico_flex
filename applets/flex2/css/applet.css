@@ -1,0 +1,273 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+@import "dockview-core/dist/styles/dockview.css";
+
+:root {
+    --flex2-hover-color: #84cc16;
+    --flex2-danger-color: #EF4444;
+    --flex2-select-color: #84cc16;
+    --flex2-header-color: #1c1c2a;
+    --flex2-disabled-color: #6B7280;
+    --flex2-enabled-color: #84cc16;
+    --flex2-log-error: #EF4444;
+    --flex2-log-warn: #eab308;
+    --flex2-log-info: #3B82F6;
+    --flex2-log-debug: #06B6D4;
+    --flex2-log-trace: #6B7280;
+}
+
+html,
+body,
+#app {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background-color: black;
+}
+
+input[type="range"] {
+    -webkit-appearance: none;
+    background: transparent;
+    appearance: none;
+    cursor: pointer;
+}
+
+input[type="range"]:focus {
+    outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.cm-content {
+    font-size: 10px;
+}
+
+.coder-tab {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.coder-tab-title {
+    font-size: 10px;
+}
+
+.coder-tab-close:hover {
+    color: var(--flex2-danger-color);
+}
+
+.coder-file-editor {
+    height: 100%;
+    display: flex;
+    overflow-y: auto;
+}
+
+.coder-file-editor-code {
+    flex: 1;
+    height: 100%;
+    overflow-y: auto;
+    background-color: #282c34;
+}
+
+.coder-file-editor-logs {
+    flex: 1;
+    height: 100%;
+    overflow-y: scroll;
+    color: white;
+    font-size: 10px;
+    word-break: break-all;
+    scrollbar-color: gray black;
+    scrollbar-width: thin;
+    padding: 4px;
+}
+
+.coder-file-editor-logs-entry {
+    white-space: pre-wrap;
+    font-family: monospace;
+}
+
+.coder-file-editor-logs>hr {
+    border-color: gray;
+    border-width: 1 0 0 0;
+}
+
+.coder-file-editor-logs-error {
+    color: var(--flex2-log-error);
+}
+
+.coder-file-editor-logs-warn {
+    color: var(--flex2-log-warn);
+}
+
+.coder-file-editor-logs-info {
+    color: var(--flex2-log-info);
+}
+
+.coder-file-editor-logs-debug {
+    color: var(--flex2-log-debug);
+}
+
+.coder-file-editor-logs-trace {
+    color: var(--flex2-log-trace);
+}
+
+.coder-file-panel {
+    color: white;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: hidden;
+}
+
+.coder-file-panel-list {
+    padding-top: 8px;
+    padding-bottom: 8px;
+    overflow-y: auto;
+}
+
+/* 
+justify-content: space-between; 
+fails due to dockview bug that overlaps left edge panel with watermark
+works for scripts (active on boot) fails for backends (inactive on boot)
+*/
+.coder-file-panel-header {
+    background-color: var(--flex2-header-color);
+    padding: 6px;
+    align-items: center;
+    display: flex;
+    gap: 8px;
+}
+
+.coder-file-panel-icon {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.coder-file-panel-icon:hover {
+    color: var(--flex2-hover-color);
+}
+
+.coder-file-panel-title {
+    font-size: 10px;
+}
+
+.coder-file-panel-entry {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left: 8px;
+    padding-right: 8px;
+    font-size: 10px;
+    cursor: pointer;
+    flex-wrap: nowrap;
+    gap: 8px;
+}
+
+.coder-file-panel-entry-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.coder-file-panel-entry-file {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.coder-file-panel-entry-status {
+    width: 4px;
+    height: 12px;
+    background-color: var(--flex2-disabled-color);
+}
+
+.coder-file-panel-entry-status-enabled {
+    background-color: var(--flex2-enabled-color);
+}
+
+.coder-file-entry-icon {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.coder-file-panel-entry-range {
+    padding-left: 2px;
+    cursor: pointer;
+    width: 36px;
+}
+
+.coder-file-panel-entry-range::-webkit-slider-runnable-track {
+    background: white;
+    height: 1px;
+}
+
+.coder-file-panel-entry-range::-webkit-slider-thumb {
+    background: white;
+    margin-top: -3px;
+    border-radius: 50%;
+    height: 8px;
+    width: 8px;
+}
+
+.coder-file-panel-entry-range::-webkit-slider-thumb:hover {
+    background: var(--flex2-danger-color);
+}
+
+.coder-file-panel-entry:hover .coder-file-panel-entry-file {
+    color: var(--flex2-hover-color);
+}
+
+.coder-file-panel-entry-actions {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: none;
+    align-items: center;
+}
+
+.coder-file-entry-icon:active {
+    scale: 0.9;
+}
+
+.coder-file-entry-icon:hover {
+    color: var(--flex2-hover-color);
+}
+
+.coder-file-panel-entry:hover .coder-file-panel-entry-actions {
+    display: flex;
+}
+
+.coder-file-panel-entry.coder-selected {
+    background-color: var(--flex2-select-color);
+}
+
+.coder-file-panel-entry.coder-selected {
+    .coder-file-panel-entry-file {
+        /* selected hover override */
+        color: white;
+    }
+
+    .coder-file-panel-entry-status-enabled {
+        /* selected enabled override */
+        background-color: white;
+    }
+
+    .coder-file-entry-icon {
+        /* selected hover override */
+        color: white;
+    }
+}
+
+.coder-invisible {
+    visibility: hidden;
+}

@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "@codemirror/theme-one-dark": "^6.1.2",
+    "codemirror": "^6.0.1",
+    "codemirror-lang-elixir": "^4.0.0",
+    "dockview-core": "^6.6.1",
+    "heroicons": "^2.2.0",
+    "install": "^0.13.0",
+    "topbar": "^3.0.0"
+  }
+}
