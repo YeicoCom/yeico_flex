@@ -138,4 +138,9 @@ defmodule Flex2.Utils do
       _ -> until(fun, dms)
     end
   end
+
+  def md5(text) do
+    :crypto.hash(:md5, text)
+    |> Base.encode16(case: :lower)
+  end
 end

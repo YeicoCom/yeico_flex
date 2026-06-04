@@ -40,11 +40,11 @@ defmodule Flex2.Buffer do
 
   defp loop(files) do
     receive do
-      {Repo, _, {path, nil}} ->
+      {Repo, path, nil} ->
         files = Map.delete(files, path)
         loop(files)
 
-      {Repo, _, {path, _}} ->
+      {Repo, path, _} ->
         files = Map.put_new(files, path, [])
         loop(files)
 

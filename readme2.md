@@ -8,7 +8,7 @@
 # Flow
 
 - FS > Repo
-- Repo > Daemon > Runner > Log > Buffer > View > Web
+- Repo > Daemon > runner > log > Buffer > View > Web
 - Repo > Buffer > View > Web
 - Web > View > FS
 - Repo > Daemon is the critical one
@@ -16,6 +16,8 @@
 
 # Fixme
 
+- [ ] Runners clean not being called on applet stop (to restart)
+    - no posible to clean super with applet defer (asyncs are killed before defers are awaited)
 - [-] Backend tmp and permanent storage. 
     - tmp yes, permanent nope, it would mean clean need to leaving things behind
 - [ ] log: make script/backend logs show up on web ide and terminal dev console
@@ -30,6 +32,9 @@
 - [ ] applet: runner supervisor to register a timestamp for Flex2.Print.tasks
 - [ ] applet: async(fun0, opts) and async(fun1, arg, opts)
 - [ ] applet: loop(fun0, opts) and loop(fun1, arg, opts)
+- [ ] applet: all applets must restart if a dep is restarted (mdb, udb, ...)
+    -  terminal restarts if applet app does? 
+    -  mmm... terminal and applet app supers are one_for_one!
 - [ ] Flex2.Live.view to register and broadcast path
 - [ ] Clean before start on first run. 
 - [ ] Defer based supervisor.

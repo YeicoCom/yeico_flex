@@ -1,6 +1,5 @@
 defmodule Flex2.Repo do
   alias Applet.Api.Log
-  alias Applet.Api.Bus
   alias Flex2.Setter
   alias Flex2.Async
   alias Flex2.Utils
@@ -43,7 +42,6 @@ defmodule Flex2.Repo do
     # cascade kill without pid tracking
     # here because it excepts when pid is not alive
     Process.link(pid)
-    Bus.subscribe!(__MODULE__, nil)
     send(pid, {:register, self()})
 
     receive do
@@ -61,38 +59,40 @@ defmodule Flex2.Repo do
     {:ok, pid} = FileSystem.start_link(dirs: paths, latency: 0)
     FileSystem.subscribe(pid)
     # fixme: file monitoring ready at this point?
-    loop(path, load(path, @subs))
+    loop(path, load(path, @subs), %{})
   end
 
-  defp loop(root, files) do
+  defp loop(root, files, pids) do
     receive do
-      {:register, pid} ->
-        send(pid, {__MODULE__, :register, root, files})
-        loop(root, files)
+      {:register, caller} ->
+        send(caller, {__MODULE__, :register, root, files})
+        pids = Map.put(pids, caller, NaiveDateTime.utc_now())
+        loop(root, files, pids)
 
       {:file_event, _pid, {path, _events}} ->
-        files = update(files, root, path)
-        loop(root, files)
+        files = update(files, root, path, pids)
+        loop(root, files, pids)
 
-      {:EXIT, _pid, _reason} ->
-        loop(root, files)
+      {:EXIT, pid, _reason} ->
+        pids = Map.delete(pids, pid)
+        loop(root, files, pids)
 
       unexpected ->
         Log.warn(unexpected: unexpected)
-        loop(root, files)
+        loop(root, files, pids)
     end
   end
 
-  defp update(files, root, path) do
+  defp update(files, root, path, pids) do
     relative = Path.relative_to(path, root)
 
     case load(path) do
       nil ->
-        broadcast(relative, files[relative], nil)
+        broadcast(relative, files[relative], nil, pids)
         Map.delete(files, relative)
 
       payload ->
-        broadcast(relative, files[relative], payload)
+        broadcast(relative, files[relative], payload, pids)
         Map.put(files, relative, payload)
     end
   end
@@ -152,8 +152,11 @@ defmodule Flex2.Repo do
   end
 
   # fixme: bus broadcasting has out of sync potential
-  defp broadcast(_relative, same, same), do: :nop
-  defp broadcast(relative, _prev, next), do: Bus.broadcast!(__MODULE__, {relative, next})
+  defp broadcast(_relative, same, same, _pids), do: :nop
+
+  defp broadcast(relative, _prev, next, pids) do
+    for {pid, _} <- pids, do: send(pid, {__MODULE__, relative, next})
+  end
 
   defp template("script"), do: @script
   defp template("backend"), do: @backend

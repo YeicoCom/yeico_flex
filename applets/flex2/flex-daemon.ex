@@ -28,12 +28,12 @@ defmodule Flex2.Daemon do
 
   defp loop(files) do
     receive do
-      {Repo, _, {path, nil}} ->
+      {Repo, path, nil} ->
         kill(files[path])
         files = Map.delete(files, path)
         loop(files)
 
-      {Repo, _, {path, {enabled, data}}} ->
+      {Repo, path, {enabled, data}} ->
         kill(files[path])
         files = Map.put(files, path, run(path, enabled, data))
         loop(files)

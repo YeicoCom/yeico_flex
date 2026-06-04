@@ -14,22 +14,23 @@ defmodule Flex2.ElixirBackend do
   end
 
   defp clean(_) do
-    hash = Entity.get(:id) |> hash()
-    File.rm_rf(Utils.dpath("@run/flex2/backend_#{hash}"))
+    root = Entity.root(__MODULE__)
+    File.rm_rf(root)
   end
 
   # do not give a permanent home or clean would need to leave
   # things behind, backends must work on temporary storage only
   defp start(%{code: code}) do
-    hash = Entity.get(:id) |> hash()
+    hash = Entity.get(:id) |> Utils.md5()
     node = "backend_#{hash}"
-    libs = Utils.dpath("@run/flex2/#{node}")
+    root = Entity.root(__MODULE__)
+    libs = Utils.dpath("#{root}/libs")
     beams = Utils.path("flex2/_build/Elixir.Flex2.Backend*.beam")
     System.shell("rsync -avr --delete #{beams} #{libs}/ebin/")
-    path = Utils.fpath("@run/flex2/#{node}/backend.exs")
+    path = Utils.fpath("#{root}/backend.exs")
     File.write!(path, code)
     {"", 0} = System.cmd("epmd", ["-daemon"])
-    home = Utils.dpath("@run/flex2/#{node}/home")
+    home = Utils.dpath("#{root}/home")
 
     # :init.get_arguments()[:name]
     # nil in nerves vm110
@@ -145,10 +146,5 @@ defmodule Flex2.ElixirBackend do
       unexpected ->
         Log.warn(unexpected: unexpected)
     end
-  end
-
-  defp hash(id) do
-    :crypto.hash(:md5, id)
-    |> Base.encode16(case: :lower)
   end
 end

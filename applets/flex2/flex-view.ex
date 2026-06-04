@@ -84,11 +84,11 @@ defmodule Flex2.View do
         socket = push_event(socket, "hook:log", log)
         {socket, state}
 
-      {:info, socket, state, {Repo, _, {path, {enabled, data}}}} ->
+      {:info, socket, state, {Repo, path, {enabled, data}}} ->
         socket = push_event(socket, "hook:updated", %{path: path, data: data, enabled: enabled})
         {socket, state}
 
-      {:info, socket, state, {Repo, _, {path, nil}}} ->
+      {:info, socket, state, {Repo, path, nil}} ->
         socket = push_event(socket, "hook:deleted", %{path: path})
         {socket, state}
 

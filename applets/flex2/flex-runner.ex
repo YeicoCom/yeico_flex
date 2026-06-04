@@ -44,19 +44,21 @@ defmodule Flex2.Runner do
   defp setup(rdms, context = %{id: id, stamp: stamp, module: module}) do
     Process.flag(:trap_exit, true)
     Mdb.register!(:entity, module: module, id: id, stamp: stamp)
-    loop(rdms, context)
+    loop(rdms, {true, context})
   end
 
-  defp loop(rdms, context = %{id: id}) do
+  # clean callback expected idempotent and non process dependant
+  defp loop(rdms, {first?, context = %{id: id}}) do
+    task = if first?, do: async(context, "clean", fn -> call(:clean, context) end)
+    if first?, do: Utils.await(task)
     Utils.putcast!("entity:stage:#{id}", 1)
     task = async(context, "setup", fn -> call(:start, context) end)
     Utils.await(task)
-    # clean callback expected idempotent and non process dependant
     task = async(context, "clean", fn -> call(:clean, context) end)
     Utils.await(task)
     Utils.putcast!("entity:stage:#{id}", 0)
     Utils.flush(rdms)
-    loop(rdms, context)
+    loop(rdms, {false, context})
   end
 
   defp async(%{module: module, id: id, name: name}, role, fun) do

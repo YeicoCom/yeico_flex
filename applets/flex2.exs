@@ -36,13 +36,12 @@ Flex2.ShellCommand.new()
 |> Flex2.ShellCommand.set(
   run: """
   sudo socat -d -d pty,link=/tmp/tty.socat.A pty,link=/tmp/tty.socat.B &
-  echo $! > /tmp/tty.socat.pid
+  echo $! > $FLEX2_RUN/socat.pid
   """
 )
 |> Flex2.ShellCommand.set(
   kill: """
-  [ -f /tmp/tty.socat.pid ] && sudo kill -9 $(cat /tmp/tty.socat.pid)
-  rm -f /tmp/tty.socat.pid
+  [ -f $FLEX2_RUN/socat.pid ] && sudo kill -9 $(cat $FLEX2_RUN/socat.pid)
   """
 )
 |> Flex2.ShellCommand.run(rdms: 2_000)

@@ -18,7 +18,16 @@ defmodule Flex2.Entity do
     end
   end
 
-  def get(prop), do: Flex2.Async.ctx()[prop]
+  alias Flex2.Utils
+  alias Flex2.Async
+  alias Flex2.Log
+
+  def get(prop), do: Async.ctx()[prop]
+
+  def root(module) do
+    hash = get(:id) |> Utils.md5()
+    Utils.dpath("@run/flex2/#{Log.inspect?(module)}-#{hash}")
+  end
 
   # def error(value) when is_binary(value) do
   #   alias Applet.Api

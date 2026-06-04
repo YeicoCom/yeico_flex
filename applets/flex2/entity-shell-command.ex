@@ -4,22 +4,36 @@ defmodule Flex2.ShellCommand do
   defp initial() do
     %{
       run: nil,
-      kill: nil
+      kill: nil,
+      e2o?: true,
+      o2l?: false
     }
   end
 
   defp checks() do
     %{
       run: :binary,
-      kill: :binary?
+      kill: :binary?,
+      e2o?: :boolean,
+      o2l?: :boolean
     }
   end
 
-  defp start(%{run: run}) do
-    System.shell(run, stderr_to_stdout: true)
+  defp start(%{run: run, e2o?: e2o?, o2l?: o2l?}) do
+    root = Entity.root(__MODULE__)
+    exec(run, e2o?, o2l?, root)
   end
 
-  defp clean(%{kill: kill}) do
-    if kill, do: System.shell(kill)
+  defp clean(%{kill: kill, e2o?: e2o?, o2l?: o2l?}) do
+    root = Entity.root(__MODULE__)
+    if kill, do: exec(kill, e2o?, o2l?, root)
+    File.rm_rf(root)
+  end
+
+  defp exec(cmd, e2o?, o2l?, root) do
+    opts = [stderr_to_stdout: e2o?, env: [{"FLEX2_RUN", root}], close_stdin: true]
+    {out, es} = System.shell(cmd, opts)
+    if o2l?, do: Log.trace(String.trim_trailing(out, "\n"))
+    if o2l?, do: Log.trace(exit: es)
   end
 end
