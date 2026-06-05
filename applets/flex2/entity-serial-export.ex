@@ -22,7 +22,7 @@ defmodule Flex2.SerialExport do
   end
 
   # pid on $! does not depend on sudo/socat success
-  defp start(entity) do
+  defp start(entity, _) do
     pidf = pid_file(entity)
 
     entity
@@ -33,7 +33,7 @@ defmodule Flex2.SerialExport do
     |> System.shell(stderr_to_stdout: true)
   end
 
-  defp clean(entity) do
+  defp clean(entity, _) do
     pidf = pid_file(entity)
 
     "kill -9 $(cat #{pidf})"

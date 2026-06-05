@@ -14,6 +14,21 @@
 - Repo > Daemon is the critical one
 - All other just cause logs loss or leakage at the web ui
 
+# Super
+
+- Support Services
+  - Echo servers
+  - Modbus slaves
+  - Socat fake ttys
+  - Serial exports
+  - Points map
+- Main Services
+  - Repo
+  - Daemon
+  - Buffer
+- Script/Backend Daemons
+- Daemons Children
+
 # Fixme
 
 - [ ] Runners clean not being called on applet stop (to restart)

@@ -13,11 +13,11 @@ defmodule Flex2.ElixirScript do
     }
   end
 
-  defp start(%{code: code}) do
+  defp start(%{code: code}, _) do
     evals(code)
   end
 
-  defp clean(_) do
+  defp clean(_, _) do
     :nop
   end
 

@@ -13,26 +13,16 @@ defmodule Flex2.Entity do
       def set(entity, opts), do: Flex2.Setter.set(__MODULE__, entity, opts)
       def set(entity, name, value), do: Flex2.Setter.set(entity, name, value, checks())
       def run(entity, opts \\ []), do: Flex2.Super.start(__MODULE__, entity, opts)
-      def call(:start, entity), do: start(entity)
-      def call(:clean, entity), do: clean(entity)
+      def call(:start, entity, ctx), do: start(entity, ctx)
+      def call(:clean, entity, ctx), do: clean(entity, ctx)
     end
   end
 
   alias Flex2.Utils
-  alias Flex2.Async
   alias Flex2.Log
 
-  def get(prop), do: Async.ctx()[prop]
-
-  def root(module) do
-    hash = get(:id) |> Utils.md5()
+  def root(module, id) do
+    hash = Utils.md5(id)
     Utils.dpath("@run/flex2/#{Log.inspect?(module)}-#{hash}")
   end
-
-  # def error(value) when is_binary(value) do
-  #   alias Applet.Api
-  #   id = get(:id)
-  #   key = "entity:error:#{id}"
-  #   Api.putcast!(key, value)
-  # end
 end

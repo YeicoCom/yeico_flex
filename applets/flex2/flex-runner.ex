@@ -8,6 +8,7 @@ defmodule Flex2.Runner do
 
   @stack false
 
+  # clean callback expected idempotent and non process dependant
   def run(module, entity, id, opts) do
     name = Keyword.get(opts, :name, nil)
     rdms = Keyword.get(opts, :rdms, 5_000)
@@ -32,33 +33,29 @@ defmodule Flex2.Runner do
     Map.put(context, :task, task)
   end
 
-  def kill(context = %{id: id, task: task}) do
+  def kill(context = %{task: task}) do
     Utils.kill(task)
-    # clean callback expected idempotent and non process dependant
     task = async(context, "clean", fn -> call(:clean, context) end)
     Utils.await(task)
-    Utils.dropcast!("entity:stage:#{id}")
-    Utils.dropcast!("entity:error:#{id}")
   end
 
   defp setup(rdms, context = %{id: id, stamp: stamp, module: module}) do
     Process.flag(:trap_exit, true)
     Mdb.register!(:entity, module: module, id: id, stamp: stamp)
-    loop(rdms, {true, context})
+    task = async(context, "clean", fn -> call(:clean, context) end)
+    Utils.await(task)
+    loop(rdms, context)
   end
 
-  # clean callback expected idempotent and non process dependant
-  defp loop(rdms, {first?, context = %{id: id}}) do
-    task = if first?, do: async(context, "clean", fn -> call(:clean, context) end)
-    if first?, do: Utils.await(task)
-    Utils.putcast!("entity:stage:#{id}", 1)
+  defp loop(rdms, context) do
+    start = System.monotonic_time(:millisecond)
     task = async(context, "setup", fn -> call(:start, context) end)
     Utils.await(task)
     task = async(context, "clean", fn -> call(:clean, context) end)
     Utils.await(task)
-    Utils.putcast!("entity:stage:#{id}", 0)
-    Utils.flush(rdms)
-    loop(rdms, {false, context})
+    now = System.monotonic_time(:millisecond)
+    Utils.flush(max(0, rdms - (now - start)))
+    loop(rdms, context)
   end
 
   defp async(%{module: module, id: id, name: name}, role, fun) do
@@ -69,9 +66,9 @@ defmodule Flex2.Runner do
 
   # forced kill to trigger managed resources cleanup
   # fixme: no stacktrace in logs to force improvement of error descriptions
-  defp call(call, context = %{log: log, name: name, module: module, entity: entity, deps: deps}) do
+  defp call(call, context = %{module: module, entity: entity, deps: deps}) do
     # replace log with parents only if not defined
-    Async.ctx(Map.put(context, :log, log || Async.ctx()[:log]))
+    Async.ctx(Map.put(context, :log, context.log || Async.ctx()[:log]))
 
     # runner stack traces only required when developing an entity
     # scripts
@@ -83,9 +80,10 @@ defmodule Flex2.Runner do
     #   match runtime error show the correct flie and line in a scarce stack trace
     try do
       Log.trace("#{call}")
+      ctx = Map.take(context, [:id, :name])
       monitor(call, context, deps)
-      register(call, name)
-      module.call(call, entity)
+      register(call, context.name)
+      module.call(call, entity, ctx)
     rescue
       error in RuntimeError ->
         Log.error("#{call} rescue: #{Log.inspect?(error.message)}")

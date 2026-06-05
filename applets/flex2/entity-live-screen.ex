@@ -34,8 +34,7 @@ defmodule Flex2.LiveScreen do
     }
   end
 
-  defp start(entity = %{map: map, path: path, funs: funs}) do
-    id = Entity.get(:id)
+  defp start(entity = %{map: map, path: path, funs: funs}, %{id: id}) do
     pid = Utils.whereis(map)
     props = Map.drop(entity, [:map, :path, :funs])
     funs = funs |> Enum.reverse() |> Enum.with_index()
@@ -45,7 +44,7 @@ defmodule Flex2.LiveScreen do
     Utils.receive()
   end
 
-  defp clean(_) do
+  defp clean(_, _) do
     :nop
   end
 

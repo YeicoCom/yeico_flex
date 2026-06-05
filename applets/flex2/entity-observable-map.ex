@@ -30,11 +30,11 @@ defmodule Flex2.ObservableMap do
     %{}
   end
 
-  defp start(%{}) do
-    loop(Entity.get(:name), %{})
+  defp start(_, %{name: name}) do
+    loop(name, %{})
   end
 
-  defp clean(_) do
+  defp clean(_, _) do
     :nop
   end
 

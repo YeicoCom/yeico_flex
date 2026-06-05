@@ -16,13 +16,13 @@ defmodule Flex2.EchoServer do
     }
   end
 
-  defp start(%{port: port, ip: ip}) do
+  defp start(%{port: port, ip: ip}, _) do
     {:ok, socket} = Tcp.listen(ip, port, active: true)
     Log.info("#{ip}:#{socket.port}")
     accept(socket)
   end
 
-  defp clean(_) do
+  defp clean(_, _) do
     :nop
   end
 

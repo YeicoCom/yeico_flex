@@ -23,7 +23,7 @@ defmodule Flex2.ReactiveLogic do
     }
   end
 
-  defp start(%{map: map, funs: funs}) do
+  defp start(%{map: map, funs: funs}, _) do
     tag = Async.tag()
 
     for {{fun, args}, index} <- funs |> Enum.reverse() |> Enum.with_index() do
@@ -33,7 +33,7 @@ defmodule Flex2.ReactiveLogic do
     Utils.receive()
   end
 
-  defp clean(_) do
+  defp clean(_, _) do
     :nop
   end
 
