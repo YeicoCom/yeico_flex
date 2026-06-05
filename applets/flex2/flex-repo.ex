@@ -46,6 +46,7 @@ defmodule Flex2.Repo do
   # cd ~/.terminal/dev/flex2/repo/script
   # chmod +x script1.exs
   # chmod -x script1.exs
+  def fs(:rename, root, path, new), do: rename(root, path, new)
   def fs(:save, root, path, data), do: join(root, path) |> File.write(data)
   def fs(:enable, root, path), do: join(root, path) |> File.chmod(0o777)
   def fs(:disable, root, path), do: join(root, path) |> File.chmod(0o666)
@@ -151,6 +152,19 @@ defmodule Flex2.Repo do
 
       _ ->
         create(root, type, i + 1)
+    end
+  end
+
+  defp rename(root, path, new) do
+    path = join(root, path)
+    new = join(root, new)
+
+    case File.rename(path, new) do
+      :ok ->
+        {Path.relative_to(new, root), load(new)}
+
+      _ ->
+        {nil, {nil, nil}}
     end
   end
 

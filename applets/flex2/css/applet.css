@@ -10,6 +10,7 @@
     --flex2-header-color: #1c1c2a;
     --flex2-disabled-color: #6B7280;
     --flex2-enabled-color: #84cc16;
+    --flex2-split-color: #1c1c2a;
     --flex2-log-error: #EF4444;
     --flex2-log-warn: #eab308;
     --flex2-log-info: #3B82F6;
@@ -48,6 +49,10 @@ input[type="range"]::-webkit-slider-thumb {
     font-size: 10px;
 }
 
+.cm-gutterElement {
+    font-size: 10px;
+}
+
 .coder-tab {
     display: flex;
     align-items: center;
@@ -65,7 +70,7 @@ input[type="range"]::-webkit-slider-thumb {
 .coder-file-editor {
     height: 100%;
     display: flex;
-    overflow-y: auto;
+    flex-direction: row;
 }
 
 .coder-file-editor-code {
@@ -87,13 +92,17 @@ input[type="range"]::-webkit-slider-thumb {
     padding: 4px;
 }
 
+.coder-file-editor-split {
+    flex: none;
+}
+
 .coder-file-editor-logs-entry {
     white-space: pre-wrap;
     font-family: monospace;
 }
 
 .coder-file-editor-logs>hr {
-    border-color: gray;
+    border-color: var(--flex2-split-color);
     border-width: 1 0 0 0;
 }
 
@@ -270,4 +279,38 @@ works for scripts (active on boot) fails for backends (inactive on boot)
 
 .coder-invisible {
     visibility: hidden;
+}
+
+.modal {
+    display: none;
+}
+
+.modal.is-open {
+    display: block;
+}
+
+.modal-overlay {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    position: fixed;
+    align-items: center;
+    justify-content: center;
+}
+
+.gutter {
+    background-color: var(--flex2-split-color);
+    background-repeat: no-repeat;
+    background-position: 50%;
+}
+
+.gutter.gutter-horizontal {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+    cursor: col-resize;
+}
+
+input.tp-txtv_i:focus {
+    box-shadow: 0 0 0 1px var(--flex2-select-color);
 }

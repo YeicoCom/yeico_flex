@@ -7,6 +7,11 @@ defmodule Flex2.View do
   defp view(assigns) do
     ~H"""
     <div id="app" class="dockview-theme-abyss coder-invisible" phx-hook="Coder" phx-update="ignore"/>
+    <div id="rename" class="modal">
+      <div class="modal-overlay" tabindex="-1" data-micromodal-close>
+        <div id="rename-content"/>
+      </div>
+    </div>
     """
   end
 
@@ -68,6 +73,12 @@ defmodule Flex2.View do
 
       {:event, socket, state, "hook:stop", %{"path" => path}} ->
         Repo.fs(:disable, repo, path)
+        {socket, state}
+
+      {:event, socket, state, "hook:rename", %{"path" => path, "new" => new}} ->
+        {p, {e, d}} = Repo.fs(:rename, repo, path, new)
+        data = %{path: p, data: d, enabled: e}
+        socket = if(p, do: push_event(socket, "hook:add", data), else: socket)
         {socket, state}
 
       {:event, socket, state, "hook:save", %{"path" => path, "data" => data}} ->

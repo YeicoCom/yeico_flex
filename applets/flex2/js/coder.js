@@ -1,4 +1,7 @@
 import { createDockview, themeAbyss } from 'dockview-core'
+import MicroModal from 'micromodal'
+import { Pane } from 'tweakpane'
+import Split from 'split.js'
 import Editor from "./editor"
 
 const state = {
@@ -119,16 +122,20 @@ export function Coder(hook) {
 
     class CodeComponent {
         constructor() {
+            const id = crypto.randomUUID()
+
             const el = document.createElement('div')
             el.className = 'coder-file-editor'
             this.el = el
 
             const code = document.createElement('div')
             code.className = 'coder-file-editor-code'
+            code.id = `coder-file-editor-code-${id}`
             el.appendChild(code)
 
             const logs = document.createElement('div')
             logs.className = 'coder-file-editor-logs'
+            logs.id = `coder-file-editor-logs-${id}`
             el.appendChild(logs)
 
             const entry = ({ id, stamp, level, msg }) => {
@@ -193,6 +200,13 @@ export function Coder(hook) {
                 if (list.length > 0) logs.appendChild(document.createElement('hr'))
 
                 this.el.editor = editor
+
+                setTimeout(() => {
+                    Split(["#" + code.id, "#" + logs.id], { gutterSize: 1 })
+                    // remove the initial fixed width added to remove flicker
+                    code.classList.add('coder-file-editor-split')
+                    logs.classList.add('coder-file-editor-split')
+                }, 0)
             }
         }
 
@@ -274,6 +288,7 @@ export function Coder(hook) {
         file.className = 'coder-file-panel-entry-file'
         file.textContent = name
         file.addEventListener('click', () => { selectFile(type, name, true) })
+        file.addEventListener('dblclick', () => { renameFile(type, name) })
 
         label.appendChild(status)
         label.appendChild(file)
@@ -354,6 +369,33 @@ export function Coder(hook) {
         const path = joinPath(type, name)
         if (!getEditor(path)) createEditor(type, name, panel)
         getEditor(path).api.setActive()
+    }
+
+    // trigger with file label double click
+    const renameFile = (type, name) => {
+        const simple = name.replace(/\.exs$/, "");
+        const params = { name: simple }
+        const pane = new Pane({ container: document.getElementById('rename-content') })
+        const n = pane.addBinding(params, 'name')
+        const b = pane.addButton({ title: 'Rename' });
+        b.on('click', () => {
+            const value = params.name.trim()
+            if (!/^[a-zA-Z][a-zA-Z0-9_-]+$/.test(value)) return
+            const file = `${value}.exs`
+            if (getFile(type, file)) return
+            const path = joinPath(type, name)
+            hook.pushEvent('hook:rename', { path, new: joinPath(type, file) })
+            MicroModal.close('rename')
+        })
+        MicroModal.show('rename', { onClose: () => { pane.dispose() } })
+        // tp-btnv_b required because there is a second hidden button
+        // just shifting the focus generates the button click event!
+        const input = document.querySelector('#rename input')
+        const button = document.querySelector('#rename button.tp-btnv_b')
+        input.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') button.focus()
+        })
+        input.focus()
     }
 
     const initFiles = (type, names) => {
@@ -513,4 +555,5 @@ export function Coder(hook) {
 
     // remove flicker, 10ms works on macos m1, 0ms wont work
     setTimeout(() => { hook.el.classList.remove('coder-invisible') }, 100)
+    window.addEventListener('DOMContentLoaded', () => MicroModal.init())
 }
