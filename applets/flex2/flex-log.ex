@@ -14,9 +14,10 @@ defmodule Flex2.Log do
   def inspect?(term), do: inspect(term, @inspect)
 
   def log(level, msg) when is_binary(msg) do
-    %{id: id, module: module, log: log} = Async.ctx()
+    %{id: id, module: module, log: log, mod?: mod?} = Async.ctx()
     # pidless for backend stdout logs
     pid? = Process.get(:pid?, true)
+    msg = if(mod?, do: "#{inspect?(module)} #{msg}", else: msg)
     line = if(pid?, do: "#{inspect(self())} #{msg}", else: msg)
     route = "#{inspect?(module)}:#{id}"
 

@@ -48,7 +48,8 @@ Flex2.Daemon.new(repo: "repo")
 # )
 # |> Flex2.ShellCommand.set(
 #   kill: """
-#   [ -f $FLEX2_RUN/socat.pid ] && sudo kill -9 $(cat $FLEX2_RUN/socat.pid)
+#   # do not use -9 or sudo wont kill child socat process
+#   [ -f $FLEX2_RUN/socat.pid ] && sudo kill $(cat $FLEX2_RUN/socat.pid)
 #   """
 # )
 # |> Flex2.ShellCommand.run(rdms: 2_000)

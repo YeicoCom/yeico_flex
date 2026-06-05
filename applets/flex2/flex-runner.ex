@@ -14,7 +14,7 @@ defmodule Flex2.Runner do
     name = Keyword.get(opts, :name, nil)
     rdms = Keyword.get(opts, :rdms, 5_000)
     deps = Keyword.get(opts, :deps, [])
-    log = Keyword.get(opts, :log)
+    log = Keyword.get(opts, :log, Async.ctx()[:log])
 
     Setter.check(:name, name, :binary?)
     Setter.check(:rdms, rdms, {:integer, 0, 65_535})
@@ -28,7 +28,8 @@ defmodule Flex2.Runner do
       entity: entity,
       module: module,
       parent: self(),
-      stamp: Utils.stamp()
+      stamp: Utils.stamp(),
+      mod?: Process.get(:mod?, false)
     }
 
     task = async(context, "super", fn -> setup(rdms, context) end)
@@ -48,7 +49,7 @@ defmodule Flex2.Runner do
     # schedule clean call on applet exit
     defer =
       Async.defer(fn ->
-        logger(context)
+        Async.ctx(context)
         Utils.kill(pid)
         ctx = Map.take(context, @take)
         Log.trace("clean")
@@ -94,15 +95,10 @@ defmodule Flex2.Runner do
     Async.spawn("#{stamp}:#{module}:#{id}:#{name}:#{role}", fun)
   end
 
-  defp logger(context) do
-    # replace log with parents only if not defined
-    Async.ctx(Map.put(context, :log, context.log || Async.ctx()[:log]))
-  end
-
   # forced kill to trigger managed resources cleanup
   # fixme: no stacktrace in logs to force improvement of error descriptions
   defp call(call, context = %{module: module, entity: entity, deps: deps}) do
-    logger(context)
+    Async.ctx(context)
     # runner stack traces only required when developing an entity
     # scripts
     #   compile errors report the correct row

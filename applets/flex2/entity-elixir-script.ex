@@ -14,6 +14,7 @@ defmodule Flex2.ElixirScript do
   end
 
   defp start(%{code: code}, _) do
+    Process.put(:mod?, true)
     evals(code)
   end
 
