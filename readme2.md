@@ -39,6 +39,67 @@
 
 # Fixme
 
+- [ ] Email login (with fixed email list)
+- [ ] CLI tool to rsync and view logs
+- [ ] Screen browser and viewer
+- [ ] UI widgets with custom JS
+
+- [ ] Modbus master entity
+- [ ] Modbus slave entity
+- [ ] File upload browser
+- [ ] Modbus terminal view
+- [ ] Socket terminal view
+- [ ] Modbus devices viewer
+
+- [ ] log: make script/backend logs show up on web ide and terminal dev console
+- [ ] log: make script/backend children logs show up on web ide and terminal dev console
+- [ ] log: ensure exceptions shows module and fun number
+- [ ] log: capture all script stdio
+- [ ] implement screen browser and embedded viewer
+- [ ] applet: runner supervisor to register a timestamp for Flex2.Print.tasks
+- [ ] applet: all applets must restart if a dep is restarted (mdb, udb, ...)
+    -  terminal restarts if applet app does? 
+    -  mmm... terminal and applet app supers are one_for_one!
+- [ ] Flex2.Live.view to register and broadcast path
+
+- [ ] ensure correctness of buffered logs
+    - may lose at start or end of execution
+    - maybe repo should sync call buffer/daemon in reverse order for add/delete
+    - maybe buffer should store anything it gets and defer garbage collection of dead pids
+- [ ] Log using groupleader for finer filtering?
+    - if each script/backend is a groupleader
+    - each child entity logs to stdout 
+    - each child entity ansi escapes by level
+    - each child entity must self identify in the log msg
+    - children unhandled exceptions require stacktrace for id purposes
+    - how to handle timestamp localization?
+
+- [ ] what is runner name being used for?
+    - observable map has adb?
+- [ ] Scrollbars with diverse styling chrome/safari
+
+- [ ] addEdgeGroup not honoring initialSize
+- [ ] Dockview how to persist only edge groups size?
+- [ ] Backend left group header renders add icon out of sigth on load
+    - check demo src https://dockview.dev/demo/?theme=abyss
+    - only happens when there is a file listed
+- [ ] Flicker on non active editor close (file selection moves too fast)
+- [ ] Screen funs not shown on macos sleep woke up (nil size?)
+- [ ] Each entity registers a print method to dump its index
+- [ ] Entity stage and error
+    - entity:stage:ID nil,0,1 handled by the runner
+    - entity:error:ID string fully handled by the entity
+    - no really relevant?
+- [ ] Drop dockview: custom svelte?
+
+- [-] autoscroll goes to top instead of bottom on non active panel/log-viewer
+    - autoscroll off DOM calculation fail
+- [x] Clean before start on first run: kinda non reentrant as well
+- [-] Move to supervisor for repo/buffer/super? nope
+- [-] Erlang app/module automatic module loading and unloading?
+    - nope, stopping an app does not unload every module
+    - https://www.erlang.org/doc/system/release_handling.html
+- [x] Integrate the log viewer to the right of the code editor itself: with split.js
 - [x] use daemon clean to wait for all runner defers to complete
 - [-] entity get a different id assigned on each run: intrinsic nature
 - [-] make clean calls non re-entrant: kinda with kill(id)
@@ -53,65 +114,9 @@
 - [x] backend mix install funny broken latin1 macos output 
     - not really latin1 but utf8 (noticed box building chars on compile exception report)
 - [-] support ansi escapes in web log viewer: not really needed after all
-
-- [ ] log: make script/backend logs show up on web ide and terminal dev console
-- [ ] log: make script/backend children logs show up on web ide and terminal dev console
-- [ ] log: ensure exceptions shows module and fun number
-- [ ] log: capture all script stdio
-- [ ] implement screen browser and embedded viewer
-- [ ] applet: runner supervisor to register a timestamp for Flex2.Print.tasks
-- [ ] applet: all applets must restart if a dep is restarted (mdb, udb, ...)
-    -  terminal restarts if applet app does? 
-    -  mmm... terminal and applet app supers are one_for_one!
-- [ ] Flex2.Live.view to register and broadcast path
-- [ ] Clean before start on first run. 
-- [ ] Defer based supervisor.
-
+- [x] Defer based supervisor: yes! kinda.
 - [x] current daemon kill on file delete wont call runner clean
     - now it does by calling Runner.kill(context) instead of direct task kill
-- [ ] current daemon kill on file delete wont cascade call runner clean to script created entities
-
-- [ ] autoscroll goes to top instead of bottom on non active panel/log-viewer
-- [ ] no use for entity:stage and entity:error?
-- [ ] what is runner name being used for?
-    - observable map has adb?
-- [ ] Scrollbars with diverse styling chrome/safari
-- [ ] Move to supervisor for repo/buffer/super?
-- [ ] app/module registration and cleanup?
-- [ ] addEdgeGroup not honoring initialSize
-- [ ] Dockview how to persist only edge groups size?
-- [ ] Backends add icon out of sigth on load
-    - check demo src https://dockview.dev/demo/?theme=abyss
-    - only happens when there is a file listed
-- [ ] Flicker on non active editor close (file selection moves too fast)
-- [ ] Integrate the log viewer to the right of the code editor itself
-- [ ] Screen funs not shown on macos woke up (nil size?)
-- [ ] Each entity registers a print method to dump its index
-- [ ] Entity stage and error
-    - entity:stage:ID nil,0,1 handled by the runner
-    - entity:error:ID string fully handled by the entity
-    - no really relevant?
-- [ ] Function based entities
-- [ ] Elixir backend entity
-- [ ] Modbus master entity
-- [ ] Modbus slave entity
-- [ ] Live screen entity
-- [ ] Flow logic entity
-- [ ] Entity log viewer
-- [ ] Entity browser
-- [ ] File upload
-- [ ] Drop dockview: custom svelte?
-- [ ] ensure correctness of buffered logs
-    - may lose at start or end of execution
-    - maybe repo should sync call buffer/daemon in reverse order for add/delete
-    - maybe buffer should store anything it gets and defer garbage collection of dead pids
-- [ ] Log using groupleader for finer filtering?
-    - if each script/backend is a groupleader
-    - each child entity logs to stdout 
-    - each child entity ansi escapes by level
-    - each child entity must self identify in the log msg
-    - children unhandled exceptions require stacktrace for id purposes
-    - how to handle timestamp localization?
 - [-] Extensible validation
     - Already supports passing a function
 - [x] Browser panel wont scroll
