@@ -7,6 +7,7 @@ defmodule Flex2.Runner do
   alias Flex2.Log
 
   @stack false
+  @take [:id, :name]
 
   # clean callback expected idempotent and non process dependant
   def run(module, entity, id, opts) do
@@ -43,16 +44,29 @@ defmodule Flex2.Runner do
     Utils.await(task)
   end
 
-  defp defer(context = %{task: %{pid: pid}}) do
+  defp defer(context = %{task: %{pid: pid}, module: module, entity: entity}) do
+    # schedule clean call on applet exit
+    defer =
+      Async.defer(fn ->
+        logger(context)
+        Utils.kill(pid)
+        ctx = Map.take(context, @take)
+        Log.trace("clean")
+        module.call(:clean, entity, ctx)
+      end)
+
     Process.flag(:trap_exit, true)
     ref = Process.monitor(pid)
 
     receive do
       # entity super task is down
-      {:DOWN, ^ref, :process, ^pid, _reason} -> :defer
+      {:DOWN, ^ref, :process, ^pid, _reason} -> :nop
       # parent exited leaving super task behind
       {:EXIT, _pid, _reason} -> kill(context)
     end
+
+    # cancel defer
+    Utils.kill(defer)
   end
 
   defp setup(rdms, context = %{id: id, stamp: stamp, module: module}) do
@@ -80,12 +94,15 @@ defmodule Flex2.Runner do
     Async.spawn("#{stamp}:#{module}:#{id}:#{name}:#{role}", fun)
   end
 
+  defp logger(context) do
+    # replace log with parents only if not defined
+    Async.ctx(Map.put(context, :log, context.log || Async.ctx()[:log]))
+  end
+
   # forced kill to trigger managed resources cleanup
   # fixme: no stacktrace in logs to force improvement of error descriptions
   defp call(call, context = %{module: module, entity: entity, deps: deps}) do
-    # replace log with parents only if not defined
-    Async.ctx(Map.put(context, :log, context.log || Async.ctx()[:log]))
-
+    logger(context)
     # runner stack traces only required when developing an entity
     # scripts
     #   compile errors report the correct row
@@ -96,7 +113,7 @@ defmodule Flex2.Runner do
     #   match runtime error show the correct flie and line in a scarce stack trace
     try do
       Log.trace("#{call}")
-      ctx = Map.take(context, [:id, :name])
+      ctx = Map.take(context, @take)
       monitor(call, context, deps)
       register(call, context.name)
       module.call(call, entity, ctx)
