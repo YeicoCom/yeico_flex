@@ -43,6 +43,9 @@ defmodule Flex2.Repo do
   Utils.sleep()
   """
 
+  # cd ~/.terminal/dev/flex2/repo/script
+  # chmod +x script1.exs
+  # chmod -x script1.exs
   def fs(:save, root, path, data), do: join(root, path) |> File.write(data)
   def fs(:enable, root, path), do: join(root, path) |> File.chmod(0o777)
   def fs(:disable, root, path), do: join(root, path) |> File.chmod(0o666)
