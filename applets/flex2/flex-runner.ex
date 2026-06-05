@@ -15,7 +15,7 @@ defmodule Flex2.Runner do
     Mdb.lookup({__MODULE__, id}) |> Enum.each(fn {pid, _} -> Utils.kill(pid) end)
 
     name = Keyword.get(opts, :name, nil)
-    rdms = Keyword.get(opts, :rdms, 5_000)
+    rdms = Keyword.get(opts, :rdms, 2_000)
     deps = Keyword.get(opts, :deps, [])
     log = Keyword.get(opts, :log, Async.ctx()[:log])
 

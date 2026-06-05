@@ -148,7 +148,7 @@ defmodule Flex.SerialExports.Loop do
     tag = "serialexports:#{id}:#{item.tty}"
 
     case item.status do
-      :enabled -> Api.loop(&runner_setup/1, %{id: id, item: item}, rdms: 2_000, tag: tag)
+      :enabled -> Api.loop(&runner_setup/1, %{id: id, item: item}, tag: tag)
       _ -> nil
     end
   end

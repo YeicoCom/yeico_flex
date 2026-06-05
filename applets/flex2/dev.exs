@@ -16,7 +16,7 @@ Flex2.ReactiveLogic.new()
   b: {:point, "dev:point"},
   c: {:timer, 1000}
 )
-|> Flex2.ReactiveLogic.run(rdms: 2_000, deps: ["adb"])
+|> Flex2.ReactiveLogic.run(deps: ["adb"])
 
 Flex2.LiveScreen.new()
 |> Flex2.LiveScreen.set(map: "adb")
@@ -52,6 +52,6 @@ Flex2.LiveScreen.new()
   b: {:point, "dev:point"},
   c: {:timer, 1000}
 )
-|> Flex2.LiveScreen.run(rdms: 2_000, deps: ["adb"])
+|> Flex2.LiveScreen.run(deps: ["adb"])
 
 :ok

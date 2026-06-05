@@ -28,16 +28,16 @@ Adb.reset()
 repo = Terminal.dpath("@home/flex2/repo")
 
 Flex2.Repo.new(root: repo)
-|> Flex2.Repo.run(rdms: 2_000, name: "repo")
+|> Flex2.Repo.run(name: "repo")
 
 Flex2.Buffer.new(repo: "repo")
-|> Flex2.Buffer.run(rdms: 2_000, name: "buffer", deps: ["repo"])
+|> Flex2.Buffer.run(name: "buffer", deps: ["repo"])
 
 Flex2.Daemon.new(repo: "repo")
-|> Flex2.Daemon.run(rdms: 2_000, name: "daemon", deps: ["buffer"])
+|> Flex2.Daemon.run(name: "daemon", deps: ["buffer"])
 
 # Flex2.ObservableMap.new()
-# |> Flex2.ObservableMap.run(rdms: 2_000, name: "adb")
+# |> Flex2.ObservableMap.run(name: "adb")
 
 # Flex2.ShellCommand.new()
 # |> Flex2.ShellCommand.set(
