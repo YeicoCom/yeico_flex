@@ -9,15 +9,16 @@ defmodule Flex2.Entity do
       alias Flex2.Live
       alias Flex2.Log
 
-      def new(opts \\ []), do: Flex2.Setter.set(__MODULE__, initial(), opts)
-      def set(entity, opts), do: Flex2.Setter.set(__MODULE__, entity, opts)
-      def set(entity, name, value), do: Flex2.Setter.set(entity, name, value, checks())
-      def run(entity, opts \\ []), do: Flex2.Super.start(__MODULE__, entity, opts)
+      def new(opts \\ []), do: Setter.set(__MODULE__, initial(), opts)
+      def set(entity, opts), do: Setter.set(__MODULE__, entity, opts)
+      def set(entity, name, value), do: Setter.set(entity, name, value, checks())
+      def run(entity, opts \\ []), do: Entity.run(__MODULE__, entity, opts)
       def call(:start, entity, ctx), do: start(entity, ctx)
       def call(:clean, entity, ctx), do: clean(entity, ctx)
     end
   end
 
+  alias Flex2.Runner
   alias Flex2.Utils
   alias Flex2.Log
 
@@ -25,4 +26,20 @@ defmodule Flex2.Entity do
     hash = Utils.md5(id)
     Utils.dpath("@run/flex2/#{Log.inspect?(module)}-#{hash}")
   end
+
+  def run(module, entity, opts \\ []) do
+    module.set(entity, Map.merge(module.new(), entity))
+
+    case Utils.safe(fn -> Runner.run(module, entity, Utils.id(), opts) end) do
+      {:error, %{error: error, type: type, stack: stack}} ->
+        msg = "#{Log.inspect?(module)} #{type} #{Log.inspect?(error)} #{Log.inspect?(stack)}"
+        Log.error(msg)
+        {:error, error}
+
+      {:ok, context} ->
+        {:ok, context}
+    end
+  end
+
+  def kill(context), do: Runner.kill(context)
 end

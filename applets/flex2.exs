@@ -25,7 +25,6 @@ System.shell("sudo killall -9 socat", stderr_to_stdout: true)
 # ~/.terminal/dev/flex2/repo
 repo = Terminal.dpath("@home/flex2/repo")
 Flex2.Repo.start(repo)
-Flex2.Super.start()
 Flex2.Buffer.start()
 Flex2.Daemon.start()
 

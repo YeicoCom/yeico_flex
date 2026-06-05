@@ -59,6 +59,18 @@ defmodule Flex2.Utils do
     # Process.demonitor(pid)
   end
 
+  # for Flex2.Cli
+  def kill?(name) do
+    case whereis?(name) do
+      nil ->
+        :nop
+
+      pid ->
+        kill(pid)
+        pid
+    end
+  end
+
   def stamp() do
     NaiveDateTime.utc_now()
     |> NaiveDateTime.truncate(:millisecond)
@@ -113,6 +125,14 @@ defmodule Flex2.Utils do
 
       [{pid, _}] ->
         pid
+    end
+  end
+
+  # for Flex2.Cli
+  def whereis?(name) when is_binary(name) do
+    case Applet.Api.Udb.lookup({:entity, name}) do
+      [{pid, _}] -> pid
+      [] -> nil
     end
   end
 
