@@ -26,32 +26,40 @@
   - Repo
   - Daemon
   - Buffer
-- Script/Backend Daemons
-- Daemons Children
+- Scripts
+- Script Children
+
+# Log
+
+- Entity.run: safe entity startup for code defined entities
+- Runner.call: each entity call: clean, start
+- Daemon.run: unsafe call to Runner.run
+- ReactiveLogic: on each fun execution
+- LiveScreen: on each fun execution
 
 # Fixme
 
-- [ ] use daemon clean to wait for all runner defers to complete
-- [ ] entity get a different id assigned on each run
-- [ ] make clean calls non re-entrant
+- [x] use daemon clean to wait for all runner defers to complete
+- [-] entity get a different id assigned on each run: intrinsic nature
+- [-] make clean calls non re-entrant: kinda with kill(id)
 - [x] no output from script nested entity runner
-
-- [ ] Runners clean not being called on applet stop (to restart)
-    - no posible to clean super with applet defer (asyncs are killed before defers are awaited)
+- [x] Runners clean not being called on applet stop: solved by killable defer
 - [-] Backend tmp and permanent storage. 
     - tmp yes, permanent nope, it would mean clean need to leaving things behind
+- [x] implement backend runner
+- [x] applet: loop to sleep only remaing rdms (did the same for runners loop)
+- [x] applet: async(fun0, opts) and async(fun1, arg, opts)
+- [x] applet: loop(fun0, opts) and loop(fun1, arg, opts)
+- [x] backend mix install funny broken latin1 macos output 
+    - not really latin1 but utf8 (noticed box building chars on compile exception report)
+- [-] support ansi escapes in web log viewer: not really needed after all
+
 - [ ] log: make script/backend logs show up on web ide and terminal dev console
 - [ ] log: make script/backend children logs show up on web ide and terminal dev console
 - [ ] log: ensure exceptions shows module and fun number
 - [ ] log: capture all script stdio
-- [ ] implement backend runner
 - [ ] implement screen browser and embedded viewer
-- [ ] backend mix install funny broken latin1 macos output 
-- [ ] support ansi escapes in web log viewer
-- [ ] applet: loop to sleep only remaing rdms
 - [ ] applet: runner supervisor to register a timestamp for Flex2.Print.tasks
-- [ ] applet: async(fun0, opts) and async(fun1, arg, opts)
-- [ ] applet: loop(fun0, opts) and loop(fun1, arg, opts)
 - [ ] applet: all applets must restart if a dep is restarted (mdb, udb, ...)
     -  terminal restarts if applet app does? 
     -  mmm... terminal and applet app supers are one_for_one!

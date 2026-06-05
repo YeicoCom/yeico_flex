@@ -14,23 +14,28 @@ defmodule Flex2.Log do
   def inspect?(term), do: inspect(term, @inspect)
 
   def log(level, msg) when is_binary(msg) do
-    %{id: id, module: module, log: log, mod?: mod?} = Async.ctx()
-    # pidless for backend stdout logs
-    pid? = Process.get(:pid?, true)
-    msg = if(mod?, do: "#{inspect?(module)} #{msg}", else: msg)
-    line = if(pid?, do: "#{inspect(self())} #{msg}", else: msg)
-    route = "#{inspect?(module)}:#{id}"
+    case Async.ctx() do
+      %{id: id, module: module, log: log, mod?: mod?} ->
+        # pidless for backend stdout logs
+        pid? = Process.get(:pid?, true)
+        msg = if(mod?, do: "#{inspect?(module)} #{msg}", else: msg)
+        line = if(pid?, do: "#{inspect(self())} #{msg}", else: msg)
+        route = "#{inspect?(module)}:#{id}"
 
-    {bus, route} =
-      case log do
-        nil -> {:log, route}
-        {log, route} -> {log, route}
-      end
+        {bus, route} =
+          case log do
+            nil -> {:log, route}
+            {log, route} -> {log, route}
+          end
 
-    broadcast!(bus, route, level, line)
-    # fixme: setup a global switch
-    Api.trace("#{level} #{route} #{msg}")
-    msg
+        broadcast!(bus, route, level, line)
+        # fixme: setup a global switch
+        Api.trace("#{level} #{route} #{msg}")
+        msg
+
+      nil ->
+        Api.log(level, msg)
+    end
   end
 
   def log(level, msg) do

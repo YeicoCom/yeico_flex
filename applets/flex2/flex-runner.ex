@@ -9,10 +9,10 @@ defmodule Flex2.Runner do
   @stack false
   @take [:id, :name, :hash, :root]
 
-  # clean callback expected idempotent and non process dependant
+  # public interface: run, kill
+  # clean callback expected idempotent, concurrent, and non process dependant
   def run(module, entity, id, opts) do
-    # kill any pending clean since clean is the first task to go anyway
-    Mdb.lookup({__MODULE__, id}) |> Enum.each(fn {pid, _} -> Utils.kill(pid) end)
+    exclusive(id)
 
     name = Keyword.get(opts, :name, nil)
     rdms = Keyword.get(opts, :rdms, 2_000)
@@ -43,52 +43,52 @@ defmodule Flex2.Runner do
 
     task = async(context, "super", fn -> setup(rdms, context) end)
     context = Map.put(context, :task, task)
-    %{pid: pid} = async(context, "defer", fn -> defer(context) end)
-    # fixme: what conditions may lock this initialization wait?
-    Utils.receive({__MODULE__, pid, module, id})
-    context
+    Map.put(context, :defer, defer(context))
   end
 
-  def kill(context = %{task: task}) do
-    # not owner to await task when called from defer
+  # only call this from same process run was called
+  def kill(context = %{task: task, defer: defer}) do
     Utils.kill(task)
     task = async(context, "clean", fn -> call(:clean, context) end)
     Utils.await(task)
+    # after proper cleanup, cancel last resource clean up
+    Utils.kill(defer)
   end
 
-  defp defer(context = %{task: %{pid: pid}, parent: parent}) do
-    Process.flag(:trap_exit, true)
-    ref = Process.monitor(pid)
+  # kill any pending clean since clean is the first task to go anyway
+  defp exclusive(id) when is_binary(id) do
+    self = self()
 
-    # schedule clean call on applet exit
-    %{module: module, id: id, entity: entity} = context
+    Mdb.lookup({__MODULE__, id})
+    |> Enum.filter(fn {pid, _} -> pid != self end)
+    |> Enum.each(fn {pid, _} -> Utils.kill(pid) end)
 
-    caller = self()
+    case Mdb.lookup({__MODULE__, id}) do
+      [{^self, _}] -> :ok
+      [] -> :ok
+      _ -> exclusive(id)
+    end
+  end
 
-    defer =
+  defp defer(context = %{id: id, module: module, entity: entity, parent: parent}) do
+    pid =
       Async.defer(
         fn ->
+          exclusive(id)
           Async.ctx(context)
-          Utils.kill(pid)
-          ctx = Map.take(context, @take)
           Log.trace("clean")
+          ctx = Map.take(context, @take)
           module.call(:clean, entity, ctx)
         end,
         before: fn ->
           Mdb.register!({__MODULE__, id}, module: module, role: "defer")
-          send(parent, {__MODULE__, caller, module, id})
+          send(parent, {__MODULE__, self(), module, id})
         end
       )
 
-    receive do
-      # entity super task is down
-      {:DOWN, ^ref, :process, ^pid, _reason} -> :nop
-      # parent exited leaving super task behind
-      {:EXIT, _pid, _reason} -> kill(context)
-    end
-
-    # cancel defer
-    Utils.kill(defer)
+    # fixme: what conditions may lock this initialization wait?
+    Utils.receive({__MODULE__, pid, module, id})
+    pid
   end
 
   defp setup(rdms, context = %{id: id, stamp: stamp, module: module}) do

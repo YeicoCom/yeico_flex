@@ -35,6 +35,4 @@ defmodule Flex2.Entity do
         {:ok, context}
     end
   end
-
-  def kill(context), do: Runner.kill(context)
 end
