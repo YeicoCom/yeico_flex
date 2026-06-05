@@ -19,13 +19,12 @@ defmodule Flex2.ShellCommand do
     }
   end
 
-  defp start(%{run: run, e2o?: e2o?, o2l?: o2l?}, %{id: id}) do
-    root = Entity.root(__MODULE__, id)
+  defp start(%{run: run, e2o?: e2o?, o2l?: o2l?}, %{root: root}) do
+    Utils.dpath(root)
     exec(run, e2o?, o2l?, root)
   end
 
-  defp clean(%{kill: kill, e2o?: e2o?, o2l?: o2l?}, %{id: id}) do
-    root = Entity.root(__MODULE__, id)
+  defp clean(%{kill: kill, e2o?: e2o?, o2l?: o2l?}, %{root: root}) do
     if kill, do: exec(kill, e2o?, o2l?, root)
     File.rm_rf(root)
   end

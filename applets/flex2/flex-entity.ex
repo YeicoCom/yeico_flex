@@ -22,11 +22,6 @@ defmodule Flex2.Entity do
   alias Flex2.Utils
   alias Flex2.Log
 
-  def root(module, id) do
-    hash = Utils.md5(id)
-    Utils.dpath("@run/flex2/#{Log.inspect?(module)}-#{hash}")
-  end
-
   def run(module, entity, opts \\ []) do
     module.set(entity, Map.merge(module.new(), entity))
 

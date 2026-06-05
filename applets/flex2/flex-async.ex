@@ -7,8 +7,8 @@ defmodule Flex2.Async do
     Applet.Api.async(wrap(fun), arg, tag: tag)
   end
 
-  def defer(fun) do
-    Applet.Api.defer(wrap(fun))
+  def defer(fun, opts \\ []) do
+    Applet.Api.defer(wrap(fun), opts)
   end
 
   def wrap(fun) when is_function(fun, 0) do

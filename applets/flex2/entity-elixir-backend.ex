@@ -13,17 +13,14 @@ defmodule Flex2.ElixirBackend do
     }
   end
 
-  defp clean(_, %{id: id}) do
-    root = Entity.root(__MODULE__, id)
+  defp clean(_, %{root: root}) do
     File.rm_rf(root)
   end
 
   # do not give a permanent home or clean would need to leave
   # things behind, backends must work on temporary storage only
-  defp start(%{code: code}, %{id: id}) do
-    hash = Utils.md5(id)
+  defp start(%{code: code}, %{root: root, hash: hash}) do
     node = "backend_#{hash}"
-    root = Entity.root(__MODULE__, id)
     libs = Utils.dpath("#{root}/libs")
     beams = Utils.path("flex2/_build/Elixir.Flex2.Backend*.beam")
     System.shell("rsync -avr --delete #{beams} #{libs}/ebin/")

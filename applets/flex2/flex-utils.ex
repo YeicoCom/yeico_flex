@@ -9,10 +9,11 @@ defmodule Flex2.Utils do
   def putcast!(key, value), do: Applet.Api.putcast!(key, value)
 
   def id(), do: UUID.uuid1() |> ShortUUID.encode!()
+  def expand(path), do: Terminal.expand(path)
 
   def sleep(), do: Process.sleep(:infinity)
   def sleep(millis), do: Process.sleep(millis)
-  def receive(), do: receive(do: (msg -> msg))
+
   def inspect?(term) when is_binary(term), do: term
   def inspect?(term), do: inspect(term, @inspect)
 
@@ -98,6 +99,10 @@ defmodule Flex2.Utils do
       error -> {:error, %{type: :catch, error: error, stack: __STACKTRACE__}}
     end
   end
+
+  def receive(), do: receive(do: (msg -> msg))
+
+  def receive(msg), do: receive(do: (^msg -> :ok))
 
   def flush() do
     receive do

@@ -7,34 +7,45 @@ defmodule Flex2.Runner do
   alias Flex2.Log
 
   @stack false
-  @take [:id, :name]
+  @take [:id, :name, :hash, :root]
 
   # clean callback expected idempotent and non process dependant
   def run(module, entity, id, opts) do
+    # kill any pending clean since clean is the first task to go anyway
+    Mdb.lookup({__MODULE__, id}) |> Enum.each(fn {pid, _} -> Utils.kill(pid) end)
+
     name = Keyword.get(opts, :name, nil)
     rdms = Keyword.get(opts, :rdms, 5_000)
     deps = Keyword.get(opts, :deps, [])
     log = Keyword.get(opts, :log, Async.ctx()[:log])
 
+    # script users should only use rdms, name, and deps.
+    # this is the public interface, do not use anything else
     Setter.check(:name, name, :binary?)
     Setter.check(:rdms, rdms, {:integer, 0, 65_535})
     Setter.check(:deps, deps, {:list?, nil, :binary})
 
+    hash = Utils.md5(id)
+
     context = %{
       id: id,
       log: log,
+      hash: hash,
       name: name,
       deps: deps,
       entity: entity,
       module: module,
       parent: self(),
       stamp: Utils.stamp(),
-      mod?: Process.get(:mod?, false)
+      mod?: Process.get(:mod?, false),
+      root: Utils.expand("@run/flex2/#{Log.inspect?(module)}-#{hash}")
     }
 
     task = async(context, "super", fn -> setup(rdms, context) end)
     context = Map.put(context, :task, task)
-    async(context, "defer", fn -> defer(context) end)
+    %{pid: pid} = async(context, "defer", fn -> defer(context) end)
+    # fixme: what conditions may lock this initialization wait?
+    Utils.receive({__MODULE__, pid, module, id})
     context
   end
 
@@ -45,19 +56,29 @@ defmodule Flex2.Runner do
     Utils.await(task)
   end
 
-  defp defer(context = %{task: %{pid: pid}, module: module, entity: entity}) do
-    # schedule clean call on applet exit
-    defer =
-      Async.defer(fn ->
-        Async.ctx(context)
-        Utils.kill(pid)
-        ctx = Map.take(context, @take)
-        Log.trace("clean")
-        module.call(:clean, entity, ctx)
-      end)
-
+  defp defer(context = %{task: %{pid: pid}, parent: parent}) do
     Process.flag(:trap_exit, true)
     ref = Process.monitor(pid)
+
+    # schedule clean call on applet exit
+    %{module: module, id: id, entity: entity} = context
+
+    caller = self()
+
+    defer =
+      Async.defer(
+        fn ->
+          Async.ctx(context)
+          Utils.kill(pid)
+          ctx = Map.take(context, @take)
+          Log.trace("clean")
+          module.call(:clean, entity, ctx)
+        end,
+        before: fn ->
+          Mdb.register!({__MODULE__, id}, module: module, role: "defer")
+          send(parent, {__MODULE__, caller, module, id})
+        end
+      )
 
     receive do
       # entity super task is down
@@ -89,10 +110,19 @@ defmodule Flex2.Runner do
     loop(rdms, context)
   end
 
-  defp async(%{module: module, id: id, name: name}, role, fun) do
+  defp async(context = %{module: module, id: id, name: name}, role, fun) do
     stamp = Utils.stamp()
     module = Log.inspect?(module)
-    Async.spawn("#{stamp}:#{module}:#{id}:#{name}:#{role}", fun)
+    wrap = wrap(role, context, fun)
+    Async.spawn("#{stamp}:#{module}:#{id}:#{name}:#{role}", wrap)
+  end
+
+  defp wrap(role, %{module: module, id: id}, fun) do
+    fn ->
+      Mdb.register!({__MODULE__, id}, module: module, role: role)
+      # Mdb.register!(__MODULE__, module: module, id: id, role: role)
+      fun.()
+    end
   end
 
   # forced kill to trigger managed resources cleanup
