@@ -30,7 +30,7 @@ defmodule Flex2.View do
         Bus.subscribe!(:buffer)
 
         logs =
-          for {path, list} <- Buffer.state(), reduce: %{} do
+          for {path, list} <- Buffer.register("buffer"), reduce: %{} do
             logs ->
               list =
                 for log = %{stamp: stamp} <- list, reduce: [] do
@@ -42,7 +42,7 @@ defmodule Flex2.View do
               Map.put(logs, path, list)
           end
 
-        {_root, files} = Repo.register()
+        {_pid, _root, files} = Repo.register("repo")
         files = for {p, {e, d}} <- files, do: %{path: p, data: d, enabled: e}
         socket = push_event(socket, "hook:init", %{files: files, logs: logs})
         {socket, state}
@@ -54,24 +54,24 @@ defmodule Flex2.View do
         view(state)
 
       {:event, socket, state, "hook:add", %{"type" => type}} ->
-        {p, {e, d}} = Repo.add(repo, type)
+        {p, {e, d}} = Repo.fs(:add, repo, type)
         socket = push_event(socket, "hook:add", %{path: p, data: d, enabled: e})
         {socket, state}
 
       {:event, socket, state, "hook:del", %{"path" => path}} ->
-        Repo.del(repo, path)
+        Repo.fs(:rm, repo, path)
         {socket, state}
 
       {:event, socket, state, "hook:start", %{"path" => path}} ->
-        Repo.start(repo, path)
+        Repo.fs(:enable, repo, path)
         {socket, state}
 
       {:event, socket, state, "hook:stop", %{"path" => path}} ->
-        Repo.stop(repo, path)
+        Repo.fs(:disable, repo, path)
         {socket, state}
 
       {:event, socket, state, "hook:save", %{"path" => path, "data" => data}} ->
-        Repo.save(repo, path, data)
+        Repo.fs(:save, repo, path, data)
         {socket, state}
 
       {:event, socket, state, event, params} ->
@@ -90,6 +90,11 @@ defmodule Flex2.View do
 
       {:info, socket, state, {Repo, path, nil}} ->
         socket = push_event(socket, "hook:deleted", %{path: path})
+        {socket, state}
+
+      # monitoring repo and buffer
+      {:info, socket, state, {:DOWN, _ref, :process, _pid, _reason}} ->
+        exit(:kill)
         {socket, state}
 
       {:info, socket, state, event} ->

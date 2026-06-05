@@ -1,7 +1,28 @@
 defmodule Flex2.Repo do
+  use Flex2.Entity
+
+  defp initial() do
+    %{
+      root: nil
+    }
+  end
+
+  defp checks() do
+    %{
+      root: {:starts_with?, "/"}
+    }
+  end
+
+  defp start(%{root: root}, _) do
+    setup(root)
+  end
+
+  defp clean(_, _) do
+    :nop
+  end
+
   alias Applet.Api.Log
   alias Flex2.Setter
-  alias Flex2.Async
   alias Flex2.Utils
 
   @subs ["script", "backend"]
@@ -22,63 +43,51 @@ defmodule Flex2.Repo do
   Utils.sleep()
   """
 
-  def add(root, type), do: create(root, type)
-  def del(repo, path), do: join(repo, path) |> File.rm()
-  def save(repo, path, data), do: join(repo, path) |> File.write(data)
-  def stop(repo, path), do: join(repo, path) |> File.chmod(0o666)
-  def start(repo, path), do: join(repo, path) |> File.chmod(0o777)
+  def fs(:save, root, path, data), do: join(root, path) |> File.write(data)
+  def fs(:enable, root, path), do: join(root, path) |> File.chmod(0o777)
+  def fs(:disable, root, path), do: join(root, path) |> File.chmod(0o666)
+  def fs(:add, root, type), do: create(root, type)
+  def fs(:rm, root, path), do: join(root, path) |> File.rm()
 
-  def start(path) do
-    Setter.check(:path, path, {:starts_with?, "/"})
-    paths = for sub <- @subs, do: Path.join(path, sub)
-    for path <- paths, do: Terminal.dpath(path)
-    stamp = Utils.stamp()
-    name = Utils.inspect?(__MODULE__)
-    Async.spawn("#{stamp}:#{name}", &setup/1, path)
-  end
-
-  def register() do
-    pid = Utils.pid(__MODULE__)
-    # cascade kill without pid tracking
-    # here because it excepts when pid is not alive
-    Process.link(pid)
+  def register(name) do
+    pid = Utils.whereis(name)
+    Process.monitor(pid)
     send(pid, {:register, self()})
 
     receive do
-      {__MODULE__, :register, path, files} -> {path, files}
+      {__MODULE__, :register, path, files} -> {pid, path, files}
     after
       5_000 -> throw(timeout: {:register, self()})
     end
   end
 
-  defp setup(path) do
-    Process.register(self(), __MODULE__)
-    Process.flag(:trap_exit, true)
-    paths = for sub <- @subs, do: Path.join(path, sub)
+  defp setup(root) do
+    paths = for sub <- @subs, do: Path.join(root, sub)
     # macos has a 0.5s default latency
     {:ok, pid} = FileSystem.start_link(dirs: paths, latency: 0)
     FileSystem.subscribe(pid)
     # fixme: file monitoring ready at this point?
-    loop(path, load(path, @subs), %{})
+    loop(root, load(root, @subs), %{})
   end
 
   defp loop(root, files, pids) do
     receive do
       {:register, caller} ->
+        ref = Process.monitor(caller)
         send(caller, {__MODULE__, :register, root, files})
-        pids = Map.put(pids, caller, NaiveDateTime.utc_now())
+        pids = Map.put(pids, caller, ref)
         loop(root, files, pids)
 
       {:file_event, _pid, {path, _events}} ->
         files = update(files, root, path, pids)
         loop(root, files, pids)
 
-      {:EXIT, pid, _reason} ->
+      {:DOWN, _ref, :process, pid, _reason} ->
         pids = Map.delete(pids, pid)
         loop(root, files, pids)
 
       unexpected ->
-        Log.warn(unexpected: unexpected)
+        Log.warn(module: __MODULE__, unexpected: unexpected)
         loop(root, files, pids)
     end
   end

@@ -1,35 +1,47 @@
 defmodule Flex2.Buffer do
+  use Flex2.Entity
+
+  defp initial() do
+    %{
+      repo: nil
+    }
+  end
+
+  defp checks() do
+    %{
+      repo: :binary
+    }
+  end
+
+  defp start(%{repo: repo}, _) do
+    setup(repo)
+  end
+
+  defp clean(_, _) do
+    :nop
+  end
+
   alias Applet.Api.Log
   alias Applet.Api.Bus
-  alias Flex2.Async
   alias Flex2.Utils
   alias Flex2.Repo
 
-  def start() do
-    stamp = Utils.stamp()
-    name = Utils.inspect?(__MODULE__)
-    Async.spawn("#{stamp}:#{name}", &setup/0)
-  end
-
-  def state() do
-    pid = Utils.pid(__MODULE__)
+  def register(name) do
+    pid = Utils.whereis(name)
+    Process.monitor(pid)
     send(pid, {:state, self()})
 
     receive do
-      {:state, result} -> result
+      {__MODULE__, :state, result} -> result
     after
       5_000 -> throw(timeout: :state)
     end
   end
 
-  defp setup() do
-    # subscribe before register for daemon to wait on it
+  defp setup(repo) do
     Bus.subscribe!(:daemon, nil)
-    Process.register(self(), __MODULE__)
-    Process.flag(:trap_exit, true)
 
-    # fixme: need to track repos death
-    {_root, files} = Repo.register()
+    {_pid, _root, files} = Repo.register(repo)
 
     for {path, _} <- files do
       {path, []}
@@ -72,11 +84,15 @@ defmodule Flex2.Buffer do
         loop(files)
 
       {:state, caller} ->
-        send(caller, {:state, files})
+        send(caller, {__MODULE__, :state, files})
+        loop(files)
+
+      # repo monitored on registration
+      {:DOWN, _ref, :process, _pid, _reason} ->
         loop(files)
 
       unexpected ->
-        Log.warn(unexpected: unexpected)
+        Log.warn(module: __MODULE__, unexpected: unexpected)
         loop(files)
     end
   end

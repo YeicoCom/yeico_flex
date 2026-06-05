@@ -26,17 +26,33 @@ defmodule Flex2.Runner do
       deps: deps,
       entity: entity,
       module: module,
+      parent: self(),
       stamp: Utils.stamp()
     }
 
     task = async(context, "super", fn -> setup(rdms, context) end)
-    Map.put(context, :task, task)
+    context = Map.put(context, :task, task)
+    async(context, "defer", fn -> defer(context) end)
+    context
   end
 
   def kill(context = %{task: task}) do
+    # not owner to await task when called from defer
     Utils.kill(task)
     task = async(context, "clean", fn -> call(:clean, context) end)
     Utils.await(task)
+  end
+
+  defp defer(context = %{task: %{pid: pid}}) do
+    Process.flag(:trap_exit, true)
+    ref = Process.monitor(pid)
+
+    receive do
+      # entity super task is down
+      {:DOWN, ^ref, :process, ^pid, _reason} -> :defer
+      # parent exited leaving super task behind
+      {:EXIT, _pid, _reason} -> kill(context)
+    end
   end
 
   defp setup(rdms, context = %{id: id, stamp: stamp, module: module}) do
@@ -105,14 +121,16 @@ defmodule Flex2.Runner do
   defp monitor(:clean, _, _), do: :nop
 
   defp monitor(:start, context, deps) do
+    parent = self()
     pids = Enum.map(deps, &Utils.whereis/1)
-    async(context, "deps", fn -> monitor(pids) end)
+    async(context, "deps", fn -> monitor(parent, pids) end)
   end
 
-  defp monitor(pids) do
+  defp monitor(parent, pids) do
+    Process.monitor(parent)
     Enum.each(pids, &Process.monitor/1)
     Utils.receive()
-    exit(:kill)
+    Process.exit(parent, :kill)
   end
 
   defp register(_, nil), do: :nop

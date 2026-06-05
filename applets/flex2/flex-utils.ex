@@ -19,7 +19,7 @@ defmodule Flex2.Utils do
   def pid(%Task{pid: pid}), do: pid
 
   # Api.await sleeps at least one cycle
-  def pid(module) do
+  def pid(module) when is_atom(module) do
     case Process.whereis(module) do
       pid when is_pid(pid) ->
         pid

@@ -1,23 +1,35 @@
 defmodule Flex2.Daemon do
-  alias Applet.Api.Log
-  alias Flex2.Runner
-  alias Flex2.Async
-  alias Flex2.Utils
-  alias Flex2.Repo
+  use Flex2.Entity
 
-  def start() do
-    stamp = Utils.stamp()
-    name = Utils.inspect?(__MODULE__)
-    Async.spawn("#{stamp}:#{name}", &setup/0)
+  defp initial() do
+    %{
+      repo: nil
+    }
   end
 
-  defp setup() do
-    # ensure buffer is ready
-    Utils.pid(Flex2.Buffer)
-    Process.register(self(), __MODULE__)
+  defp checks() do
+    %{
+      repo: :binary
+    }
+  end
+
+  defp start(%{repo: repo}, _) do
+    setup(repo)
+  end
+
+  defp clean(_, _) do
+    :nop
+  end
+
+  alias Applet.Api.Log
+  alias Flex2.Runner
+  alias Flex2.Repo
+
+  defp setup(repo) do
+    # clean tasks, called directly on stop, are explicitly killed
     Process.flag(:trap_exit, true)
-    # fixme: need to track repos death
-    {_root, files} = Repo.register()
+
+    {_pid, _root, files} = Repo.register(repo)
 
     for {path, {enabled, data}} <- files do
       {path, run(path, enabled, data)}
@@ -44,8 +56,12 @@ defmodule Flex2.Daemon do
       {:DOWN, _ref, :process, _pid, _reason} ->
         loop(files)
 
+      # defer task result
+      {ref, _res} when is_reference(ref) ->
+        loop(files)
+
       unexpected ->
-        Log.warn(unexpected: unexpected)
+        Log.warn(module: __MODULE__, unexpected: unexpected)
         loop(files)
     end
   end
