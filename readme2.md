@@ -32,7 +32,9 @@
 # Fixme
 
 - [ ] use daemon clean to wait for all runner defers to complete
-- [ ] no output from script nested entity runner
+- [ ] entity get a different id assigned on each run
+- [ ] make clean calls non re-entrant
+- [x] no output from script nested entity runner
 
 - [ ] Runners clean not being called on applet stop (to restart)
     - no posible to clean super with applet defer (asyncs are killed before defers are awaited)
