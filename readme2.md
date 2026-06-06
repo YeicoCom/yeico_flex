@@ -52,8 +52,6 @@
 - [ ] Modbus devices viewer
 
 - [ ] Secure terminal_cookie
-- [ ] Slogan: Kernel pid terminated (application_controller) ("{application_start_failure,kernel,{{shutdown,{failed_to_start_child,net_sup,{shutdown,{failed_to_start_child,net_kernel,{'EXIT',nodistribution}}}}},{kernel,start,[normal,[]]}}}")
-    - No error gets reported on the web console
 - [ ] log: make script/backend logs show up on web ide and terminal dev console
 - [ ] log: make script/backend children logs show up on web ide and terminal dev console
 - [ ] log: ensure exceptions shows module and fun number
@@ -95,6 +93,10 @@
     - no really relevant?
 - [ ] Drop dockview: custom svelte?
 
+- [x] 10px font too small for linux, berely manageable for macos: moved to 12px.
+- [x] Slogan: Kernel pid terminated (application_controller) ("{application_start_failure,kernel,{{shutdown,{failed_to_start_child,net_sup,{shutdown,{failed_to_start_child,net_kernel,{'EXIT',nodistribution}}}}},{kernel,start,[normal,[]]}}}")
+    - No error gets reported on the web console
+    - pong wait was blocking the stdio loop
 - [-] autoscroll goes to top instead of bottom on non active panel/log-viewer
     - autoscroll off DOM calculation fail
 - [x] Clean before start on first run: kinda non reentrant as well

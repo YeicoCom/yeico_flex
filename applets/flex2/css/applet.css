@@ -4,6 +4,7 @@
 @import "dockview-core/dist/styles/dockview.css";
 
 :root {
+    --flex2-font-size: 12px;
     --flex2-hover-color: #84cc16;
     --flex2-danger-color: #EF4444;
     --flex2-select-color: #84cc16;
@@ -46,11 +47,11 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 .cm-content {
-    font-size: 10px;
+    font-size: var(--flex2-font-size);
 }
 
 .cm-gutterElement {
-    font-size: 10px;
+    font-size: var(--flex2-font-size);
 }
 
 .coder-tab {
@@ -60,7 +61,7 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 .coder-tab-title {
-    font-size: 10px;
+    font-size: var(--flex2-font-size);
 }
 
 .coder-tab-close:hover {
@@ -85,7 +86,7 @@ input[type="range"]::-webkit-slider-thumb {
     height: 100%;
     overflow-y: scroll;
     color: white;
-    font-size: 10px;
+    font-size: var(--flex2-font-size);
     word-break: break-all;
     scrollbar-color: gray black;
     scrollbar-width: thin;
@@ -164,7 +165,7 @@ works for scripts (active on boot) fails for backends (inactive on boot)
 }
 
 .coder-file-panel-title {
-    font-size: 10px;
+    font-size: var(--flex2-font-size);
 }
 
 .coder-file-panel-entry {
@@ -175,7 +176,7 @@ works for scripts (active on boot) fails for backends (inactive on boot)
     padding-bottom: 2px;
     padding-left: 8px;
     padding-right: 8px;
-    font-size: 10px;
+    font-size: var(--flex2-font-size);
     cursor: pointer;
     flex-wrap: nowrap;
     gap: 8px;
