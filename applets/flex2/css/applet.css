@@ -314,3 +314,28 @@ works for scripts (active on boot) fails for backends (inactive on boot)
 input.tp-txtv_i:focus {
     box-shadow: 0 0 0 1px var(--flex2-select-color);
 }
+
+/* only required on linux chrome */
+/* style default scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+::-webkit-scrollbar {
+    width: 0.5em;
+    height: 0.5em;
+}
+
+::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+    border-radius: 0.5em;
+}
+
+::-webkit-scrollbar-thumb {
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+    border-radius: 0.5em;
+}
+
+::-webkit-scrollbar-corner {
+    display: none;
+}
