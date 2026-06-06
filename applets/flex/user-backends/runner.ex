@@ -66,10 +66,10 @@ defmodule Flex.UserBackends.Runner do
     receive do
       {:io_request, from, reply_as, {:put_chars, encoding, line}} ->
         send(from, {:io_reply, reply_as, :ok})
-        lines = :unicode.characters_to_binary(line, encoding, :utf8)
+        # line = :unicode.characters_to_binary(line, encoding, :utf8)
 
-        for line <- String.split(lines, "\n", trim: true) do
-          case String.trim(line) do
+        for line <- String.split(line, "\n", trim: true) do
+          case line do
             "trace " <> tail -> Log.trace(tail)
             "debug " <> tail -> Log.debug(tail)
             "info " <> tail -> Log.info(tail)
