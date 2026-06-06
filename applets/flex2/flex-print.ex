@@ -10,6 +10,14 @@ defmodule Flex2.Print do
     |> Enum.each(&IO.puts/1)
   end
 
+  def nodes() do
+    {:ok, names} = :net_adm.names(~c"127.0.0.1")
+
+    names
+    |> Enum.map(fn {name, port} -> "#{port} #{name}" end)
+    |> Enum.each(&IO.puts/1)
+  end
+
   # Flex2.Print.runners("backend/backend1.exs")
   def runners(id) do
     Applet.Api.Mdb.lookup({Flex2.Runner, id})

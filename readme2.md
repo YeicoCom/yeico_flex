@@ -51,6 +51,9 @@
 - [ ] Socket terminal view
 - [ ] Modbus devices viewer
 
+- [ ] Secure terminal_cookie
+- [ ] Slogan: Kernel pid terminated (application_controller) ("{application_start_failure,kernel,{{shutdown,{failed_to_start_child,net_sup,{shutdown,{failed_to_start_child,net_kernel,{'EXIT',nodistribution}}}}},{kernel,start,[normal,[]]}}}")
+    - No error gets reported on the web console
 - [ ] log: make script/backend logs show up on web ide and terminal dev console
 - [ ] log: make script/backend children logs show up on web ide and terminal dev console
 - [ ] log: ensure exceptions shows module and fun number

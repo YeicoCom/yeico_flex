@@ -25,7 +25,7 @@ defmodule Flex2.Runner do
     Setter.check(:rdms, rdms, {:integer, 0, 65_535})
     Setter.check(:deps, deps, {:list?, nil, :binary})
 
-    hash = Utils.md5(id)
+    hash = hash(id)
 
     context = %{
       id: id,
@@ -53,6 +53,15 @@ defmodule Flex2.Runner do
     Utils.await(task)
     # after proper cleanup, cancel last resource clean up
     Utils.kill(defer)
+  end
+
+  defp hash(id) do
+    # both md5 and uuid are 128 bits
+    # '=' in node names crash dumps with Slogan {'EXIT',nodistribution}
+    <<p1::binary-size(8), p2::binary-size(4), p3::binary-size(4), p4::binary-size(4),
+      p5::binary-size(12)>> = Utils.md5(id)
+
+    "#{p1}-#{p2}-#{p3}-#{p4}-#{p5}" |> ShortUUID.encode!()
   end
 
   # kill any pending clean since clean is the first task to go anyway

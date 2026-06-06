@@ -19,6 +19,7 @@ defmodule Flex2.ElixirBackend do
 
   # do not give a permanent home or clean would need to leave
   # things behind, backends must work on temporary storage only
+  # '=' in node names causes {'EXIT',nodistribution}
   defp start(%{code: code}, %{root: root, hash: hash}) do
     node = "backend_#{hash}"
     libs = Utils.dpath("#{root}/libs")
@@ -71,6 +72,7 @@ defmodule Flex2.ElixirBackend do
     tag = "#{Async.tag()}:elixir"
 
     Async.spawn(tag, fn ->
+      # MuonTrap selected because of exit forwarding to prevent pang wait blocking above
       {_res, code} = MuonTrap.cmd("elixir", args, opts)
       # elixir exits on compile errors before wait on pong returns below
       # explicit process kill on elixir return to avoid infinite loop
@@ -78,7 +80,8 @@ defmodule Flex2.ElixirBackend do
       exit(:kill)
     end)
 
-    wait(node, :pong)
+    # pong wait prevents receiving stdout from a crashed vm
+    # wait(node, :pong)
     Process.put(:pid?, false)
     loop()
     exit(:kill)
