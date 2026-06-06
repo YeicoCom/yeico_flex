@@ -14,6 +14,7 @@ defmodule Flex2.ElixirScript do
   end
 
   defp start(%{code: code}, _) do
+    Process.flag(:trap_exit, true)
     Process.put(:mod?, true)
     evals(code)
   end
@@ -44,9 +45,9 @@ defmodule Flex2.ElixirScript do
         Log.error("pos:#{inspect(p)} compile error #{m}")
     end)
 
-    # default is sleep, scripts are not cron tasks
+    # default is flush blocking, scripts are not cron tasks
     case result do
-      :ok -> Process.sleep(:infinity)
+      :ok -> Utils.flush()
       _ -> Log.error(result)
     end
   end

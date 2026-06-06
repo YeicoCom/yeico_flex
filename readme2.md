@@ -31,9 +31,9 @@
 
 # Log
 
-- Entity.run: safe entity startup for code defined entities
-- Runner.call: each entity call: clean, start
-- Daemon.run: unsafe call to Runner.run
+- Entity.run: unsafe call to Runner.run for code defined entities (let exceptions show in calling log view)
+- Daemon.run: unsafe call to Runner.run (errors here are considered bugs to be tracked and fixed)
+- Runner.call: safe call to each entity callback: clean, start
 - ReactiveLogic: on each fun execution
 - LiveScreen: on each fun execution
 

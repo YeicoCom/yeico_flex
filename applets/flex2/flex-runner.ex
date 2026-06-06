@@ -48,10 +48,13 @@ defmodule Flex2.Runner do
 
   # only call this from same process run was called
   def kill(context = %{task: task, defer: defer}) do
+    # kill the main task
     Utils.kill(task)
+    # requires Process.flag(:trap_exit, true) or clean exit kills back
     task = async(context, "clean", fn -> call(:clean, context) end)
     Utils.await(task)
-    # after proper cleanup, cancel last resource clean up
+    # stop last resource clean after clean completed
+    # defer await parent not the main task
     Utils.kill(defer)
   end
 

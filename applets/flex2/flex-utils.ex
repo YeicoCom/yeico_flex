@@ -105,11 +105,8 @@ defmodule Flex2.Utils do
   def receive(msg), do: receive(do: (^msg -> :ok))
 
   def flush() do
-    receive do
-      _ -> flush()
-    after
-      0 -> :ok
-    end
+    receive()
+    flush()
   end
 
   def flush(toms) do

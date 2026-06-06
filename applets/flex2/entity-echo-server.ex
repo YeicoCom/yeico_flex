@@ -27,7 +27,7 @@ defmodule Flex2.EchoServer do
   end
 
   defp accept(socket = %{port: port}) do
-    Utils.flush()
+    Utils.flush(0)
     {:ok, conn} = Tcp.accept(socket)
     cid = "#{port}:#{conn.peer.ip}:#{conn.peer.port}"
     Log.info("#{cid} accepted")
