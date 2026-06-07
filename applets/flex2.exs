@@ -68,7 +68,9 @@ Flex2.Daemon.new(repo: "repo")
 # |> Flex2.EchoServer.set(port: 40_001)
 # |> Flex2.EchoServer.run(rdms: 2_000)
 
-Flex2.Live.view("/flex2", Flex2.View.handler(path: "/flex2", repo: repo))
+Flex2.Live.view("/flex2", Flex2.View.handler(path: "/flex2", repo: repo), auth?: true)
+Flex2.Live.view("/flex2/", Flex2.View.handler(path: "/flex2/", repo: repo), auth?: true)
+Flex2.Live.view("/flex2/login", Flex2.Login.handler(path: "/flex2/login"))
 
 # if Terminal.dev?(), do: Api.evalf("flex2/dev.exs")
 

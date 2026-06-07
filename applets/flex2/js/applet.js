@@ -33,6 +33,27 @@ const resizeObserver = new ResizeObserver((entries) => {
 // is not called, just the disconnected/reconnected
 // on the server side a single mount with connected? true
 const hooks = {
+    AutoFocus: {
+        mounted() {
+            this.el.focus()
+            // number input does not support selection
+            // submit buttons get detached from form
+            if (this.el.setSelectionRange) {
+                const type = this.el.type
+                this.el.type = "text"
+                const end = this.el.value.length
+                this.el.setSelectionRange(end, end)
+                this.el.type = type
+            }
+        }
+    },
+    Redirect: {
+        mounted() {
+            this.handleEvent("hook:redirect", ({ href }) => {
+                window.location.href = href
+            })
+        }
+    },
     Resize: {
         mounted() {
             const pushSize = (el) => {

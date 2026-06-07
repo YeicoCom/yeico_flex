@@ -11,5 +11,16 @@ defmodule Flex2.Live do
     end
   end
 
-  def view(path, handler), do: Terminal.view(path, handler)
+  def view(path, handler, opts \\ []) do
+    auth? = Keyword.get(opts, :auth?, false)
+    auth = if auth?, do: %{key: :user, check: &check/1}
+    Terminal.view(path, handler, auth: auth)
+  end
+
+  defp check({_path, _query, "admin"}), do: nil
+
+  defp check({path, query, _user}) do
+    to = Base.encode16(if(query, do: "#{path}?#{query}", else: path))
+    "/flex2/login?to=#{to}"
+  end
 end

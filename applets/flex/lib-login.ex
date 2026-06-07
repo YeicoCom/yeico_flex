@@ -7,12 +7,6 @@ defmodule Flex.Login do
     state
   end
 
-  def forward(socket, path, uri) do
-    query = URI.parse(uri).query
-    to = Base.encode16(if(query, do: "#{path}?#{query}", else: path))
-    redirect(socket, to: "/flex/login?to=#{to}")
-  end
-
   def login(socket, state, pass) do
     case Terminal.rconfig("pass") do
       ^pass -> login(socket, state)
