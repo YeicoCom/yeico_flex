@@ -52,6 +52,9 @@
 - [ ] Modbus devices viewer
 
 - [ ] Secure terminal_cookie
+- [ ] Implement terminal login
+- [ ] Terminal cloud home folder contains run and tmp
+- [ ] Document terminal security: salts, cookies, etc..
 - [ ] log: make script/backend logs show up on web ide and terminal dev console
 - [ ] log: make script/backend children logs show up on web ide and terminal dev console
 - [ ] log: ensure exceptions shows module and fun number
