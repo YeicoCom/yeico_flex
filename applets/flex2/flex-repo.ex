@@ -67,6 +67,8 @@ defmodule Flex2.Repo do
 
   defp setup(root) do
     paths = for sub <- @subs, do: Path.join(root, sub)
+    for path <- paths, do: Utils.dpath(path)
+
     # macos has a 0.5s default latency
     {:ok, pid} = FileSystem.start_link(dirs: paths, latency: 0)
     FileSystem.subscribe(pid)
