@@ -31,12 +31,6 @@ defmodule Flex.UserScripts.Code do
         state = Map.put(state, :name, nil)
         state = Map.put(state, :logid, 0)
         state = Map.put(state, :id, nil)
-        state = Login.init(socket, state)
-        {socket, state}
-
-      {:params, socket, state = %{login?: true, user: nil}, params, uri} ->
-        Log.trace(view: path, params: params, uri: uri)
-        socket = Login.forward(socket, path, uri)
         {socket, state}
 
       {:params, socket = %{assigns: %{connected?: connected?}}, state, params = %{"id" => id},

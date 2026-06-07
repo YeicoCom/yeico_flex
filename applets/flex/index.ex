@@ -26,12 +26,6 @@ defmodule Flex.Index do
         socket = assign(socket, page_title: "Home")
         items = Api.subget!("flex:user-screens:items") || []
         state = Map.put(state, :items, filter_enabled(items))
-        state = Login.init(socket, state)
-        {socket, state}
-
-      {:params, socket, state = %{login?: true, user: nil}, params, uri} ->
-        Log.trace(view: path, params: params, uri: uri)
-        socket = Login.forward(socket, path, uri)
         {socket, state}
 
       {:params, socket, state, params, uri} ->

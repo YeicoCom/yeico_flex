@@ -53,8 +53,9 @@
 
 - [ ] Secure terminal_cookie
 - [ ] Implement terminal login
-- [ ] Terminal cloud home folder contains run and tmp
-- [ ] Document terminal security: salts, cookies, etc..
+- [ ] Document terminal security: salts, cookies, secrets, slave shell/bindings, etc..
+- [-] Terminal cloud home folder contains run and tmp: same across fw, dev, and serve
+
 - [ ] log: make script/backend logs show up on web ide and terminal dev console
 - [ ] log: make script/backend children logs show up on web ide and terminal dev console
 - [ ] log: ensure exceptions shows module and fun number

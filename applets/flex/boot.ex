@@ -39,7 +39,7 @@ defmodule Flex.Boot do
     opts = [{:path, path} | opts]
     tag = Process.get(:__tag__)
     Process.put(:__tag__, "view:#{path}")
-    Terminal.view(path, mod.handler(opts))
+    Terminal.view(path, mod.handler(opts), auth: auth(path))
     Process.put(:__tag__, tag)
   end
 
@@ -54,5 +54,21 @@ defmodule Flex.Boot do
     |> Enum.map(fn {_, path} -> path end)
     |> Enum.sort()
     |> Enum.each(&IO.puts/1)
+  end
+
+  defp auth("/flex/login"), do: nil
+  defp auth("/flex/logout"), do: nil
+
+  defp auth(_) do
+    check = fn
+      {path, query, nil} ->
+        to = Base.encode16(if(query, do: "#{path}?#{query}", else: path))
+        "/flex/login?to=#{to}"
+
+      {_path, _query, _user} ->
+        nil
+    end
+
+    %{key: :user, check: check}
   end
 end

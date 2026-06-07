@@ -80,17 +80,11 @@ defmodule Flex.UserScreens.Index do
         state = Map.put(state, :items, Enum.into(items, %{}))
         state = Map.put(state, :index, IUtils.index(items))
         state = Map.put(state, :modal, nil)
-        state = Login.init(socket, state)
 
         case length(state.index) > 0 do
           false -> {socket, IUtils.modal({:add, state})}
           true -> {socket, state}
         end
-
-      {:params, socket, state = %{login?: true, user: nil}, params, uri} ->
-        Log.trace(view: path, params: params, uri: uri)
-        socket = Login.forward(socket, path, uri)
-        {socket, state}
 
       {:params, socket, state, params, uri} ->
         Log.trace(view: path, params: params, uri: uri)
