@@ -24,7 +24,7 @@ defmodule Flex2.Login do
         socket = assign(socket, applet_js: "/applets/flex2.js")
         socket = assign(socket, page_suffix: " · Flex2")
         socket = assign(socket, page_title: "Login")
-        state = Map.put(state, :pass, Terminal.rconfig("pass"))
+        state = Map.put(state, :pass, Terminal.rconfig("pass") || "flex")
         state = Map.put(state, :referer, referer)
         {socket, state}
 

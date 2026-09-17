@@ -8,7 +8,7 @@ defmodule Flex.Login do
   end
 
   def login(socket, state, pass) do
-    case Terminal.rconfig("pass") do
+    case Terminal.rconfig("pass") || "flex" do
       ^pass -> login(socket, state)
       _ -> socket
     end

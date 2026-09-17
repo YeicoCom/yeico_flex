@@ -1,6 +1,6 @@
 # Vision
 
-- Script+backend+view architecture
+- Script + backend + view architecture
 - Fully capable web code editor
 - Concurrent editing capabilities
 - Online entity repository
