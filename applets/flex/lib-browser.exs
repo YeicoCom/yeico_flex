@@ -157,7 +157,7 @@ end
 
 loop = fn args ->
   args.call.()
-  Api.flush(args.delay)
+  Api.flush(toms: args.delay)
   args.loop.(args)
 end
 
