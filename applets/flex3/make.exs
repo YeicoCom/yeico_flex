@@ -10,21 +10,21 @@
 # drop module already defined warnings
 Code.compiler_options(ignore_module_conflict: true)
 
-build = Path.join(assets, "_build")
+prefix = ~c"#{assets}"
 
-build
-|> Path.join("*.beam")
-|> Path.wildcard()
-|> Enum.map(&Path.basename(&1, ".beam"))
-|> Enum.map(&String.to_atom(&1))
-|> Enum.each(fn m ->
-  # puts.("#{route}: purge #{m}")
-  # puts.("#{route}: loaded? #{m} #{Code.loaded?(m)}")
+# only way to unload a using macro that compiled but failed to
+# execute during compilation of a diffent module that used it
+# macros errors may not trigger until they are run
+:code.all_loaded()
+|> Enum.filter(fn {_m, p} -> is_list(p) end)
+|> Enum.filter(fn {_m, p} -> :lists.prefix(prefix, p) end)
+|> Enum.each(fn {m, _p} ->
+  # IO.inspect(m)
   :code.delete(m)
   :code.purge(m)
-  # puts.("#{route}: loaded? #{m} #{Code.loaded?(m)}")
 end)
 
+build = Path.join(assets, "_build")
 File.rm_rf!(build)
 File.mkdir_p!(build)
 

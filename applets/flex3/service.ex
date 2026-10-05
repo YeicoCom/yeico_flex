@@ -21,6 +21,7 @@ defmodule Flex3.Service do
 
       # opts: rdms \\ 0, level, tag
       def run(config, opts \\ []) do
+        config = Map.merge(initial(), config)
         opts = Keyword.put_new(opts, :tag, name(config))
 
         setup = fn config ->
