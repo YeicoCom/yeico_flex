@@ -16,7 +16,7 @@ A micro service library
 - [ ] Live screen service
 - [ ] Service dependencies
 - [ ] Modbus with new command syntax
-- [ ] Check config before run
+- [x] Check config before run
 - [x] Compiler gets stuck on macro errors
 - [x] Compiler loads stalled source code
 - [x] Wait for previous cleanup
