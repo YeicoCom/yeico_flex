@@ -19,7 +19,7 @@ defmodule Flex3.Service do
         end
       end
 
-      # opts: rdms, level, tag
+      # opts: rdms \\ 0, level, tag
       def run(config, opts \\ []) do
         opts = Keyword.put_new(opts, :tag, name(config))
 
@@ -37,7 +37,7 @@ defmodule Flex3.Service do
         Api.await(fn -> [] == Mdb.lookup({:service, par}) end)
       end
 
-      defp clean(clean, arg) do
+      defp clean(clean) do
         caller = self()
         par = Process.get(:__par__)
 
@@ -46,7 +46,7 @@ defmodule Flex3.Service do
           send(caller, :before)
         end
 
-        task = Api.defer(clean, arg, before: before)
+        task = Api.defer(clean, before: before)
         :ok = Api.receive(:before)
       end
     end

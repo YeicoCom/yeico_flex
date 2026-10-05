@@ -22,9 +22,9 @@ defmodule Flex3.EchoServer do
 
   defp setup(%{port: port, ip: ip}) do
     {:ok, socket = %{port: port}} = Tcp.listen(ip, port, active: true)
-    clean(&Tcp.close/1, socket)
+    clean(fn -> Tcp.close(socket) end)
     sid = "echo-server:#{port}:#{ip}"
-    Log.info("#{sid} started")
+    Log.debug("#{sid} started")
     accept(socket)
   end
 
@@ -32,7 +32,7 @@ defmodule Flex3.EchoServer do
     Api.flush(toms: 0)
     {:ok, conn = %{peer: peer}} = Tcp.accept(socket)
     cid = "echo-server:#{port}:#{peer.ip}:#{peer.port}"
-    Log.debug("#{cid} accepted")
+    Log.trace("#{cid} accepted")
     conn = Map.put(conn, :cid, cid)
     task = Api.async(&handle/1, conn, tag: cid)
     Tcp.owner(conn, task)
@@ -46,10 +46,10 @@ defmodule Flex3.EchoServer do
         handle(conn)
 
       {:tcp_closed, ^socket} ->
-        Log.debug("#{cid} closed")
+        Log.trace("#{cid} closed")
 
       unexpected ->
-        Log.debug("#{cid} unexpected #{Api.inspect?(unexpected)}")
+        Log.warn("#{cid} unexpected #{Api.inspect?(unexpected)}")
         # this kills and restarts the server as well
         exit(:kill)
     end
