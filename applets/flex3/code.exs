@@ -13,6 +13,8 @@ Api.path()
 |> Enum.map(&Path.basename(&1, ".beam"))
 |> Enum.map(&String.to_atom(&1))
 |> Enum.each(fn m ->
+  # The BEAM runtime can hold exactly two versions of a module in memory at any given time
+  :code.purge(m)
   :code.purge(m)
   :code.load_file(m)
 end)

@@ -1,6 +1,6 @@
 defmodule Flex3.EchoServer do
   use Flex3.Service
-  alias Applet.Api.Tcp
+  use Terminal
 
   defp initial() do
     %{
@@ -22,7 +22,7 @@ defmodule Flex3.EchoServer do
 
   defp setup(%{port: port, ip: ip}) do
     {:ok, socket = %{port: port}} = Tcp.listen(ip, port, active: true)
-    Api.defer(&Tcp.close/1, socket)
+    clean(&Tcp.close/1, socket)
     sid = "echo-server:#{port}:#{ip}"
     Log.info("#{sid} started")
     accept(socket)
@@ -49,7 +49,7 @@ defmodule Flex3.EchoServer do
         Log.debug("#{cid} closed")
 
       unexpected ->
-        Log.debug("#{cid} unexpected #{inspect?(unexpected)}")
+        Log.debug("#{cid} unexpected #{Api.inspect?(unexpected)}")
         # this kills and restarts the server as well
         exit(:kill)
     end

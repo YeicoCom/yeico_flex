@@ -1,5 +1,5 @@
 defmodule Flex3.Check do
-  import Flex3.Log, only: [inspect?: 1]
+  alias Applet.Api
 
   def check(name, value, :any) when is_nil(value), do: abort(name, value, "any required")
   def check(_name, _value, :any), do: :ok
@@ -8,12 +8,12 @@ defmodule Flex3.Check do
   def check(_name, value, {:ge, limit}) when value >= limit, do: :ok
 
   def check(name, value, {:ge, limit}),
-    do: abort(name, value, ">= #{inspect?(limit)} required")
+    do: abort(name, value, ">= #{Api.inspect?(limit)} required")
 
   def check(_name, value, {:le, limit}) when value <= limit, do: :ok
 
   def check(name, value, {:le, limit}),
-    do: abort(name, value, "<= #{inspect?(limit)} required")
+    do: abort(name, value, "<= #{Api.inspect?(limit)} required")
 
   def check(_name, value, :integer) when is_integer(value), do: :ok
   def check(name, value, :integer), do: abort(name, value, "integer required")
@@ -63,7 +63,7 @@ defmodule Flex3.Check do
 
   def check(name, value, {:in, list}) do
     if value not in list do
-      abort(name, value, "not in #{inspect?(list)}")
+      abort(name, value, "not in #{Api.inspect?(list)}")
     end
   end
 

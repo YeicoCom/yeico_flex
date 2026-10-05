@@ -10,6 +10,8 @@ build
 |> Enum.map(&String.to_atom(&1))
 |> Enum.each(fn m ->
   # puts.("#{route}: purge #{m}")
+  # The BEAM runtime can hold exactly two versions of a module in memory at any given time
+  :code.purge(m)
   :code.purge(m)
 end)
 

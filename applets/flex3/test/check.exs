@@ -1,10 +1,9 @@
 use Terminal
-import Flex3.Log, only: [inspect?: 1]
 
 check = fn args, expected ->
   try do
     apply(Flex3.Check, :check, args)
-    if !is_nil(expected), do: raise(inspect?({args, expected}))
+    if !is_nil(expected), do: raise(Api.inspect?({args, expected}))
   catch
     e ->
       # Api.warn(e: e, args: args, expected: expected)

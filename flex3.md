@@ -11,5 +11,5 @@ A micro service library
 
 ## Fixme
 
-- [ ] Wait for defer
-- [x] Check test
+- [x] Wait for previous cleanup
+- [x] Check testing

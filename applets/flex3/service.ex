@@ -1,45 +1,54 @@
 defmodule Flex3.Service do
   defmacro __using__(_) do
     quote do
-      use Terminal
-      alias Flex3.Log
-      alias Flex3.Service
-      import Flex3.Log, only: [inspect?: 1]
+      alias Flex3.Check
+      alias Applet.Api
+      alias Applet.Api.Mdb
 
-      def new(opts \\ []),
-        do: Service.set(checks(), initial(), opts)
+      def new(opts \\ []), do: set(initial(), opts)
 
-      def set(config, opts),
-        do: Service.set(checks(), config, opts)
+      def set(config, opts) do
+        checks = checks()
+
+        for {name, value} <- opts, reduce: config do
+          config ->
+            params = checks[name]
+            if !params, do: Check.abort(name, value, "not found")
+            Check.check(name, value, params)
+            Map.put(config, name, value)
+        end
+      end
 
       # opts: rdms, level, tag
-      def run(config, opts \\ []),
-        do: Service.run(&name/1, &setup/1, config, opts)
+      def run(config, opts \\ []) do
+        opts = Keyword.put_new(opts, :tag, name(config))
 
-      def kill(task),
-        do: Service.kill(task)
+        setup = fn config ->
+          par = Process.get(:__par__)
+          Api.await(fn -> [] == Mdb.lookup({:service, par}) end)
+          setup(config)
+        end
+
+        Api.loop(setup, config, opts)
+      end
+
+      def kill(task = %{pid: par}) do
+        Api.kill(task)
+        Api.await(fn -> [] == Mdb.lookup({:service, par}) end)
+      end
+
+      defp clean(clean, arg) do
+        caller = self()
+        par = Process.get(:__par__)
+
+        before = fn ->
+          Mdb.register!({:service, par}, caller)
+          send(caller, :before)
+        end
+
+        task = Api.defer(clean, arg, before: before)
+        :ok = Api.receive(:before)
+      end
     end
-  end
-
-  use Terminal
-  alias Flex3.Check
-
-  def set(checks, config, opts) do
-    for {name, value} <- opts, reduce: config do
-      config ->
-        params = checks[name]
-        if !params, do: Check.abort(name, value, "not found")
-        Check.check(name, value, params)
-        Map.put(config, name, value)
-    end
-  end
-
-  def run(name, setup, config, opts) do
-    opts = Keyword.put_new(opts, :tag, name.(config))
-    Api.loop(setup, config, opts)
-  end
-
-  def kill(task) do
-    Api.kill(task)
   end
 end
