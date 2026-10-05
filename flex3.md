@@ -11,5 +11,6 @@ A micro service library
 
 ## Fixme
 
+- [x] Compiler loads stalled source code
 - [x] Wait for previous cleanup
 - [x] Check testing
