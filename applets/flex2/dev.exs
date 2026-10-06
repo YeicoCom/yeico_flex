@@ -1,12 +1,12 @@
 use Terminal
 
-Flex2.ElixirScript.new()
-|> Flex2.ElixirScript.set(code: "")
-|> Flex2.ElixirScript.run(rdms: 2_000)
+Flex.ElixirScript.new()
+|> Flex.ElixirScript.set(code: "")
+|> Flex.ElixirScript.run(rdms: 2_000)
 
-Flex2.ReactiveLogic.new()
-|> Flex2.ReactiveLogic.set(map: "adb")
-|> Flex2.ReactiveLogic.add(
+Flex.ReactiveLogic.new()
+|> Flex.ReactiveLogic.set(map: "adb")
+|> Flex.ReactiveLogic.add(
   fn ctx = %{inputs: %{c: c}} ->
     if rem(c, 3) == 2, do: ctx.put.("dev:point", c)
     # if rem(c, 5) == 3, do: throw("hi")
@@ -16,20 +16,20 @@ Flex2.ReactiveLogic.new()
   b: {:point, "dev:point"},
   c: {:timer, 1000}
 )
-|> Flex2.ReactiveLogic.run(deps: ["adb"])
+|> Flex.ReactiveLogic.run(deps: ["adb"])
 
-Flex2.LiveScreen.new()
-|> Flex2.LiveScreen.set(map: "adb")
-|> Flex2.LiveScreen.set(path: "/")
-|> Flex2.LiveScreen.set(title: "LS1")
-|> Flex2.LiveScreen.set(style: "background-color: gray;")
-|> Flex2.LiveScreen.set(width: 80, height: 60)
-|> Flex2.LiveScreen.add(
+Flex.LiveScreen.new()
+|> Flex.LiveScreen.set(map: "adb")
+|> Flex.LiveScreen.set(path: "/")
+|> Flex.LiveScreen.set(title: "LS1")
+|> Flex.LiveScreen.set(style: "background-color: gray;")
+|> Flex.LiveScreen.set(width: 80, height: 60)
+|> Flex.LiveScreen.add(
   [2, 1],
   fn
     ctx = %{event: :render, assigns: assigns} ->
       # ctx.debug.(event: ctx.event, inputs: ctx.inputs, state: ctx.state)
-      use Flex2.Live
+      use Flex.Live
 
       # if rem(c, 3) == 1, do: throw("hi")
       assigns = Map.put(assigns, :b, ctx.state.b)
@@ -52,6 +52,6 @@ Flex2.LiveScreen.new()
   b: {:point, "dev:point"},
   c: {:timer, 1000}
 )
-|> Flex2.LiveScreen.run(deps: ["adb"])
+|> Flex.LiveScreen.run(deps: ["adb"])
 
 :ok

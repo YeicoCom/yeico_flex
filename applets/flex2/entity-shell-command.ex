@@ -1,5 +1,5 @@
-defmodule Flex2.ShellCommand do
-  use Flex2.Entity
+defmodule Flex.ShellCommand do
+  use Flex.Entity
 
   defp initial() do
     %{
@@ -30,7 +30,7 @@ defmodule Flex2.ShellCommand do
   end
 
   defp exec(cmd, e2o?, o2l?, root) do
-    opts = [stderr_to_stdout: e2o?, env: [{"FLEX2_RUN", root}], close_stdin: true]
+    opts = [stderr_to_stdout: e2o?, env: [{"FLEX_RUN", root}], close_stdin: true]
     {out, es} = System.shell(cmd, opts)
     if o2l?, do: Log.trace(String.trim_trailing(out, "\n"))
     if o2l?, do: Log.trace(exit: es)

@@ -1,5 +1,5 @@
-defmodule Flex2.SerialExport do
-  use Flex2.Entity
+defmodule Flex.SerialExport do
+  use Flex.Entity
 
   defp initial() do
     %{

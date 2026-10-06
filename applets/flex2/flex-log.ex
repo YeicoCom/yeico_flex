@@ -1,6 +1,6 @@
-defmodule Flex2.Log do
+defmodule Flex.Log do
   use Terminal
-  alias Flex2.Async
+  alias Flex.Async
 
   # https://hexdocs.pm/elixir/Inspect.Opts.html
   @inspect [limit: :infinity, printable_limit: :infinity, width: :infinity]

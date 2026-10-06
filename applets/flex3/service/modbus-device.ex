@@ -1,4 +1,4 @@
-defmodule Flex3.ModbusDevice do
+defmodule Flex.ModbusDevice do
   @initial %{
     name: nil,
     ip: "127.0.0.1",
@@ -17,7 +17,7 @@ defmodule Flex3.ModbusDevice do
     points: {:list, nil, :any}
   }
 
-  use Flex3.Service
+  use Flex.Service
   use Terminal
 
   defp name(%{port: port, ip: ip, proto: proto, name: name}),
@@ -125,10 +125,10 @@ defmodule Flex3.ModbusDevice do
     key = "source:status:#{name}"
 
     case status do
-      "disabled" -> Flex3.Points.put_value(key, 0)
-      "starting" -> Flex3.Points.put_value(key, 1)
-      "started" -> Flex3.Points.put_value(key, 2)
-      "error" -> Flex3.Points.put_value(key, 3)
+      "disabled" -> Flex.Points.put_value(key, 0)
+      "starting" -> Flex.Points.put_value(key, 1)
+      "started" -> Flex.Points.put_value(key, 2)
+      "error" -> Flex.Points.put_value(key, 3)
     end
   end
 end

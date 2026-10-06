@@ -1,5 +1,5 @@
-defmodule Flex2.Daemon do
-  use Flex2.Entity
+defmodule Flex.Daemon do
+  use Flex.Entity
 
   defp initial() do
     %{
@@ -22,8 +22,8 @@ defmodule Flex2.Daemon do
   end
 
   alias Applet.Api.Log
-  alias Flex2.Runner
-  alias Flex2.Repo
+  alias Flex.Runner
+  alias Flex.Repo
 
   defp setup(repo) do
     # clean tasks, called directly on stop, are explicitly killed
@@ -77,6 +77,6 @@ defmodule Flex2.Daemon do
     Runner.run(module, entity, path, log: {:daemon, path})
   end
 
-  defp modname("script/" <> name), do: {Flex2.ElixirScript, name}
-  defp modname("backend/" <> name), do: {Flex2.ElixirBackend, name}
+  defp modname("script/" <> name), do: {Flex.ElixirScript, name}
+  defp modname("backend/" <> name), do: {Flex.ElixirBackend, name}
 end

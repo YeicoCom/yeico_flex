@@ -1,4 +1,4 @@
-defmodule Flex3.EchoServer do
+defmodule Flex.EchoServer do
   @initial %{
     ip: "127.0.0.1",
     port: 0
@@ -9,7 +9,7 @@ defmodule Flex3.EchoServer do
     ip: {:in, ["127.0.0.1", "0.0.0.0"]}
   }
 
-  use Flex3.Service
+  use Flex.Service
   use Terminal
 
   defp name(%{port: port, ip: ip}), do: "echo-server:#{port}:#{ip}"

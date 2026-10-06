@@ -1,4 +1,4 @@
-defmodule Flex2.Script.Utils do
+defmodule Flex.Script.Utils do
   # https://hexdocs.pm/elixir/Inspect.Opts.html
   @inspect [limit: :infinity, printable_limit: :infinity, width: :infinity]
 
@@ -9,11 +9,11 @@ defmodule Flex2.Script.Utils do
   def inspect?(term), do: inspect(term, @inspect)
 end
 
-defmodule Flex2.Script do
+defmodule Flex.Script do
   defmacro __using__(_) do
     quote do
-      use Flex2.Live
-      alias Flex2.Script.Utils
+      use Flex.Live
+      alias Flex.Script.Utils
     end
   end
 end

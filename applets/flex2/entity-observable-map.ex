@@ -1,5 +1,5 @@
-defmodule Flex2.ObservableMap do
-  use Flex2.Entity
+defmodule Flex.ObservableMap do
+  use Flex.Entity
   alias Applet.Api.Bus
 
   def put(pid_or_name, key, value) do

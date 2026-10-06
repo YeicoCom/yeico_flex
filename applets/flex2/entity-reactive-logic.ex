@@ -1,5 +1,5 @@
-defmodule Flex2.ReactiveLogic do
-  use Flex2.Entity
+defmodule Flex.ReactiveLogic do
+  use Flex.Entity
 
   def add(entity, fun, args \\ []) do
     Setter.check("fun", fun, {:fun, 1})
@@ -48,8 +48,8 @@ defmodule Flex2.ReactiveLogic do
               Map.put(inputs, arg, const)
 
             {:point, point} ->
-              Flex2.ObservableMap.subscribe!(map, point, arg)
-              val = Flex2.ObservableMap.get(pid, point)
+              Flex.ObservableMap.subscribe!(map, point, arg)
+              val = Flex.ObservableMap.get(pid, point)
               Map.put(inputs, arg, val)
 
             {:timer, ms} ->
@@ -73,7 +73,7 @@ defmodule Flex2.ReactiveLogic do
         info: &log.(:info, &1),
         warn: &log.(:warn, &1),
         error: &log.(:error, &1),
-        put: &Flex2.ObservableMap.put(pid, &1, &2)
+        put: &Flex.ObservableMap.put(pid, &1, &2)
       }
     end
 
@@ -109,7 +109,7 @@ defmodule Flex2.ReactiveLogic do
         inputs = Map.update(inputs, arg, 1, &(&1 + 1))
         loop(fun, ctx, inputs, state, index, {:timer, arg})
 
-      {{Flex2.ObservableMap, _name, _point}, arg, val} ->
+      {{Flex.ObservableMap, _name, _point}, arg, val} ->
         inputs = Map.put(inputs, arg, val)
         loop(fun, ctx, inputs, state, index, {:point, arg})
 

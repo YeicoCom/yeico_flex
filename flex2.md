@@ -61,11 +61,11 @@
 - [ ] log: ensure exceptions shows module and fun number
 - [ ] log: capture all script stdio
 - [ ] implement screen browser and embedded viewer
-- [ ] applet: runner supervisor to register a timestamp for Flex2.Print.tasks
+- [ ] applet: runner supervisor to register a timestamp for Flex.Print.tasks
 - [ ] applet: all applets must restart if a dep is restarted (mdb, udb, ...)
     -  terminal restarts if applet app does? 
     -  mmm... terminal and applet app supers are one_for_one!
-- [ ] Flex2.Live.view to register and broadcast path
+- [ ] Flex.Live.view to register and broadcast path
 
 - [ ] ensure correctness of buffered logs
     - may lose at start or end of execution

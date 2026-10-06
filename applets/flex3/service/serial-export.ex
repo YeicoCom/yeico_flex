@@ -1,4 +1,4 @@
-defmodule Flex3.SerialExport do
+defmodule Flex.SerialExport do
   @initial %{
     tty: nil,
     bits: "8n1",
@@ -15,7 +15,7 @@ defmodule Flex3.SerialExport do
     ip: {:in, ["127.0.0.1", "0.0.0.0"]}
   }
 
-  use Flex3.Service
+  use Flex.Service
   use Terminal
 
   defp name(%{tty: tty, port: port, ip: ip}), do: "serial-export:#{tty}:#{port}:#{ip}"

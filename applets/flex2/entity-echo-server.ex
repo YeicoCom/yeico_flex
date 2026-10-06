@@ -1,5 +1,5 @@
-defmodule Flex2.EchoServer do
-  use Flex2.Entity
+defmodule Flex.EchoServer do
+  use Flex.Entity
   alias Applet.Api.Tcp
 
   defp initial() do

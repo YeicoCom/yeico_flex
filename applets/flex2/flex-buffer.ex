@@ -1,5 +1,5 @@
-defmodule Flex2.Buffer do
-  use Flex2.Entity
+defmodule Flex.Buffer do
+  use Flex.Entity
 
   defp initial() do
     %{
@@ -23,8 +23,8 @@ defmodule Flex2.Buffer do
 
   alias Applet.Api.Log
   alias Applet.Api.Bus
-  alias Flex2.Utils
-  alias Flex2.Repo
+  alias Flex.Utils
+  alias Flex.Repo
 
   def register(name) do
     pid = Utils.whereis(name)

@@ -1,5 +1,5 @@
-defmodule Flex2.Setter do
-  alias Flex2.Log
+defmodule Flex.Setter do
+  alias Flex.Log
 
   def set(entity, name, value, checks) when is_map(checks) do
     params = checks[name]

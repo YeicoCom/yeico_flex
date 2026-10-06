@@ -1,5 +1,5 @@
-defmodule Flex2.ElixirBackend do
-  use Flex2.Entity
+defmodule Flex.ElixirBackend do
+  use Flex.Entity
 
   defp initial() do
     %{
@@ -23,7 +23,7 @@ defmodule Flex2.ElixirBackend do
   defp start(%{code: code}, %{root: root, hash: hash}) do
     node = "backend_#{hash}"
     libs = Utils.dpath("#{root}/libs")
-    beams = Utils.path("flex2/_build/Elixir.Flex2.Backend*.beam")
+    beams = Utils.path("flex2/_build/Elixir.Flex.Backend*.beam")
     System.shell("rsync -avr --delete #{beams} #{libs}/ebin/")
     path = Utils.fpath("#{root}/backend.exs")
     File.write!(path, code)
@@ -50,10 +50,10 @@ defmodule Flex2.ElixirBackend do
       # {"LANG", "en_US.UTF-8"},
       # {"LC_ALL", "en_US.UTF-8"},
       # {"ELIXIR_ERL_OPTIONS", "+fnu"},
-      {"FLEX2_MASTER", Node.self() |> to_string()},
-      {"FLEX2_HOST", hostname},
-      {"FLEX2_SCRIPT", path},
-      {"FLEX2_HOME", home},
+      {"FLEX_MASTER", Node.self() |> to_string()},
+      {"FLEX_HOST", hostname},
+      {"FLEX_SCRIPT", path},
+      {"FLEX_HOME", home},
       {"ERL_LIBS", libs}
     ]
 

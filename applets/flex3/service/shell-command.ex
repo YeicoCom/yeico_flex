@@ -1,4 +1,4 @@
-defmodule Flex3.ShellCommand do
+defmodule Flex.ShellCommand do
   @initial %{
     id: nil,
     run: nil,
@@ -15,7 +15,7 @@ defmodule Flex3.ShellCommand do
     o2l?: :boolean
   }
 
-  use Flex3.Service
+  use Flex.Service
   use Terminal
 
   defp name(%{id: id}), do: "shell-command:#{id}"
@@ -34,7 +34,7 @@ defmodule Flex3.ShellCommand do
   # nohup is required to fully disowns and detaches
   defp exec(cmd, e2o?, o2l?, dir, header) do
     if o2l?, do: Log.debug(header)
-    opts = [stderr_to_stdout: e2o?, env: [{"FLEX3_RUN", dir}], close_stdin: true]
+    opts = [stderr_to_stdout: e2o?, env: [{"FLEX_RUN", dir}], close_stdin: true]
     {out, exit_code} = System.shell(cmd, opts)
     if o2l?, do: Log.trace(String.trim_trailing(out, "\n"))
     if o2l?, do: Log.trace(exit_code: exit_code)

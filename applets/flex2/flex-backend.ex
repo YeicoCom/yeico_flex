@@ -1,4 +1,4 @@
-defmodule Flex2.Backend.Log do
+defmodule Flex.Backend.Log do
   @opts [limit: :infinity, printable_limit: :infinity, width: :infinity]
 
   def trace(msg), do: log("trace", msg)
@@ -18,7 +18,7 @@ defmodule Flex2.Backend.Log do
   end
 end
 
-defmodule Flex2.Backend.Utils do
+defmodule Flex.Backend.Utils do
   # https://hexdocs.pm/elixir/Inspect.Opts.html
   @inspect [limit: :infinity, printable_limit: :infinity, width: :infinity]
 
@@ -29,18 +29,18 @@ defmodule Flex2.Backend.Utils do
   def inspect?(term), do: inspect(term, @inspect)
 end
 
-defmodule Flex2.Backend.Environ do
-  def hostname(), do: System.get_env("FLEX2_HOST")
-  def master(), do: System.get_env("FLEX2_MASTER")
-  def home(), do: System.get_env("FLEX2_HOME")
+defmodule Flex.Backend.Environ do
+  def hostname(), do: System.get_env("FLEX_HOST")
+  def master(), do: System.get_env("FLEX_MASTER")
+  def home(), do: System.get_env("FLEX_HOME")
 end
 
-defmodule Flex2.Backend do
+defmodule Flex.Backend do
   defmacro __using__(_) do
     quote do
-      alias Flex2.Backend.Log
-      alias Flex2.Backend.Utils
-      alias Flex2.Backend.Environ
+      alias Flex.Backend.Log
+      alias Flex.Backend.Utils
+      alias Flex.Backend.Environ
     end
   end
 end

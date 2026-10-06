@@ -1,11 +1,11 @@
-defmodule Flex2.Login do
-  use Flex2.Live
+defmodule Flex.Login do
+  use Flex.Live
 
   defp view(assigns) do
     ~H"""
     <div id="login_view" class="flex flex-col items-center justify-center h-screen gap-4" phx-hook="Redirect">
       <image src="/applets/logo.svg" class="h-20"/>
-      <div class="text-3xl text-white">Flex2 Login</div>
+      <div class="text-3xl text-white">Flex Login</div>
       <form id="login_form" phx-submit="submit:login" class="flex flex-col"
         phx-update="ignore" autocomplete="off">
         <input name="pass" type="password" required id="modal_autofocus" phx-hook="AutoFocus"
@@ -22,7 +22,7 @@ defmodule Flex2.Login do
         referer = Base.decode16!(params["to"] || "2F666C657832")
         socket = assign(socket, applet_css: "/applets/flex2.css")
         socket = assign(socket, applet_js: "/applets/flex2.js")
-        socket = assign(socket, page_suffix: " · Flex2")
+        socket = assign(socket, page_suffix: " · Flex")
         socket = assign(socket, page_title: "Login")
         state = Map.put(state, :pass, Terminal.rconfig("pass") || "flex")
         state = Map.put(state, :referer, referer)

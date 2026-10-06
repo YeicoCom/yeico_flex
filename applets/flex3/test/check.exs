@@ -2,7 +2,7 @@ use Terminal
 
 check = fn args, expected ->
   try do
-    apply(Flex3.Check, :check, args)
+    apply(Flex.Check, :check, args)
     if !is_nil(expected), do: raise(Api.inspect?({args, expected}))
   catch
     e ->

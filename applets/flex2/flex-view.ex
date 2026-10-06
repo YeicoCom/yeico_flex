@@ -1,7 +1,7 @@
-defmodule Flex2.View do
+defmodule Flex.View do
   use Terminal.Live
-  alias Flex2.Repo
-  alias Flex2.Buffer
+  alias Flex.Repo
+  alias Flex.Buffer
 
   # update ignore or blank screen on reconnected
   defp view(assigns) do
@@ -25,7 +25,7 @@ defmodule Flex2.View do
         connected? = assigns.connected?
         socket = assign(socket, applet_css: "/applets/flex2.css")
         socket = assign(socket, applet_js: "/applets/flex2.js")
-        socket = assign(socket, page_suffix: " · Flex2")
+        socket = assign(socket, page_suffix: " · Flex")
         socket = assign(socket, page_title: "Home")
         state = Map.put(state, :connected?, connected?)
         state = Map.put(state, :tzoffset, tzoffset)
@@ -40,7 +40,7 @@ defmodule Flex2.View do
               list =
                 for log = %{stamp: stamp} <- list, reduce: [] do
                   list ->
-                    log = %{log | stamp: Flex2.Log.stamp(tzoffset, stamp)}
+                    log = %{log | stamp: Flex.Log.stamp(tzoffset, stamp)}
                     [log | list]
                 end
 
@@ -90,7 +90,7 @@ defmodule Flex2.View do
         {socket, state}
 
       {:info, socket, state = %{tzoffset: tzoffset}, {:buffer, _, {id, stamp, path, level, msg}}} ->
-        stamp = Flex2.Log.stamp(tzoffset, stamp)
+        stamp = Flex.Log.stamp(tzoffset, stamp)
         log = %{id: id, stamp: stamp, path: path, level: level, msg: msg}
         socket = push_event(socket, "hook:log", log)
         {socket, state}

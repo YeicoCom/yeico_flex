@@ -1,4 +1,4 @@
-defmodule Flex3.ModbusSlave do
+defmodule Flex.ModbusSlave do
   @initial %{
     key: nil,
     proto: "TCP",
@@ -13,7 +13,7 @@ defmodule Flex3.ModbusSlave do
     ip: {:in, ["127.0.0.1", "0.0.0.0"]}
   }
 
-  use Flex3.Service
+  use Flex.Service
   use Terminal
 
   defp name(%{port: port, ip: ip, proto: proto}), do: "modbus-slave:#{port}:#{ip}:#{proto}"

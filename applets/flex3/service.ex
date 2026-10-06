@@ -1,7 +1,7 @@
-defmodule Flex3.Service do
+defmodule Flex.Service do
   defmacro __using__(_) do
     quote do
-      alias Flex3.Check
+      alias Flex.Check
       alias Applet.Api
       alias Applet.Api.Mdb
 

@@ -1,4 +1,4 @@
-defmodule Flex3.Print do
+defmodule Flex.Print do
   def tasks() do
     Applet.print_tree("flex3.exs")
   end

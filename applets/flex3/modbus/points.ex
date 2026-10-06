@@ -1,5 +1,5 @@
 defmodule Modbus.Points do
-  alias Flex3.Points
+  alias Flex.Points
 
   def accessors(point = %{names: names}) do
     %{dir: dir, type: type} = dirtype(point)

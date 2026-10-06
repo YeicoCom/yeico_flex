@@ -1,6 +1,6 @@
 check = fn args, expected ->
   try do
-    apply(Flex2.Setter, :check, args)
+    apply(Flex.Setter, :check, args)
     if !is_nil(expected), do: throw({args, expected})
   catch
     e ->

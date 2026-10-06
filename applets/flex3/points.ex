@@ -1,4 +1,4 @@
-defmodule Flex3.Points do
+defmodule Flex.Points do
   use Applet.Alias
 
   def get_key(dir, type, name) do

@@ -1,12 +1,12 @@
-defmodule Flex2.Entity do
+defmodule Flex.Entity do
   defmacro __using__(_) do
     quote do
-      alias Flex2.Entity
-      alias Flex2.Setter
-      alias Flex2.Utils
-      alias Flex2.Async
-      alias Flex2.Live
-      alias Flex2.Log
+      alias Flex.Entity
+      alias Flex.Setter
+      alias Flex.Utils
+      alias Flex.Async
+      alias Flex.Live
+      alias Flex.Log
 
       def new(opts \\ []), do: Setter.set(__MODULE__, initial(), opts)
       def set(entity, opts), do: Setter.set(__MODULE__, entity, opts)
@@ -18,8 +18,8 @@ defmodule Flex2.Entity do
     end
   end
 
-  alias Flex2.Runner
-  alias Flex2.Utils
+  alias Flex.Runner
+  alias Flex.Utils
 
   def run(module, entity, opts \\ []) do
     module.set(entity, Map.merge(module.new(), entity))

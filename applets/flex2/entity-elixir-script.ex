@@ -1,5 +1,5 @@
-defmodule Flex2.ElixirScript do
-  use Flex2.Entity
+defmodule Flex.ElixirScript do
+  use Flex.Entity
 
   defp initial() do
     %{

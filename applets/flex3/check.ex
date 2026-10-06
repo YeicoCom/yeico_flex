@@ -1,4 +1,4 @@
-defmodule Flex3.Check do
+defmodule Flex.Check do
   alias Applet.Api
 
   def check(name, value, :any) when is_nil(value), do: abort(name, value, "any required")

@@ -1,4 +1,4 @@
-defmodule Flex2.Utils do
+defmodule Flex.Utils do
   # https://hexdocs.pm/elixir/Inspect.Opts.html
   @inspect [limit: :infinity, printable_limit: :infinity, width: :infinity]
 
@@ -60,7 +60,7 @@ defmodule Flex2.Utils do
     # Process.demonitor(pid)
   end
 
-  # for Flex2.Cli
+  # for Flex.Cli
   def kill?(name) do
     case whereis?(name) do
       nil ->
@@ -130,7 +130,7 @@ defmodule Flex2.Utils do
     end
   end
 
-  # for Flex2.Cli
+  # for Flex.Cli
   def whereis?(name) when is_binary(name) do
     case Applet.Api.Udb.lookup({:entity, name}) do
       [{pid, _}] -> pid

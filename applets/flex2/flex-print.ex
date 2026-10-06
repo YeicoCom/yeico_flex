@@ -1,4 +1,4 @@
-defmodule Flex2.Print do
+defmodule Flex.Print do
   def tasks() do
     Applet.print_tree("flex2.exs")
   end
@@ -18,9 +18,9 @@ defmodule Flex2.Print do
     |> Enum.each(&IO.puts/1)
   end
 
-  # Flex2.Print.runners("backend/backend1.exs")
+  # Flex.Print.runners("backend/backend1.exs")
   def runners(id) do
-    Applet.Api.Mdb.lookup({Flex2.Runner, id})
+    Applet.Api.Mdb.lookup({Flex.Runner, id})
     |> Enum.map(fn {pid, payload} -> [{:pid, pid} | payload] end)
     |> Enum.each(&IO.inspect/1)
   end

@@ -27,54 +27,54 @@ Adb.reset()
 # ~/.terminal/dev/flex2/repo
 repo = Terminal.dpath("@home/flex2/repo")
 
-Flex2.Repo.new(root: repo)
-|> Flex2.Repo.run(name: "repo")
+Flex.Repo.new(root: repo)
+|> Flex.Repo.run(name: "repo")
 
-Flex2.Buffer.new(repo: "repo")
-|> Flex2.Buffer.run(name: "buffer", deps: ["repo"])
+Flex.Buffer.new(repo: "repo")
+|> Flex.Buffer.run(name: "buffer", deps: ["repo"])
 
-Flex2.Daemon.new(repo: "repo")
-|> Flex2.Daemon.run(name: "daemon", deps: ["buffer"])
+Flex.Daemon.new(repo: "repo")
+|> Flex.Daemon.run(name: "daemon", deps: ["buffer"])
 
-# Flex2.ObservableMap.new()
-# |> Flex2.ObservableMap.run(name: "adb")
+# Flex.ObservableMap.new()
+# |> Flex.ObservableMap.run(name: "adb")
 
-# Flex2.ShellCommand.new()
-# |> Flex2.ShellCommand.set(
+# Flex.ShellCommand.new()
+# |> Flex.ShellCommand.set(
 #   run: """
 #   sudo socat -d -d pty,link=/tmp/tty.socat.A pty,link=/tmp/tty.socat.B &
-#   echo $! > $FLEX2_RUN/socat.pid
+#   echo $! > $FLEX_RUN/socat.pid
 #   """
 # )
-# |> Flex2.ShellCommand.set(
+# |> Flex.ShellCommand.set(
 #   kill: """
 #   # do not use -9 or sudo wont kill child socat process
-#   [ -f $FLEX2_RUN/socat.pid ] && sudo kill $(cat $FLEX2_RUN/socat.pid)
+#   [ -f $FLEX_RUN/socat.pid ] && sudo kill $(cat $FLEX_RUN/socat.pid)
 #   """
 # )
-# |> Flex2.ShellCommand.run(rdms: 2_000)
+# |> Flex.ShellCommand.run(rdms: 2_000)
 
-# Flex2.SerialExport.new()
-# |> Flex2.SerialExport.set(tty: "/tmp/tty.socat.A")
-# |> Flex2.SerialExport.set(port: 4_001)
-# |> Flex2.SerialExport.run(rdms: 2_000)
+# Flex.SerialExport.new()
+# |> Flex.SerialExport.set(tty: "/tmp/tty.socat.A")
+# |> Flex.SerialExport.set(port: 4_001)
+# |> Flex.SerialExport.run(rdms: 2_000)
 
-# Flex2.SerialExport.new()
-# |> Flex2.SerialExport.set(tty: "/tmp/tty.socat.B")
-# |> Flex2.SerialExport.set(port: 4_002)
-# |> Flex2.SerialExport.run(rdms: 2_000)
+# Flex.SerialExport.new()
+# |> Flex.SerialExport.set(tty: "/tmp/tty.socat.B")
+# |> Flex.SerialExport.set(port: 4_002)
+# |> Flex.SerialExport.run(rdms: 2_000)
 
-# Flex2.EchoServer.new()
-# |> Flex2.EchoServer.set(port: 40_001)
-# |> Flex2.EchoServer.run(rdms: 2_000)
+# Flex.EchoServer.new()
+# |> Flex.EchoServer.set(port: 40_001)
+# |> Flex.EchoServer.run(rdms: 2_000)
 
-Flex2.Live.view("/flex2", Flex2.View.handler(path: "/flex2", repo: repo), auth?: true)
-Flex2.Live.view("/flex2/", Flex2.View.handler(path: "/flex2/", repo: repo), auth?: true)
-Flex2.Live.view("/flex2/login", Flex2.Login.handler(path: "/flex2/login"))
+Flex.Live.view("/flex2", Flex.View.handler(path: "/flex2", repo: repo), auth?: true)
+Flex.Live.view("/flex2/", Flex.View.handler(path: "/flex2/", repo: repo), auth?: true)
+Flex.Live.view("/flex2/login", Flex.Login.handler(path: "/flex2/login"))
 
 # if Terminal.dev?(), do: Api.evalf("flex2/dev.exs")
 
-if System.get_env("FLEX2_TEST") do
+if System.get_env("FLEX_TEST") do
   Api.evalf("flex2/test.exs")
 end
 

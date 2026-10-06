@@ -1,10 +1,10 @@
-defmodule Flex2.Runner do
+defmodule Flex.Runner do
   alias Applet.Api.Mdb
   alias Applet.Api.Udb
-  alias Flex2.Setter
-  alias Flex2.Async
-  alias Flex2.Utils
-  alias Flex2.Log
+  alias Flex.Setter
+  alias Flex.Async
+  alias Flex.Utils
+  alias Flex.Log
 
   @stack false
   @take [:id, :name, :hash, :root]

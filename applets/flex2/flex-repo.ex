@@ -1,5 +1,5 @@
-defmodule Flex2.Repo do
-  use Flex2.Entity
+defmodule Flex.Repo do
+  use Flex.Entity
 
   defp initial() do
     %{
@@ -22,17 +22,17 @@ defmodule Flex2.Repo do
   end
 
   alias Applet.Api.Log
-  alias Flex2.Setter
-  alias Flex2.Utils
+  alias Flex.Setter
+  alias Flex.Utils
 
   @subs ["script", "backend"]
 
   @script """
-  use Flex2.Script
+  use Flex.Script
   """
 
   @backend """
-  use Flex2.Backend
+  use Flex.Backend
 
   Log.debug(master: Environ.master())
   Log.debug(home: Environ.home())

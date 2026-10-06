@@ -1,4 +1,4 @@
-defmodule Flex2.Live do
+defmodule Flex.Live do
   defmacro __using__(_) do
     quote do
       import Phoenix.Component, except: [sigil_H: 2]
@@ -6,8 +6,8 @@ defmodule Flex2.Live do
       alias Phoenix.LiveView.JS
       import Phoenix.LiveView
       import Phoenix.HTML
-      alias Flex2.Live
-      alias Flex2.Log
+      alias Flex.Live
+      alias Flex.Log
     end
   end
 

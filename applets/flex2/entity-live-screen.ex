@@ -1,5 +1,5 @@
-defmodule Flex2.LiveScreen do
-  use Flex2.Entity
+defmodule Flex.LiveScreen do
+  use Flex.Entity
 
   def add(entity, pos, fun, args \\ []) do
     Setter.check("pos", pos, {:list, 2, {:integer, 0, 65_535}})
@@ -53,7 +53,7 @@ defmodule Flex2.LiveScreen do
   end
 
   defp handler(path, map, pid, funs, props, id) do
-    use Flex2.Live
+    use Flex.Live
 
     fn
       {:mount, socket, state} ->
@@ -120,7 +120,7 @@ defmodule Flex2.LiveScreen do
         {socket, vstate}
 
       {:info, socket, vstate = %{map: map},
-       {{Flex2.ObservableMap, _name, _point}, {index, arg}, val}} ->
+       {{Flex.ObservableMap, _name, _point}, {index, arg}, val}} ->
         {fun, ctx, index, inputs, state} = map[index]
         inputs = Map.put(inputs, arg, val)
         state = safe(fun, ctx.(index, inputs, state, {:point, arg}, nil), index, state)
@@ -171,7 +171,7 @@ defmodule Flex2.LiveScreen do
         info: &log.(:info, &1),
         warn: &log.(:warn, &1),
         error: &log.(:error, &1),
-        put: &Flex2.ObservableMap.put(pid, &1, &2)
+        put: &Flex.ObservableMap.put(pid, &1, &2)
       }
     end
 
@@ -201,7 +201,7 @@ defmodule Flex2.LiveScreen do
   end
 
   defp render(assigns) do
-    use Flex2.Live
+    use Flex.Live
 
     ~H"""
     <div id={@prefix} phx-hook="Resize"
@@ -241,7 +241,7 @@ defmodule Flex2.LiveScreen do
   end
 
   defp error(assigns) do
-    use Flex2.Live
+    use Flex.Live
     ~H""
   end
 
@@ -253,8 +253,8 @@ defmodule Flex2.LiveScreen do
             Map.put(inputs, arg, const)
 
           {:point, point} ->
-            Flex2.ObservableMap.subscribe!(map, point, {index, arg})
-            val = Flex2.ObservableMap.get(pid, point)
+            Flex.ObservableMap.subscribe!(map, point, {index, arg})
+            val = Flex.ObservableMap.get(pid, point)
             Map.put(inputs, arg, val)
 
           {:timer, ms} ->

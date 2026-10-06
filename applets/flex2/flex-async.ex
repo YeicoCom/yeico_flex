@@ -1,4 +1,4 @@
-defmodule Flex2.Async do
+defmodule Flex.Async do
   def spawn(tag, fun) do
     Applet.Api.async(wrap(fun), tag: tag)
   end
