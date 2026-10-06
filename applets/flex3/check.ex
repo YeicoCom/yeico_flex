@@ -115,7 +115,7 @@ defmodule Flex.Check do
   # extensions
   def check(name, value, fun) when is_function(fun, 2), do: fun.(name, value)
 
-  # requiered by extensions
+  # required by extensions
   def abort(name, value, error) do
     throw(%{
       property: name,

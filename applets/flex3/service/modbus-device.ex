@@ -56,12 +56,9 @@ defmodule Flex.ModbusDevice do
         loop(%{rts: rts, config: config, conn: conn, sid: sid})
       end
 
-      error =
-        case Api.safe(loop) do
-          {:error, %{error: error}} -> error
-          {:error, error} -> error
-        end
+      {:error, %{error: error}} = Api.safe(loop)
 
+      # Flex.Service.kill "modbus-slave:4031:127.0.0.1:TCP:setup"
       # test with invalid point, proto, or disconnection
       Log.warn("#{sid} #{Api.inspect?(error)}")
       status(config, "error")
@@ -146,7 +143,7 @@ defmodule Flex.ModbusDevice do
     key = "source:status:#{name}"
 
     case status do
-      "disabled" -> Flex.Points.put_value(key, 0)
+      # "disabled" -> Flex.Points.put_value(key, 0)
       "starting" -> Flex.Points.put_value(key, 1)
       "started" -> Flex.Points.put_value(key, 2)
       "error" -> Flex.Points.put_value(key, 3)

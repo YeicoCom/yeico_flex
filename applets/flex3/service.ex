@@ -24,32 +24,50 @@ defmodule Flex.Service do
         opts = Keyword.put_new(opts, :tag, name(config))
 
         setup = fn config ->
+          tag = Process.get(:__tag__)
           par = Process.get(:__par__)
-          Api.await(fn -> [] == Mdb.lookup({:service, par}) end)
+          key = {:clean, __MODULE__, par}
+          Api.await(fn -> [] == Mdb.lookup(key) end)
+          stamp = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:millisecond)
+          Mdb.register!({:setup, tag}, stamp: stamp)
           setup(config)
         end
 
         Api.loop(setup, config, opts)
       end
 
-      def kill(task = %{pid: par}) do
-        Api.kill(task)
-        Api.await(fn -> [] == Mdb.lookup({:service, par}) end)
+      def kill(%{pid: par}) do
+        Api.kill(par)
+        key = {:clean, __MODULE__, par}
+        Api.await(fn -> [] == Mdb.lookup(key) end)
       end
 
       defp clean(clean, now? \\ false) do
         if now?, do: Api.safe(clean)
-        caller = self()
         par = Process.get(:__par__)
+        key = {:clean, __MODULE__, par}
+        setup = self()
 
         before = fn ->
-          Mdb.register!({:service, par}, caller)
-          send(caller, :before)
+          stamp = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:millisecond)
+          Mdb.register!(key, setup: setup, stamp: stamp)
+          send(setup, :before)
         end
 
         task = Api.defer(clean, before: before)
         :ok = Api.receive(:before)
       end
+    end
+  end
+
+  alias Applet.Api
+  alias Applet.Api.Mdb
+
+  # tag from Flex.Print.tasks
+  # Flex.Service.kill "modbus-slave:4031:127.0.0.1:TCP:setup"
+  def kill(tag) when is_binary(tag) do
+    for {pid, _} <- Mdb.lookup({:setup, tag}) do
+      Api.kill(pid)
     end
   end
 end
