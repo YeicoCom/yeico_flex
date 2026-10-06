@@ -46,15 +46,19 @@ Modbus.Session.exec(pid, "s=1,a=0,c=rri,d=1,e=f32be")
 
 ## Fixme
 
-- [ ] Modbus device service
 - [ ] Observable map service
 - [ ] Reactive logic service
 - [ ] Live screen service
 - [ ] Service dependencies
+- [ ] Modbus device point check
+- [ ] Modbus device point publish
+- [ ] Modbus device pulse point
+- [ ] Modbus integer 32 encodings
+- [x] Modbus device service
 - [x] Modbus session with command syntax
 - [x] Modbus master session
 - [x] Modbus slave service
-- [x] Check config before run
+- [x] Recheck config before run
 - [x] Compiler gets stuck on macro errors
 - [x] Compiler loads stalled source code
 - [x] Wait for previous cleanup

@@ -8,6 +8,9 @@ defmodule Modbus.Protocol do
   @callback parse_req(req :: binary()) :: {cmd :: tuple(), tid :: any}
   @callback pack_res(cmd :: tuple(), values :: list(integer()), tid :: any) :: req :: binary()
 
+  def by_name("TCP"), do: Modbus.TcpProtocol
+  def by_name("RTU"), do: Modbus.RtuProtocol
+
   def id(mod) do
     mod.id()
   end

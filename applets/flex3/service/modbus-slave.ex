@@ -19,8 +19,8 @@ defmodule Flex3.ModbusSlave do
   defp name(%{port: port, ip: ip, proto: proto}), do: "modbus-slave:#{port}:#{ip}:#{proto}"
 
   defp setup(%{port: port, ip: ip, proto: proto, key: key}) do
-    protom = Flex3.Modbus.get_proto(proto)
-    apply = fn data -> Flex3.Modbus.slave_apply(protom, key, data) end
+    protom = Modbus.Protocol.by_name(proto)
+    apply = fn data -> Modbus.Slave.apply(protom, key, data) end
     {:ok, socket = %{port: port}} = Tcp.listen(ip, port, active: true)
     clean(fn -> Tcp.close(socket) end)
     sid = "modbus-slave:#{port}:#{ip}:#{proto}"

@@ -55,4 +55,25 @@ Flex3.SerialExport.new()
 |> Flex3.SerialExport.set(port: 4041)
 |> Flex3.SerialExport.run(rdms: 1000)
 
+# test with:
+# Adb.list
+# Adb.put("flex:point:sink:bit:D0", 1)
+# Adb.put("flex:point:sink:bit:D0", 0)
+# Adb.put("flex:point:sink:uint16:R0", 0)
+# Adb.put("flex:point:sink:uint16:R0", 2)
+Flex3.ModbusDevice.new()
+|> Flex3.ModbusDevice.set(name: "moddev1")
+|> Flex3.ModbusDevice.set(ip: "127.0.0.1")
+|> Flex3.ModbusDevice.set(port: 4031)
+|> Flex3.ModbusDevice.set(proto: "TCP")
+|> Flex3.ModbusDevice.set(
+  points: [
+    %{type: "WDO", slave: 1, address: 0, encoding: "NONE", names: "D0,D1"},
+    %{type: "RDI", slave: 1, address: 0, encoding: "NONE", names: "D0,D1"},
+    %{type: "WRO", slave: 1, address: 0, encoding: "NONE", names: "R0,R1"},
+    %{type: "RRI", slave: 1, address: 0, encoding: "NONE", names: "R0,R1"}
+  ]
+)
+|> Flex3.ModbusDevice.run(rdms: 1000)
+
 :ok
