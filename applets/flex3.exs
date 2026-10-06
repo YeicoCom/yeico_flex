@@ -77,4 +77,25 @@ Flex.ModbusDevice.new()
 )
 |> Flex.ModbusDevice.run(rdms: 1000)
 
+# Adb.list
+# Api.putcast!("logic1:point1", 1)
+# Api.putcast!("logic1:point1", 0)
+# Api.putcast!("logic1:point1", nil)
+Flex.ReactiveLogic.new()
+|> Flex.ReactiveLogic.set(id: "logic1")
+|> Flex.ReactiveLogic.add(
+  fn ctx = %{state: state, inputs: inputs} ->
+    %{const1: const1, timer1: timer1, point1: point1} = inputs
+    value = (point1 || const1) * timer1
+    Api.putcast!("logic1:calc1", value)
+    state
+  end,
+  [
+    {:const1, {:const, -1}},
+    {:timer1, {:timer, 100}},
+    {:point1, {:point, "logic1:point1"}}
+  ]
+)
+|> Flex.ReactiveLogic.run(rdms: 1000)
+
 :ok

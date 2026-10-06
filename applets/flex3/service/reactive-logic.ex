@@ -1,0 +1,163 @@
+defmodule Flex.ReactiveLogic do
+  use Flex.Service
+  use Terminal
+
+  defp initial(),
+    do: %{
+      id: nil,
+      funs: []
+    }
+
+  defp checks(),
+    do: %{
+      id: :binary,
+      funs: {:list, nil, &check(&1, &2, :fun)}
+    }
+
+  def add(config = %{funs: funs}, fun, args \\ []) do
+    Check.check("fun", fun, {:fun, 1})
+    Check.check("args", args, {:list, nil, &check(&1, &2, :arg)})
+    funs = [{fun, args} | funs] |> Enum.reverse()
+    Map.put(config, :funs, funs)
+  end
+
+  defp name(%{id: id}),
+    do: "reactive-logic:#{id}"
+
+  defp setup(config = %{funs: funs}) do
+    sid = name(config)
+
+    for {{fun, args}, index} <- funs |> Enum.with_index() do
+      tag = "#{sid}:fun:#{index}"
+      async = fn -> setup(sid, index, fun, args) end
+      Api.async(async, tag: tag)
+    end
+
+    Api.receive()
+  end
+
+  defp setup(sid, index, fun, args) do
+    inputs =
+      for {arg, spec} <- args, reduce: %{} do
+        inputs ->
+          case spec do
+            {:const, const} ->
+              Map.put(inputs, arg, const)
+
+            {:point, point} ->
+              val = Api.subget!(point, sarg: {sid, arg}, defv: nil)
+              Map.put(inputs, arg, val)
+
+            {:timer, ms} ->
+              Process.send_after(self(), {:timer, {sid, arg}, ms}, ms)
+              Map.put(inputs, arg, 0)
+          end
+      end
+
+    log = fn level, term ->
+      Api.log(level, "fun:#{index} #{Api.inspect?(term)}")
+    end
+
+    ctx = fn inputs, state, event ->
+      %{
+        state: state,
+        event: event,
+        index: index,
+        inputs: inputs,
+        trace: &log.(:trace, &1),
+        debug: &log.(:debug, &1),
+        info: &log.(:info, &1),
+        warn: &log.(:warn, &1),
+        error: &log.(:error, &1),
+        put: &Api.putcast!(&1, &2)
+      }
+    end
+
+    try do
+      Process.put(:__state__, %{})
+      loop(sid, fun, ctx, inputs, %{}, index, :mount)
+    rescue
+      error in RuntimeError ->
+        Log.error("fun:#{index} rescue: #{Api.inspect?(error.message)}")
+
+      error ->
+        Log.error("fun:#{index} rescue: #{Api.inspect?(error)}")
+    catch
+      error -> Log.error("fun:#{index} catch: #{Api.inspect?(error)}")
+    end
+
+    event = Process.get(:__event__)
+    state = Process.get(:__state__)
+    inputs = Process.get(:__input__)
+    ctx = [event: event, inputs: inputs, state: state]
+    Log.error("fun:#{index} #{Api.inspect?(ctx)}")
+  end
+
+  defp loop(sid, fun, ctx, inputs, state, index, event) do
+    Process.put(:__event__, event)
+    Process.put(:__input__, inputs)
+    state = safe(fun, ctx.(inputs, state, event), index, state)
+    Process.put(:__state__, state)
+
+    receive do
+      {:timer, {^sid, arg}, ms} ->
+        Process.send_after(self(), {:timer, {sid, arg}, ms}, ms)
+        inputs = Map.update(inputs, arg, 1, &(&1 + 1))
+        loop(sid, fun, ctx, inputs, state, index, {:timer, arg})
+
+      {point, {^sid, arg}, val} when is_binary(point) ->
+        inputs = Map.put(inputs, arg, val)
+        loop(sid, fun, ctx, inputs, state, index, {:point, arg})
+
+      unexpected ->
+        # single fun crash kills the whole flow logic
+        throw(unexpected: unexpected)
+    end
+  end
+
+  defp safe(fun, ctx = %{event: event}, index, state) do
+    try do
+      fun.(ctx)
+    rescue
+      error in RuntimeError ->
+        Log.error("fun:#{index} #{Api.inspect?(event)} rescue: #{Api.inspect?(error.message)}")
+        state
+
+      error ->
+        Log.error("fun:#{index} #{Api.inspect?(event)} rescue: #{Api.inspect?(error)}")
+        state
+    catch
+      error ->
+        Log.error("fun:#{index} #{Api.inspect?(event)} catch: #{Api.inspect?(error)}")
+        state
+    end
+  end
+
+  defp check(name, value, :fun) do
+    case value do
+      {fun, args} ->
+        Check.check("#{name}:fun", fun, {:fun, 1})
+        Check.check("#{name}:args", args, {:list, nil, &check(&1, &2, :arg)})
+
+      _ ->
+        Check.abort(name, value, "invalid fun")
+    end
+  end
+
+  defp check(name, value, :arg) do
+    case value do
+      {key, value} ->
+        Check.check(name, key, :atom)
+
+        case value do
+          {:timer, value} -> Check.check("#{name}:timer", value, {:integer, 1, 65_535})
+          {:point, value} -> Check.check("#{name}:point", value, :binary)
+          {:const, _value} -> :ok
+          _ -> Check.abort(name, value, "invalid arg")
+        end
+
+      _ ->
+        Check.abort(name, value, "invalid arg")
+    end
+  end
+end
