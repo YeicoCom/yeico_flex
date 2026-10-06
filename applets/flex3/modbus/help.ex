@@ -1,0 +1,35 @@
+defmodule Modbus.Help do
+  def short do
+    "s=Slave,a=Address,c=[rdi,rdo,wdo,rri,rro,wro],d=Data,e=[u16be,u16le,s16be,s16le,f32be,f32le]#Comment"
+  end
+
+  def full do
+    """
+    Values are decimal by default and can be prefixed with:
+      h for hexadecimal
+      b for binary
+      d for decimal
+
+    s: Slave [0-255] or [h00-hFF]
+    a: Address [0-65535] or [h0000-hFFFF]
+    c: Code
+      rdi to read digital input(s)
+      rdo to read digital output(s)
+      wdo to write digital output(s)
+      rri to read register input(s)
+      rro to read register output(s)
+      wro to write register output(s)
+    d: Read count
+      or binary encoded digital data to output
+      or colon separated register data to output
+    e: Encoding
+      u16be 16 bit big endian unsigned integer (default)
+      u16le 16 bit little endian unsigned integer
+      s16be 16 bit big endian signed integer
+      s16le 16 bit little endian signed integer
+      f32be 32 bit big endian IEEE754 float encoding
+      f32le 32 bit little endian IEEE754 float encoding (register swap)
+    #: Name or comment
+    """
+  end
+end
