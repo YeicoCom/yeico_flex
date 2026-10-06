@@ -26,14 +26,19 @@ defmodule Flex.ModbusDevice do
   defp setup(config = %{ip: ip, port: port, proto: proto}) do
     sid = name(config)
     protom = Modbus.Protocol.by_name(proto)
-    rts = runtimes(config)
     status(config, "starting")
 
     with {:ok, conn} <- Modbus.Master.open(ip: ip, port: port, proto: protom) do
       clean(fn -> Modbus.Master.close(conn) end)
-      status(config, "started")
-      if length(config.points) == 0, do: Api.sleep()
-      loop = fn -> loop(%{rts: rts, config: config, conn: conn, sid: sid}) end
+
+      loop = fn ->
+        # catch point spec errors
+        rts = runtimes(config)
+        # started status until fully initialized
+        status(config, "started")
+        if length(config.points) == 0, do: Api.sleep()
+        loop(%{rts: rts, config: config, conn: conn, sid: sid})
+      end
 
       with {:error, error} <- Api.safe(loop) do
         error =
@@ -62,7 +67,7 @@ defmodule Flex.ModbusDevice do
           {cmd, decode} = pointer.()
 
           opts = []
-          # opts = [tracer: fn d, l -> Api.debug(dir: d, line: Base.encode16(l)) end]
+          # opts = [tracer: fn d, l -> Api.trace(dir: d, line: Base.encode16(l)) end]
 
           case Modbus.Master.exec(conn, cmd, opts) do
             {:ok, conn} ->
