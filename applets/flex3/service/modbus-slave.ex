@@ -1,28 +1,22 @@
 defmodule Flex3.ModbusSlave do
+  @initial %{
+    key: nil,
+    proto: "TCP",
+    ip: "127.0.0.1",
+    port: 0
+  }
+
+  @checks %{
+    key: :binary,
+    proto: {:in, ["TCP", "RTU"]},
+    port: {:integer, 0, 65_535},
+    ip: {:in, ["127.0.0.1", "0.0.0.0"]}
+  }
+
   use Flex3.Service
   use Terminal
 
-  defp initial() do
-    %{
-      key: nil,
-      proto: "TCP",
-      ip: "127.0.0.1",
-      port: 0
-    }
-  end
-
-  defp checks() do
-    %{
-      key: :binary,
-      proto: {:in, ["TCP", "RTU"]},
-      port: {:integer, 0, 65_535},
-      ip: {:in, ["127.0.0.1", "0.0.0.0"]}
-    }
-  end
-
-  defp name(%{port: port, ip: ip, proto: proto}) do
-    "modbus-slave:#{port}:#{ip}:#{proto}"
-  end
+  defp name(%{port: port, ip: ip, proto: proto}), do: "modbus-slave:#{port}:#{ip}:#{proto}"
 
   defp setup(%{port: port, ip: ip, proto: proto, key: key}) do
     protom = Flex3.Modbus.get_proto(proto)

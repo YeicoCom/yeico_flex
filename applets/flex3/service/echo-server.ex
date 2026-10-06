@@ -1,24 +1,18 @@
 defmodule Flex3.EchoServer do
+  @initial %{
+    ip: "127.0.0.1",
+    port: 0
+  }
+
+  @checks %{
+    port: {:integer, 0, 65_535},
+    ip: {:in, ["127.0.0.1", "0.0.0.0"]}
+  }
+
   use Flex3.Service
   use Terminal
 
-  defp initial() do
-    %{
-      ip: "127.0.0.1",
-      port: 0
-    }
-  end
-
-  defp checks() do
-    %{
-      port: {:integer, 0, 65_535},
-      ip: {:in, ["127.0.0.1", "0.0.0.0"]}
-    }
-  end
-
-  defp name(%{port: port, ip: ip}) do
-    "echo-server:#{port}:#{ip}"
-  end
+  defp name(%{port: port, ip: ip}), do: "echo-server:#{port}:#{ip}"
 
   defp setup(%{port: port, ip: ip}) do
     {:ok, socket = %{port: port}} = Tcp.listen(ip, port, active: true)

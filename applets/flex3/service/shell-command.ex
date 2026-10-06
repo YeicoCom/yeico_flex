@@ -1,30 +1,24 @@
 defmodule Flex3.ShellCommand do
+  @initial %{
+    id: nil,
+    run: nil,
+    kill: nil,
+    e2o?: true,
+    o2l?: false
+  }
+
+  @checks %{
+    id: :binary,
+    run: :binary,
+    kill: :binary?,
+    e2o?: :boolean,
+    o2l?: :boolean
+  }
+
   use Flex3.Service
   use Terminal
 
-  defp initial() do
-    %{
-      id: nil,
-      run: nil,
-      kill: nil,
-      e2o?: true,
-      o2l?: false
-    }
-  end
-
-  defp checks() do
-    %{
-      id: :binary,
-      run: :binary,
-      kill: :binary?,
-      e2o?: :boolean,
-      o2l?: :boolean
-    }
-  end
-
-  defp name(%{id: id}) do
-    "shell-command:#{id}"
-  end
+  defp name(%{id: id}), do: "shell-command:#{id}"
 
   defp setup(config = %{run: run, kill: kill, e2o?: e2o?, o2l?: o2l?}) do
     sid = name(config)
