@@ -1,29 +1,45 @@
 defmodule Flex.ModbusDevice do
-  @initial %{
-    name: nil,
-    ip: "127.0.0.1",
-    port: 0,
-    proto: "TCP",
-    delay: 0,
-    points: []
-  }
-
-  @checks %{
-    name: :binary,
-    ip: :binary,
-    port: {:integer, 0, 65_535},
-    proto: {:in, ["TCP", "RTU"]},
-    delay: {:integer, 0, nil},
-    points: {:list, nil, :any}
-  }
-
   use Flex.Service
   use Terminal
+
+  @types ["RDI", "RDO", "WDO", "RRI", "RRO", "WRO"]
+  @encodings ["NONE", "U16BE", "U16LE", "S16BE", "S16LE", "F32BE", "F32LE"]
+
+  def initial,
+    do: %{
+      name: nil,
+      ip: "127.0.0.1",
+      port: 0,
+      proto: "TCP",
+      delay: 0,
+      points: []
+    }
+
+  def checks,
+    do: %{
+      name: :binary,
+      ip: :binary,
+      port: {:integer, 0, 65_535},
+      proto: {:in, ["TCP", "RTU"]},
+      delay: {:integer, 0, nil},
+      points: {:list, nil, &check/2}
+    }
+
+  defp check(name, value) do
+    Check.check(name, value, :map)
+    Check.check("#{name}.type", value[:type], {:in, @types})
+    Check.check("#{name}.slave", value[:slave], {:integer, 0, 255})
+    Check.check("#{name}.address", value[:address], {:integer, 0, 65_535})
+    Check.check("#{name}.encoding", value[:encoding], {:in, @encodings})
+    Check.check("#{name}.names", value[:names], :binary)
+    length = value[:names] |> String.trim() |> String.length()
+    Check.check("#{name}.names.length", length, {:integer, 1, nil})
+  end
 
   defp name(%{port: port, ip: ip, proto: proto, name: name}),
     do: "modbus-device:#{port}:#{ip}:#{proto}:#{name}"
 
-  defp setup(config = %{ip: ip, port: port, proto: proto}) do
+  defp setup(config = %{ip: ip, port: port, proto: proto, points: points}) do
     sid = name(config)
     protom = Modbus.Protocol.by_name(proto)
     status(config, "starting")
@@ -36,29 +52,29 @@ defmodule Flex.ModbusDevice do
         rts = runtimes(config)
         # started status until fully initialized
         status(config, "started")
-        if length(config.points) == 0, do: Api.sleep()
+        if length(points) == 0, do: Api.sleep()
         loop(%{rts: rts, config: config, conn: conn, sid: sid})
       end
 
-      with {:error, error} <- Api.safe(loop) do
-        error =
-          case error do
-            %{error: error} -> error
-            error -> error
-          end
+      error =
+        case Api.safe(loop) do
+          {:error, %{error: error}} -> error
+          {:error, error} -> error
+        end
 
-        Log.warn("#{sid} #{Api.inspect?(error)}")
-        status(config, "error")
-      end
+      # test with invalid point, proto, or disconnection
+      Log.warn("#{sid} #{Api.inspect?(error)}")
+      status(config, "error")
     else
       {:error, error} ->
+        # test with invalid endpoint
         Log.warn("#{sid} #{Api.inspect?(error)}")
         status(config, "error")
     end
   end
 
-  defp loop(state = %{conn: conn, rts: rts, config: config}) do
-    Api.sleep(config.delay)
+  defp loop(state = %{conn: conn, rts: rts, config: %{delay: delay}}) do
+    Api.sleep(delay)
 
     conn =
       for pi <- 0..(rts.count - 1)//1, reduce: conn do

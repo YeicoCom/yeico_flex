@@ -1,22 +1,24 @@
 defmodule Flex.SerialExport do
-  @initial %{
-    tty: nil,
-    bits: "8n1",
-    bauds: 9600,
-    ip: "127.0.0.1",
-    port: 0
-  }
-
-  @checks %{
-    tty: :binary,
-    bits: {:in, ["8n1"]},
-    bauds: {:in, [9600, 115_200]},
-    port: {:integer, 0, 65_535},
-    ip: {:in, ["127.0.0.1", "0.0.0.0"]}
-  }
-
   use Flex.Service
   use Terminal
+
+  def initial,
+    do: %{
+      tty: nil,
+      bits: "8n1",
+      bauds: 9600,
+      ip: "127.0.0.1",
+      port: 0
+    }
+
+  def checks,
+    do: %{
+      tty: :binary,
+      bits: {:in, ["8n1"]},
+      bauds: {:in, [9600, 115_200]},
+      port: {:integer, 0, 65_535},
+      ip: {:in, ["127.0.0.1", "0.0.0.0"]}
+    }
 
   defp name(%{tty: tty, port: port, ip: ip}), do: "serial-export:#{tty}:#{port}:#{ip}"
 

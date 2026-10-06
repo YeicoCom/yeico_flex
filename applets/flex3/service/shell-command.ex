@@ -1,22 +1,24 @@
 defmodule Flex.ShellCommand do
-  @initial %{
-    id: nil,
-    run: nil,
-    kill: nil,
-    e2o?: true,
-    o2l?: false
-  }
-
-  @checks %{
-    id: :binary,
-    run: :binary,
-    kill: :binary?,
-    e2o?: :boolean,
-    o2l?: :boolean
-  }
-
   use Flex.Service
   use Terminal
+
+  def initial,
+    do: %{
+      id: nil,
+      run: nil,
+      kill: nil,
+      e2o?: true,
+      o2l?: false
+    }
+
+  def checks,
+    do: %{
+      id: :binary,
+      run: :binary,
+      kill: :binary?,
+      e2o?: :boolean,
+      o2l?: :boolean
+    }
 
   defp name(%{id: id}), do: "shell-command:#{id}"
 

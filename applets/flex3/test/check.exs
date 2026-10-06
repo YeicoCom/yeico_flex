@@ -81,6 +81,12 @@ check.([:name, nil, :atom?], nil)
 check.([:name, :value, :atom?], nil)
 check.([:name, "", :atom?], error: "atom? required")
 
+check.([:name, nil, :map], error: "map required")
+check.([:name, %{}, :map], nil)
+check.([:name, nil, :map?], nil)
+check.([:name, %{}, :map?], nil)
+check.([:name, "", :map?], error: "map? required")
+
 check.([:name, 0, {:in, [0]}], nil)
 check.([:name, 1, {:in, [0]}], error: "not in [0]")
 

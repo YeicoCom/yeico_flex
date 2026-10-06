@@ -66,6 +66,7 @@ Flex.ModbusDevice.new()
 |> Flex.ModbusDevice.set(ip: "127.0.0.1")
 |> Flex.ModbusDevice.set(port: 4031)
 |> Flex.ModbusDevice.set(proto: "TCP")
+|> Flex.ModbusDevice.set(delay: 20)
 |> Flex.ModbusDevice.set(
   points: [
     %{type: "WDO", slave: 1, address: 0, encoding: "NONE", names: "D0,D1"},

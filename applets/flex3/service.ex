@@ -5,12 +5,12 @@ defmodule Flex.Service do
       alias Applet.Api
       alias Applet.Api.Mdb
 
-      def new(opts \\ []), do: set(@initial, opts)
+      def new(opts \\ []), do: set(initial(), opts)
 
       def set(config, opts) do
         for {name, value} <- opts, reduce: config do
           config ->
-            params = @checks[name]
+            params = checks()[name]
             if !params, do: Check.abort(name, value, "not found")
             Check.check(name, value, params)
             Map.put(config, name, value)
@@ -19,8 +19,8 @@ defmodule Flex.Service do
 
       # opts: rdms \\ 0, level, tag
       def run(config, opts \\ []) do
-        config = Map.merge(@initial, config)
-        config = set(@initial, config)
+        config = Map.merge(initial(), config)
+        config = set(initial(), config)
         opts = Keyword.put_new(opts, :tag, name(config))
 
         setup = fn config ->

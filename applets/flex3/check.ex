@@ -61,6 +61,12 @@ defmodule Flex.Check do
   def check(_name, value, :atom?) when is_atom(value), do: :ok
   def check(name, value, :atom?), do: abort(name, value, "atom? required")
 
+  def check(_name, value, :map) when is_map(value), do: :ok
+  def check(name, value, :map), do: abort(name, value, "map required")
+  def check(_name, value, :map?) when is_nil(value), do: :ok
+  def check(_name, value, :map?) when is_map(value), do: :ok
+  def check(name, value, :map?), do: abort(name, value, "map? required")
+
   def check(name, value, {:in, list}) do
     if value not in list do
       abort(name, value, "not in #{Api.inspect?(list)}")

@@ -50,10 +50,10 @@ Modbus.Session.exec(pid, "s=1,a=0,c=rri,d=1,e=f32be")
 - [ ] Reactive logic service
 - [ ] Live screen service
 - [ ] Service dependencies
-- [ ] Modbus device point check
 - [ ] Modbus device point publish
 - [ ] Modbus device pulse point
 - [ ] Modbus integer 32 encodings
+- [x] Modbus device point check
 - [x] Modbus device service
 - [x] Modbus session with command syntax
 - [x] Modbus master session
