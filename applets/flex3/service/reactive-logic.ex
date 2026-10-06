@@ -35,6 +35,7 @@ defmodule Flex.ReactiveLogic do
     end
 
     Api.receive()
+    exit(:kill)
   end
 
   defp setup(sid, index, fun, args) do

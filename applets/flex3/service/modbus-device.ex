@@ -25,6 +25,13 @@ defmodule Flex.ModbusDevice do
       points: {:list, nil, &check/2}
     }
 
+  def add(config = %{points: points}, point) do
+    index = length(points)
+    Check.check("points[#{index}]", point, &check/2)
+    points = [point | points] |> Enum.reverse()
+    Map.put(config, :points, points)
+  end
+
   defp check(name, value) do
     Check.check(name, value, :map)
     Check.check("#{name}.type", value[:type], {:in, @types})
@@ -41,8 +48,9 @@ defmodule Flex.ModbusDevice do
 
   defp setup(config = %{ip: ip, port: port, proto: proto, points: points}) do
     sid = name(config)
-    protom = Modbus.Protocol.by_name(proto)
+    Log.debug("#{sid} run")
     status(config, "starting")
+    protom = Modbus.Protocol.by_name(proto)
 
     with {:ok, conn} <- Modbus.Master.open(ip: ip, port: port, proto: protom) do
       clean(fn -> Modbus.Master.close(conn) end)
