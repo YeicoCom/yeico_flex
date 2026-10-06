@@ -109,11 +109,11 @@ defmodule Modbus.Command do
         {:ok, res}
 
       {:error, result = %{error: error}} ->
-        Log.warn(error: result)
+        Log.trace(error: result)
         {:error, error}
 
       {:error, error} ->
-        Log.warn(error: error)
+        Log.trace(error: error)
         {:error, error}
     end
   end

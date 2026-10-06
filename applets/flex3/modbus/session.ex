@@ -1,4 +1,5 @@
 defmodule Modbus.Session do
+  alias Modbus.Command
   alias Modbus.Master
   use Applet.Alias
 
@@ -12,7 +13,22 @@ defmodule Modbus.Session do
   end
 
   def exec(pid, cmd, opts \\ []) do
-    call?(pid, {:exec, cmd, opts})
+    case is_binary(cmd) do
+      true ->
+        case Command.safe_parse(cmd) do
+          {:ok, %{cmd: cmd, get: get}} ->
+            case call?(pid, {:exec, cmd, opts}) do
+              {:ok, values} -> {:ok, get.(values)}
+              other -> other
+            end
+
+          other ->
+            other
+        end
+
+      _ ->
+        call?(pid, {:exec, cmd, opts})
+    end
   end
 
   def close(pid) do

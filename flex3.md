@@ -14,29 +14,44 @@ A micro service library
 :ok = Modbus.Session.exec(pid, {:fc, 1, 0, [0]})
 {:ok, [0]} = Modbus.Session.exec(pid, {:rc, 1, 0, 1})
 {:ok, [0]} = Modbus.Session.exec(pid, {:ri, 1, 0, 1})
-:ok = Modbus.Session.exec(pid, {:fc, 1, 0, [1, 0]})
-{:ok, [1, 0]} = Modbus.Session.exec(pid, {:rc, 1, 0, 2})
-{:ok, [1, 0]} = Modbus.Session.exec(pid, {:ri, 1, 0, 2})
+:ok = Modbus.Session.exec(pid, {:fc, 1, 0, [1, 0, 1]})
+{:ok, [1, 0, 1]} = Modbus.Session.exec(pid, {:rc, 1, 0, 3})
+{:ok, [1, 0, 1]} = Modbus.Session.exec(pid, {:ri, 1, 0, 3})
 :ok = Modbus.Session.exec(pid, {:phr, 1, 0, 1})
 {:ok, [1]} = Modbus.Session.exec(pid, {:rhr, 1, 0, 1})
 {:ok, [1]} = Modbus.Session.exec(pid, {:rir, 1, 0, 1})
 :ok = Modbus.Session.exec(pid, {:phr, 1, 0, [0]})
 {:ok, [0]} = Modbus.Session.exec(pid, {:rhr, 1, 0, 1})
 {:ok, [0]} = Modbus.Session.exec(pid, {:rir, 1, 0, 1})
-:ok = Modbus.Session.exec(pid, {:phr, 1, 0, [1, 0]})
-{:ok, [1, 0]} = Modbus.Session.exec(pid, {:rhr, 1, 0, 2})
-{:ok, [1, 0]} = Modbus.Session.exec(pid, {:rir, 1, 0, 2})
+:ok = Modbus.Session.exec(pid, {:phr, 1, 0, [1, 0, 1]})
+{:ok, [1, 0, 1]} = Modbus.Session.exec(pid, {:rhr, 1, 0, 3})
+{:ok, [1, 0, 1]} = Modbus.Session.exec(pid, {:rir, 1, 0, 3})
+:ok = Modbus.Session.exec(pid, "s=1,a=0,c=wdo,d=1")
+{:ok, [1]} = Modbus.Session.exec(pid, "s=1,a=0,c=rdo,d=1")
+{:ok, [1]} = Modbus.Session.exec(pid, "s=1,a=0,c=rdi,d=1")
+:ok = Modbus.Session.exec(pid, "s=1,a=0,c=wdo,d=101")
+{:ok, [1, 0, 1]} = Modbus.Session.exec(pid, "s=1,a=0,c=rdo,d=3")
+{:ok, [1, 0, 1]} = Modbus.Session.exec(pid, "s=1,a=0,c=rdi,d=3")
+:ok = Modbus.Session.exec(pid, "s=1,a=0,c=wro,d=1")
+{:ok, [1]} = Modbus.Session.exec(pid, "s=1,a=0,c=rro,d=1")
+{:ok, [1]} = Modbus.Session.exec(pid, "s=1,a=0,c=rri,d=1")
+:ok = Modbus.Session.exec(pid, "s=1,a=0,c=wro,d=1:0:2")
+{:ok, [1, 0, 2]} = Modbus.Session.exec(pid, "s=1,a=0,c=rro,d=3")
+{:ok, [1, 0, 2]} = Modbus.Session.exec(pid, "s=1,a=0,c=rri,d=3")
+:ok = Modbus.Session.exec(pid, "s=1,a=0,c=wro,d=3.4,e=f32be")
+Modbus.Session.exec(pid, "s=1,a=0,c=rro,d=1,e=f32be")
+Modbus.Session.exec(pid, "s=1,a=0,c=rri,d=1,e=f32be")
 :ok = Modbus.Session.close(pid)
 ```
 
 ## Fixme
 
 - [ ] Modbus device service
-- [ ] Modbus with new command syntax
 - [ ] Observable map service
 - [ ] Reactive logic service
 - [ ] Live screen service
 - [ ] Service dependencies
+- [x] Modbus session with command syntax
 - [x] Modbus master session
 - [x] Modbus slave service
 - [x] Check config before run

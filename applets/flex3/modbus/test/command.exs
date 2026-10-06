@@ -62,13 +62,13 @@ test.({:ri, 1, 255, 3}, "s=1,a=d255,c=rdi,d=3")
 test.({:ri, 1, 255, 3}, "s=1,a=hff,c=rdi,d=3")
 
 # encoding sweep
-test.({:rir, 1, 0, 3}, "s=1,a=0,c=rri,d=3,e=NONE")
+test.({:rir, 1, 0, 3}, "s=1,a=0,c=rri,d=3,e=none")
 test.({:rir, 1, 0, 6}, "s=1,a=0,c=rri,d=3,e=f32be")
 test.({:rir, 1, 0, 6}, "s=1,a=0,c=rri,d=3,e=f32le")
 test.({:rir, 1, 0, 3}, "s=1,a=0,c=rri,d=3,e=u16be")
 test.({:rir, 1, 0, 3}, "s=1,a=0,c=rri,d=3,e=u16le")
 
-test.({:phr, 1, 0, [3]}, "s=1,a=0,c=wro,d=3,e=NONE")
+test.({:phr, 1, 0, [3]}, "s=1,a=0,c=wro,d=3,e=none")
 test.({:phr, 1, 0, [0x0003]}, "s=1,a=0,c=wro,d=3,e=u16be")
 test.({:phr, 1, 0, [0x0300]}, "s=1,a=0,c=wro,d=3,e=u16le")
 test.({:phr, 1, 0, [0xFFFD]}, "s=1,a=0,c=wro,d=-3,e=s16be")
