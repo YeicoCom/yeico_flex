@@ -47,16 +47,15 @@ defmodule Flex.ModbusDevice do
     with {:ok, conn} <- Modbus.Master.open(ip: ip, port: port, proto: protom) do
       clean(fn -> Modbus.Master.close(conn) end)
 
-      loop = fn ->
-        # catch point spec errors
-        rts = runtimes(config)
-        # started status until fully initialized
-        status(config, "started")
-        if length(points) == 0, do: Api.sleep()
-        loop(%{rts: rts, config: config, conn: conn, sid: sid})
-      end
-
-      {:error, %{error: error}} = Api.safe(loop)
+      {:error, %{error: error}} =
+        Api.safe(fn ->
+          # catch point spec errors
+          rts = runtimes(config)
+          # started status until fully initialized
+          status(config, "started")
+          if length(points) == 0, do: Api.sleep()
+          loop(%{rts: rts, config: config, conn: conn, sid: sid})
+        end)
 
       # Flex.Service.kill "modbus-slave:4031:127.0.0.1:TCP:setup"
       # test with invalid point, proto, or disconnection

@@ -51,8 +51,8 @@ Modbus.Session.exec(pid, "s=1,a=0,c=rri,d=1,e=f32be")
 - [ ] Service dependencies
 - [ ] Modbus device pulse point
 - [ ] Modbus integer 32 encodings
-- [ ] Reactive logic error handling
 - [ ] Modbus device point add
+- [x] Reactive logic error handling
 - [x] Reactive logic service
 - [-] Modbus device point publish
 - [-] Modbus point value timestamp

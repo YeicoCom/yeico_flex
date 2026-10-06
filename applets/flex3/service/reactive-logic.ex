@@ -26,6 +26,7 @@ defmodule Flex.ReactiveLogic do
 
   defp setup(config = %{funs: funs}) do
     sid = name(config)
+    Log.debug("#{sid} run")
 
     for {{fun, args}, index} <- funs |> Enum.with_index() do
       tag = "#{sid}:fun:#{index}"
@@ -54,8 +55,10 @@ defmodule Flex.ReactiveLogic do
           end
       end
 
+    fid = "#{sid}:fun:#{index}"
+
     log = fn level, term ->
-      Api.log(level, "fun:#{index} #{Api.inspect?(term)}")
+      Api.log(level, "#{fid} #{Api.inspect?(term)}")
     end
 
     ctx = fn inputs, state, event ->
@@ -73,30 +76,23 @@ defmodule Flex.ReactiveLogic do
       }
     end
 
-    try do
-      Process.put(:__state__, %{})
-      loop(sid, fun, ctx, inputs, %{}, index, :mount)
-    rescue
-      error in RuntimeError ->
-        Log.error("fun:#{index} rescue: #{Api.inspect?(error.message)}")
-
-      error ->
-        Log.error("fun:#{index} rescue: #{Api.inspect?(error)}")
-    catch
-      error -> Log.error("fun:#{index} catch: #{Api.inspect?(error)}")
-    end
+    {:error, %{error: error}} =
+      Api.safe(fn ->
+        Process.put(:__state__, %{})
+        loop(sid, fun, ctx, inputs, %{}, index, :mount)
+      end)
 
     event = Process.get(:__event__)
     state = Process.get(:__state__)
     inputs = Process.get(:__input__)
     ctx = [event: event, inputs: inputs, state: state]
-    Log.error("fun:#{index} #{Api.inspect?(ctx)}")
+    Log.warn("#{fid} #{Api.inspect?(ctx)} #{Api.inspect?(error)}")
   end
 
   defp loop(sid, fun, ctx, inputs, state, index, event) do
     Process.put(:__event__, event)
     Process.put(:__input__, inputs)
-    state = safe(fun, ctx.(inputs, state, event), index, state)
+    state = fun.(ctx.(inputs, state, event))
     Process.put(:__state__, state)
 
     receive do
@@ -112,24 +108,6 @@ defmodule Flex.ReactiveLogic do
       unexpected ->
         # single fun crash kills the whole flow logic
         throw(unexpected: unexpected)
-    end
-  end
-
-  defp safe(fun, ctx = %{event: event}, index, state) do
-    try do
-      fun.(ctx)
-    rescue
-      error in RuntimeError ->
-        Log.error("fun:#{index} #{Api.inspect?(event)} rescue: #{Api.inspect?(error.message)}")
-        state
-
-      error ->
-        Log.error("fun:#{index} #{Api.inspect?(event)} rescue: #{Api.inspect?(error)}")
-        state
-    catch
-      error ->
-        Log.error("fun:#{index} #{Api.inspect?(event)} catch: #{Api.inspect?(error)}")
-        state
     end
   end
 
