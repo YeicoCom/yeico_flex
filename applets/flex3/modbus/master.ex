@@ -5,8 +5,8 @@ defmodule Modbus.Master do
   @toms 4000
 
   def open(opts) do
-    transm = Keyword.get(opts, :trans, Modbus.Tcp.Transport)
-    protom = Keyword.get(opts, :proto, Modbus.Tcp.Protocol)
+    transm = Keyword.get(opts, :trans, Modbus.TcpTransport)
+    protom = Keyword.get(opts, :proto, Modbus.TcpProtocol)
     tid = Protocol.next(protom, nil)
 
     case Transport.open(transm, opts) do

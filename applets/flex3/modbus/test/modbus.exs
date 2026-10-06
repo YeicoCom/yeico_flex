@@ -2,8 +2,8 @@ alias Modbus.Slave
 use Terminal
 
 test = fn cmd, res ->
-  ptcp = Modbus.Tcp.Protocol
-  prtu = Modbus.Rtu.Protocol
+  ptcp = Modbus.TcpProtocol
+  prtu = Modbus.RtuProtocol
 
   tid = Adb.get("flex:modbus-test:tid", 0)
   Adb.put("flex:modbus-test:tid", tid + 1)

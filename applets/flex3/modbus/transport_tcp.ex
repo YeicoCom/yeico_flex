@@ -1,4 +1,4 @@
-defmodule Modbus.Tcp.Transport do
+defmodule Modbus.TcpTransport do
   @moduledoc false
   @behaviour Modbus.Transport
   @toms 4000

@@ -1,4 +1,4 @@
-defmodule Modbus.Rtu.Protocol do
+defmodule Modbus.RtuProtocol do
   @moduledoc false
   @behaviour Modbus.Protocol
   alias __MODULE__.Wrapper

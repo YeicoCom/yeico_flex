@@ -1,4 +1,4 @@
-defmodule Modbus.Tcp.Protocol do
+defmodule Modbus.TcpProtocol do
   @moduledoc false
   @behaviour Modbus.Protocol
   alias __MODULE__.Wrapper

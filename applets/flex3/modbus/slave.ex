@@ -23,16 +23,33 @@ defmodule Modbus.Slave do
 
   def apply(proto, key, data) do
     {cmd, tid} = Protocol.parse_req(proto, data)
-    # Log.debug(cmd: cmd, tid: tid)
+    # Log.trace(cmd: cmd, tid: tid)
 
     values =
       case cmd do
-        {:ri, slave, address, count} -> get(key, slave, "d", address, count)
-        {:rc, slave, address, count} -> get(key, slave, "d", address, count)
-        {:rir, slave, address, count} -> get(key, slave, "r", address, count)
-        {:rhr, slave, address, count} -> get(key, slave, "r", address, count)
-        {:fc, slave, address, values} -> put(key, slave, "d", address, values)
-        {:phr, slave, address, values} -> put(key, slave, "r", address, values)
+        {:ri, slave, address, count} ->
+          get(key, slave, "d", address, count)
+
+        {:rc, slave, address, count} ->
+          get(key, slave, "d", address, count)
+
+        {:rir, slave, address, count} ->
+          get(key, slave, "r", address, count)
+
+        {:rhr, slave, address, count} ->
+          get(key, slave, "r", address, count)
+
+        {:fc, slave, address, values} when is_list(values) ->
+          put(key, slave, "d", address, values)
+
+        {:fc, slave, address, value} ->
+          put(key, slave, "d", address, [value])
+
+        {:phr, slave, address, values} when is_list(values) ->
+          put(key, slave, "r", address, values)
+
+        {:phr, slave, address, value} ->
+          put(key, slave, "r", address, [value])
       end
 
     Protocol.pack_res(proto, cmd, values, tid)
