@@ -39,7 +39,8 @@ defmodule Flex3.Service do
         Api.await(fn -> [] == Mdb.lookup({:service, par}) end)
       end
 
-      defp clean(clean) do
+      defp clean(clean, now? \\ false) do
+        if now?, do: Api.safe(clean)
         caller = self()
         par = Process.get(:__par__)
 

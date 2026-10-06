@@ -1,6 +1,7 @@
 use Terminal
 
 Adb.reset()
+# System.shell("sudo killall socat")
 
 Api.evalf("flex3/code.exs")
 Api.evalf("flex3/test/check.exs")

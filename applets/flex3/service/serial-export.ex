@@ -34,13 +34,18 @@ defmodule Flex3.SerialExport do
 
     pidf = pid_file(config)
 
-    clean(fn ->
-      "kill $(cat #{pidf})"
-      |> prepend_sudo()
-      |> prepend("[ -f #{pidf} ] && ")
-      |> append("\nrm -f #{pidf}")
-      |> System.shell(stderr_to_stdout: true)
-    end)
+    clean(
+      fn ->
+        Api.debug("#{sid} kill")
+
+        "kill $(cat #{pidf})"
+        |> prepend_sudo()
+        |> prepend("[ -f #{pidf} ] && ")
+        |> append("\nrm -f #{pidf}")
+        |> System.shell(stderr_to_stdout: true)
+      end,
+      File.exists?(pidf)
+    )
 
     try do
       config
@@ -84,7 +89,7 @@ defmodule Flex3.SerialExport do
           config
         else
           result ->
-            raise(inspect(result))
+            onerror(result)
         end
 
       # socat wont open tty until connection
@@ -95,10 +100,10 @@ defmodule Flex3.SerialExport do
       result = {:ok, %File.Stat{type: :regular}} ->
         cmd = prepend_sudo("rm -f #{tty}")
         System.shell(cmd, stderr_to_stdout: true)
-        raise(inspect(result))
+        onerror(result)
 
       result ->
-        raise(inspect(result))
+        onerror(result)
     end
   end
 
@@ -112,4 +117,7 @@ defmodule Flex3.SerialExport do
 
   defp prepend(cmd, prefix), do: "#{prefix}#{cmd}"
   defp append(cmd, suffix), do: "#{cmd}#{suffix}"
+
+  defp onerror({:error, error}), do: raise(inspect(error))
+  defp onerror(result), do: raise(inspect(result))
 end
