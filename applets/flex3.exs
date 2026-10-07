@@ -1,4 +1,4 @@
-use Terminal
+use Terminal.Live
 
 Adb.reset()
 
@@ -97,5 +97,69 @@ Flex.ReactiveLogic.new()
   ]
 )
 |> Flex.ReactiveLogic.run(rdms: 1000)
+
+# http://localhost:4080/screen1
+# Adb.list
+# Api.putcast!("screen1:point1", 1)
+# Api.putcast!("screen1:point1", 0)
+# Api.putcast!("screen1:point1", nil)
+# generate an arithmetic error
+# Api.putcast!("screen1:point1", true)
+Flex.LiveScreen.new()
+|> Flex.LiveScreen.set(path: "/screen1")
+|> Flex.LiveScreen.set(title: "Screen1")
+|> Flex.LiveScreen.set(width: 800)
+|> Flex.LiveScreen.set(height: 480)
+|> Flex.LiveScreen.set(
+  class: %{
+    screen: "bg-gray-300",
+    panel: "bg-gray-600"
+  }
+)
+|> Flex.LiveScreen.set(
+  style: """
+  .live_screen:hover {
+    background-color: blue;
+  }
+  .live_panel:hover {
+    background-color: black;
+  }
+  """
+)
+|> Flex.LiveScreen.add(
+  [0, 0],
+  fn
+    # :mount, :render, {:timer, :timer1}, {:point, :point1}, {:event, "click", _params}
+    # log confirmed to work in render callback
+    %{state: assigns, event: :render} ->
+      ~H"""
+      <div class="text-[24px] text-red-500">
+        <div phx-click="click" phx-value-index={@index}>Click me: {@count}</div>
+        <div>{@value}</div>
+      </div>
+      """
+
+    %{state: state, event: {:event, "click", _params}} ->
+      Map.update(state, :count, 1, &(&1 + 1))
+
+    %{state: state, event: :mount, connected?: connected?, inputs: inputs, trace: trace} ->
+      trace.("mount connected?: #{connected?}")
+
+      calc = fn %{const1: const1, timer1: timer1, point1: point1} ->
+        (point1 || const1) * timer1
+      end
+
+      Map.merge(state, %{calc: calc, value: calc.(inputs), count: 0})
+
+    %{state: state = %{calc: calc}, inputs: inputs} ->
+      Map.merge(state, %{value: calc.(inputs)})
+  end,
+  [
+    {:const1, {:const, -1}},
+    {:timer1, {:timer, 100}},
+    {:point1, {:point, "screen1:point1"}}
+  ]
+)
+|> Flex.LiveScreen.run()
 
 :ok

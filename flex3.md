@@ -46,11 +46,15 @@ Modbus.Session.exec(pid, "s=1,a=0,c=rri,d=1,e=f32be")
 
 ## Fixme
 
-- [ ] Observable map service
-- [ ] Live screen service
 - [ ] Service dependencies
-- [ ] Modbus device pulse point
 - [ ] Modbus integer 32 encodings
+- [ ] Live screen panel align prop
+- [ ] Live screen @scope styling
+- [ ] Live screen class vs style priority
+- [ ] Live screen shared state between funs
+- [x] Live screen service
+- [-] Modbus device pulse point
+- [-] Observable map service
 - [x] Modbus device point add
 - [x] Reactive logic error handling
 - [x] Reactive logic service

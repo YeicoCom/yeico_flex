@@ -1,0 +1,272 @@
+defmodule Flex.LiveScreen do
+  use Flex.Service
+  use Terminal
+
+  defp initial() do
+    %{
+      path: nil,
+      title: nil,
+      width: nil,
+      height: nil,
+      style: nil,
+      class: nil,
+      funs: []
+    }
+  end
+
+  defp checks() do
+    %{
+      class: :map?,
+      path: :binary,
+      title: :binary,
+      style: :binary?,
+      width: {:integer, 1, 65_535},
+      height: {:integer, 1, 65_535},
+      funs: {:list, nil, &check(&1, &2, :fun)}
+    }
+  end
+
+  def add(config = %{funs: funs}, pos, fun, args \\ []) do
+    Check.check("pos", pos, {:list, 2, {:integer, 0, 65_535}})
+    Check.check("fun", fun, {:fun, 1})
+    Check.check("args", args, {:list, nil, &check(&1, &2, :arg)})
+    fun = wrap(fun, Function.info(fun, :module))
+    funs = [{pos, fun, args} | funs] |> Enum.reverse()
+    Map.put(config, :funs, funs)
+  end
+
+  # log confirmed to work in render callback
+  defp wrap(fun, {:module, :erl_eval}), do: Api.wrap(fun)
+  defp wrap(fun, _), do: fun
+
+  defp name(%{path: path}),
+    do: "live-screen:#{path}"
+
+  defp setup(config = %{path: path}) do
+    sid = name(config)
+    Log.debug("#{sid} run")
+    wrapped = Api.wrap(handler(sid, config))
+    Terminal.view(path, wrapped)
+    Api.receive()
+    exit(:kill)
+  end
+
+  defp handler(sid, config = %{path: path}) do
+    use Terminal.Live
+
+    fn
+      {:mount, socket = %{assigns: %{connected?: connected?}}, state} ->
+        %{title: title, style: style, width: width, height: height, class: class} = config
+        socket = assign(socket, applet_css: "/applets/flex3.css")
+        socket = assign(socket, applet_js: "/applets/flex3.js")
+        socket = assign(socket, page_title: title)
+        state = Map.put(state, :style, style)
+        state = Map.put(state, :width, width)
+        state = Map.put(state, :height, height)
+        state = Map.put(state, :class, class)
+        state = Map.put(state, :size, nil)
+        state = mount(state, sid, config, connected?)
+        {socket, state}
+
+      {:params, socket, state, _params, _uri} ->
+        {socket, state}
+
+      {:render, _assigns, state = %{map: map, count: count}} ->
+        index =
+          for i <- 0..(count - 1) do
+            {i, map[i]}
+          end
+
+        %{width: ew, height: eh, size: size} = state
+
+        {x, y, w, h, s} =
+          case size do
+            nil ->
+              {nil, nil, nil, nil, nil}
+
+            {rw, rh} ->
+              s = min(rw / ew, rh / eh)
+              cw = ew * s
+              ch = eh * s
+              x = (rw - cw) / 2
+              y = (rh - ch) / 2
+              {x, y, cw, ch, s}
+          end
+
+        state = Map.put(state, :index, index)
+        state = Map.put(state, :s, s)
+        state = Map.put(state, :w, w)
+        state = Map.put(state, :h, h)
+        state = Map.put(state, :x, x)
+        state = Map.put(state, :y, y)
+        render(state)
+
+      {:event, socket, vstate = %{map: map}, event, params = %{"index" => index}} ->
+        index = String.to_integer(index)
+        {fun, ctx} = map[index]
+        ctx = Map.merge(ctx, %{event: {:event, event, params}})
+        state = call!(fun, ctx)
+        ctx = Map.merge(ctx, %{state: state})
+        vstate = put_in(vstate, [:map, index], {fun, ctx})
+        {socket, vstate}
+
+      {:event, socket, state, event = "hook:resize",
+       params = %{"width" => width, "height" => height}} ->
+        Log.trace(view: path, event: event, params: params)
+        state = Map.put(state, :size, {width, height})
+        {socket, state}
+
+      {:event, socket, state, event, params} ->
+        Log.trace(view: path, event: event, params: params)
+        {socket, state}
+
+      {:info, socket, vstate = %{map: map}, {:timer, index, arg, ms}} ->
+        Process.send_after(self(), {:timer, index, arg, ms}, ms)
+        {fun, ctx = %{inputs: inputs}} = map[index]
+        inputs = Map.update(inputs, arg, 1, &(&1 + 1))
+        ctx = Map.merge(ctx, %{inputs: inputs, event: {:timer, arg}})
+        state = call!(fun, ctx)
+        ctx = Map.merge(ctx, %{state: state})
+        vstate = put_in(vstate, [:map, index], {fun, ctx})
+        {socket, vstate}
+
+      {:info, socket, vstate = %{map: map}, {point, {index, arg}, val}} when is_binary(point) ->
+        {fun, ctx = %{inputs: inputs}} = map[index]
+        inputs = Map.put(inputs, arg, val)
+        ctx = Map.merge(ctx, %{inputs: inputs, event: {:point, arg}})
+        state = call!(fun, ctx)
+        ctx = Map.merge(ctx, %{state: state})
+        vstate = put_in(vstate, [:map, index], {fun, ctx})
+        {socket, vstate}
+
+      {:info, socket, state, event} ->
+        Log.trace(view: path, info: event)
+        {socket, state}
+
+      {:close, _socket, _state, reason} ->
+        Log.trace(view: path, close: reason)
+        :ok
+    end
+  end
+
+  defp mount(state, sid, %{funs: funs}, connected?) do
+    map =
+      for {{pos, fun, args}, index} <- Enum.with_index(funs), into: %{} do
+        fid = "#{sid}:fun:#{index}"
+
+        log = fn level, term ->
+          Api.log(level, "#{fid} #{Api.inspect?(term)}")
+        end
+
+        ctx =
+          %{
+            fid: fid,
+            pos: pos,
+            index: index,
+            state: %{index: index},
+            trace: &log.(:trace, &1),
+            debug: &log.(:debug, &1),
+            info: &log.(:info, &1),
+            warn: &log.(:warn, &1),
+            error: &log.(:error, &1),
+            put: &Api.putcast!(&1, &2),
+            connected?: connected?
+          }
+
+        inputs = init(index, args)
+        ctx = Map.merge(ctx, %{inputs: inputs, event: :mount})
+        state = call!(fun, ctx)
+        ctx = Map.merge(ctx, %{state: state})
+        {index, {fun, ctx}}
+      end
+
+    # wrapper to enable logging on render event
+    state = Map.put(state, :wrapper, Applet.Api.wrapper())
+    state = Map.put(state, :count, length(funs))
+    state = Map.put(state, :map, map)
+    state
+  end
+
+  defp render(assigns) do
+    use Terminal.Live
+
+    ~H"""
+    <div id="live_screen" phx-hook="Resize"
+      class={["live_screen relative h-screen w-screen select-none text-base [&_*]:cursor-default text-white bg-black outline-none border-box leading-none text-nowrap", @class[:screen]]}>
+      <div :if={@size} class={["live_panel absolute", @class[:panel]]} style={"left:#{@x}px;top:#{@y}px;width:#{@w}px;height:#{@h}px;"}>
+        <div class="absolute" style={"scale:#{@s};"}>
+          <div :for={{index, {fun, ctx = %{pos: [x, y]}}} <- @index} id={"fun#{index}"} class="absolute" style={"left:#{x}px;top:#{y}px;"}>
+            <.fui fun={fn _ -> call!(fun, Map.merge(ctx, %{event: :render})) end}/>
+          </div>
+        </div>
+      </div>
+    </div>
+    <style :if={@style}><%= raw(@style) %></style>
+    """
+  end
+
+  defp call!(fun, ctx = %{fid: fid, event: event}) do
+    try do
+      fun.(ctx)
+    rescue
+      error in RuntimeError ->
+        Log.warn("#{fid} #{Api.inspect?(event)} rescue: #{Api.inspect?(error.message)}")
+        exit(:kill)
+
+      error ->
+        Log.warn("#{fid} #{Api.inspect?(event)} rescue: #{Api.inspect?(error)}")
+        exit(:kill)
+    catch
+      error ->
+        Log.warn("#{fid} #{Api.inspect?(event)} catch: #{Api.inspect?(error)}")
+        exit(:kill)
+    end
+  end
+
+  defp init(index, args) do
+    for {arg, spec} <- args, reduce: %{} do
+      inputs ->
+        case spec do
+          {:const, const} ->
+            Map.put(inputs, arg, const)
+
+          {:point, point} ->
+            val = Api.subget!(point, sarg: {index, arg}, defv: nil)
+            Map.put(inputs, arg, val)
+
+          {:timer, ms} ->
+            Process.send_after(self(), {:timer, index, arg, ms}, ms)
+            Map.put(inputs, arg, 0)
+        end
+    end
+  end
+
+  defp check(name, value, :fun) do
+    case value do
+      {pos, fun, args} ->
+        Check.check("#{name}:fun", fun, {:fun, 1})
+        Check.check("pos", pos, {:list, 2, {:integer, 0, 65_535}})
+        Check.check("#{name}:args", args, {:list, nil, &check(&1, &2, :arg)})
+
+      _ ->
+        Check.abort(name, value, "invalid fun")
+    end
+  end
+
+  defp check(name, value, :arg) do
+    case value do
+      {key, value} ->
+        Check.check(name, key, :atom)
+
+        case value do
+          {:timer, value} -> Check.check("#{name}:timer", value, {:integer, 1, 65_535})
+          {:point, value} -> Check.check("#{name}:point", value, :binary)
+          {:const, _value} -> :ok
+          _ -> Check.abort(name, value, "invalid arg")
+        end
+
+      _ ->
+        Check.abort(name, value, "invalid arg")
+    end
+  end
+end
