@@ -46,10 +46,10 @@ defmodule Flex.ModbusDevice do
   defp name(%{port: port, ip: ip, proto: proto, name: name}),
     do: "modbus-device:#{port}:#{ip}:#{proto}:#{name}"
 
-  defp setup(config = %{ip: ip, port: port, proto: proto, points: points}) do
+  defp setup(config = %{ip: ip, port: port, proto: proto, points: points, name: name}) do
     sid = name(config)
     Log.debug("#{sid} run")
-    status(config, "starting")
+    status(name, "starting")
     protom = Modbus.Protocol.by_name(proto)
 
     with {:ok, conn} <- Modbus.Master.open(ip: ip, port: port, proto: protom) do
@@ -60,7 +60,7 @@ defmodule Flex.ModbusDevice do
           # catch point spec errors
           rts = runtimes(config)
           # started status until fully initialized
-          status(config, "started")
+          status(name, "started")
           if length(points) == 0, do: Api.sleep()
           loop(%{rts: rts, config: config, conn: conn, sid: sid})
         end)
@@ -68,16 +68,16 @@ defmodule Flex.ModbusDevice do
       # Flex.Service.kill "modbus-slave:4031:127.0.0.1:TCP:setup"
       # test with invalid point, proto, or disconnection
       Log.warn("#{sid} #{Api.inspect?(error)}")
-      status(config, "error")
+      status(name, "error")
     else
       {:error, error} ->
         # test with invalid endpoint
         Log.warn("#{sid} #{Api.inspect?(error)}")
-        status(config, "error")
+        status(name, "error")
     end
   end
 
-  defp loop(state = %{conn: conn, rts: rts, config: %{delay: delay}}) do
+  defp loop(state = %{conn: conn, rts: rts, config: %{delay: delay, name: name}}) do
     Api.sleep(delay)
 
     conn =
@@ -104,6 +104,7 @@ defmodule Flex.ModbusDevice do
       end
 
     state = Map.put(state, :conn, conn)
+    stamp(name)
     loop(state)
   end
 
@@ -146,7 +147,7 @@ defmodule Flex.ModbusDevice do
     end
   end
 
-  defp status(%{name: name}, status) do
+  defp status(name, status) do
     key = "source:status:#{name}"
 
     case status do
@@ -155,5 +156,11 @@ defmodule Flex.ModbusDevice do
       "started" -> Flex.Points.put_value(key, 2)
       "error" -> Flex.Points.put_value(key, 3)
     end
+  end
+
+  defp stamp(name) do
+    stamp = NaiveDateTime.utc_now()
+    key = "source:stamp:#{name}"
+    Flex.Points.put_value(key, stamp)
   end
 end
