@@ -98,6 +98,16 @@ Flex.ReactiveLogic.new()
 )
 |> Flex.ReactiveLogic.run(rdms: 1000)
 
+# test: stacktrace with filename and line number
+# test: viewport styling customization by @class
+# test: viewport styling customization by @style
+# test: logs from events including render
+# test: shared state and events
+# test: mount and render events
+# test: point and timer events
+# test: click events
+# test: global state
+#
 # http://localhost:4080/screen1
 # Adb.list
 # Api.putcast!("screen1:point1", 1)
@@ -110,12 +120,8 @@ Flex.LiveScreen.new()
 |> Flex.LiveScreen.set(title: "Screen1")
 |> Flex.LiveScreen.set(width: 800)
 |> Flex.LiveScreen.set(height: 480)
-|> Flex.LiveScreen.set(
-  class: %{
-    "ls:main" => "bg-gray-300 select-none",
-    "ls:panel" => "bg-gray-600"
-  }
-)
+|> Flex.LiveScreen.put(:class, "ls:main", "bg-gray-300 select-none")
+|> Flex.LiveScreen.put(:class, "ls:panel", "bg-gray-600")
 |> Flex.LiveScreen.set(
   style: """
   #ls_main:hover {
@@ -131,31 +137,19 @@ Flex.LiveScreen.new()
   fn
     # :mount, :render, {:timer, :timer1}, {:point, :point1}, {:event, "click", _params}
     # log confirmed to work in render callback
-    %{state: state, shared: shared, event: :render} ->
-      assigns = Map.put(state, :shared, shared)
-
+    %{state: assigns, event: :render} ->
       ~H"""
       <div class="text-[24px] text-red-500 w-[12em] p-2 bg-gray-800">
-        <div phx-click="click" phx-value-index={@index}>Click me: {@count}</div>
-        <div>Shared: {@shared[:count]}</div>
         <div>Calculated: {@value}</div>
       </div>
       """
 
-    %{state: state = %{count: count}, event: {:event, "click", _params}, put: put} ->
-      # first one should be ignored with changed? false
-      put.(:count, count)
-      put.(:count, count + 1)
-      Map.put(state, :count, count + 1)
-
-    %{state: state, event: :mount, global: global, inputs: inputs, trace: trace} ->
-      trace.("mount connected?: #{global.connected?}")
-
+    %{state: state, event: :mount, inputs: inputs} ->
       calc = fn %{const1: const1, timer1: timer1, point1: point1} ->
         (point1 || const1) * timer1
       end
 
-      Map.merge(state, %{calc: calc, value: calc.(inputs), count: 0})
+      Map.merge(state, %{calc: calc, value: calc.(inputs)})
 
     %{state: state = %{calc: calc}, inputs: inputs} ->
       Map.merge(state, %{value: calc.(inputs)})
@@ -167,24 +161,54 @@ Flex.LiveScreen.new()
   ]
 )
 |> Flex.LiveScreen.add(
-  [340, 20],
+  [440, 20],
   fn
     %{state: state, shared: shared, event: :render} ->
       assigns = Map.put(state, :shared, shared)
 
       ~H"""
-      <div class="text-[24px] text-red-500 w-[10em] p-2 bg-gray-800">
-        <div>Shared: {@shared[:count]}</div>
+      <div class="text-[24px] text-red-500 w-[300px] p-2 bg-gray-800 cursor-pointer"
+        phx-click="click" phx-value-index={@index}>
+        Click me count: {@shared[:count]}
       </div>
       """
 
-    %{state: state, index: index, event: event, trace: trace} ->
-      trace.(index: index, event: event)
+    %{state: state, event: :mount, put: put} ->
+      put.(:count, 0)
+      state
+
+    %{state: state, shared: %{count: count}, event: {:event, "click", _params}, put: put} ->
+      # first one should be ignored when changed? false
+      put.(:count, count)
+      put.(:count, count + 1)
+      state
+
+    %{state: state, index: index, event: event, trace: trace, global: %{connected?: connected?}} ->
+      trace.(index: index, event: event, connected?: connected?)
+      state
+  end
+)
+|> Flex.LiveScreen.add(
+  [440, 80],
+  fn
+    %{state: state, shared: shared, event: :render} ->
+      assigns = Map.put(state, :shared, shared)
+
+      ~H"""
+      <div class="text-[24px] text-red-500 w-[300px] p-2 bg-gray-800">
+        Shared click count: {@shared[:count]}
+      </div>
+      """
+
+    %{state: state, index: index, event: event, trace: trace, global: %{connected?: connected?}} ->
+      trace.(index: index, event: event, connected?: connected?)
       state
   end
 )
 |> Flex.LiveScreen.run()
 
+# test: password logic
+# test: login styling customization
 # http://localhost:4080/password1
 Flex.LiveScreen.new()
 |> Flex.LiveScreen.set(path: "/password1")
@@ -192,12 +216,33 @@ Flex.LiveScreen.new()
 |> Flex.LiveScreen.set(width: 800)
 |> Flex.LiveScreen.set(height: 480)
 |> Flex.LiveScreen.set(pass: fn -> "flex" end)
-|> Flex.LiveScreen.set(
-  class: %{
-    "ll:label" => "text-blue-600 text-4xl",
-    "ll:input" => "text-blue-600 text-4xl text-center rounded ring-0 focus:ring-0"
-  }
+|> Flex.LiveScreen.put(:class, "ll:label", "text-blue-600 text-[24px]")
+|> Flex.LiveScreen.put(:class, "ll:input", [
+  "bg-blue-600 text-blue-400 text-[24px] text-center rounded-lg ring-0 focus:ring-0"
+])
+|> Flex.LiveScreen.add(
+  [300, 200],
+  fn
+    %{state: assigns, event: :render} ->
+      ~H"""
+      <div class="text-[24px] text-center text-red-500 w-[200px] p-2 bg-gray-800 rounded-lg">
+        Welcome
+      </div>
+      """
+
+    %{state: state, index: index, event: event, trace: trace, global: %{connected?: connected?}} ->
+      trace.(index: index, event: event, connected?: connected?)
+      state
+  end
 )
+|> Flex.LiveScreen.run()
+
+# http://localhost:4080/hmi1
+Flex.LiveScreen.new()
+|> Flex.LiveScreen.set(path: "/hmi1")
+|> Flex.LiveScreen.set(title: "HMI1")
+|> Flex.LiveScreen.set(width: 800)
+|> Flex.LiveScreen.set(height: 480)
 |> Flex.LiveScreen.run()
 
 :ok

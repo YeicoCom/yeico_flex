@@ -48,6 +48,16 @@ defmodule Flex.LiveScreen do
     Map.put(config, :funs, funs)
   end
 
+  def put(config, :class, key, value) when is_binary(key) and is_list(value) do
+    Check.check("class[#{key}]", value, {:list, nil, :binary})
+    put_in(config, [:class, key], value)
+  end
+
+  def put(config, :class, key, value) when is_binary(key) do
+    Check.check("class[#{key}]", value, :binary)
+    put_in(config, [:class, key], value)
+  end
+
   # log confirmed to work in render callback
   # Api.wrap logs unhandled exceptions
   # Api.wrapper() does not
@@ -85,7 +95,12 @@ defmodule Flex.LiveScreen do
         state = Map.put(state, :class, class)
         state = Map.put(state, :pass, pass)
         state = Map.put(state, :size, nil)
-        global = Map.merge(global, %{connected?: connected?, tzoffset: tzoffset})
+        global = Map.put(global, :connected?, connected?)
+        global = Map.put(global, :tzoffset, tzoffset)
+        global = Map.put(global, :title, title)
+        global = Map.put(global, :width, width)
+        global = Map.put(global, :height, height)
+        global = Map.put(global, :class, class)
         state = Map.put(state, :global, global)
         state = Map.put(state, :shared, shared)
         state = mount(state, sid, config)
@@ -96,7 +111,7 @@ defmodule Flex.LiveScreen do
 
       {:render, _assigns, state = %{map: map, count: count, pass: nil}} ->
         index =
-          for i <- 0..(count - 1) do
+          for i <- 0..(count - 1)//1 do
             {i, map[i]}
           end
 

@@ -64,6 +64,8 @@ Modbus.Session.exec(pid, "s=1,a=0,c=rri,d=1,e=f32be")
 - [ ] Live screen panel align prop
 - [ ] Live screen @scope styling
 - [ ] Live screen class vs style priority
+- [ ] Live screen on escape logout
+- [ ] Live screen tailwind @apply
 - [ ] Elixir backend service
 - [ ] Elixir script service
 - [x] Live screen shared state between funs
