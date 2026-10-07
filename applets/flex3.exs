@@ -131,19 +131,25 @@ Flex.LiveScreen.new()
   fn
     # :mount, :render, {:timer, :timer1}, {:point, :point1}, {:event, "click", _params}
     # log confirmed to work in render callback
-    %{state: assigns, event: :render} ->
+    %{state: state, shared: shared, event: :render} ->
+      assigns = Map.put(state, :shared, shared)
+
       ~H"""
-      <div class="text-[24px] text-red-500 w-[6em] p-2 bg-gray-800">
+      <div class="text-[24px] text-red-500 w-[12em] p-2 bg-gray-800">
         <div phx-click="click" phx-value-index={@index}>Click me: {@count}</div>
-        <div>{@value}</div>
+        <div>Shared: {@shared[:count]}</div>
+        <div>Calculated: {@value}</div>
       </div>
       """
 
-    %{state: state, event: {:event, "click", _params}} ->
-      Map.update(state, :count, 1, &(&1 + 1))
+    %{state: state = %{count: count}, event: {:event, "click", _params}, put: put} ->
+      # first one should be ignored with changed? false
+      put.(:count, count)
+      put.(:count, count + 1)
+      Map.put(state, :count, count + 1)
 
-    %{state: state, event: :mount, connected?: connected?, inputs: inputs, trace: trace} ->
-      trace.("mount connected?: #{connected?}")
+    %{state: state, event: :mount, global: global, inputs: inputs, trace: trace} ->
+      trace.("mount connected?: #{global.connected?}")
 
       calc = fn %{const1: const1, timer1: timer1, point1: point1} ->
         (point1 || const1) * timer1
@@ -159,6 +165,23 @@ Flex.LiveScreen.new()
     {:timer1, {:timer, 100}},
     {:point1, {:point, "screen1:point1"}}
   ]
+)
+|> Flex.LiveScreen.add(
+  [340, 20],
+  fn
+    %{state: state, shared: shared, event: :render} ->
+      assigns = Map.put(state, :shared, shared)
+
+      ~H"""
+      <div class="text-[24px] text-red-500 w-[10em] p-2 bg-gray-800">
+        <div>Shared: {@shared[:count]}</div>
+      </div>
+      """
+
+    %{state: state, index: index, event: event, trace: trace} ->
+      trace.(index: index, event: event)
+      state
+  end
 )
 |> Flex.LiveScreen.run()
 

@@ -10,7 +10,9 @@ defmodule Flex.LiveScreen do
       width: nil,
       height: nil,
       style: nil,
-      class: nil,
+      class: %{},
+      global: %{},
+      shared: %{},
       favicon: nil,
       suffix: " · Flex",
       funs: []
@@ -20,7 +22,9 @@ defmodule Flex.LiveScreen do
   defp checks() do
     %{
       pass: {:fun?, 0},
-      class: :map?,
+      class: :map,
+      global: :map,
+      shared: :map,
       path: :binary,
       title: :binary,
       style: :binary?,
@@ -66,9 +70,10 @@ defmodule Flex.LiveScreen do
     use Terminal.Live
 
     fn
-      {:mount, socket = %{assigns: %{connected?: connected?}}, state} ->
+      {:mount, socket = %{assigns: %{connected?: connected?, tzoffset: tzoffset}}, state} ->
         %{title: title, style: style, width: width, height: height} = config
         %{class: class, pass: pass, suffix: suffix, favicon: favicon} = config
+        %{global: global, shared: shared} = config
         socket = assign(socket, applet_css: "/applets/flex3.css")
         socket = assign(socket, applet_js: "/applets/flex3.js")
         socket = assign(socket, favicon_url: favicon)
@@ -80,7 +85,10 @@ defmodule Flex.LiveScreen do
         state = Map.put(state, :class, class)
         state = Map.put(state, :pass, pass)
         state = Map.put(state, :size, nil)
-        state = mount(state, sid, config, connected?)
+        global = Map.merge(global, %{connected?: connected?, tzoffset: tzoffset})
+        state = Map.put(state, :global, global)
+        state = Map.put(state, :shared, shared)
+        state = mount(state, sid, config)
         {socket, state}
 
       {:params, socket, state, _params, _uri} ->
@@ -123,7 +131,7 @@ defmodule Flex.LiveScreen do
         index = String.to_integer(index)
         {fun, ctx} = map[index]
         ctx = Map.merge(ctx, %{event: {:event, event, params}})
-        ctx = Map.merge(ctx, %{state: call!(fun, ctx)})
+        ctx = Map.merge(ctx, %{state: call!(state, fun, ctx)})
         state = put_in(state, [:map, index], {fun, ctx})
         {socket, state}
 
@@ -147,7 +155,7 @@ defmodule Flex.LiveScreen do
         {fun, ctx = %{inputs: inputs}} = map[index]
         inputs = Map.update(inputs, arg, 1, &(&1 + 1))
         ctx = Map.merge(ctx, %{inputs: inputs, event: {:timer, arg}})
-        ctx = Map.merge(ctx, %{state: call!(fun, ctx)})
+        ctx = Map.merge(ctx, %{state: call!(state, fun, ctx)})
         state = put_in(state, [:map, index], {fun, ctx})
         {socket, state}
 
@@ -155,8 +163,26 @@ defmodule Flex.LiveScreen do
         {fun, ctx = %{inputs: inputs}} = map[index]
         inputs = Map.put(inputs, arg, val)
         ctx = Map.merge(ctx, %{inputs: inputs, event: {:point, arg}})
-        ctx = Map.merge(ctx, %{state: call!(fun, ctx)})
+        ctx = Map.merge(ctx, %{state: call!(state, fun, ctx)})
         state = put_in(state, [:map, index], {fun, ctx})
+        {socket, state}
+
+      {:info, socket, state = %{map: map, count: count, shared: shared}, {:shared, event, fun}}
+      when is_function(fun, 1) ->
+        {changed?, shared} = mutate(shared, fun)
+        state = Map.put(state, :shared, shared)
+        count = if(changed?, do: count, else: 0)
+
+        map =
+          for index <- 0..(count - 1)//1, reduce: map do
+            map ->
+              {fun, ctx} = map[index]
+              ctx = Map.merge(ctx, %{event: {:shared, event}})
+              ctx = Map.merge(ctx, %{state: call!(state, fun, ctx)})
+              Map.put(map, index, {fun, ctx})
+          end
+
+        state = Map.put(state, :map, map)
         {socket, state}
 
       {:info, socket, state, event} ->
@@ -169,7 +195,9 @@ defmodule Flex.LiveScreen do
     end
   end
 
-  defp mount(state, sid, %{funs: funs}, connected?) do
+  defp mount(state, sid, %{funs: funs}) do
+    self = self()
+
     map =
       for {{pos, fun, args}, index} <- Enum.with_index(funs), into: %{} do
         fid = "#{sid}:fun:#{index}"
@@ -191,11 +219,10 @@ defmodule Flex.LiveScreen do
             info: &log.(:info, &1),
             warn: &log.(:warn, &1),
             error: &log.(:error, &1),
-            put: &Api.putcast!(&1, &2),
-            connected?: connected?
+            put: &send(self, {:shared, {:put, &1, &2}, fn shared -> Map.put(shared, &1, &2) end})
           }
 
-        ctx = Map.merge(ctx, %{state: call!(fun, ctx)})
+        ctx = Map.merge(ctx, %{state: call!(state, fun, ctx)})
         {index, {fun, ctx}}
       end
 
@@ -215,7 +242,7 @@ defmodule Flex.LiveScreen do
       <div :if={@size} id="ls_panel" class={["absolute", @class["ls:panel"]]} style={"left:#{@x}px;top:#{@y}px;width:#{@w}px;height:#{@h}px;"}>
         <div class="absolute" style={"scale:#{@s};"}>
           <div :for={{index, {fun, ctx = %{pos: [x, y]}}} <- @index} id={"fun#{index}"} class={["absolute", @class["ls:fun"]]} style={"left:#{x}px;top:#{y}px;"}>
-            <.fui fun={fn _ -> call!(fun, Map.merge(ctx, %{event: :render})) end}/>
+            <.fui fun={fn _ -> call!(%{global: @global, shared: @shared}, fun, Map.merge(ctx, %{event: :render})) end}/>
           </div>
         </div>
       </div>
@@ -237,24 +264,26 @@ defmodule Flex.LiveScreen do
     """
   end
 
-  defp call!(fun, ctx = %{fid: fid, event: event, inputs: inputs, state: state}) do
+  defp call!(%{global: global, shared: shared}, fun, ctx) do
+    %{fid: fid, event: event, inputs: inputs, state: state} = ctx
     environ = [event: event, inputs: inputs, state: state]
+    ctx = Map.merge(ctx, %{global: global, shared: shared})
 
-    try do
-      fun.(ctx)
-    rescue
-      error in RuntimeError ->
-        Log.warn("#{fid} #{Api.inspect?(environ)} rescue: #{Api.inspect?(error.message)}")
-        exit(:kill)
+    # Api.safe logs unhandled exceptions
+    # confirmed that stacktraces report the script file and line number
+    case Applet.Utils.safe(fun, ctx) do
+      {:ok, state} ->
+        state
 
-      error ->
+      {:error, error} ->
         Log.warn("#{fid} #{Api.inspect?(environ)} rescue: #{Api.inspect?(error)}")
         exit(:kill)
-    catch
-      error ->
-        Log.warn("#{fid} #{Api.inspect?(environ)} catch: #{Api.inspect?(error)}")
-        exit(:kill)
     end
+  end
+
+  defp mutate(shared, fun) do
+    new = fun.(shared)
+    {new != shared, new}
   end
 
   defp init(index, args) do

@@ -56,8 +56,7 @@ defmodule Flex.ReactiveLogic do
         debug: &log.(:debug, &1),
         info: &log.(:info, &1),
         warn: &log.(:warn, &1),
-        error: &log.(:error, &1),
-        put: &Api.putcast!(&1, &2)
+        error: &log.(:error, &1)
       }
 
     {:error, %{error: error}} = Api.safe(fn -> loop(fun, ctx) end)
