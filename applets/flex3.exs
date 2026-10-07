@@ -112,28 +112,28 @@ Flex.LiveScreen.new()
 |> Flex.LiveScreen.set(height: 480)
 |> Flex.LiveScreen.set(
   class: %{
-    screen: "bg-gray-300",
-    panel: "bg-gray-600"
+    "ls:main" => "bg-gray-300 select-none",
+    "ls:panel" => "bg-gray-600"
   }
 )
 |> Flex.LiveScreen.set(
   style: """
-  .live_screen:hover {
+  #ls_main:hover {
     background-color: blue;
   }
-  .live_panel:hover {
+  #ls_panel:hover {
     background-color: black;
   }
   """
 )
 |> Flex.LiveScreen.add(
-  [0, 0],
+  [40, 20],
   fn
     # :mount, :render, {:timer, :timer1}, {:point, :point1}, {:event, "click", _params}
     # log confirmed to work in render callback
     %{state: assigns, event: :render} ->
       ~H"""
-      <div class="text-[24px] text-red-500">
+      <div class="text-[24px] text-red-500 w-[6em] p-2 bg-gray-800">
         <div phx-click="click" phx-value-index={@index}>Click me: {@count}</div>
         <div>{@value}</div>
       </div>
@@ -159,6 +159,21 @@ Flex.LiveScreen.new()
     {:timer1, {:timer, 100}},
     {:point1, {:point, "screen1:point1"}}
   ]
+)
+|> Flex.LiveScreen.run()
+
+# http://localhost:4080/password1
+Flex.LiveScreen.new()
+|> Flex.LiveScreen.set(path: "/password1")
+|> Flex.LiveScreen.set(title: "Password1")
+|> Flex.LiveScreen.set(width: 800)
+|> Flex.LiveScreen.set(height: 480)
+|> Flex.LiveScreen.set(pass: fn -> "flex" end)
+|> Flex.LiveScreen.set(
+  class: %{
+    "ll:label" => "text-blue-600 text-4xl",
+    "ll:input" => "text-blue-600 text-4xl text-center rounded ring-0 focus:ring-0"
+  }
 )
 |> Flex.LiveScreen.run()
 

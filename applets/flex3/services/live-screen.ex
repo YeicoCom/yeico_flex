@@ -4,6 +4,7 @@ defmodule Flex.LiveScreen do
 
   defp initial() do
     %{
+      pass: nil,
       path: nil,
       title: nil,
       width: nil,
@@ -16,6 +17,7 @@ defmodule Flex.LiveScreen do
 
   defp checks() do
     %{
+      pass: {:fun?, 0},
       class: :map?,
       path: :binary,
       title: :binary,
@@ -25,6 +27,9 @@ defmodule Flex.LiveScreen do
       funs: {:list, nil, &check(&1, &2, :fun)}
     }
   end
+
+  def add(config, {pos, fun}), do: add(config, pos, fun, [])
+  def add(config, {pos, fun, args}), do: add(config, pos, fun, args)
 
   def add(config = %{funs: funs}, pos, fun, args \\ []) do
     Check.check("pos", pos, {:list, 2, {:integer, 0, 65_535}})
@@ -47,7 +52,7 @@ defmodule Flex.LiveScreen do
   defp setup(config = %{path: path}) do
     sid = name(config)
     Log.debug("#{sid} run")
-    wrapped = Api.wrap(handler(sid, config))
+    wrapped = Api.wrapper().(handler(sid, config))
     Terminal.view(path, wrapped)
     Api.receive()
     exit(:kill)
@@ -58,7 +63,8 @@ defmodule Flex.LiveScreen do
 
     fn
       {:mount, socket = %{assigns: %{connected?: connected?}}, state} ->
-        %{title: title, style: style, width: width, height: height, class: class} = config
+        %{title: title, style: style, width: width, height: height} = config
+        %{class: class, pass: pass} = config
         socket = assign(socket, applet_css: "/applets/flex3.css")
         socket = assign(socket, applet_js: "/applets/flex3.js")
         socket = assign(socket, page_title: title)
@@ -66,6 +72,7 @@ defmodule Flex.LiveScreen do
         state = Map.put(state, :width, width)
         state = Map.put(state, :height, height)
         state = Map.put(state, :class, class)
+        state = Map.put(state, :pass, pass)
         state = Map.put(state, :size, nil)
         state = mount(state, sid, config, connected?)
         {socket, state}
@@ -73,7 +80,7 @@ defmodule Flex.LiveScreen do
       {:params, socket, state, _params, _uri} ->
         {socket, state}
 
-      {:render, _assigns, state = %{map: map, count: count}} ->
+      {:render, _assigns, state = %{map: map, count: count, pass: nil}} ->
         index =
           for i <- 0..(count - 1) do
             {i, map[i]}
@@ -103,6 +110,9 @@ defmodule Flex.LiveScreen do
         state = Map.put(state, :y, y)
         render(state)
 
+      {:render, _assigns, state} ->
+        login(state)
+
       {:event, socket, state = %{map: map}, event, params = %{"index" => index}} ->
         index = String.to_integer(index)
         {fun, ctx} = map[index]
@@ -115,6 +125,11 @@ defmodule Flex.LiveScreen do
        params = %{"width" => width, "height" => height}} ->
         Log.trace(view: path, event: event, params: params)
         state = Map.put(state, :size, {width, height})
+        {socket, state}
+
+      {:event, socket, state = %{pass: pass}, event = "login:pass", params} ->
+        Log.trace(view: path, event: event, params: params)
+        state = Map.put(state, :pass, if(pass.() == params["pass"], do: nil, else: pass))
         {socket, state}
 
       {:event, socket, state, event, params} ->
@@ -189,16 +204,29 @@ defmodule Flex.LiveScreen do
     use Terminal.Live
 
     ~H"""
-    <div id="live_screen" phx-hook="Resize"
-      class={["live_screen relative h-screen w-screen select-none text-base [&_*]:cursor-default text-white bg-black outline-none border-box leading-none text-nowrap", @class[:screen]]}>
-      <div :if={@size} class={["live_panel absolute", @class[:panel]]} style={"left:#{@x}px;top:#{@y}px;width:#{@w}px;height:#{@h}px;"}>
+    <div id="ls_main" phx-hook="Resize"
+      class={["relative h-screen w-screen", @class["ls:main"] || "select-none text-base [&_*]:cursor-default text-white bg-black outline-none border-box leading-none text-nowrap"]}>
+      <div :if={@size} id="ls_panel" class={["absolute", @class["ls:panel"]]} style={"left:#{@x}px;top:#{@y}px;width:#{@w}px;height:#{@h}px;"}>
         <div class="absolute" style={"scale:#{@s};"}>
-          <div :for={{index, {fun, ctx = %{pos: [x, y]}}} <- @index} id={"fun#{index}"} class="absolute" style={"left:#{x}px;top:#{y}px;"}>
+          <div :for={{index, {fun, ctx = %{pos: [x, y]}}} <- @index} id={"fun#{index}"} class={["absolute", @class["ls:fun"]]} style={"left:#{x}px;top:#{y}px;"}>
             <.fui fun={fn _ -> call!(fun, Map.merge(ctx, %{event: :render})) end}/>
           </div>
         </div>
       </div>
     </div>
+    <style :if={@style}><%= raw(@style) %></style>
+    """
+  end
+
+  defp login(assigns) do
+    use Terminal.Live
+
+    ~H"""
+    <form id="ll_form" class={@class["ll:form"] || "h-screen w-screen text-white flex flex-col gap-4 items-center justify-center"} phx-submit="login:pass">
+      <label id="ll_label" for="pass" class={@class["ll:label"] || "text-3xl uppercase"}>Password</label>
+      <input id="ll_input" name="pass" type="password" size="16" phx-hook="AutoFocus"
+        class={@class["ll:input"] || "text-3xl text-center outline-none border-0 ring-0 bg-zinc-600 rounded-lg focus:ring-lime-500"}>
+    </form>
     <style :if={@style}><%= raw(@style) %></style>
     """
   end

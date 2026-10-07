@@ -44,14 +44,26 @@ Modbus.Session.exec(pid, "s=1,a=0,c=rri,d=1,e=f32be")
 :ok = Modbus.Session.close(pid)
 ```
 
+## Auth
+
+- terminal.view auth: %{check: fun/1, key: key}
+- route.check_live_auth check({path, query, get_session(conn, key)})
+  - nil -> continue
+  - url -> redirect
+- /del/ENCODED_TOKEN to delete from session
+- /put/ENCODED_TOKEN to append to session
+
 ## Fixme
 
+- [ ] ISA101 widgets
+- [ ] Live screen google auth
 - [ ] Service dependencies
 - [ ] Modbus integer 32 encodings
 - [ ] Live screen panel align prop
 - [ ] Live screen @scope styling
 - [ ] Live screen class vs style priority
 - [ ] Live screen shared state between funs
+- [x] Live screen fixed password
 - [x] Live screen service
 - [-] Modbus device pulse point
 - [-] Observable map service

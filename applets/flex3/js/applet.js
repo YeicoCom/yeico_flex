@@ -27,11 +27,29 @@ const resizeObserver = new ResizeObserver((entries) => {
     }
 })
 
+function setFocus(el) {
+    el.focus()
+    // number input does not support selection
+    // submit buttons get detached from form
+    if (el.setSelectionRange) {
+        const type = el.type
+        el.type = "text"
+        const end = el.value.length
+        el.setSelectionRange(end, end)
+        el.type = type
+    }
+}
+
 // macos m1 disconnects the websocket after ~3m idle
 // and pheonix reconnects immediatelly but hook.mount
 // is not called, just the disconnected/reconnected
 // on the server side a single mount with connected? true
 const hooks = {
+    AutoFocus: {
+        mounted() {
+            setFocus(this.el)
+        }
+    },
     Resize: {
         mounted() {
             const pushSize = (el) => {
