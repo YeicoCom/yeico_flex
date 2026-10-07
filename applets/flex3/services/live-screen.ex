@@ -11,6 +11,8 @@ defmodule Flex.LiveScreen do
       height: nil,
       style: nil,
       class: nil,
+      favicon: nil,
+      suffix: " · Flex",
       funs: []
     }
   end
@@ -22,6 +24,8 @@ defmodule Flex.LiveScreen do
       path: :binary,
       title: :binary,
       style: :binary?,
+      suffix: :binary?,
+      favicon: :binary?,
       width: {:integer, 1, 65_535},
       height: {:integer, 1, 65_535},
       funs: {:list, nil, &check(&1, &2, :fun)}
@@ -64,9 +68,11 @@ defmodule Flex.LiveScreen do
     fn
       {:mount, socket = %{assigns: %{connected?: connected?}}, state} ->
         %{title: title, style: style, width: width, height: height} = config
-        %{class: class, pass: pass} = config
+        %{class: class, pass: pass, suffix: suffix, favicon: favicon} = config
         socket = assign(socket, applet_css: "/applets/flex3.css")
         socket = assign(socket, applet_js: "/applets/flex3.js")
+        socket = assign(socket, favicon_url: favicon)
+        socket = assign(socket, page_suffix: suffix)
         socket = assign(socket, page_title: title)
         state = Map.put(state, :style, style)
         state = Map.put(state, :width, width)
@@ -223,7 +229,7 @@ defmodule Flex.LiveScreen do
 
     ~H"""
     <form id="ll_form" class={@class["ll:form"] || "h-screen w-screen text-white flex flex-col gap-4 items-center justify-center"} phx-submit="login:pass">
-      <label id="ll_label" for="pass" class={@class["ll:label"] || "text-3xl uppercase"}>Password</label>
+      <label id="ll_label" for="ll_input" class={@class["ll:label"] || "text-3xl uppercase"}>Password</label>
       <input id="ll_input" name="pass" type="password" size="16" phx-hook="AutoFocus"
         class={@class["ll:input"] || "text-3xl text-center outline-none border-0 ring-0 bg-zinc-600 rounded-lg focus:ring-lime-500"}>
     </form>
