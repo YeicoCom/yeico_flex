@@ -39,35 +39,19 @@ defmodule Flex.ReactiveLogic do
   end
 
   defp setup(sid, index, fun, args) do
-    inputs =
-      for {arg, spec} <- args, reduce: %{} do
-        inputs ->
-          case spec do
-            {:const, const} ->
-              Map.put(inputs, arg, const)
-
-            {:point, point} ->
-              val = Api.subget!(point, sarg: {sid, arg}, defv: nil)
-              Map.put(inputs, arg, val)
-
-            {:timer, ms} ->
-              Process.send_after(self(), {:timer, {sid, arg}, ms}, ms)
-              Map.put(inputs, arg, 0)
-          end
-      end
-
     fid = "#{sid}:fun:#{index}"
 
     log = fn level, term ->
       Api.log(level, "#{fid} #{Api.inspect?(term)}")
     end
 
-    ctx = fn inputs, state, event ->
+    ctx =
       %{
-        state: state,
-        event: event,
+        fid: fid,
+        state: %{},
         index: index,
-        inputs: inputs,
+        event: :mount,
+        inputs: init(index, args),
         trace: &log.(:trace, &1),
         debug: &log.(:debug, &1),
         info: &log.(:info, &1),
@@ -75,40 +59,50 @@ defmodule Flex.ReactiveLogic do
         error: &log.(:error, &1),
         put: &Api.putcast!(&1, &2)
       }
-    end
 
-    {:error, %{error: error}} =
-      Api.safe(fn ->
-        Process.put(:__state__, %{})
-        loop(sid, fun, ctx, inputs, %{}, index, :mount)
-      end)
-
-    event = Process.get(:__event__)
-    state = Process.get(:__state__)
-    inputs = Process.get(:__input__)
-    ctx = [event: event, inputs: inputs, state: state]
-    Log.warn("#{fid} #{Api.inspect?(ctx)} #{Api.inspect?(error)}")
+    {:error, %{error: error}} = Api.safe(fn -> loop(fun, ctx) end)
+    Log.warn("#{fid} #{Api.inspect?(Process.get(:__environ__))} #{Api.inspect?(error)}")
   end
 
-  defp loop(sid, fun, ctx, inputs, state, index, event) do
-    Process.put(:__event__, event)
-    Process.put(:__input__, inputs)
-    state = fun.(ctx.(inputs, state, event))
-    Process.put(:__state__, state)
+  defp loop(fun, ctx = %{index: index, event: event, inputs: inputs, state: state}) do
+    Process.put(:__environ__, event: event, inputs: inputs, state: state)
+    state = fun.(ctx)
+    ctx = Map.merge(ctx, %{state: state})
+    Process.put(:__environ__, event: event, inputs: inputs, state: state)
 
     receive do
-      {:timer, {^sid, arg}, ms} ->
-        Process.send_after(self(), {:timer, {sid, arg}, ms}, ms)
+      {:timer, {^index, arg}, ms} ->
+        Process.send_after(self(), {:timer, {index, arg}, ms}, ms)
         inputs = Map.update(inputs, arg, 1, &(&1 + 1))
-        loop(sid, fun, ctx, inputs, state, index, {:timer, arg})
+        ctx = Map.merge(ctx, %{inputs: inputs, event: {:timer, arg}})
+        loop(fun, ctx)
 
-      {point, {^sid, arg}, val} when is_binary(point) ->
+      {point, {^index, arg}, val} when is_binary(point) ->
         inputs = Map.put(inputs, arg, val)
-        loop(sid, fun, ctx, inputs, state, index, {:point, arg})
+        ctx = Map.merge(ctx, %{inputs: inputs, event: {:point, arg}})
+        loop(fun, ctx)
 
       unexpected ->
         # single fun crash kills the whole flow logic
         throw(unexpected: unexpected)
+    end
+  end
+
+  defp init(index, args) do
+    for {arg, spec} <- args, reduce: %{} do
+      inputs ->
+        case spec do
+          {:const, const} ->
+            Map.put(inputs, arg, const)
+
+          {:point, point} ->
+            val = Api.subget!(point, sarg: {index, arg}, defv: nil)
+            Map.put(inputs, arg, val)
+
+          {:timer, ms} ->
+            Process.send_after(self(), {:timer, {index, arg}, ms}, ms)
+            Map.put(inputs, arg, 0)
+        end
     end
   end
 

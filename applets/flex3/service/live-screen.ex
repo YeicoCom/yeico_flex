@@ -36,7 +36,9 @@ defmodule Flex.LiveScreen do
   end
 
   # log confirmed to work in render callback
-  defp wrap(fun, {:module, :erl_eval}), do: Api.wrap(fun)
+  # Api.wrap logs unhandled exceptions
+  # Api.wrapper() does not
+  defp wrap(fun, {:module, :erl_eval}), do: Api.wrapper().(fun)
   defp wrap(fun, _), do: fun
 
   defp name(%{path: path}),
@@ -101,14 +103,13 @@ defmodule Flex.LiveScreen do
         state = Map.put(state, :y, y)
         render(state)
 
-      {:event, socket, vstate = %{map: map}, event, params = %{"index" => index}} ->
+      {:event, socket, state = %{map: map}, event, params = %{"index" => index}} ->
         index = String.to_integer(index)
         {fun, ctx} = map[index]
         ctx = Map.merge(ctx, %{event: {:event, event, params}})
-        state = call!(fun, ctx)
-        ctx = Map.merge(ctx, %{state: state})
-        vstate = put_in(vstate, [:map, index], {fun, ctx})
-        {socket, vstate}
+        ctx = Map.merge(ctx, %{state: call!(fun, ctx)})
+        state = put_in(state, [:map, index], {fun, ctx})
+        {socket, state}
 
       {:event, socket, state, event = "hook:resize",
        params = %{"width" => width, "height" => height}} ->
@@ -120,24 +121,22 @@ defmodule Flex.LiveScreen do
         Log.trace(view: path, event: event, params: params)
         {socket, state}
 
-      {:info, socket, vstate = %{map: map}, {:timer, index, arg, ms}} ->
+      {:info, socket, state = %{map: map}, {:timer, index, arg, ms}} ->
         Process.send_after(self(), {:timer, index, arg, ms}, ms)
         {fun, ctx = %{inputs: inputs}} = map[index]
         inputs = Map.update(inputs, arg, 1, &(&1 + 1))
         ctx = Map.merge(ctx, %{inputs: inputs, event: {:timer, arg}})
-        state = call!(fun, ctx)
-        ctx = Map.merge(ctx, %{state: state})
-        vstate = put_in(vstate, [:map, index], {fun, ctx})
-        {socket, vstate}
+        ctx = Map.merge(ctx, %{state: call!(fun, ctx)})
+        state = put_in(state, [:map, index], {fun, ctx})
+        {socket, state}
 
-      {:info, socket, vstate = %{map: map}, {point, {index, arg}, val}} when is_binary(point) ->
+      {:info, socket, state = %{map: map}, {point, {index, arg}, val}} when is_binary(point) ->
         {fun, ctx = %{inputs: inputs}} = map[index]
         inputs = Map.put(inputs, arg, val)
         ctx = Map.merge(ctx, %{inputs: inputs, event: {:point, arg}})
-        state = call!(fun, ctx)
-        ctx = Map.merge(ctx, %{state: state})
-        vstate = put_in(vstate, [:map, index], {fun, ctx})
-        {socket, vstate}
+        ctx = Map.merge(ctx, %{state: call!(fun, ctx)})
+        state = put_in(state, [:map, index], {fun, ctx})
+        {socket, state}
 
       {:info, socket, state, event} ->
         Log.trace(view: path, info: event)
@@ -163,6 +162,8 @@ defmodule Flex.LiveScreen do
             fid: fid,
             pos: pos,
             index: index,
+            event: :mount,
+            inputs: init(index, args),
             state: %{index: index},
             trace: &log.(:trace, &1),
             debug: &log.(:debug, &1),
@@ -173,10 +174,7 @@ defmodule Flex.LiveScreen do
             connected?: connected?
           }
 
-        inputs = init(index, args)
-        ctx = Map.merge(ctx, %{inputs: inputs, event: :mount})
-        state = call!(fun, ctx)
-        ctx = Map.merge(ctx, %{state: state})
+        ctx = Map.merge(ctx, %{state: call!(fun, ctx)})
         {index, {fun, ctx}}
       end
 
@@ -205,20 +203,22 @@ defmodule Flex.LiveScreen do
     """
   end
 
-  defp call!(fun, ctx = %{fid: fid, event: event}) do
+  defp call!(fun, ctx = %{fid: fid, event: event, inputs: inputs, state: state}) do
+    environ = [event: event, inputs: inputs, state: state]
+
     try do
       fun.(ctx)
     rescue
       error in RuntimeError ->
-        Log.warn("#{fid} #{Api.inspect?(event)} rescue: #{Api.inspect?(error.message)}")
+        Log.warn("#{fid} #{Api.inspect?(environ)} rescue: #{Api.inspect?(error.message)}")
         exit(:kill)
 
       error ->
-        Log.warn("#{fid} #{Api.inspect?(event)} rescue: #{Api.inspect?(error)}")
+        Log.warn("#{fid} #{Api.inspect?(environ)} rescue: #{Api.inspect?(error)}")
         exit(:kill)
     catch
       error ->
-        Log.warn("#{fid} #{Api.inspect?(event)} catch: #{Api.inspect?(error)}")
+        Log.warn("#{fid} #{Api.inspect?(environ)} catch: #{Api.inspect?(error)}")
         exit(:kill)
     end
   end
