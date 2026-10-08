@@ -121,20 +121,20 @@ Flex.LiveScreen.new()
 |> Flex.LiveScreen.set(width: 800)
 |> Flex.LiveScreen.set(height: 480)
 |> Flex.LiveScreen.set(shared: %{count: 5})
-|> Flex.LiveScreen.add(:class, "ls:main", "bg-gray-300 select-none")
-|> Flex.LiveScreen.add(:class, "ls:panel", "bg-gray-600")
+|> Flex.LiveScreen.add(:class, "ls:main", "select-none bg-stone-700")
+|> Flex.LiveScreen.add(:class, "ls:panel", "bg-[#e6e6e6]")
 |> Flex.LiveScreen.set(
   style: """
   #ls_main:hover {
-    background-color: blue;
+    background-color: #e6e6e6;
   }
   #ls_panel:hover {
-    background-color: black;
+    background-color: #44403C;
   }
   """
 )
 |> Flex.LiveScreen.add(
-  [40, 20],
+  {40, 20},
   [
     {:const1, {:const, -1}},
     {:timer1, {:timer, 100}},
@@ -145,7 +145,7 @@ Flex.LiveScreen.new()
     # log confirmed to work in render callback
     %{state: assigns, event: :render} ->
       ~H"""
-      <div class="text-[24px] text-red-500 w-[12em] p-2 bg-gray-800">
+      <div class="text-[24px] w-[12em] p-2 bg-black rounded">
         <div>Calculated: {@value}</div>
       </div>
       """
@@ -162,13 +162,13 @@ Flex.LiveScreen.new()
   end
 )
 |> Flex.LiveScreen.add(
-  [440, 20],
+  {440, 20},
   fn
     %{state: state, shared: shared, event: :render} ->
       assigns = Map.put(state, :shared, shared)
 
       ~H"""
-      <div class="text-[24px] text-red-500 w-[300px] p-2 bg-gray-800 cursor-pointer"
+      <div class="text-[24px] w-[300px] p-2 bg-black rounded cursor-pointer"
         phx-click="click" phx-value-index={@index}>
         Click me count: {@shared[:count]}
       </div>
@@ -186,13 +186,13 @@ Flex.LiveScreen.new()
   end
 )
 |> Flex.LiveScreen.add(
-  [440, 80],
+  {440, 80},
   fn
     %{state: state, shared: shared, event: :render} ->
       assigns = Map.put(state, :shared, shared)
 
       ~H"""
-      <div class="text-[24px] text-red-500 w-[300px] p-2 bg-gray-800">
+      <div class="text-[24px] w-[300px] p-2 bg-black rounded">
         Shared click count: {@shared[:count]}
       </div>
       """
@@ -213,11 +213,11 @@ Flex.LiveScreen.new()
 |> Flex.LiveScreen.set(width: 800)
 |> Flex.LiveScreen.set(height: 480)
 |> Flex.LiveScreen.set(pass: fn -> "flex" end)
-|> Flex.LiveScreen.add(:class, "ll:label", "text-blue-600 text-[24px]")
+|> Flex.LiveScreen.add(:class, "ll:label", "select-none text-blue-600 text-[24px]")
 |> Flex.LiveScreen.add(:class, "ll:input", "bg-blue-600 text-blue-400 text-[24px]")
 |> Flex.LiveScreen.add(:class, "ll:input", "text-center rounded-lg ring-0 focus:ring-0")
 |> Flex.LiveScreen.add(
-  [300, 200],
+  {300, 200},
   fn
     %{state: assigns, event: :render} ->
       ~H"""
@@ -243,7 +243,7 @@ Flex.LiveScreen.new()
 |> Flex.LiveScreen.add(:class, "ls:panel", "bg-[#e6e6e6]")
 |> Flex.LiveScreen.set(shared: %{menu: 1})
 |> Flex.LiveScreen.add(
-  [0, 0],
+  {0, 0},
   [{:time, {:timer, 1000}}],
   fn
     assigns = %{event: :render} ->
@@ -259,7 +259,7 @@ Flex.LiveScreen.new()
       <div class="h-[400px]"/>
       <div class="bg-[#cccccc] w-[800px] h-[40px] px-[6px] flex flex-cols items-center">
         <div class="w-full text-[20px] flex items-center">
-          <img src="/applets/logo.svg" class="h-[28px] pe-[12px]">
+          <img src="/applets/logo.svg" class="h-[28px] pe-[12px] grayscale">
           <div :for={menu <- 1..3} class={["px-[12px] py-[1px] cursor-pointer rounded", @shared.menu==menu && "bg-[#aaaaaa] text-white"]}
             phx-click="click:menu" phx-value-index={@index} phx-value-menu={menu}>{"Menu#{menu}"}</div>
           <div class="grow"/>
@@ -281,6 +281,7 @@ Flex.LiveScreen.new()
       Map.put(state, :time, time)
   end
 )
+|> Flex.LiveScreen.add({100, 100}, Flex.MovingAnalogIndicator, bar: {10, 100})
 |> Flex.LiveScreen.run()
 
 :ok

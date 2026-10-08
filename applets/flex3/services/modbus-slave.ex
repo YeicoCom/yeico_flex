@@ -2,7 +2,7 @@ defmodule Flex.ModbusSlave do
   use Flex.Service
   use Terminal
 
-  def initial,
+  defp initial,
     do: %{
       key: nil,
       proto: "TCP",
@@ -10,7 +10,7 @@ defmodule Flex.ModbusSlave do
       port: 0
     }
 
-  def checks,
+  defp checks,
     do: %{
       key: :binary,
       proto: {:in, ["TCP", "RTU"]},

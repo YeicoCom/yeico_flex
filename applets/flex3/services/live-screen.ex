@@ -2,8 +2,8 @@ defmodule Flex.LiveScreen do
   use Flex.Service
   use Terminal
 
-  defp initial() do
-    %{
+  defp initial(),
+    do: %{
       pass: nil,
       path: nil,
       title: nil,
@@ -17,10 +17,9 @@ defmodule Flex.LiveScreen do
       suffix: " · Flex",
       funs: []
     }
-  end
 
-  defp checks() do
-    %{
+  defp checks(),
+    do: %{
       pass: {:fun?, 0},
       class: :map,
       global: :map,
@@ -34,25 +33,28 @@ defmodule Flex.LiveScreen do
       height: {:integer, 1, 65_535},
       funs: {:list, nil, &check(&1, &2, :fun)}
     }
-  end
 
-  def add(config = %{class: class}, :class, key, value) when is_binary(key) do
+  def add(config = %{class: class}, :class, key, value)
+      when is_binary(key) and is_binary(value) do
+    Check.check("add:class:key", key, :binary)
     Check.check("class[#{key}]", value, :binary)
     put_in(config, [:class, key], [class[key] || [], value] |> List.flatten())
   end
 
-  def add(config = %{funs: funs}, pos, args, fun) do
-    Check.check("pos", pos, {:list, 2, {:integer, 0, 65_535}})
-    Check.check("fun", fun, {:fun, 1})
-    Check.check("args", args, {:list, nil, &check(&1, &2, :arg)})
+  def add(config = %{funs: funs}, pos, args, fun)
+      when is_tuple(pos) and is_list(args) and is_function(fun) do
+    check("add:fun", {pos, args, fun}, :fun)
     fun = wrap(fun, Function.info(fun, :module))
-    funs = [funs, {pos, fun, args}] |> List.flatten()
+    funs = [funs, {pos, args, fun}] |> List.flatten()
     Map.put(config, :funs, funs)
   end
 
-  def add(config, pos, fun), do: add(config, pos, [], fun)
-  def add(config, {pos, fun}), do: add(config, pos, [], fun)
-  def add(config, {pos, args, fun}), do: add(config, pos, args, fun)
+  def add(config, pos, mod, opts) when is_tuple(pos) and is_atom(mod) and is_list(opts),
+    do: add(config, {pos, opts |> mod.new() |> mod.fun()})
+
+  def add(config, pos, mod) when is_tuple(pos) and is_atom(mod), do: add(config, :widget, mod, [])
+  def add(config, pos, fun) when is_tuple(pos) and is_function(fun), do: add(config, pos, [], fun)
+  def add(config, {pos, {args, fun}}), do: add(config, pos, args, fun)
 
   # log confirmed to work in render callback
   # Api.wrap logs unhandled exceptions
@@ -210,7 +212,7 @@ defmodule Flex.LiveScreen do
     self = self()
 
     map =
-      for {{pos, fun, args}, index} <- Enum.with_index(funs), into: %{} do
+      for {{pos, args, fun}, index} <- Enum.with_index(funs), into: %{} do
         fid = "#{sid}:fun:#{index}"
 
         log = fn level, term ->
@@ -252,7 +254,7 @@ defmodule Flex.LiveScreen do
       class={["relative h-screen w-screen", @class["ls:main"] || "select-none text-base [&_*]:cursor-default text-white bg-black outline-none border-box leading-none text-nowrap"]}>
       <div :if={@size} id="ls_panel" class={["absolute", @class["ls:panel"]]} style={"left:#{@x}px;top:#{@y}px;width:#{@w}px;height:#{@h}px;"}>
         <div class="absolute" style={"scale:#{@s};"}>
-          <div :for={{index, {fun, ctx = %{pos: [x, y]}}} <- @index} id={"ls_fun#{index}"} class={["absolute", @class["ls:fun"]]} style={"left:#{x}px;top:#{y}px;"}>
+          <div :for={{index, {fun, ctx = %{pos: {x, y}}}} <- @index} id={"ls_fun#{index}"} class={["absolute", @class["ls:fun"]]} style={"left:#{x}px;top:#{y}px;"}>
             <.fui fun={fn _ -> call!(%{global: @global, shared: @shared}, fun, Map.merge(ctx, %{event: :render})) end}/>
           </div>
         </div>
@@ -317,10 +319,10 @@ defmodule Flex.LiveScreen do
 
   defp check(name, value, :fun) do
     case value do
-      {pos, fun, args} ->
-        Check.check("#{name}:fun", fun, {:fun, 1})
-        Check.check("pos", pos, {:list, 2, {:integer, 0, 65_535}})
-        Check.check("#{name}:args", args, {:list, nil, &check(&1, &2, :arg)})
+      {pos, args, fun} ->
+        Check.check("#{name}.pos", pos, {:tuple, 2, {:integer, 0, 65_535}})
+        Check.check("#{name}.args", args, {:list, nil, &check(&1, &2, :arg)})
+        Check.check("#{name}.fun", fun, {:fun, 1})
 
       _ ->
         Check.abort(name, value, "invalid fun")
@@ -333,8 +335,8 @@ defmodule Flex.LiveScreen do
         Check.check(name, key, :atom)
 
         case value do
-          {:timer, value} -> Check.check("#{name}:timer", value, {:integer, 1, 65_535})
-          {:point, value} -> Check.check("#{name}:point", value, :binary)
+          {:timer, value} -> Check.check("#{name}.timer", value, {:integer, 1, 65_535})
+          {:point, value} -> Check.check("#{name}.point", value, :binary)
           {:const, _value} -> :ok
           _ -> Check.abort(name, value, "invalid arg")
         end

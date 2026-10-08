@@ -63,7 +63,8 @@ defmodule Flex.Service do
   alias Applet.Api
   alias Applet.Api.Mdb
 
-  # tag from Flex.Print.tasks
+  # for testing loop respawn
+  # tag from Flex.Print.tasks or Flex.Print.mdb
   # Flex.Service.kill "modbus-slave:4031:127.0.0.1:TCP:setup"
   def kill(tag) when is_binary(tag) do
     for {pid, _} <- Mdb.lookup({:setup, tag}) do

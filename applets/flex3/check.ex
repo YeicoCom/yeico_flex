@@ -101,6 +101,34 @@ defmodule Flex.Check do
     end
   end
 
+  def check(_name, value, :tuple) when is_tuple(value), do: :ok
+  def check(name, value, :tuple), do: abort(name, value, "tuple required")
+  def check(_name, value, :tuple?) when is_nil(value), do: :ok
+  def check(_name, value, :tuple?) when is_tuple(value), do: :ok
+  def check(name, value, :tuple?), do: abort(name, value, "tuple? required")
+
+  def check(_name, value, {:tuple, n}) when is_tuple(value) and tuple_size(value) == n, do: :ok
+  def check(name, value, {:tuple, n}), do: abort(name, value, "tuple#{n} required")
+  def check(_name, value, {:tuple?, _n}) when is_nil(value), do: :ok
+  def check(_name, value, {:tuple?, n}) when is_tuple(value) and tuple_size(value) == n, do: :ok
+  def check(name, value, {:tuple?, n}), do: abort(name, value, "tuple#{n}? required")
+
+  def check(name, value, {:tuple, len, param}) do
+    check(name, value, if(len, do: {:tuple, len}, else: :tuple))
+
+    for {item, i} <- Enum.with_index(Tuple.to_list(value)) do
+      check("#{name}[#{i}]", item, param)
+    end
+  end
+
+  def check(name, value, {:tuple?, len, param}) do
+    check(name, value, if(len, do: {:tuple?, len}, else: :tuple?))
+
+    for {item, i} <- Enum.with_index(Tuple.to_list(value || {})) do
+      check("#{name}[#{i}]", item, param)
+    end
+  end
+
   def check(name, value, {:starts_with?, prefix}) do
     check(name, value, :binary)
     if !String.starts_with?(value, prefix), do: abort(name, value, "prefix #{prefix} required")

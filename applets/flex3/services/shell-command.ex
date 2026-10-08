@@ -2,7 +2,7 @@ defmodule Flex.ShellCommand do
   use Flex.Service
   use Terminal
 
-  def initial,
+  defp initial,
     do: %{
       id: nil,
       run: nil,
@@ -11,7 +11,7 @@ defmodule Flex.ShellCommand do
       o2l?: false
     }
 
-  def checks,
+  defp checks,
     do: %{
       id: :binary,
       run: :binary,

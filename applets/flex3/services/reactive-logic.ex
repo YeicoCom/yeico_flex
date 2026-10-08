@@ -110,8 +110,8 @@ defmodule Flex.ReactiveLogic do
   defp check(name, value, :fun) do
     case value do
       {fun, args} ->
-        Check.check("#{name}:fun", fun, {:fun, 1})
-        Check.check("#{name}:args", args, {:list, nil, &check(&1, &2, :arg)})
+        Check.check("#{name}.fun", fun, {:fun, 1})
+        Check.check("#{name}.args", args, {:list, nil, &check(&1, &2, :arg)})
 
       _ ->
         Check.abort(name, value, "invalid fun")
@@ -124,8 +124,8 @@ defmodule Flex.ReactiveLogic do
         Check.check(name, key, :atom)
 
         case value do
-          {:timer, value} -> Check.check("#{name}:timer", value, {:integer, 1, 65_535})
-          {:point, value} -> Check.check("#{name}:point", value, :binary)
+          {:timer, value} -> Check.check("#{name}.timer", value, {:integer, 1, 65_535})
+          {:point, value} -> Check.check("#{name}.point", value, :binary)
           {:const, _value} -> :ok
           _ -> Check.abort(name, value, "invalid arg")
         end

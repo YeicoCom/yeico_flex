@@ -2,7 +2,7 @@ defmodule Flex.SerialExport do
   use Flex.Service
   use Terminal
 
-  def initial,
+  defp initial,
     do: %{
       tty: nil,
       bits: "8n1",
@@ -11,7 +11,7 @@ defmodule Flex.SerialExport do
       port: 0
     }
 
-  def checks,
+  defp checks,
     do: %{
       tty: :binary,
       bits: {:in, ["8n1"]},
