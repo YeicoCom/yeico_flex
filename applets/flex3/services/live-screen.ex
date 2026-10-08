@@ -252,7 +252,7 @@ defmodule Flex.LiveScreen do
       class={["relative h-screen w-screen", @class["ls:main"] || "select-none text-base [&_*]:cursor-default text-white bg-black outline-none border-box leading-none text-nowrap"]}>
       <div :if={@size} id="ls_panel" class={["absolute", @class["ls:panel"]]} style={"left:#{@x}px;top:#{@y}px;width:#{@w}px;height:#{@h}px;"}>
         <div class="absolute" style={"scale:#{@s};"}>
-          <div :for={{index, {fun, ctx = %{pos: [x, y]}}} <- @index} id={"fun#{index}"} class={["absolute", @class["ls:fun"]]} style={"left:#{x}px;top:#{y}px;"}>
+          <div :for={{index, {fun, ctx = %{pos: [x, y]}}} <- @index} id={"ls_fun#{index}"} class={["absolute", @class["ls:fun"]]} style={"left:#{x}px;top:#{y}px;"}>
             <.fui fun={fn _ -> call!(%{global: @global, shared: @shared}, fun, Map.merge(ctx, %{event: :render})) end}/>
           </div>
         </div>

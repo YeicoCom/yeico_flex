@@ -120,6 +120,7 @@ Flex.LiveScreen.new()
 |> Flex.LiveScreen.set(title: "Screen1")
 |> Flex.LiveScreen.set(width: 800)
 |> Flex.LiveScreen.set(height: 480)
+|> Flex.LiveScreen.set(shared: %{count: 5})
 |> Flex.LiveScreen.add(:class, "ls:main", "bg-gray-300 select-none")
 |> Flex.LiveScreen.add(:class, "ls:panel", "bg-gray-600")
 |> Flex.LiveScreen.set(
@@ -172,10 +173,6 @@ Flex.LiveScreen.new()
         Click me count: {@shared[:count]}
       </div>
       """
-
-    %{state: state, event: :mount, put: put} ->
-      put.(:count, 0)
-      state
 
     %{state: state, shared: %{count: count}, event: {:event, "click", _params}, put: put} ->
       # first one should be ignored when changed? false
@@ -242,6 +239,48 @@ Flex.LiveScreen.new()
 |> Flex.LiveScreen.set(title: "HMI1")
 |> Flex.LiveScreen.set(width: 800)
 |> Flex.LiveScreen.set(height: 480)
+|> Flex.LiveScreen.add(:class, "ls:main", "bg-stone-700")
+|> Flex.LiveScreen.add(:class, "ls:panel", "bg-[#e6e6e6]")
+|> Flex.LiveScreen.set(shared: %{menu: 1})
+|> Flex.LiveScreen.add(
+  [0, 0],
+  [{:time, {:timer, 1000}}],
+  fn
+    assigns = %{event: :render} ->
+      ~H"""
+      <div class="bg-[#cccccc] w-[800px] h-[40px] px-[6px] flex flex-cols items-center">
+        <div class="w-full text-[20px] flex items-center gap-[4px]">
+          <div>Screen Title</div>
+          <div class="grow"/>
+          <div class="hero-wifi"/>
+          <div class="hero-arrows-up-down"/>
+        </div>
+      </div>
+      <div class="h-[400px]"/>
+      <div class="bg-[#cccccc] w-[800px] h-[40px] px-[6px] flex flex-cols items-center">
+        <div class="w-full text-[20px] flex items-center">
+          <img src="/applets/logo.svg" class="h-[28px] pe-[12px]">
+          <div :for={menu <- 1..3} class={["px-[12px] py-[1px] cursor-pointer rounded", @shared.menu==menu && "bg-[#aaaaaa] text-white"]}
+            phx-click="click:menu" phx-value-index={@index} phx-value-menu={menu}>{"Menu#{menu}"}</div>
+          <div class="grow"/>
+          <div>{@state.time}</div>
+        </div>
+      </div>
+      """
+
+    %{state: state, event: {:event, "click:menu", %{"menu" => menu}}, put: put} ->
+      put.(:menu, String.to_integer(menu))
+      state
+
+    %{state: state, global: %{tzoffset: tzoffset}} ->
+      time =
+        NaiveDateTime.utc_now()
+        |> NaiveDateTime.shift(hour: tzoffset || 0)
+        |> Calendar.strftime("%H:%M:%S")
+
+      Map.put(state, :time, time)
+  end
+)
 |> Flex.LiveScreen.run()
 
 :ok

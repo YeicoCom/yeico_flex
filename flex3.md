@@ -56,6 +56,7 @@ Modbus.Session.exec(pid, "s=1,a=0,c=rri,d=1,e=f32be")
 ## Fixme
 
 - [ ] ISA101 widgets
+- [ ] Use points api to subget point params to get a type safe default
 - [ ] Live screen google auth
 - [ ] OPC-UA server/client service
 - [ ] Barcode/QR fonts
