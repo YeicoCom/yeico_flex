@@ -43,6 +43,20 @@ defmodule Flex.Check do
     if max, do: check(name, value, {:le, max})
   end
 
+  def check(_name, value, :number) when is_number(value), do: :ok
+  def check(name, value, :number), do: abort(name, value, "number required")
+  def check(_name, value, :number?) when is_nil(value), do: :ok
+  def check(_name, value, :number?) when is_number(value), do: :ok
+  def check(name, value, :number?), do: abort(name, value, "number? required")
+
+  def check(name, value, {:number, min, max}) do
+    check(name, value, :number)
+    check("#{name}:min", min, :number?)
+    check("#{name}:max", max, :number?)
+    if min, do: check(name, value, {:ge, min})
+    if max, do: check(name, value, {:le, max})
+  end
+
   def check(_name, value, :binary) when is_binary(value), do: :ok
   def check(name, value, :binary), do: abort(name, value, "binary required")
   def check(_name, value, :binary?) when is_nil(value), do: :ok
