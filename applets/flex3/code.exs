@@ -1,11 +1,15 @@
 use Terminal
 
-build = Path.join(Api.path(), "flex3/_build")
+build =
+  Api.path()
+  |> Path.join(__DIR__)
+  |> Path.join("_build")
+
 Code.delete_path(build)
 Code.append_path(build)
 
-Api.path()
-|> Path.join("flex3/_build/*.beam")
+build
+|> Path.join("*.beam")
 |> Path.wildcard()
 |> Enum.map(&Path.basename(&1, ".beam"))
 |> Enum.map(&String.to_atom(&1))

@@ -10,6 +10,7 @@
 # drop module already defined warnings
 Code.compiler_options(ignore_module_conflict: true)
 
+# assets received from sdk, points to the applets (flex3.exs) folder (/applets/flex3)
 prefix = ~c"#{assets}"
 
 # only way to unload a using macro that compiled but failed to
