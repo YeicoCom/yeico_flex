@@ -28,7 +28,7 @@ defmodule Flex.ModbusDevice do
   def add(config = %{points: points}, point) do
     index = length(points)
     Check.check("points[#{index}]", point, &check/2)
-    points = [point | points] |> Enum.reverse()
+    points = [points, point] |> List.flatten()
     Map.put(config, :points, points)
   end
 

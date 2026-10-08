@@ -36,27 +36,23 @@ defmodule Flex.LiveScreen do
     }
   end
 
-  def add(config, {pos, fun}), do: add(config, pos, fun, [])
-  def add(config, {pos, fun, args}), do: add(config, pos, fun, args)
+  def add(config = %{class: class}, :class, key, value) when is_binary(key) do
+    Check.check("class[#{key}]", value, :binary)
+    put_in(config, [:class, key], [class[key] || [], value] |> List.flatten())
+  end
 
-  def add(config = %{funs: funs}, pos, fun, args \\ []) do
+  def add(config = %{funs: funs}, pos, args, fun) do
     Check.check("pos", pos, {:list, 2, {:integer, 0, 65_535}})
     Check.check("fun", fun, {:fun, 1})
     Check.check("args", args, {:list, nil, &check(&1, &2, :arg)})
     fun = wrap(fun, Function.info(fun, :module))
-    funs = [{pos, fun, args} | funs] |> Enum.reverse()
+    funs = [funs, {pos, fun, args}] |> List.flatten()
     Map.put(config, :funs, funs)
   end
 
-  def put(config, :class, key, value) when is_binary(key) and is_list(value) do
-    Check.check("class[#{key}]", value, {:list, nil, :binary})
-    put_in(config, [:class, key], value)
-  end
-
-  def put(config, :class, key, value) when is_binary(key) do
-    Check.check("class[#{key}]", value, :binary)
-    put_in(config, [:class, key], value)
-  end
+  def add(config, pos, fun), do: add(config, pos, [], fun)
+  def add(config, {pos, fun}), do: add(config, pos, [], fun)
+  def add(config, {pos, args, fun}), do: add(config, pos, args, fun)
 
   # log confirmed to work in render callback
   # Api.wrap logs unhandled exceptions
@@ -184,7 +180,7 @@ defmodule Flex.LiveScreen do
 
       {:info, socket, state = %{map: map, count: count, shared: shared}, {:shared, event, fun}}
       when is_function(fun, 1) ->
-        {changed?, shared} = mutate(shared, fun)
+        {changed?, shared} = update(shared, fun)
         state = Map.put(state, :shared, shared)
         count = if(changed?, do: count, else: 0)
 
@@ -234,7 +230,7 @@ defmodule Flex.LiveScreen do
             info: &log.(:info, &1),
             warn: &log.(:warn, &1),
             error: &log.(:error, &1),
-            put: &send(self, {:shared, {:put, &1, &2}, fn shared -> Map.put(shared, &1, &2) end})
+            put: &send(self, {:shared, {&1, &2}, fn shared -> Map.put(shared, &1, &2) end})
           }
 
         ctx = Map.merge(ctx, %{state: call!(state, fun, ctx)})
@@ -296,7 +292,7 @@ defmodule Flex.LiveScreen do
     end
   end
 
-  defp mutate(shared, fun) do
+  defp update(shared, fun) do
     new = fun.(shared)
     {new != shared, new}
   end

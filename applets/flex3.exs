@@ -82,6 +82,11 @@ Flex.ModbusDevice.new()
 Flex.ReactiveLogic.new()
 |> Flex.ReactiveLogic.set(id: "logic1")
 |> Flex.ReactiveLogic.add(
+  [
+    {:const1, {:const, -1}},
+    {:timer1, {:timer, 100}},
+    {:point1, {:point, "logic1:point1"}}
+  ],
   fn ctx = %{state: state, inputs: inputs, event: event} ->
     # :mount, {:timer, :timer1}, {:point, :point1}
     if event == :mount, do: ctx.trace.("mount")
@@ -89,12 +94,7 @@ Flex.ReactiveLogic.new()
     value = (point1 || const1) * timer1
     Api.putcast!("logic1:calc1", value)
     state
-  end,
-  [
-    {:const1, {:const, -1}},
-    {:timer1, {:timer, 100}},
-    {:point1, {:point, "logic1:point1"}}
-  ]
+  end
 )
 |> Flex.ReactiveLogic.run(rdms: 1000)
 
@@ -120,8 +120,8 @@ Flex.LiveScreen.new()
 |> Flex.LiveScreen.set(title: "Screen1")
 |> Flex.LiveScreen.set(width: 800)
 |> Flex.LiveScreen.set(height: 480)
-|> Flex.LiveScreen.put(:class, "ls:main", "bg-gray-300 select-none")
-|> Flex.LiveScreen.put(:class, "ls:panel", "bg-gray-600")
+|> Flex.LiveScreen.add(:class, "ls:main", "bg-gray-300 select-none")
+|> Flex.LiveScreen.add(:class, "ls:panel", "bg-gray-600")
 |> Flex.LiveScreen.set(
   style: """
   #ls_main:hover {
@@ -134,6 +134,11 @@ Flex.LiveScreen.new()
 )
 |> Flex.LiveScreen.add(
   [40, 20],
+  [
+    {:const1, {:const, -1}},
+    {:timer1, {:timer, 100}},
+    {:point1, {:point, "screen1:point1"}}
+  ],
   fn
     # :mount, :render, {:timer, :timer1}, {:point, :point1}, {:event, "click", _params}
     # log confirmed to work in render callback
@@ -153,12 +158,7 @@ Flex.LiveScreen.new()
 
     %{state: state = %{calc: calc}, inputs: inputs} ->
       Map.merge(state, %{value: calc.(inputs)})
-  end,
-  [
-    {:const1, {:const, -1}},
-    {:timer1, {:timer, 100}},
-    {:point1, {:point, "screen1:point1"}}
-  ]
+  end
 )
 |> Flex.LiveScreen.add(
   [440, 20],
@@ -216,10 +216,9 @@ Flex.LiveScreen.new()
 |> Flex.LiveScreen.set(width: 800)
 |> Flex.LiveScreen.set(height: 480)
 |> Flex.LiveScreen.set(pass: fn -> "flex" end)
-|> Flex.LiveScreen.put(:class, "ll:label", "text-blue-600 text-[24px]")
-|> Flex.LiveScreen.put(:class, "ll:input", [
-  "bg-blue-600 text-blue-400 text-[24px] text-center rounded-lg ring-0 focus:ring-0"
-])
+|> Flex.LiveScreen.add(:class, "ll:label", "text-blue-600 text-[24px]")
+|> Flex.LiveScreen.add(:class, "ll:input", "bg-blue-600 text-blue-400 text-[24px]")
+|> Flex.LiveScreen.add(:class, "ll:input", "text-center rounded-lg ring-0 focus:ring-0")
 |> Flex.LiveScreen.add(
   [300, 200],
   fn

@@ -14,10 +14,12 @@ defmodule Flex.ReactiveLogic do
       funs: {:list, nil, &check(&1, &2, :fun)}
     }
 
-  def add(config = %{funs: funs}, fun, args \\ []) do
+  def add(config, fun), do: add(config, [], fun)
+
+  def add(config = %{funs: funs}, args, fun) do
     Check.check("fun", fun, {:fun, 1})
     Check.check("args", args, {:list, nil, &check(&1, &2, :arg)})
-    funs = [{fun, args} | funs] |> Enum.reverse()
+    funs = [funs, {fun, args}] |> List.flatten()
     Map.put(config, :funs, funs)
   end
 
