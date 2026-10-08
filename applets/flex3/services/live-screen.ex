@@ -56,10 +56,11 @@ defmodule Flex.LiveScreen do
   def add(config, pos, fun) when is_tuple(pos) and is_function(fun), do: add(config, pos, [], fun)
   def add(config, {pos, {args, fun}}), do: add(config, pos, args, fun)
 
-  # log confirmed to work in render callback
+  # wrap required for logs and stacktraces
+  # logs work in render callback as well
   # Api.wrap logs unhandled exceptions
-  # Api.wrapper() does not
-  defp wrap(fun, {:module, :erl_eval}), do: Api.wrapper().(fun)
+  # Flex.wrap / Api.wrapper() does not
+  defp wrap(fun, {:module, :erl_eval}), do: Flex.wrap(fun)
   defp wrap(fun, _), do: fun
 
   defp name(%{path: path}),
@@ -68,8 +69,7 @@ defmodule Flex.LiveScreen do
   defp setup(config = %{path: path}) do
     sid = name(config)
     Log.debug("#{sid} run")
-    wrapped = Api.wrapper().(handler(sid, config))
-    Terminal.view(path, wrapped)
+    Terminal.view(path, handler(sid, config))
     Api.receive()
     exit(:kill)
   end
@@ -239,8 +239,6 @@ defmodule Flex.LiveScreen do
         {index, {fun, ctx}}
       end
 
-    # wrapper to enable logging on render event
-    state = Map.put(state, :wrapper, Applet.Api.wrapper())
     state = Map.put(state, :count, length(funs))
     state = Map.put(state, :map, map)
     state
@@ -306,8 +304,8 @@ defmodule Flex.LiveScreen do
           {:const, const} ->
             Map.put(inputs, arg, const)
 
-          {:point, point} ->
-            val = Api.subget!(point, sarg: {index, arg}, defv: nil)
+          {:point, key} ->
+            val = Api.subget!(key, sarg: {index, arg}, defv: nil)
             Map.put(inputs, arg, val)
 
           {:timer, ms} ->
@@ -335,8 +333,8 @@ defmodule Flex.LiveScreen do
         Check.check(name, key, :atom)
 
         case value do
-          {:timer, value} -> Check.check("#{name}.timer", value, {:integer, 1, 65_535})
-          {:point, value} -> Check.check("#{name}.point", value, :binary)
+          {:timer, ms} -> Check.check("#{name}.timer", ms, {:integer, 1, 65_535})
+          {:point, key} -> Check.check("#{name}.point", key, :any)
           {:const, _value} -> :ok
           _ -> Check.abort(name, value, "invalid arg")
         end

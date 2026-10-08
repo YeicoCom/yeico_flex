@@ -96,8 +96,8 @@ defmodule Flex.ReactiveLogic do
           {:const, const} ->
             Map.put(inputs, arg, const)
 
-          {:point, point} ->
-            val = Api.subget!(point, sarg: {index, arg}, defv: nil)
+          {:point, key} ->
+            val = Api.subget!(key, sarg: {index, arg}, defv: nil)
             Map.put(inputs, arg, val)
 
           {:timer, ms} ->
@@ -124,8 +124,8 @@ defmodule Flex.ReactiveLogic do
         Check.check(name, key, :atom)
 
         case value do
-          {:timer, value} -> Check.check("#{name}.timer", value, {:integer, 1, 65_535})
-          {:point, value} -> Check.check("#{name}.point", value, :binary)
+          {:timer, ms} -> Check.check("#{name}.timer", ms, {:integer, 1, 65_535})
+          {:point, key} -> Check.check("#{name}.point", key, :any)
           {:const, _value} -> :ok
           _ -> Check.abort(name, value, "invalid arg")
         end

@@ -239,7 +239,7 @@ Flex.LiveScreen.new()
 |> Flex.LiveScreen.set(title: "HMI1")
 |> Flex.LiveScreen.set(width: 800)
 |> Flex.LiveScreen.set(height: 480)
-|> Flex.LiveScreen.add(:class, "ls:main", "bg-stone-700")
+|> Flex.LiveScreen.add(:class, "ls:main", "bg-stone-700 select-none")
 |> Flex.LiveScreen.add(:class, "ls:panel", "bg-[#e6e6e6]")
 |> Flex.LiveScreen.set(shared: %{menu: 1})
 |> Flex.LiveScreen.add(
@@ -293,49 +293,49 @@ Flex.LiveScreen.new()
             range: {0.0, 10.0},
             warn: {2.0, 6.0},
             error: {1.0, 8.0},
-            value: v
+            value: {:const, v}
           )
           |> Flex.LiveScreen.add({x + 30, y}, Flex.MovingAnalogIndicator,
             bar: {10, 100},
             range: {0.0, 10.0},
             warn: {nil, 6.0},
             error: {1.0, 8.0},
-            value: v
+            value: {:const, v}
           )
           |> Flex.LiveScreen.add({x + 60, y}, Flex.MovingAnalogIndicator,
             bar: {10, 100},
             range: {0.0, 10.0},
             warn: {2.0, 6.0},
             error: {nil, 8.0},
-            value: v
+            value: {:const, v}
           )
           |> Flex.LiveScreen.add({x + 90, y}, Flex.MovingAnalogIndicator,
             bar: {10, 100},
             range: {0.0, 10.0},
             warn: {nil, 6.0},
             error: {nil, 8.0},
-            value: v
+            value: {:const, v}
           )
           |> Flex.LiveScreen.add({x + 120, y}, Flex.MovingAnalogIndicator,
             bar: {10, 100},
             range: {0.0, 10.0},
             warn: {2.0, nil},
             error: {1.0, 8.0},
-            value: v
+            value: {:const, v}
           )
           |> Flex.LiveScreen.add({x + 150, y}, Flex.MovingAnalogIndicator,
             bar: {10, 100},
             range: {0.0, 10.0},
             warn: {2.0, 6.0},
             error: {1.0, nil},
-            value: v
+            value: {:const, v}
           )
           |> Flex.LiveScreen.add({x + 180, y}, Flex.MovingAnalogIndicator,
             bar: {10, 100},
             range: {0.0, 10.0},
             warn: {2.0, nil},
             error: {1.0, nil},
-            value: v
+            value: {:const, v}
           )
       end
     end).()

@@ -13,16 +13,15 @@ defmodule Flex.MovingAnalogIndicator do
 
   defp checks,
     do: %{
-      value: :number?,
+      value: &check(&1, &2, :value),
       bar: {:tuple, 2, {:integer, 0, 65_535}},
       range: {:tuple, 2, :number},
       warn: {:tuple, 2, :number?},
       error: {:tuple, 2, :number?}
     }
 
-  defp args(_config) do
-    []
-  end
+  defp args(%{value: {:point, key}}), do: [{:value, {:point, key}}]
+  defp args(_), do: []
 
   defp handler(%{bar: {bw, bh}, range: {rl, ru}, warn: {wl, wu}, error: {el, eu}, value: value}) do
     ol = wl || el || rl
@@ -60,15 +59,24 @@ defmodule Flex.MovingAnalogIndicator do
 
     assigns = %{bw: bw, bh: bh, px: px}
 
+    # trace needs wrapping at the bottom |> Flex.wrap()
     fn
-      %{event: :render} ->
-        el? = value && value < wl
-        eu? = value && value > wu
+      %{inputs: inputs, shared: shared, event: :render} ->
+        v =
+          case value do
+            nil -> nil
+            {:const, value} -> value
+            {:point, _key} -> inputs[:value]
+            {:shared, key} -> shared[key]
+          end
 
-        wl? = value && value < ol && !el?
-        wu? = value && value > ou && !eu?
+        el? = v && v < wl
+        eu? = v && v > wu
 
-        vy = if value, do: bh * (value - rl) / (ru - rl)
+        wl? = v && v < ol && !el?
+        wu? = v && v > ou && !eu?
+
+        vy = if v, do: bh * (v - rl) / (ru - rl)
         assigns = Map.merge(assigns, %{el?: el?, eu?: eu?, wl?: wl?, wu?: wu?, vy: vy})
 
         ~H"""
@@ -91,6 +99,16 @@ defmodule Flex.MovingAnalogIndicator do
 
       %{state: state} ->
         state
+    end
+  end
+
+  defp check(name, value, :value) do
+    case value do
+      nil -> :ok
+      {:const, value} -> Check.check("#{name}.const", value, :number?)
+      {:point, key} -> Check.check("#{name}.point", key, :any)
+      {:shared, key} -> Check.check("#{name}.shared", key, :atom)
+      _ -> Check.abort(name, value, "invalid value")
     end
   end
 end
