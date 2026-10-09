@@ -81,7 +81,7 @@ defmodule Flex.MovingAnalogIndicator do
 
         ~H"""
         <div class="absolute" style={"width:#{2*@bw}px;height:#{@bh}px;"}>
-          <div class="absolute h-full bg-[#666666]" style={"left:#{@bw}px;width:#{@bw}px;"}>
+          <div class="absolute h-full bg-[#999999]" style={"left:#{@bw}px;width:#{@bw}px;"}>
             <div class="absolute bg-[#bdbdbd]" style={"bottom:#{@px.w.y}px;width:#{@bw}px;height:#{@px.w.h}px;"}></div>
             <div class="absolute bg-[#c2d9f4]" style={"bottom:#{@px.o.y}px;width:#{@bw}px;height:#{@px.o.h}px;"}></div>
             <div :if={@wl?} class="absolute bg-[#fff000]" style={"bottom:#{@px.wl.y}px;width:#{@bw}px;height:#{@px.wl.h}px;"}></div>
@@ -91,7 +91,7 @@ defmodule Flex.MovingAnalogIndicator do
           </div>
           <div class="absolute h-full" style={"width:#{@bw}px;"}>
             <svg :if={@vy} class="absolute" viewBox="0 0 16 16" width={@bw} height={@bw} style={"bottom:#{@vy-@bw/2.0}px;"}>
-              <polygon points="0,0 16,8 0,16" fill="currentColor" />
+              <polygon points="0,0 16,8 0,16" fill="#999999" />
             </svg>
           </div>
         </div>
