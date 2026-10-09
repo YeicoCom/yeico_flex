@@ -35,7 +35,7 @@ defmodule Flex.ShellCommand do
   # test with: System.shell("sleep 10 &")
   # nohup is required to fully disowns and detaches
   defp exec(cmd, e2o?, o2l?, dir, header) do
-    if o2l?, do: Log.debug(header)
+    Log.debug(header)
     opts = [stderr_to_stdout: e2o?, env: [{"FLEX_RUN", dir}], close_stdin: true]
     {out, exit_code} = System.shell(cmd, opts)
     if o2l?, do: Log.trace(String.trim_trailing(out, "\n"))

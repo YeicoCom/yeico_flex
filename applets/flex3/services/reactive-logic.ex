@@ -14,9 +14,13 @@ defmodule Flex.ReactiveLogic do
       funs: {:list, nil, &check(&1, &2, :fun)}
     }
 
+  def add(config, {args, fun}), do: add(config, args, fun)
   def add(config, fun), do: add(config, [], fun)
 
-  def add(config = %{funs: funs}, args, fun) do
+  def add(config, mod, opts) when is_atom(mod) and is_list(opts),
+    do: add(config, opts |> mod.new() |> mod.fun())
+
+  def add(config = %{funs: funs}, args, fun) when is_list(args) and is_function(fun, 1) do
     Check.check("fun", fun, {:fun, 1})
     Check.check("args", args, {:list, nil, &check(&1, &2, :arg)})
     funs = [funs, {fun, args}] |> List.flatten()
@@ -118,6 +122,7 @@ defmodule Flex.ReactiveLogic do
     end
   end
 
+  # keep in sync with reactor-wrapper check
   defp check(name, value, :arg) do
     case value do
       {key, value} ->

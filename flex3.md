@@ -56,7 +56,7 @@ Modbus.Session.exec(pid, "s=1,a=0,c=rri,d=1,e=f32be")
 ## Fixme
 
 - [ ] ISA101 widgets
-- [ ] Use points api to subget point params to get a type safe default
+- [ ] Browser service
 - [ ] Live screen google auth
 - [ ] OPC-UA server/client service
 - [ ] Barcode/QR fonts
@@ -69,6 +69,8 @@ Modbus.Session.exec(pid, "s=1,a=0,c=rri,d=1,e=f32be")
 - [ ] Live screen tailwind @apply
 - [ ] Elixir backend service
 - [ ] Elixir script service
+- [x] Module based reactors
+- [x] Logic/screen any point key
 - [x] Live screen shared state between funs
 - [x] Live screen fixed password
 - [x] Live screen service
