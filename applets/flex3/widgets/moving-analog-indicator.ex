@@ -76,8 +76,12 @@ defmodule Flex.MovingAnalogIndicator do
         wl? = v && v < ol && !el?
         wu? = v && v > ou && !eu?
 
-        vy = if v, do: bh * (v - rl) / (ru - rl)
-        assigns = Map.merge(assigns, %{el?: el?, eu?: eu?, wl?: wl?, wu?: wu?, vy: vy})
+        oor? = if v, do: v < rl || v > ru
+        vr = if v, do: min(max(v, rl), ru)
+        vy = if vr, do: bh * (vr - rl) / (ru - rl)
+
+        assigns =
+          Map.merge(assigns, %{el?: el?, eu?: eu?, wl?: wl?, wu?: wu?, vy: vy, oor?: oor?})
 
         ~H"""
         <div class="absolute" style={"width:#{2*@bw}px;height:#{@bh}px;"}>
@@ -91,7 +95,7 @@ defmodule Flex.MovingAnalogIndicator do
           </div>
           <div class="absolute h-full" style={"width:#{@bw}px;"}>
             <svg :if={@vy} class="absolute" viewBox="0 0 16 16" width={@bw} height={@bw} style={"bottom:#{@vy-@bw/2.0}px;"}>
-              <polygon points="0,0 16,8 0,16" fill="#999999" />
+              <polygon points="0,0 16,8 0,16" fill={if(@oor?, do: "#ff0000", else: "#999999")} />
             </svg>
           </div>
         </div>

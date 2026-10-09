@@ -300,10 +300,10 @@ Flex.LiveScreen.new()
   end
 )
 |> (fn config ->
-      for {v, i} <- [5, 1.5, 7, nil, 0.5, 9] |> Enum.with_index(), reduce: config do
+      for {v, i} <- [5, 1.5, 7, nil, 0.5, 9, -1, 11] |> Enum.with_index(), reduce: config do
         config ->
           x = 60 + rem(i, 3) * 245
-          y = 100 + div(i, 3) * 160
+          y = 60 + div(i, 3) * 130
 
           config
           |> Flex.LiveScreen.add({x + 0, y}, Flex.MovingAnalogIndicator,
