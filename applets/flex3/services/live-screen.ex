@@ -14,6 +14,7 @@ defmodule Flex.LiveScreen do
       global: %{},
       shared: %{},
       favicon: nil,
+      applet: "flex3",
       suffix: " · Flex",
       funs: []
     }
@@ -26,6 +27,7 @@ defmodule Flex.LiveScreen do
       shared: :map,
       path: :binary,
       title: :binary,
+      applet: :binary,
       style: :binary?,
       suffix: :binary?,
       favicon: :binary?,
@@ -74,7 +76,7 @@ defmodule Flex.LiveScreen do
     exit(:kill)
   end
 
-  defp handler(sid, config = %{path: path}) do
+  defp handler(sid, config = %{path: path, applet: applet}) do
     use Terminal.Live
 
     fn
@@ -82,8 +84,8 @@ defmodule Flex.LiveScreen do
         %{title: title, style: style, width: width, height: height} = config
         %{class: class, pass: pass, suffix: suffix, favicon: favicon} = config
         %{global: global, shared: shared} = config
-        socket = assign(socket, applet_css: "/applets/flex3.css")
-        socket = assign(socket, applet_js: "/applets/flex3.js")
+        socket = assign(socket, applet_css: "/applets/#{applet}.css")
+        socket = assign(socket, applet_js: "/applets/#{applet}.js")
         socket = assign(socket, favicon_url: favicon)
         socket = assign(socket, page_suffix: suffix)
         socket = assign(socket, page_title: title)
