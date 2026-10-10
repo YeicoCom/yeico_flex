@@ -93,11 +93,11 @@ defmodule Flex.MovingAnalogIndicator do
 
         assigns =
           Map.merge(assigns, %{
+            vy: vy,
             el?: el?,
             eu?: eu?,
             wl?: wl?,
             wu?: wu?,
-            vy: vy,
             oor?: oor?,
             vis?: vis?
           })

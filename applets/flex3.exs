@@ -259,7 +259,7 @@ Flex.LiveScreen.new()
 |> Flex.LiveScreen.set(height: 480)
 |> Flex.LiveScreen.add(:class, "ls:main", "bg-stone-700 select-none")
 |> Flex.LiveScreen.add(:class, "ls:panel", "bg-[#e6e6e6]")
-|> Flex.LiveScreen.set(shared: %{menu: 1})
+|> Flex.LiveScreen.set(shared: %{menu: 0})
 |> Flex.LiveScreen.add(
   {0, 0},
   [{:time, {:timer, 1000}}],
@@ -278,7 +278,7 @@ Flex.LiveScreen.new()
       <div class="bg-[#cccccc] w-[800px] h-[40px] px-[6px] flex flex-cols items-center">
         <div class="w-full text-[20px] flex items-center">
           <img src="/applets/logo.svg" class="h-[28px] pe-[12px] grayscale">
-          <div :for={menu <- 1..3} class={["px-[12px] py-[1px] cursor-pointer rounded", @shared.menu==menu && "bg-[#aaaaaa] text-white"]}
+          <div :for={menu <- 0..2} class={["px-[12px] py-[1px] cursor-pointer rounded", @shared.menu==menu && "bg-[#aaaaaa] text-white"]}
             phx-click="click:menu" phx-value-index={@index} phx-value-menu={menu}>{"Menu#{menu}"}</div>
           <div class="grow"/>
           <div>{@state.time}</div>
@@ -302,11 +302,13 @@ Flex.LiveScreen.new()
 |> (fn config ->
       for {v, i} <- [5, 1.5, 7, nil, 0.5, 9, -1, 11] |> Enum.with_index(), reduce: config do
         config ->
+          visible? = fn %{menu: menu} -> menu == 0 end
           x = 60 + rem(i, 3) * 245
           y = 60 + div(i, 3) * 130
 
           config
           |> Flex.LiveScreen.add({x + 0, y}, Flex.MovingAnalogIndicator,
+            visible?: visible?,
             bar: {10, 100},
             range: {0.0, 10.0},
             warn: {2.0, 6.0},
@@ -314,6 +316,7 @@ Flex.LiveScreen.new()
             value: {:const, v}
           )
           |> Flex.LiveScreen.add({x + 30, y}, Flex.MovingAnalogIndicator,
+            visible?: visible?,
             bar: {10, 100},
             range: {0.0, 10.0},
             warn: {nil, 6.0},
@@ -321,6 +324,7 @@ Flex.LiveScreen.new()
             value: {:const, v}
           )
           |> Flex.LiveScreen.add({x + 60, y}, Flex.MovingAnalogIndicator,
+            visible?: visible?,
             bar: {10, 100},
             range: {0.0, 10.0},
             warn: {2.0, 6.0},
@@ -328,6 +332,7 @@ Flex.LiveScreen.new()
             value: {:const, v}
           )
           |> Flex.LiveScreen.add({x + 90, y}, Flex.MovingAnalogIndicator,
+            visible?: visible?,
             bar: {10, 100},
             range: {0.0, 10.0},
             warn: {nil, 6.0},
@@ -335,6 +340,7 @@ Flex.LiveScreen.new()
             value: {:const, v}
           )
           |> Flex.LiveScreen.add({x + 120, y}, Flex.MovingAnalogIndicator,
+            visible?: visible?,
             bar: {10, 100},
             range: {0.0, 10.0},
             warn: {2.0, nil},
@@ -342,6 +348,7 @@ Flex.LiveScreen.new()
             value: {:const, v}
           )
           |> Flex.LiveScreen.add({x + 150, y}, Flex.MovingAnalogIndicator,
+            visible?: visible?,
             bar: {10, 100},
             range: {0.0, 10.0},
             warn: {2.0, 6.0},
@@ -349,6 +356,7 @@ Flex.LiveScreen.new()
             value: {:const, v}
           )
           |> Flex.LiveScreen.add({x + 180, y}, Flex.MovingAnalogIndicator,
+            visible?: visible?,
             bar: {10, 100},
             range: {0.0, 10.0},
             warn: {2.0, nil},
