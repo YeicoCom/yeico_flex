@@ -22,7 +22,7 @@ Flex.LiveScreen.new()
       fun = fn assigns ->
         ~H"""
         <div class="w-[400px] flex flex-col items-center justify-center"}>
-          <button phx-click="modal:close" phx-value-index={@index} class="border border-black rounded p-4 cursor-pointer">
+          <button phx-click="modal:close" class="border border-black rounded p-4 cursor-pointer">
             Close Modal
           </button>
         </div>
@@ -30,10 +30,6 @@ Flex.LiveScreen.new()
       end
 
       modal.(%{fun: fun, props: %{title: "Modal Title"}})
-      state
-
-    %{state: state, modal: modal, event: {:event, "modal:close", _}} ->
-      modal.(nil)
       state
 
     %{state: state} ->

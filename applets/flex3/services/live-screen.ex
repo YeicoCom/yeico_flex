@@ -150,6 +150,11 @@ defmodule Flex.LiveScreen do
       {:render, _assigns, state} ->
         login(state)
 
+      {:event, socket, state, event = "modal:close", params} ->
+        Log.trace(view: path, event: event, params: params)
+        state = Map.put(state, :modal, nil)
+        {socket, state}
+
       {:event, socket, state = %{map: map}, event, params = %{"index" => index}} ->
         index = String.to_integer(index)
         {fun, ctx} = map[index]
