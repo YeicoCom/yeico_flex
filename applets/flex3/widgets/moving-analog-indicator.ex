@@ -8,7 +8,8 @@ defmodule Flex.MovingAnalogIndicator do
       bar: {10, 200},
       range: {0.0, 10.0},
       warn: {2.0, 6.0},
-      error: {1.0, 8.0}
+      error: {1.0, 8.0},
+      visible?: nil
     }
 
   defp checks,
@@ -17,13 +18,21 @@ defmodule Flex.MovingAnalogIndicator do
       bar: {:tuple, 2, {:integer, 0, 65_535}},
       range: {:tuple, 2, :number},
       warn: {:tuple, 2, :number?},
-      error: {:tuple, 2, :number?}
+      error: {:tuple, 2, :number?},
+      visible?: {:fun?, 1}
     }
 
   defp args(%{value: {:point, key}}), do: [{:value, {:point, key}}]
   defp args(_), do: []
 
-  defp handler(%{bar: {bw, bh}, range: {rl, ru}, warn: {wl, wu}, error: {el, eu}, value: value}) do
+  defp handler(%{
+         bar: {bw, bh},
+         range: {rl, ru},
+         warn: {wl, wu},
+         error: {el, eu},
+         value: value,
+         visible?: visible?
+       }) do
     ol = wl || el || rl
     ou = wu || eu || ru
 
@@ -80,11 +89,21 @@ defmodule Flex.MovingAnalogIndicator do
         vr = if v, do: min(max(v, rl), ru)
         vy = if vr, do: bh * (vr - rl) / (ru - rl)
 
+        vis? = visible?(visible?, shared)
+
         assigns =
-          Map.merge(assigns, %{el?: el?, eu?: eu?, wl?: wl?, wu?: wu?, vy: vy, oor?: oor?})
+          Map.merge(assigns, %{
+            el?: el?,
+            eu?: eu?,
+            wl?: wl?,
+            wu?: wu?,
+            vy: vy,
+            oor?: oor?,
+            vis?: vis?
+          })
 
         ~H"""
-        <div class="absolute" style={"width:#{2*@bw}px;height:#{@bh}px;"}>
+        <div :if={@vis?} class="absolute" style={"width:#{2*@bw}px;height:#{@bh}px;"}>
           <div class="absolute h-full" style={"left:0px;width:#{@bw}px;"}>
             <svg :if={@vy} class="absolute" viewBox="0 0 16 16" overflow="visible" width={@bw} height={@bw} style={"bottom:#{@vy-@bw/2.0}px;"}>
               <polygon vector-effect="non-scaling-stroke" points="0,0 16,8 0,16" fill={if(@oor?, do: "#ff0000", else: "#999999")} stroke="#15395b" stroke-width="1"/>
@@ -108,6 +127,9 @@ defmodule Flex.MovingAnalogIndicator do
         state
     end
   end
+
+  defp visible?(nil, _), do: true
+  defp visible?(fun, shared), do: fun.(shared)
 
   defp check(name, value, :value) do
     case value do
