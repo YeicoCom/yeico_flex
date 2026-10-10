@@ -69,6 +69,7 @@ Modbus.Session.exec(pid, "s=1,a=0,c=rri,d=1,e=f32be")
 - [ ] Live screen tailwind @apply
 - [ ] Elixir backend service
 - [ ] Elixir script service
+- [ ] visible? beam hang/crash
 - [x] Module based reactors
 - [x] Logic/screen any point key
 - [x] Live screen shared state between funs
