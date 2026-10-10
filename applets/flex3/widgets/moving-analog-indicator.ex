@@ -85,19 +85,22 @@ defmodule Flex.MovingAnalogIndicator do
 
         ~H"""
         <div class="absolute" style={"width:#{2*@bw}px;height:#{@bh}px;"}>
-          <div class="absolute h-full bg-[#999999]" style={"left:#{@bw}px;width:#{@bw}px;"}>
-            <div class="absolute bg-[#bdbdbd]" style={"bottom:#{@px.w.y}px;width:#{@bw}px;height:#{@px.w.h}px;"}></div>
-            <div class="absolute bg-[#c2d9f4]" style={"bottom:#{@px.o.y}px;width:#{@bw}px;height:#{@px.o.h}px;"}></div>
-            <div :if={@wl?} class="absolute bg-[#fff000]" style={"bottom:#{@px.wl.y}px;width:#{@bw}px;height:#{@px.wl.h}px;"}></div>
-            <div :if={@wu?} class="absolute bg-[#fff000]" style={"bottom:#{@px.wu.y}px;width:#{@bw}px;height:#{@px.wu.h}px;"}></div>
-            <div :if={@el?} class="absolute bg-[#ff0000]" style={"bottom:#{@px.el.y}px;width:#{@bw}px;height:#{@px.el.h}px;"}></div>
-            <div :if={@eu?} class="absolute bg-[#ff0000]" style={"bottom:#{@px.eu.y}px;width:#{@bw}px;height:#{@px.eu.h}px;"}></div>
-          </div>
-          <div class="absolute h-full" style={"width:#{@bw}px;"}>
-            <svg :if={@vy} class="absolute" viewBox="0 0 16 16" width={@bw} height={@bw} style={"bottom:#{@vy-@bw/2.0}px;"}>
-              <polygon points="0,0 16,8 0,16" fill={if(@oor?, do: "#ff0000", else: "#999999")} />
+          <div class="absolute h-full" style={"left:0px;width:#{@bw}px;"}>
+            <svg :if={@vy} class="absolute" viewBox="0 0 16 16" overflow="visible" width={@bw} height={@bw} style={"bottom:#{@vy-@bw/2.0}px;"}>
+              <polygon vector-effect="non-scaling-stroke" points="0,0 16,8 0,16" fill={if(@oor?, do: "#ff0000", else: "#999999")} stroke="#15395b" stroke-width="1"/>
             </svg>
           </div>
+          <svg class="absolute h-full" viewBox={"0 0 #{@bw} #{@bh}"} overflow="visible" width={@bw} height={@bh} style={"left:#{@bw}px;width:#{@bw}px;"}>
+            <g transform={"translate(0, #{@bh}) scale(1, -1)"}>
+              <rect vector-effect="non-scaling-stroke" x="0" y="0" width={@bw} height={@bh} stroke="#15395b" stroke-width="1" fill="#999999"/>
+              <rect vector-effect="non-scaling-stroke" x="0" y={@px.w.y} width={@bw} height={@px.w.h} stroke="#15395b" stroke-width="1" fill="#bdbdbd"/>
+              <rect vector-effect="non-scaling-stroke" x="0" y={@px.o.y} width={@bw} height={@px.o.h} stroke="#15395b" stroke-width="1" fill="#c2d9f4"/>
+              <rect :if={@wl?} vector-effect="non-scaling-stroke" x="0" y={@px.wl.y} width={@bw} height={@px.wl.h} stroke="#15395b" stroke-width="1" fill="#fff000"/>
+              <rect :if={@wu?} vector-effect="non-scaling-stroke" x="0" y={@px.wu.y} width={@bw} height={@px.wu.h} stroke="#15395b" stroke-width="1" fill="#fff000"/>
+              <rect :if={@el?} vector-effect="non-scaling-stroke" x="0" y={@px.el.y} width={@bw} height={@px.el.h} stroke="#15395b" stroke-width="1" fill="#ff0000"/>
+              <rect :if={@eu?} vector-effect="non-scaling-stroke" x="0" y={@px.eu.y} width={@bw} height={@px.eu.h} stroke="#15395b" stroke-width="1" fill="#ff0000"/>
+            </g>
+          </svg>
         </div>
         """
 
