@@ -48,73 +48,70 @@ Flex.LiveScreen.new()
       Map.put(state, :time, time)
   end
 )
-|> (fn config ->
-      visible? = fn %{menu: menu} -> menu == 0 end
+|> Flex.LiveScreen.reduce(Enum.with_index([5, 1.5, 7, nil, 0.5, 9, -1, 11]), fn config, {v, i} ->
+  x = 60 + rem(i, 3) * 245
+  y = 60 + div(i, 3) * 130
+  # works!
+  visible? = fn %{menu: menu} -> menu == 0 end
 
-      for {v, i} <- [5, 1.5, 7, nil, 0.5, 9, -1, 11] |> Enum.with_index(), reduce: config do
-        config ->
-          x = 60 + rem(i, 3) * 245
-          y = 60 + div(i, 3) * 130
-
-          config
-          |> Flex.LiveScreen.add({x + 0, y}, Flex.MovingAnalogIndicator,
-            visible?: visible?,
-            bar: {10, 100},
-            range: {0.0, 10.0},
-            warn: {2.0, 6.0},
-            error: {1.0, 8.0},
-            value: {:const, v}
-          )
-          |> Flex.LiveScreen.add({x + 30, y}, Flex.MovingAnalogIndicator,
-            visible?: visible?,
-            bar: {10, 100},
-            range: {0.0, 10.0},
-            warn: {nil, 6.0},
-            error: {1.0, 8.0},
-            value: {:const, v}
-          )
-          |> Flex.LiveScreen.add({x + 60, y}, Flex.MovingAnalogIndicator,
-            visible?: visible?,
-            bar: {10, 100},
-            range: {0.0, 10.0},
-            warn: {2.0, 6.0},
-            error: {nil, 8.0},
-            value: {:const, v}
-          )
-          |> Flex.LiveScreen.add({x + 90, y}, Flex.MovingAnalogIndicator,
-            visible?: visible?,
-            bar: {10, 100},
-            range: {0.0, 10.0},
-            warn: {nil, 6.0},
-            error: {nil, 8.0},
-            value: {:const, v}
-          )
-          |> Flex.LiveScreen.add({x + 120, y}, Flex.MovingAnalogIndicator,
-            visible?: visible?,
-            bar: {10, 100},
-            range: {0.0, 10.0},
-            warn: {2.0, nil},
-            error: {1.0, 8.0},
-            value: {:const, v}
-          )
-          |> Flex.LiveScreen.add({x + 150, y}, Flex.MovingAnalogIndicator,
-            visible?: visible?,
-            bar: {10, 100},
-            range: {0.0, 10.0},
-            warn: {2.0, 6.0},
-            error: {1.0, nil},
-            value: {:const, v}
-          )
-          |> Flex.LiveScreen.add({x + 180, y}, Flex.MovingAnalogIndicator,
-            visible?: visible?,
-            bar: {10, 100},
-            range: {0.0, 10.0},
-            warn: {2.0, nil},
-            error: {1.0, nil},
-            value: {:const, v}
-          )
-      end
-    end).()
+  config
+    |> Flex.LiveScreen.add({x + 0, y}, Flex.MovingAnalogIndicator,
+      visible?: visible?,
+      bar: {10, 100},
+      range: {0.0, 10.0},
+      warn: {2.0, 6.0},
+      error: {1.0, 8.0},
+      value: {:const, v}
+    )
+    |> Flex.LiveScreen.add({x + 30, y}, Flex.MovingAnalogIndicator,
+      visible?: visible?,
+      bar: {10, 100},
+      range: {0.0, 10.0},
+      warn: {nil, 6.0},
+      error: {1.0, 8.0},
+      value: {:const, v}
+    )
+    |> Flex.LiveScreen.add({x + 60, y}, Flex.MovingAnalogIndicator,
+      visible?: visible?,
+      bar: {10, 100},
+      range: {0.0, 10.0},
+      warn: {2.0, 6.0},
+      error: {nil, 8.0},
+      value: {:const, v}
+    )
+    |> Flex.LiveScreen.add({x + 90, y}, Flex.MovingAnalogIndicator,
+      visible?: visible?,
+      bar: {10, 100},
+      range: {0.0, 10.0},
+      warn: {nil, 6.0},
+      error: {nil, 8.0},
+      value: {:const, v}
+    )
+    |> Flex.LiveScreen.add({x + 120, y}, Flex.MovingAnalogIndicator,
+      visible?: visible?,
+      bar: {10, 100},
+      range: {0.0, 10.0},
+      warn: {2.0, nil},
+      error: {1.0, 8.0},
+      value: {:const, v}
+    )
+    |> Flex.LiveScreen.add({x + 150, y}, Flex.MovingAnalogIndicator,
+      visible?: visible?,
+      bar: {10, 100},
+      range: {0.0, 10.0},
+      warn: {2.0, 6.0},
+      error: {1.0, nil},
+      value: {:const, v}
+    )
+    |> Flex.LiveScreen.add({x + 180, y}, Flex.MovingAnalogIndicator,
+      visible?: visible?,
+      bar: {10, 100},
+      range: {0.0, 10.0},
+      warn: {2.0, nil},
+      error: {1.0, nil},
+      value: {:const, v}
+    )
+end)
 |> Flex.LiveScreen.run()
 
 :ok

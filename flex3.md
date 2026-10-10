@@ -55,8 +55,8 @@ Modbus.Session.exec(pid, "s=1,a=0,c=rri,d=1,e=f32be")
 
 ## Fixme
 
+- [ ] Live screen fun based modal
 - [ ] ISA101 widgets
-- [ ] Browser service
 - [ ] Live screen google auth
 - [ ] OPC-UA server/client service
 - [ ] Barcode/QR fonts
@@ -70,6 +70,10 @@ Modbus.Session.exec(pid, "s=1,a=0,c=rri,d=1,e=f32be")
 - [ ] Elixir backend service
 - [ ] Elixir script service
 - [ ] visible? beam hang/crash
+- [ ] custom exo/7segment fonts
+- [ ] extensible css (from parent project)
+- [ ] extensible js (from parent project)
+- [ ] Browser service (bring in rinnai libbrowser improvements)
 - [x] Module based reactors
 - [x] Logic/screen any point key
 - [x] Live screen shared state between funs

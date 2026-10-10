@@ -6,6 +6,8 @@ use Terminal.Live
 # 1 indicators iterated 0..50 fail
 # moving visible? definition outside the comprehension makes it work
 # removing the call to visible? within MovingAnalogIndicator makes it work
+# see hmi1.exs notice about reduce method removing the bug!
+# bug/leakage in interpreted comprehension?
 
 # works
 visible? = fn %{menu: menu} -> menu == 0 end

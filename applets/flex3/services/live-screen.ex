@@ -44,7 +44,7 @@ defmodule Flex.LiveScreen do
   end
 
   def add(config = %{funs: funs}, pos, args, fun)
-      when is_tuple(pos) and is_list(args) and is_function(fun) do
+      when is_tuple(pos) and is_list(args) and is_function(fun, 1) do
     check("add:fun", {pos, args, fun}, :fun)
     fun = wrap(fun, Function.info(fun, :module))
     funs = [funs, {pos, args, fun}] |> List.flatten()
@@ -55,8 +55,14 @@ defmodule Flex.LiveScreen do
     do: add(config, {pos, opts |> mod.new() |> mod.fun()})
 
   def add(config, pos, mod) when is_tuple(pos) and is_atom(mod), do: add(config, :widget, mod, [])
-  def add(config, pos, fun) when is_tuple(pos) and is_function(fun), do: add(config, pos, [], fun)
+  def add(config, pos, fun) when is_tuple(pos) and is_function(fun, 1), do: add(config, pos, [], fun)
   def add(config, {pos, {args, fun}}), do: add(config, pos, args, fun)
+
+  def reduce(config, enum, fun) when is_function(fun, 2) do
+    for e <- enum, reduce: config do
+      config -> fun.(config, e)
+    end
+  end
 
   # wrap required for logs and stacktraces
   # logs work in render callback as well
