@@ -55,7 +55,6 @@ Modbus.Session.exec(pid, "s=1,a=0,c=rri,d=1,e=f32be")
 
 ## Fixme
 
-- [ ] Live screen fun based modal
 - [ ] ISA101 widgets
 - [ ] Live screen google auth
 - [ ] OPC-UA server/client service
@@ -74,6 +73,10 @@ Modbus.Session.exec(pid, "s=1,a=0,c=rri,d=1,e=f32be")
 - [ ] extensible css (from parent project)
 - [ ] extensible js (from parent project)
 - [ ] Browser service (bring in rinnai libbrowser improvements)
+- [ ] Live screen modal customizable style
+- [ ] Live screen login customizable style
+- [ ] Live screen dark/light themes
+- [x] Live screen modal
 - [x] Module based reactors
 - [x] Logic/screen any point key
 - [x] Live screen shared state between funs

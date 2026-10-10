@@ -1,8 +1,8 @@
 use Terminal.Live
 
 # test: stacktrace with filename and line number
-# test: viewport styling customization by @class
-# test: viewport styling customization by @style
+# test: viewport styling customization by @class (dropped in favor a sensible default + themes)
+# test: viewport styling customization by @style (dropped in favor a sensible default + themes)
 # test: logs from events including render
 # test: shared state and events
 # test: mount and render events
@@ -23,18 +23,6 @@ Flex.LiveScreen.new()
 |> Flex.LiveScreen.set(width: 800)
 |> Flex.LiveScreen.set(height: 480)
 |> Flex.LiveScreen.set(shared: %{count: 5})
-|> Flex.LiveScreen.add(:class, "ls:main", "select-none bg-stone-700")
-|> Flex.LiveScreen.add(:class, "ls:panel", "bg-[#e6e6e6]")
-|> Flex.LiveScreen.set(
-  style: """
-  #ls_main:hover {
-    background-color: #e6e6e6;
-  }
-  #ls_panel:hover {
-    background-color: #44403C;
-  }
-  """
-)
 |> Flex.LiveScreen.add(
   {40, 20},
   [
@@ -47,7 +35,7 @@ Flex.LiveScreen.new()
     # log confirmed to work in render callback
     %{state: assigns, event: :render} ->
       ~H"""
-      <div class="text-[24px] w-[12em] p-2 bg-black rounded">
+      <div class="text-[24px] w-[12em] p-2 bg-neutral-300 rounded">
         <div>Calculated: {@value}</div>
       </div>
       """
@@ -70,7 +58,7 @@ Flex.LiveScreen.new()
       assigns = Map.put(state, :shared, shared)
 
       ~H"""
-      <div class="text-[24px] w-[300px] p-2 bg-black rounded cursor-pointer"
+      <div class="text-[24px] w-[300px] p-2 bg-neutral-300 rounded cursor-pointer"
         phx-click="click" phx-value-index={@index}>
         Click me count: {@shared[:count]}
       </div>
@@ -94,7 +82,7 @@ Flex.LiveScreen.new()
       assigns = Map.put(state, :shared, shared)
 
       ~H"""
-      <div class="text-[24px] w-[300px] p-2 bg-black rounded">
+      <div class="text-[24px] w-[300px] p-2 bg-neutral-300 rounded">
         Shared click count: {@shared[:count]}
       </div>
       """

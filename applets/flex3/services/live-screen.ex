@@ -1,6 +1,6 @@
 defmodule Flex.LiveScreen do
   use Flex.Service
-  use Terminal
+  use Terminal.Live
 
   defp initial(),
     do: %{
@@ -55,7 +55,10 @@ defmodule Flex.LiveScreen do
     do: add(config, {pos, opts |> mod.new() |> mod.fun()})
 
   def add(config, pos, mod) when is_tuple(pos) and is_atom(mod), do: add(config, :widget, mod, [])
-  def add(config, pos, fun) when is_tuple(pos) and is_function(fun, 1), do: add(config, pos, [], fun)
+
+  def add(config, pos, fun) when is_tuple(pos) and is_function(fun, 1),
+    do: add(config, pos, [], fun)
+
   def add(config, {pos, {args, fun}}), do: add(config, pos, args, fun)
 
   def reduce(config, enum, fun) when is_function(fun, 2) do
@@ -83,8 +86,6 @@ defmodule Flex.LiveScreen do
   end
 
   defp handler(sid, config = %{path: path, applet: applet}) do
-    use Terminal.Live
-
     fn
       {:mount, socket = %{assigns: %{connected?: connected?, tzoffset: tzoffset}}, state} ->
         %{title: title, style: style, width: width, height: height} = config
@@ -109,6 +110,7 @@ defmodule Flex.LiveScreen do
         global = Map.put(global, :class, class)
         state = Map.put(state, :global, global)
         state = Map.put(state, :shared, shared)
+        state = Map.put(state, :modal, nil)
         state = mount(state, sid, config)
         {socket, state}
 
@@ -206,6 +208,15 @@ defmodule Flex.LiveScreen do
         state = Map.put(state, :map, map)
         {socket, state}
 
+      {:info, socket, state, {:modal, nil}} ->
+        state = Map.put(state, :modal, nil)
+        {socket, state}
+
+      {:info, socket, state, {:modal, modal = %{fun: fun, props: props, index: index}}}
+      when is_function(fun, 1) and is_map(props) and is_integer(index) ->
+        state = Map.put(state, :modal, modal)
+        {socket, state}
+
       {:info, socket, state, event} ->
         Log.trace(view: path, info: event)
         {socket, state}
@@ -240,6 +251,7 @@ defmodule Flex.LiveScreen do
             info: &log.(:info, &1),
             warn: &log.(:warn, &1),
             error: &log.(:error, &1),
+            modal: &send(self, {:modal, if(&1, do: Map.put(&1, :index, index), else: &1)}),
             put: &send(self, {:shared, {&1, &2}, fn shared -> Map.put(shared, &1, &2) end})
           }
 
@@ -252,13 +264,28 @@ defmodule Flex.LiveScreen do
     state
   end
 
-  defp render(assigns) do
-    use Terminal.Live
-
+  defp login(assigns) do
     ~H"""
-    <div id="ls_main" phx-hook="Resize"
-      class={["relative h-screen w-screen", @class["ls:main"] || "select-none text-base [&_*]:cursor-default text-white bg-black outline-none border-box leading-none text-nowrap"]}>
-      <div :if={@size} id="ls_panel" class={["absolute", @class["ls:panel"]]} style={"left:#{@x}px;top:#{@y}px;width:#{@w}px;height:#{@h}px;"}>
+    <div id="ll_login" class="h-screen w-screen flex flex-col items-center justify-center bg-stone-700">
+      <form id="ll_form" phx-submit="login:pass" class="flex flex-col p-4 gap-2 items-center justify-center rounded bg-neutral-200 text-neutral-500">
+        <label id="ll_label" for="ll_input" class="uppercase">Password</label>
+        <input id="ll_input" name="pass" type="password" size="20" phx-hook="AutoFocus"
+          class="text-center outline-none border-0 ring-0 rounded-lg focus:ring-neutral-500">
+      </form>
+    </div>
+    <style :if={@style}><%= raw(@style) %></style>
+    """
+  end
+
+  # fixme: identify sensible defaults
+  # [&_*]:cursor-default takes precedence over children cursor-pointer
+  # select-none text-base text-white bg-black outline-none border-box leading-none text-nowrap
+  # #e6e6e6 (high performace hmi) closely matches neutral-200 #e5e5e5
+  defp render(assigns) do
+    ~H"""
+    <div id="ls_main" phx-hook="Resize" phx-window-keydown="modal:close" phx-key="Escape" phx-value-index={@modal[:index]}
+      class={["relative h-screen w-screen select-none text-base outline-none border-box leading-none text-nowrap", @class["ls:main"] || "bg-stone-700"]}>
+      <div :if={@size} id="ls_panel" class={["absolute", @class["ls:panel"] || "bg-neutral-200 text-neutral-500"]} style={"left:#{@x}px;top:#{@y}px;width:#{@w}px;height:#{@h}px;"}>
         <div class="absolute" style={"scale:#{@s};"}>
           <div :for={{index, {fun, ctx = %{pos: {x, y}}}} <- @index} id={"ls_fun#{index}"} class={["absolute", @class["ls:fun"]]} style={"left:#{x}px;top:#{y}px;"}>
             <.fui fun={fn _ -> call!(%{global: @global, shared: @shared}, fun, Map.merge(ctx, %{event: :render})) end}/>
@@ -266,20 +293,34 @@ defmodule Flex.LiveScreen do
         </div>
       </div>
     </div>
+    <.fui id="ls_modal" fun={&modal/1} :if={@modal} {@modal.props} index={@modal.index}>
+        <.fui fun={@modal.fun} {%{index: @modal.index, global: @global, shared: @shared}}/>
+    </.fui>
     <style :if={@style}><%= raw(@style) %></style>
     """
   end
 
-  defp login(assigns) do
-    use Terminal.Live
+  # modal assumed to be laid outside frame
+  def modal(assigns) do
+    assigns = Map.put_new(assigns, :title, nil)
+    assigns = Map.put_new(assigns, :close, "modal:close")
+    assigns = Map.put_new(assigns, :away, "modal:close")
 
     ~H"""
-    <form id="ll_form" class={@class["ll:form"] || "h-screen w-screen text-white flex flex-col gap-4 items-center justify-center"} phx-submit="login:pass">
-      <label id="ll_label" for="ll_input" class={@class["ll:label"] || "text-3xl uppercase"}>Password</label>
-      <input id="ll_input" name="pass" type="password" size="16" phx-hook="AutoFocus"
-        class={@class["ll:input"] || "text-3xl text-center outline-none border-0 ring-0 bg-zinc-600 rounded-lg focus:ring-lime-500"}>
-    </form>
-    <style :if={@style}><%= raw(@style) %></style>
+    <div class="fixed top-0 left-0 z-9999 w-screen h-screen bg-stone-500/90">
+      <div class="flex justify-center items-center h-screen select-none text-base">
+        <div class="p-8 rounded-md bg-neutral-300 text-neutral-500" phx-click-away={@away} phx-value-index={@index}>
+          <div class="pb-2 gap-20 flex justify-between items-center">
+            <div class="font-semibold">{@title}</div>
+            <button type="button" title="Close" phx-click={@close} phx-value-index={@index}
+              class="hover:bg-neutral-500 hover:text-neutral-200 rounded-lg w-8 h-8 inline-flex justify-center items-center">
+              <span class="hero-x-mark-solid" />
+            </button>
+          </div>
+          {render_slot(@inner_block)}
+        </div>
+      </div>
+    </div>
     """
   end
 

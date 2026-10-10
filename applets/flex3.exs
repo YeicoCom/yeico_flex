@@ -22,6 +22,7 @@ Api.evalf("flex3/tryout/device1.exs")
 Api.evalf("flex3/tryout/logic1.exs")
 Api.evalf("flex3/tryout/screen1.exs")
 Api.evalf("flex3/tryout/password1.exs")
+Api.evalf("flex3/tryout/modal1.exs")
 Api.evalf("flex3/tryout/hmi1.exs")
 
 :ok
