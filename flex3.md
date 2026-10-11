@@ -72,7 +72,7 @@ Modbus.Session.exec(pid, "s=1,a=0,c=rri,d=1,e=f32be")
 - [ ] custom exo/7segment fonts
 - [ ] extensible css (from parent project)
 - [ ] extensible js (from parent project)
-- [ ] Browser service (bring in rinnai libbrowser improvements)
+- [ ] Browser service
 - [ ] Live screen modal customizable style
 - [ ] Live screen login customizable style
 - [ ] Live screen dark/light themes
