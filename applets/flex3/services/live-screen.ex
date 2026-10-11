@@ -98,20 +98,18 @@ defmodule Flex.LiveScreen do
         socket = assign(socket, page_suffix: suffix)
         socket = assign(socket, page_title: title)
         keypad? = localhost? && Terminal.device?()
-        state = Map.put(state, :keypad?, keypad?)
         state = Map.put(state, :style, style)
-        state = Map.put(state, :width, width)
-        state = Map.put(state, :height, height)
-        state = Map.put(state, :class, class)
         state = Map.put(state, :pass, pass)
         state = Map.put(state, :size, nil)
         global = Map.put(global, :localhost?, localhost?)
         global = Map.put(global, :connected?, connected?)
         global = Map.put(global, :tzoffset, tzoffset)
+        global = Map.put(global, :keypad?, keypad?)
         global = Map.put(global, :title, title)
         global = Map.put(global, :width, width)
         global = Map.put(global, :height, height)
         global = Map.put(global, :class, class)
+        global = Map.put(global, :pass, pass)
         state = Map.put(state, :global, global)
         state = Map.put(state, :shared, shared)
         state = Map.put(state, :modal, nil)
@@ -121,13 +119,15 @@ defmodule Flex.LiveScreen do
       {:params, socket, state, _params, _uri} ->
         {socket, state}
 
-      {:render, _assigns, state = %{map: map, count: count, pass: nil}} ->
+      {:render, _assigns, state = %{pass: nil}} ->
+        %{map: map, count: count, size: size, global: global} = state
+
         index =
           for i <- 0..(count - 1)//1 do
             {i, map[i]}
           end
 
-        %{width: ew, height: eh, size: size} = state
+        %{width: ew, height: eh} = global
 
         {x, y, w, h, s} =
           case size do
@@ -281,7 +281,7 @@ defmodule Flex.LiveScreen do
         <label id="ll_label" for="ll_input">Password</label>
         <input id="ll_input" name="pass" type="password" size="24" phx-hook="AutoFocus"
           class="w-full text-center outline-none border-0 ring-0 rounded-lg focus:ring-neutral-500">
-        <.fui :if={@keypad?} fun={&Flex.Keypad.render/1} input="ll_input"/>
+        <.fui :if={@global.keypad?} fun={&Flex.Keypad.render/1} input="ll_input"/>
       </form>
     </div>
     <style :if={@style}><%= raw(@style) %></style>
@@ -295,10 +295,10 @@ defmodule Flex.LiveScreen do
   defp render(assigns) do
     ~H"""
     <div id="ls_main" phx-hook="Resize" phx-window-keydown="modal:close" phx-key="Escape" phx-value-index={@modal[:index]}
-      class={["relative h-screen w-screen select-none text-base outline-none border-box leading-none text-nowrap", @class["ls:main"] || "bg-stone-700"]}>
-      <div :if={@size} id="ls_panel" class={["absolute", @class["ls:panel"] || "bg-neutral-200 text-neutral-500"]} style={"left:#{@x}px;top:#{@y}px;width:#{@w}px;height:#{@h}px;"}>
+      class="relative h-screen w-screen select-none text-base outline-none border-box leading-none text-nowrap bg-stone-700">
+      <div :if={@size} id="ls_panel" class="absolute bg-neutral-200 text-neutral-500" style={"left:#{@x}px;top:#{@y}px;width:#{@w}px;height:#{@h}px;"}>
         <div class="absolute" style={"scale:#{@s};"}>
-          <div :for={{index, {fun, ctx = %{pos: {x, y}}}} <- @index} id={"ls_fun#{index}"} class={["absolute", @class["ls:fun"]]} style={"left:#{x}px;top:#{y}px;"}>
+          <div :for={{index, {fun, ctx = %{pos: {x, y}}}} <- @index} id={"ls_fun#{index}"} class="ls_fun absolute" style={"left:#{x}px;top:#{y}px;"}>
             <.fui fun={fn _ -> call!(%{global: @global, shared: @shared}, fun, Map.merge(ctx, %{event: :render})) end}/>
           </div>
         </div>
