@@ -5,7 +5,7 @@ use Terminal.Live
 # http://localhost:4080/password1
 Flex.LiveScreen.new()
 |> Flex.LiveScreen.set(path: "/password1")
-|> Flex.LiveScreen.set(title: "Password1")
+|> Flex.LiveScreen.set(title: "Password1 1234")
 |> Flex.LiveScreen.set(width: 800)
 |> Flex.LiveScreen.set(height: 480)
 |> Flex.LiveScreen.set(pass: fn -> "1234" end)

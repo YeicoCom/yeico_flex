@@ -69,8 +69,7 @@ const hooks = {
     },
     Keypad: {
         mounted() {
-            const form = document.getElementById(this.el.dataset.formId)
-            const input = document.getElementById(this.el.dataset.inputId)
+            const input = document.getElementById(this.el.dataset.input)
             const key = this.el.dataset.key
             this.el.addEventListener("click", () => {
                 input.focus()
@@ -78,9 +77,6 @@ const hooks = {
                 const endPos = input.selectionEnd
                 const originalValue = input.value
                 switch (key) {
-                    case "Enter":
-                        form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
-                        break
                     case "Backspace": {
                         if (endPos > startPos) {
                             input.value = originalValue.slice(0, startPos) + originalValue.slice(endPos)

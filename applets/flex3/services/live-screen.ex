@@ -281,7 +281,7 @@ defmodule Flex.LiveScreen do
         <label id="ll_label" for="ll_input">Password</label>
         <input id="ll_input" name="pass" type="password" size="24" phx-hook="AutoFocus"
           class="w-full text-center outline-none border-0 ring-0 rounded-lg focus:ring-neutral-500">
-        <.fui :if={@keypad?} fun={&Flex.Keypad.render/1} form_id="ll_form" input_id="ll_input"/>
+        <.fui :if={@keypad?} fun={&Flex.Keypad.render/1} input="ll_input"/>
       </form>
     </div>
     <style :if={@style}><%= raw(@style) %></style>
@@ -323,7 +323,7 @@ defmodule Flex.LiveScreen do
         <div class="p-8 rounded-md bg-neutral-300 text-neutral-500" phx-click-away={@away} phx-value-index={@index}>
           <div class="pb-2 gap-20 flex justify-between items-center">
             <div class="font-semibold">{@title}</div>
-            <button type="button" title="Close" phx-click={@close} phx-value-index={@index}
+            <button type="button" title="Close" phx-click={@close} phx-value-index={@index} tabindex="-1"
               class="hover:bg-neutral-500 hover:text-neutral-200 rounded-lg w-8 h-8 inline-flex justify-center items-center">
               <span class="hero-x-mark-solid" />
             </button>
