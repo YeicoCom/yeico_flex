@@ -276,7 +276,8 @@ defmodule Flex.LiveScreen do
   defp login(assigns) do
     ~H"""
     <div id="ll_login" class="h-screen w-screen flex flex-col items-center justify-center bg-stone-700">
-      <form id="ll_form" phx-submit="login:pass" class="flex flex-col p-4 gap-2 items-center justify-center rounded bg-neutral-200 text-neutral-500">
+      <form id="ll_form" phx-submit="login:pass" phx-update="ignore"
+        class="flex flex-col p-4 gap-2 items-center justify-center rounded bg-neutral-200 text-neutral-500">
         <label id="ll_label" for="ll_input">Password</label>
         <input id="ll_input" name="pass" type="password" size="24" phx-hook="AutoFocus"
           class="w-full text-center outline-none border-0 ring-0 rounded-lg focus:ring-neutral-500">
