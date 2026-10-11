@@ -14,9 +14,7 @@ Flex.ReactiveLogic.new()
     {:timer1, {:timer, 100}},
     {:point1, {:point, "logic1:point1"}}
   ],
-  fn ctx = %{state: state, inputs: inputs, event: event} ->
-    # :mount, {:timer, :timer1}, {:point, :point1}
-    if event == :mount, do: ctx.trace.("mount")
+  fn %{state: state, inputs: inputs} ->
     %{const1: const1, timer1: timer1, point1: point1} = inputs
     value = (point1 || const1) * timer1
     Api.putcast!("logic1:calc1", value)
@@ -29,9 +27,7 @@ Flex.ReactiveLogic.new()
     {:timer1, {:timer, 100}},
     {:point1, {:point, "logic1:point2"}}
   ],
-  fun: fn ctx = %{state: state, inputs: inputs, event: event} ->
-    # :mount, {:timer, :timer1}, {:point, :point1}
-    if event == :mount, do: ctx.trace.("mount")
+  fun: fn %{state: state, inputs: inputs} ->
     %{const1: const1, timer1: timer1, point1: point1} = inputs
     value = (point1 || const1) * timer1
     Api.putcast!("logic1:calc2", value)

@@ -149,7 +149,7 @@ defmodule Flex.LiveScreen do
         login(state)
 
       {:event, socket, state, event = "modal:close", params} ->
-        Log.trace(view: path, event: event, params: params)
+        trace(view: path, event: event, params: params)
         state = Map.put(state, :modal, nil)
         {socket, state}
 
@@ -163,17 +163,17 @@ defmodule Flex.LiveScreen do
 
       {:event, socket, state, event = "hook:resize",
        params = %{"width" => width, "height" => height}} ->
-        Log.trace(view: path, event: event, params: params)
+        trace(view: path, event: event, params: params)
         state = Map.put(state, :size, {width, height})
         {socket, state}
 
       {:event, socket, state = %{pass: pass}, event = "login:pass", params} ->
-        Log.trace(view: path, event: event, params: params)
+        trace(view: path, event: event, params: params)
         state = Map.put(state, :pass, if(pass.() == params["pass"], do: nil, else: pass))
         {socket, state}
 
       {:event, socket, state, event, params} ->
-        Log.trace(view: path, event: event, params: params)
+        trace(view: path, event: event, params: params)
         {socket, state}
 
       {:info, socket, state = %{map: map}, {:timer, index, arg, ms}} ->
@@ -221,11 +221,11 @@ defmodule Flex.LiveScreen do
         {socket, state}
 
       {:info, socket, state, event} ->
-        Log.trace(view: path, info: event)
+        trace(view: path, info: event)
         {socket, state}
 
       {:close, _socket, _state, reason} ->
-        Log.trace(view: path, close: reason)
+        trace(view: path, close: reason)
         :ok
     end
   end
@@ -412,4 +412,7 @@ defmodule Flex.LiveScreen do
         Check.abort(name, value, "invalid arg")
     end
   end
+
+  # defp trace(term), do: Log.trace(term)
+  defp trace(term), do: term
 end

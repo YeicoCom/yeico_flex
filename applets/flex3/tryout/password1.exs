@@ -17,8 +17,7 @@ Flex.LiveScreen.new()
       <div class="p-2">Welcome</div>
       """
 
-    %{state: state, index: index, event: event, trace: trace, global: %{connected?: connected?}} ->
-      trace.(index: index, event: event, connected?: connected?)
+    %{state: state} ->
       state
   end
 )
