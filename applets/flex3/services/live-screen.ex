@@ -67,19 +67,13 @@ defmodule Flex.LiveScreen do
     end
   end
 
-  # wrap required for logs and stacktraces
-  # logs work in render callback as well
-  # Api.wrap logs unhandled exceptions
-  # Flex.wrap / Api.wrapper() does not
-  defp wrap(fun, {:module, :erl_eval}), do: Flex.wrap(fun)
-  defp wrap(fun, _), do: fun
-
   defp name(%{path: path}),
     do: "live-screen:#{path}"
 
   defp setup(config = %{path: path}) do
     sid = name(config)
     Log.debug("#{sid} run")
+    # handler gets auto wrapped
     Terminal.view(path, handler(sid, config))
     Api.receive()
     exit(:kill)
@@ -163,7 +157,7 @@ defmodule Flex.LiveScreen do
         index = String.to_integer(index)
         {fun, ctx} = map[index]
         ctx = Map.merge(ctx, %{event: {:event, event, params}})
-        ctx = Map.merge(ctx, %{state: call!(state, fun, ctx)})
+        ctx = Map.merge(ctx, %{state: call(state, fun, ctx)})
         state = put_in(state, [:map, index], {fun, ctx})
         {socket, state}
 
@@ -187,7 +181,7 @@ defmodule Flex.LiveScreen do
         {fun, ctx = %{inputs: inputs}} = map[index]
         inputs = Map.update(inputs, arg, 1, &(&1 + 1))
         ctx = Map.merge(ctx, %{inputs: inputs, event: {:timer, arg}})
-        ctx = Map.merge(ctx, %{state: call!(state, fun, ctx)})
+        ctx = Map.merge(ctx, %{state: call(state, fun, ctx)})
         state = put_in(state, [:map, index], {fun, ctx})
         {socket, state}
 
@@ -195,7 +189,7 @@ defmodule Flex.LiveScreen do
         {fun, ctx = %{inputs: inputs}} = map[index]
         inputs = Map.put(inputs, arg, val)
         ctx = Map.merge(ctx, %{inputs: inputs, event: {:point, arg}})
-        ctx = Map.merge(ctx, %{state: call!(state, fun, ctx)})
+        ctx = Map.merge(ctx, %{state: call(state, fun, ctx)})
         state = put_in(state, [:map, index], {fun, ctx})
         {socket, state}
 
@@ -210,7 +204,7 @@ defmodule Flex.LiveScreen do
             map ->
               {fun, ctx} = map[index]
               ctx = Map.merge(ctx, %{event: {:shared, event}})
-              ctx = Map.merge(ctx, %{state: call!(state, fun, ctx)})
+              ctx = Map.merge(ctx, %{state: call(state, fun, ctx)})
               Map.put(map, index, {fun, ctx})
           end
 
@@ -264,7 +258,7 @@ defmodule Flex.LiveScreen do
             put: &send(self, {:shared, {&1, &2}, fn shared -> Map.put(shared, &1, &2) end})
           }
 
-        ctx = Map.merge(ctx, %{state: call!(state, fun, ctx)})
+        ctx = Map.merge(ctx, %{state: call(state, fun, ctx)})
         {index, {fun, ctx}}
       end
 
@@ -299,7 +293,7 @@ defmodule Flex.LiveScreen do
       <div :if={@size} id="ls_panel" class="absolute bg-neutral-200 text-neutral-500" style={"left:#{@x}px;top:#{@y}px;width:#{@w}px;height:#{@h}px;"}>
         <div class="absolute" style={"scale:#{@s};"}>
           <div :for={{index, {fun, ctx = %{pos: {x, y}}}} <- @index} id={"ls_fun#{index}"} class="ls_fun absolute" style={"left:#{x}px;top:#{y}px;"}>
-            <.fui fun={fn _ -> call!(%{global: @global, shared: @shared}, fun, Map.merge(ctx, %{event: :render})) end}/>
+            <.fui fun={fn _ -> call(%{global: @global, shared: @shared}, fun, Map.merge(ctx, %{event: :render})) end}/>
           </div>
         </div>
       </div>
@@ -335,20 +329,35 @@ defmodule Flex.LiveScreen do
     """
   end
 
-  defp call!(%{global: global, shared: shared}, fun, ctx) do
-    %{fid: fid, event: event, inputs: inputs, state: state} = ctx
-    environ = [event: event, inputs: inputs, state: state]
-    ctx = Map.merge(ctx, %{global: global, shared: shared})
+  defp call(%{global: global, shared: shared}, fun, ctx) do
+    fun.(Map.merge(ctx, %{global: global, shared: shared}))
+  end
 
-    # Api.safe logs unhandled exceptions
-    # confirmed that stacktraces report the script file and line number
-    case Applet.Utils.safe(fun, ctx) do
-      {:ok, state} ->
-        state
+  # logging and stacktraces confirmed to work with tryout/screen1.exs
+  # capture wrapper at fun definition for proper stacktraces
+  # it is imposible to anticipated from what context fun will be called
+  # wrap required for logs and stacktraces
+  # Api.wrap logs unhandled exceptions
+  # Flex.wrap / Api.wrapper() does not
+  defp wrap(fun, type) do
+    # Log.warn requires wrapped environment as well
+    fun = fn ctx ->
+      case Applet.Utils.safe(fun, ctx) do
+        {:ok, result} ->
+          result
 
-      {:error, error} ->
-        Log.warn("#{fid} #{Api.inspect?(environ)} rescue: #{Api.inspect?(error)}")
-        exit(:kill)
+        {:error, error} ->
+          %{global: global, shared: shared} = ctx
+          %{fid: fid, event: event, inputs: inputs, state: state} = ctx
+          environ = [event: event, inputs: inputs, state: state, global: global, shared: shared]
+          Log.warn("#{fid} #{Api.inspect?(environ)} rescue: #{Api.inspect?(error)}")
+          exit(:kill)
+      end
+    end
+
+    case type do
+      {:module, :erl_eval} -> Flex.wrap(fun)
+      _ -> fun
     end
   end
 

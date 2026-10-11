@@ -17,12 +17,36 @@ use Terminal.Live
 # Api.putcast!("screen1:point1", nil)
 # generate an arithmetic error
 # Api.putcast!("screen1:point1", true)
+# generate an render throw
+# Api.putcast!("screen1:render1", true)
 Flex.LiveScreen.new()
 |> Flex.LiveScreen.set(path: "/screen1")
 |> Flex.LiveScreen.set(title: "Screen1")
 |> Flex.LiveScreen.set(width: 800)
 |> Flex.LiveScreen.set(height: 480)
 |> Flex.LiveScreen.set(shared: %{count: 5})
+|> Flex.LiveScreen.add(
+  {0, 0},
+  [
+    {:render1, {:point, "screen1:render1"}}
+  ],
+  fn
+    # log confirmed to work in render callback
+    # Api.putcast!("screen1:render1", true)
+    # Api.putcast!("screen1:render1", false)
+    assigns = %{warn: warn, event: :render, inputs: %{render1: render1}} ->
+      if render1, do: warn.(render1: render1)
+      if render1, do: throw(render1: render1)
+
+      ~H"""
+      """
+
+    %{state: state, warn: warn, event: event} ->
+      warn.(event: event)
+      # throw(event: event)
+      state
+  end
+)
 |> Flex.LiveScreen.add(
   {40, 20},
   [
@@ -70,8 +94,7 @@ Flex.LiveScreen.new()
       put.(:count, count + 1)
       state
 
-    %{state: state, index: index, event: event, trace: trace, global: %{connected?: connected?}} ->
-      trace.(index: index, event: event, connected?: connected?)
+    %{state: state} ->
       state
   end
 )
@@ -87,8 +110,7 @@ Flex.LiveScreen.new()
       </div>
       """
 
-    %{state: state, index: index, event: event, trace: trace, global: %{connected?: connected?}} ->
-      trace.(index: index, event: event, connected?: connected?)
+    %{state: state} ->
       state
   end
 )

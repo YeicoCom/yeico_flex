@@ -20,6 +20,8 @@ defmodule Flex.ReactiveLogic do
   def add(config, mod, opts) when is_atom(mod) and is_list(opts),
     do: add(config, opts |> mod.new() |> mod.fun())
 
+  # wrapping not needed since reactor runs in an applet async
+  # logging and stacktraces confirmed to work with tryout/logic1.exs
   def add(config = %{funs: funs}, args, fun) when is_list(args) and is_function(fun, 1) do
     Check.check("fun", fun, {:fun, 1})
     Check.check("args", args, {:list, nil, &check(&1, &2, :arg)})
@@ -65,12 +67,16 @@ defmodule Flex.ReactiveLogic do
         error: &log.(:error, &1)
       }
 
-    {:error, %{error: error}} = Api.safe(fn -> loop(fun, ctx) end)
+    {:error, error} = Api.safe(fn -> first(fun, ctx) end)
     Log.warn("#{fid} #{Api.inspect?(Process.get(:__environ__))} #{Api.inspect?(error)}")
   end
 
-  defp loop(fun, ctx = %{index: index, event: event, inputs: inputs, state: state}) do
+  defp first(fun, ctx = %{event: event, inputs: inputs, state: state}) do
     Process.put(:__environ__, event: event, inputs: inputs, state: state)
+    loop(fun, ctx)
+  end
+
+  defp loop(fun, ctx = %{index: index, event: event, inputs: inputs}) do
     state = fun.(ctx)
     ctx = Map.merge(ctx, %{state: state})
     Process.put(:__environ__, event: event, inputs: inputs, state: state)
