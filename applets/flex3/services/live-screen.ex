@@ -273,16 +273,17 @@ defmodule Flex.LiveScreen do
     ~H"""
     <div id="ll_login" class="h-screen w-screen flex flex-col items-center justify-center bg-stone-700">
       <form id="ll_form" phx-submit="login:pass" class="flex flex-col p-4 gap-2 items-center justify-center rounded bg-neutral-200 text-neutral-500">
-        <label id="ll_label" for="ll_input" class="uppercase">Password</label>
-        <input id="ll_input" name="pass" type="password" size="20" phx-hook="AutoFocus"
-          class="text-center outline-none border-0 ring-0 rounded-lg focus:ring-neutral-500">
+        <label id="ll_label" for="ll_input">Password</label>
+        <input id="ll_input" name="pass" type="password" phx-hook="AutoFocus"
+          class="w-full text-center outline-none border-0 ring-0 rounded-lg focus:ring-neutral-500">
+        <.fui fun={&Flex.Keypad.render/1} form_id="ll_form" input_id="ll_input"/>
       </form>
     </div>
     <style :if={@style}><%= raw(@style) %></style>
     """
   end
 
-  # fixme: identify sensible defaults
+  # fixme: identify sensible style defaults
   # [&_*]:cursor-default takes precedence over children cursor-pointer
   # select-none text-base text-white bg-black outline-none border-box leading-none text-nowrap
   # #e6e6e6 (high performace hmi) closely matches neutral-200 #e5e5e5

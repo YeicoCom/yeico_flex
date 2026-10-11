@@ -8,7 +8,7 @@ Flex.LiveScreen.new()
 |> Flex.LiveScreen.set(title: "Password1")
 |> Flex.LiveScreen.set(width: 800)
 |> Flex.LiveScreen.set(height: 480)
-|> Flex.LiveScreen.set(pass: fn -> "flex" end)
+|> Flex.LiveScreen.set(pass: fn -> "1234" end)
 |> Flex.LiveScreen.add(
   {0, 0},
   fn
