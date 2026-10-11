@@ -87,7 +87,8 @@ defmodule Flex.LiveScreen do
 
   defp handler(sid, config = %{path: path, applet: applet}) do
     fn
-      {:mount, socket = %{assigns: %{connected?: connected?, tzoffset: tzoffset}}, state} ->
+      {:mount, socket = %{assigns: assigns}, state} ->
+        %{connected?: connected?, tzoffset: tzoffset, localhost?: localhost?} = assigns
         %{title: title, style: style, width: width, height: height} = config
         %{class: class, pass: pass, suffix: suffix, favicon: favicon} = config
         %{global: global, shared: shared} = config
@@ -96,12 +97,15 @@ defmodule Flex.LiveScreen do
         socket = assign(socket, favicon_url: favicon)
         socket = assign(socket, page_suffix: suffix)
         socket = assign(socket, page_title: title)
+        keypad? = localhost? && Terminal.device?()
+        state = Map.put(state, :keypad?, keypad?)
         state = Map.put(state, :style, style)
         state = Map.put(state, :width, width)
         state = Map.put(state, :height, height)
         state = Map.put(state, :class, class)
         state = Map.put(state, :pass, pass)
         state = Map.put(state, :size, nil)
+        global = Map.put(global, :localhost?, localhost?)
         global = Map.put(global, :connected?, connected?)
         global = Map.put(global, :tzoffset, tzoffset)
         global = Map.put(global, :title, title)
@@ -274,9 +278,9 @@ defmodule Flex.LiveScreen do
     <div id="ll_login" class="h-screen w-screen flex flex-col items-center justify-center bg-stone-700">
       <form id="ll_form" phx-submit="login:pass" class="flex flex-col p-4 gap-2 items-center justify-center rounded bg-neutral-200 text-neutral-500">
         <label id="ll_label" for="ll_input">Password</label>
-        <input id="ll_input" name="pass" type="password" phx-hook="AutoFocus"
+        <input id="ll_input" name="pass" type="password" size="24" phx-hook="AutoFocus"
           class="w-full text-center outline-none border-0 ring-0 rounded-lg focus:ring-neutral-500">
-        <.fui fun={&Flex.Keypad.render/1} form_id="ll_form" input_id="ll_input"/>
+        <.fui :if={@keypad?} fun={&Flex.Keypad.render/1} form_id="ll_form" input_id="ll_input"/>
       </form>
     </div>
     <style :if={@style}><%= raw(@style) %></style>
