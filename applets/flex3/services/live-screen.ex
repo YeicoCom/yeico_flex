@@ -293,7 +293,7 @@ defmodule Flex.LiveScreen do
   # #e6e6e6 (high performace hmi) closely matches neutral-200 #e5e5e5
   defp render(assigns) do
     ~H"""
-    <div id="ls_main" phx-hook="Resize" phx-window-keydown="modal:close" phx-key="Escape" phx-value-index={@modal[:index]}
+    <div id="ls_main" inert={!!@modal} phx-hook="Resize" phx-window-keydown="modal:close" phx-key="Escape" phx-value-index={@modal[:index]}
       class="relative h-screen w-screen select-none text-base outline-none border-box leading-none text-nowrap bg-stone-700">
       <div :if={@size} id="ls_panel" class="absolute bg-neutral-200 text-neutral-500" style={"left:#{@x}px;top:#{@y}px;width:#{@w}px;height:#{@h}px;"}>
         <div class="absolute" style={"scale:#{@s};"}>
