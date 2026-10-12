@@ -4,8 +4,10 @@ defmodule Flex.LiveScreen do
 
   defp initial(),
     do: %{
+      auth: nil,
       pass: nil,
       path: nil,
+      barco: nil,
       title: nil,
       width: nil,
       height: nil,
@@ -21,7 +23,9 @@ defmodule Flex.LiveScreen do
 
   defp checks(),
     do: %{
+      auth: :map?,
       pass: {:fun?, 0},
+      barco: :binary?,
       class: :map,
       global: :map,
       shared: :map,
@@ -70,11 +74,11 @@ defmodule Flex.LiveScreen do
   defp name(%{path: path}),
     do: "live-screen:#{path}"
 
-  defp setup(config = %{path: path}) do
+  defp setup(config = %{path: path, auth: auth}) do
     sid = name(config)
     Log.debug("#{sid} run")
     # handler gets auto wrapped
-    Terminal.view(path, handler(sid, config))
+    Terminal.view(path, handler(sid, config), auth: auth)
     Api.receive()
     exit(:kill)
   end
@@ -85,9 +89,10 @@ defmodule Flex.LiveScreen do
         %{connected?: connected?, tzoffset: tzoffset, localhost?: localhost?} = assigns
         %{title: title, style: style, width: width, height: height} = config
         %{class: class, pass: pass, suffix: suffix, favicon: favicon} = config
-        %{global: global, shared: shared} = config
+        %{global: global, shared: shared, barco: barco} = config
         socket = assign(socket, applet_css: "/applets/#{applet}.css")
         socket = assign(socket, applet_js: "/applets/#{applet}.js")
+        socket = assign(socket, applet_args: %{barco: barco})
         socket = assign(socket, favicon_url: favicon)
         socket = assign(socket, page_suffix: suffix)
         socket = assign(socket, page_title: title)
@@ -255,7 +260,7 @@ defmodule Flex.LiveScreen do
             warn: &log.(:warn, &1),
             error: &log.(:error, &1),
             modal: &send(self, {:modal, if(&1, do: Map.put(&1, :index, index), else: &1)}),
-            put: &send(self, {:shared, {&1, &2}, fn shared -> Map.put(shared, &1, &2) end})
+            share: &send(self, {:shared, {&1, &2}, fn shared -> Map.put(shared, &1, &2) end})
           }
 
         ctx = Map.merge(ctx, %{state: call(state, fun, ctx)})
@@ -273,7 +278,7 @@ defmodule Flex.LiveScreen do
       <form id="ll_form" phx-submit="login:pass" phx-update="ignore"
         class="flex flex-col p-4 gap-2 items-center justify-center rounded bg-neutral-200 text-neutral-500">
         <label id="ll_label" for="ll_input">Password</label>
-        <input id="ll_input" name="pass" type="password" size="24" phx-hook="AutoFocus"
+        <input id="ll_input" name="pass" type="password" size="24" phx-hook="Focus"
           class="w-full text-center outline-none border-0 ring-0 rounded-lg focus:ring-neutral-500">
         <.fui :if={@global.keypad?} fun={&Flex.Keypad.render/1} input="ll_input"/>
       </form>

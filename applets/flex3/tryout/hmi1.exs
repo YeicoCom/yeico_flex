@@ -33,8 +33,8 @@ Flex.LiveScreen.new()
       </div>
       """
 
-    %{state: state, event: {:event, "click:menu", %{"menu" => menu}}, put: put} ->
-      put.(:menu, String.to_integer(menu))
+    %{state: state, event: {:event, "click:menu", %{"menu" => menu}}, share: share} ->
+      share.(:menu, String.to_integer(menu))
       state
 
     %{state: state, global: %{tzoffset: tzoffset}} ->

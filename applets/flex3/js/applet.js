@@ -2,6 +2,7 @@ import 'phoenix_html'
 import { Socket } from 'phoenix'
 import { LiveSocket } from 'phoenix_live_view'
 import topbar from 'topbar'
+import "./gauth"
 
 if (!navigator.userAgent.includes('YeicoTerminal')) {
     document.body.style.animation = 'none'
@@ -46,7 +47,7 @@ function setFocus(el) {
 // is not called, just the disconnected/reconnected
 // on the server side a single mount with connected? true
 const hooks = {
-    AutoFocus: {
+    Focus: {
         mounted() {
             setFocus(this.el)
         }
@@ -99,13 +100,35 @@ const hooks = {
                 }
             })
         }
-    }
+    },
+    Gauth: {
+        mounted() {
+            this.handleEvent("gauth:href", ({ href }) => {
+                window.location.href = href
+            })
+            gauthRegisterHook((response, profile) => {
+                this.pushEvent("gauth:auth", { ...profile, ...response })
+            })
+            setTimeout(gauthLoadClient, 100)
+        }
+    },
 }
 
+function decodeArgs() {
+    const script = document.getElementById("applet.js")
+    if (!script) return {}
+    const args64 = script.dataset.args
+    if (!args64) return {}
+    const argsJson = atob(args64)
+    return JSON.parse(argsJson)
+}
+
+const args = decodeArgs()
+const barco = args.barco || "#84cc16"
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute('content')
 const params = { _csrf_token: csrfToken, ...initialParams() }
 let liveSocket = new LiveSocket('/live', Socket, { hooks, params })
-topbar.config({ barColors: { 0: '#84cc16' }, shadowColor: 'rgba(0, 0, 0, .3)' })
+topbar.config({ barColors: { 0: barco }, shadowColor: 'rgba(0, 0, 0, .3)' })
 window.addEventListener('phx:page-loading-start', _info => topbar.show(300))
 window.addEventListener('phx:page-loading-stop', _info => topbar.hide())
 liveSocket.connect()

@@ -1,7 +1,6 @@
 use Terminal.Live
 
 # test: password logic
-# test: login styling customization
 # http://localhost:4080/password1
 Flex.LiveScreen.new()
 |> Flex.LiveScreen.set(path: "/password1")
@@ -12,7 +11,7 @@ Flex.LiveScreen.new()
 |> Flex.LiveScreen.add(
   {0, 0},
   fn
-    %{state: assigns, event: :render} ->
+    assigns = %{event: :render} ->
       ~H"""
       <div class="p-2">Welcome</div>
       """

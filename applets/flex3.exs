@@ -1,6 +1,8 @@
 use Terminal.Live
 
 Adb.reset()
+Flex.Gauth.db_init()
+Flex.Gauth.db_put("samuel.ventura@yeico.com")
 
 # should not be really needed since serial export cleans on setup
 System.shell("sudo killall socat", stderr_to_stdout: true)
@@ -24,5 +26,8 @@ Api.evalf("flex3/tryout/screen1.exs")
 Api.evalf("flex3/tryout/password1.exs")
 Api.evalf("flex3/tryout/modal1.exs")
 Api.evalf("flex3/tryout/hmi1.exs")
+Api.evalf("flex3/tryout/gauth1.exs")
+
+Api.evalf("flex3/login.exs", path: "/login", props: %{})
 
 :ok
