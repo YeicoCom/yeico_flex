@@ -3,7 +3,7 @@ use Terminal.Live
 # test: google auth
 # http://localhost:4080/gauth1
 Flex.LiveScreen.new()
-|> Flex.LiveScreen.set(auth: Flex.Gauth.spec_db())
+|> Flex.LiveScreen.set(auth: Flex.Gauth.get_spec(:db))
 |> Flex.LiveScreen.set(path: "/gauth1")
 |> Flex.LiveScreen.set(title: "Gauth")
 |> Flex.LiveScreen.set(barco: "red")

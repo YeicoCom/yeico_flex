@@ -62,7 +62,8 @@ defmodule Flex.Gauth do
     "/del?#{query}"
   end
 
-  def spec_any(), do: %{check: &check_any/1, key: :guser}
+  def get_spec(:any), do: %{check: &check_any/1, key: :guser}
+  def get_spec(:db), do: %{check: &check_db/1, key: :guser}
 
   defp check_any({path, query, guser}) do
     with %{email: _} <- guser do
@@ -73,8 +74,6 @@ defmodule Flex.Gauth do
         "/login?to=#{to}"
     end
   end
-
-  def spec_db(), do: %{check: &check_db/1, key: :guser}
 
   defp check_db({path, query, guser}) do
     with %{email: email} <- guser,
