@@ -18,11 +18,11 @@ end
 handler = fn
   {:mount, socket = %{assigns: %{params: params}}, state} ->
     referer = Base.decode16!(params["to"] || "2F")
-    socket = assign(socket, applet_css: "/applets/flex3.css")
-    socket = assign(socket, applet_js: "/applets/flex3.js")
-    socket = assign(socket, applet_args: props[:applet_args])
+    socket = assign(socket, applet_css: props[:applet_css] || "/applets/flex3.css")
+    socket = assign(socket, applet_js: props[:applet_js] || "/applets/flex3.js")
     socket = assign(socket, page_suffix: props[:page_suffix] || " · Flex")
     socket = assign(socket, page_title: props[:page_title] || "Login")
+    socket = assign(socket, applet_args: props[:applet_args])
     state = Map.put(state, :logo, props[:logo] || "/applets/logo.svg")
     state = Map.put(state, :label, props[:label] || "Flex")
     state = Map.put(state, :client_id, Flex.Gauth.client_id())
