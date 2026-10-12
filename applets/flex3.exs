@@ -1,14 +1,15 @@
 use Terminal.Live
 
 Adb.reset()
+
+# not needed in dev mode, left as reference
+Api.evalf("flex3/code.exs")
+
 Flex.Gauth.db_init()
 Flex.Gauth.db_put("samuel.ventura@yeico.com")
 
 # should not be really needed since serial export cleans on setup
 System.shell("sudo killall socat", stderr_to_stdout: true)
-
-# not needed in dev mode, left as reference
-Api.evalf("flex3/code.exs")
 
 Api.path()
 |> Path.join("flex3/**/test/*.exs")
