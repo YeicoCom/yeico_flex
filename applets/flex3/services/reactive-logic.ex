@@ -15,7 +15,9 @@ defmodule Flex.ReactiveLogic do
     }
 
   def add(config, {args, fun}), do: add(config, args, fun)
-  def add(config, fun), do: add(config, [], fun)
+  def add(config, fun) when is_function(fun, 1), do: add(config, [], fun)
+
+  def add(config, mod) when is_atom(mod), do: add(config, mod, [])
 
   def add(config, mod, opts) when is_atom(mod) and is_list(opts),
     do: add(config, opts |> mod.new() |> mod.fun())
