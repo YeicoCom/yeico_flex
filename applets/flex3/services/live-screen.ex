@@ -58,7 +58,7 @@ defmodule Flex.LiveScreen do
   def add(config, pos, mod, opts) when is_tuple(pos) and is_atom(mod) and is_list(opts),
     do: add(config, {pos, opts |> mod.new() |> mod.fun()})
 
-  def add(config, pos, mod) when is_tuple(pos) and is_atom(mod), do: add(config, :widget, mod, [])
+  def add(config, pos, mod) when is_tuple(pos) and is_atom(mod), do: add(config, pos, mod, [])
 
   def add(config, pos, fun) when is_tuple(pos) and is_function(fun, 1),
     do: add(config, pos, [], fun)
