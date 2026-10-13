@@ -1,8 +1,11 @@
 defmodule Flex.Print do
   use Applet.Alias
 
-  def tasks(route \\ "flex3.exs") do
-    Applet.print_tree(route)
+  def tasks() do
+    # Api.route fails from remsh
+    for {_, route} <- Applet.started() do
+      Applet.print_tree(route)
+    end
   end
 
   def views() do
