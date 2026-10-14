@@ -55,9 +55,8 @@ Modbus.Session.exec(pid, "s=1,a=0,c=rri,d=1,e=f32be")
 
 ## Fixme
 
+- [ ] UI toolkit
 - [ ] ISA101 widgets
-- [ ] Apply inert when modal
-- [ ] Live screen google auth
 - [ ] OPC-UA server/client service
 - [ ] Barcode/QR fonts
 - [ ] Service dependencies
@@ -78,6 +77,8 @@ Modbus.Session.exec(pid, "s=1,a=0,c=rri,d=1,e=f32be")
 - [ ] Live screen login customizable style
 - [ ] Live screen dark/light themes
 - [ ] Wrapper for logging from render for module defined widget fun
+- [x] Apply inert when modal
+- [x] Live screen google auth
 - [x] Modal close callback event in same widget fun
 - [-] Global logger to avoid wrapping: wrap at the point of definition for accurate stacktraces
 - [x] Live screen modal
