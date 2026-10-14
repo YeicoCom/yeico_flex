@@ -90,7 +90,7 @@ defmodule Flex.ReactiveLogic do
         ctx = Map.merge(ctx, %{inputs: inputs, event: {:timer, arg}})
         loop(fun, ctx)
 
-      {point, {^index, arg}, val} when is_binary(point) ->
+      {_point, {:point, ^index, arg}, val} ->
         inputs = Map.put(inputs, arg, val)
         ctx = Map.merge(ctx, %{inputs: inputs, event: {:point, arg}})
         loop(fun, ctx)
@@ -109,7 +109,7 @@ defmodule Flex.ReactiveLogic do
             Map.put(inputs, arg, const)
 
           {:point, key} ->
-            val = Api.subget!(key, sarg: {index, arg}, defv: nil)
+            val = Api.subget!(key, sarg: {:point, index, arg}, defv: nil)
             Map.put(inputs, arg, val)
 
           {:timer, ms} ->
