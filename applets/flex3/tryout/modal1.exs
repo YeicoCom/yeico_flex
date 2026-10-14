@@ -18,6 +18,7 @@ Flex.LiveScreen.new()
       </div>
       """
 
+    # pass phx-value-index={@index} to get the close event callback
     %{state: state, modal: modal, event: {:event, "modal:open", _}} ->
       fun = fn assigns ->
         ~H"""

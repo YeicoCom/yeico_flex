@@ -83,7 +83,7 @@ defmodule Flex.LiveScreen do
     exit(:kill)
   end
 
-  defp handler(sid, config = %{path: path, applet: applet}) do
+  defp handler(sid, config = %{applet: applet}) do
     fn
       {:mount, socket = %{assigns: assigns}, state} ->
         %{connected?: connected?, tzoffset: tzoffset, localhost?: localhost?} = assigns
@@ -153,49 +153,54 @@ defmodule Flex.LiveScreen do
       {:render, _assigns, state} ->
         login(state)
 
-      {:event, socket, state, event = "modal:close", params} ->
-        trace(view: path, event: event, params: params)
+      # pass index to get the event callback
+      {:event, socket, state = %{modal: modal}, "modal:close", params = %{"index" => index}} ->
+        index = String.to_integer(index)
+        state = call(state, index, fn ctx -> Map.put(ctx, :event, {:close, modal, params}) end)
         state = Map.put(state, :modal, nil)
         {socket, state}
 
-      {:event, socket, state = %{map: map}, event, params = %{"index" => index}} ->
-        index = String.to_integer(index)
-        {fun, ctx} = map[index]
-        ctx = Map.merge(ctx, %{event: {:event, event, params}})
-        ctx = Map.merge(ctx, %{state: call(state, fun, ctx)})
-        state = put_in(state, [:map, index], {fun, ctx})
+      # close despite missing index
+      {:event, socket, state, "modal:close", _params} ->
+        state = Map.put(state, :modal, nil)
         {socket, state}
 
-      {:event, socket, state, event = "hook:resize",
-       params = %{"width" => width, "height" => height}} ->
-        trace(view: path, event: event, params: params)
+      {:event, socket, state, "hook:resize", %{"width" => width, "height" => height}} ->
         state = Map.put(state, :size, {width, height})
         {socket, state}
 
-      {:event, socket, state = %{pass: pass}, event = "login:pass", params} ->
-        trace(view: path, event: event, params: params)
+      {:event, socket, state = %{pass: pass}, "login:pass", params} ->
         state = Map.put(state, :pass, if(pass.() == params["pass"], do: nil, else: pass))
         {socket, state}
 
-      {:event, socket, state, event, params} ->
-        trace(view: path, event: event, params: params)
+      {:event, socket, state, event, params = %{"index" => index}} ->
+        index = String.to_integer(index)
+        state = call(state, index, fn ctx -> Map.put(ctx, :event, {:event, event, params}) end)
         {socket, state}
 
-      {:info, socket, state = %{map: map}, {:timer, index, arg, ms}} ->
+      {:event, socket, state, _event, _params} ->
+        {socket, state}
+
+      {:info, socket, state, {:timer, index, arg, ms}} ->
         Process.send_after(self(), {:timer, index, arg, ms}, ms)
-        {fun, ctx = %{inputs: inputs}} = map[index]
-        inputs = Map.update(inputs, arg, 1, &(&1 + 1))
-        ctx = Map.merge(ctx, %{inputs: inputs, event: {:timer, arg}})
-        ctx = Map.merge(ctx, %{state: call(state, fun, ctx)})
-        state = put_in(state, [:map, index], {fun, ctx})
+
+        state =
+          call(state, index, fn ctx = %{inputs: inputs} ->
+            ctx
+            |> Map.put(:inputs, Map.update(inputs, arg, 1, &(&1 + 1)))
+            |> Map.put(:event, {:timer, arg})
+          end)
+
         {socket, state}
 
-      {:info, socket, state = %{map: map}, {point, {index, arg}, val}} when is_binary(point) ->
-        {fun, ctx = %{inputs: inputs}} = map[index]
-        inputs = Map.put(inputs, arg, val)
-        ctx = Map.merge(ctx, %{inputs: inputs, event: {:point, arg}})
-        ctx = Map.merge(ctx, %{state: call(state, fun, ctx)})
-        state = put_in(state, [:map, index], {fun, ctx})
+      {:info, socket, state, {_point, {:point, index, arg}, val}} ->
+        state =
+          call(state, index, fn ctx = %{inputs: inputs} ->
+            ctx
+            |> Map.put(:inputs, Map.put(inputs, arg, val))
+            |> Map.put(:event, {:point, arg})
+          end)
+
         {socket, state}
 
       {:info, socket, state = %{map: map, count: count, shared: shared}, {:shared, event, fun}}
@@ -207,17 +212,10 @@ defmodule Flex.LiveScreen do
         map =
           for index <- 0..(count - 1)//1, reduce: map do
             map ->
-              {fun, ctx} = map[index]
-              ctx = Map.merge(ctx, %{event: {:shared, event}})
-              ctx = Map.merge(ctx, %{state: call(state, fun, ctx)})
-              Map.put(map, index, {fun, ctx})
+              call(state, map, index, fn ctx -> Map.put(ctx, :event, {:shared, event}) end)
           end
 
         state = Map.put(state, :map, map)
-        {socket, state}
-
-      {:info, socket, state, {:modal, nil}} ->
-        state = Map.put(state, :modal, nil)
         {socket, state}
 
       {:info, socket, state, {:modal, modal = %{fun: fun, props: props, index: index}}}
@@ -225,12 +223,14 @@ defmodule Flex.LiveScreen do
         state = Map.put(state, :modal, modal)
         {socket, state}
 
-      {:info, socket, state, event} ->
-        trace(view: path, info: event)
+      {:info, socket, state, {:modal, nil}} ->
+        state = Map.put(state, :modal, nil)
         {socket, state}
 
-      {:close, _socket, _state, reason} ->
-        trace(view: path, close: reason)
+      {:info, socket, state, _event} ->
+        {socket, state}
+
+      {:close, _socket, _state, _reason} ->
         :ok
     end
   end
@@ -263,7 +263,7 @@ defmodule Flex.LiveScreen do
             share: &send(self, {:shared, {&1, &2}, fn shared -> Map.put(shared, &1, &2) end})
           }
 
-        ctx = Map.merge(ctx, %{state: call(state, fun, ctx)})
+        ctx = Map.put(ctx, :state, call(state, fun, ctx))
         {index, {fun, ctx}}
       end
 
@@ -298,7 +298,7 @@ defmodule Flex.LiveScreen do
       <div :if={@size} id="ls_panel" class="absolute bg-neutral-200 text-neutral-500" style={"left:#{@x}px;top:#{@y}px;width:#{@w}px;height:#{@h}px;"}>
         <div class="absolute" style={"scale:#{@s};"}>
           <div :for={{index, {fun, ctx = %{pos: {x, y}}}} <- @index} id={"ls_fun#{index}"} class="ls_fun absolute" style={"left:#{x}px;top:#{y}px;"}>
-            <.fui fun={fn _ -> call(%{global: @global, shared: @shared}, fun, Map.merge(ctx, %{event: :render})) end}/>
+            <.fui fun={fn _ -> call(%{global: @global, shared: @shared}, fun, Map.put(ctx, :event, :render)) end}/>
           </div>
         </div>
       </div>
@@ -334,8 +334,19 @@ defmodule Flex.LiveScreen do
     """
   end
 
-  defp call(%{global: global, shared: shared}, fun, ctx) do
+  defp call(%{global: global, shared: shared}, fun, ctx) when is_function(fun, 1) do
     fun.(Map.merge(ctx, %{global: global, shared: shared}))
+  end
+
+  defp call(state = %{map: map}, index, mutate) when is_function(mutate, 1) do
+    Map.put(state, :map, call(state, map, index, mutate))
+  end
+
+  defp call(state, map, index, mutate) when is_function(mutate, 1) do
+    {fun, ctx} = map[index]
+    ctx = mutate.(ctx)
+    ctx = Map.put(ctx, :state, call(state, fun, ctx))
+    Map.put(map, index, {fun, ctx})
   end
 
   # logging and stacktraces confirmed to work with tryout/screen1.exs
@@ -379,7 +390,7 @@ defmodule Flex.LiveScreen do
             Map.put(inputs, arg, const)
 
           {:point, key} ->
-            val = Api.subget!(key, sarg: {index, arg}, defv: nil)
+            val = Api.subget!(key, sarg: {:point, index, arg}, defv: nil)
             Map.put(inputs, arg, val)
 
           {:timer, ms} ->
@@ -417,7 +428,4 @@ defmodule Flex.LiveScreen do
         Check.abort(name, value, "invalid arg")
     end
   end
-
-  # defp trace(term), do: Log.trace(term)
-  defp trace(term), do: term
 end

@@ -77,6 +77,8 @@ Modbus.Session.exec(pid, "s=1,a=0,c=rri,d=1,e=f32be")
 - [ ] Live screen modal customizable style
 - [ ] Live screen login customizable style
 - [ ] Live screen dark/light themes
+- [ ] Wrapper for logging from render for module defined widget fun
+- [x] Modal close callback event in same widget fun
 - [-] Global logger to avoid wrapping: wrap at the point of definition for accurate stacktraces
 - [x] Live screen modal
 - [x] Module based reactors
