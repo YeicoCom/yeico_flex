@@ -1,14 +1,7 @@
 {
   "dependencies": {
-    "@codemirror/theme-one-dark": "^6.1.2",
-    "codemirror": "^6.0.1",
-    "codemirror-lang-elixir": "^4.0.0",
-    "dockview-core": "^6.6.1",
     "heroicons": "^2.2.0",
     "install": "^0.13.0",
-    "micromodal": "^0.7.0",
-    "split.js": "^1.6.5",
-    "topbar": "^3.0.0",
-    "tweakpane": "^4.0.5"
+    "topbar": "^3.0.0"
   }
 }

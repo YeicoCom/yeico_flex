@@ -2,23 +2,14 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
-/* 
-bg-neutral-800 #262626
-text-zinc-500 #71717A
-*/
-html,
-body {
-    height: 100vh;
-    color: #71717A;
-    background-color: #000000;
-    overflow: hidden;
-}
+@layer base {
+    html {
+        @apply scroll-smooth bg-stone-700;
+    }
 
-/*
-control view wraps the render function with a <div data-phx-main ...
- */
-[data-phx-main] {
-    height: 100vh;
+    body {
+        @apply font-sans antialiased text-black selection:bg-blue-700 selection:text-white;
+    }
 }
 
 /*
@@ -36,4 +27,38 @@ workaround for the WPE first render empty rectangle bug
 
 body {
     animation: fade-in 0.2s ease-in forwards;
+}
+
+/*
+control view wraps the render function with a <div data-phx-main ...
+ */
+[data-phx-main] {}
+
+@layer components {
+    .form-input {
+        @apply rounded;
+        @apply disabled:bg-neutral-300 disabled:text-neutral-400;
+    }
+
+    .form-select {
+        @apply rounded;
+        @apply disabled:bg-neutral-300 disabled:text-neutral-400;
+    }
+
+    .form-textarea {
+        @apply rounded;
+        @apply disabled:bg-neutral-300 disabled:text-neutral-400;
+    }
+
+    .form-radio {
+        @apply disabled:bg-neutral-300;
+    }
+
+    .form-button {
+        /* p-2 for same height as input (padding-top =  8px) */
+        /* leading-normal for same height as input (line-height =  24px) */
+        @apply rounded p-2 border border-gray-500 leading-normal bg-neutral-100;
+        @apply hover:bg-neutral-50 active:ring-1 active:ring-gray-500;
+        @apply disabled:bg-neutral-300 disabled:text-neutral-400 disabled:pointer-events-none;
+    }
 }

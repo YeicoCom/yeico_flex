@@ -29,9 +29,6 @@ module.exports = {
           values[name] = { name, fullPath: path.join(iconsDir, dir, file) }
         })
       })
-      values["modbus-terminal"] = { name: "modbus-terminal", fullPath: "../static/menu/modbus-terminal.svg" }
-      values["modbus-devices"] = { name: "modbus-devices", fullPath: "../static/menu/modbus-devices.svg" }
-      values["export-serial"] = { name: "export-serial", fullPath: "../static/menu/export-serial.svg" }
       matchComponents({
         "hero": ({ name, fullPath }) => {
           let content = fs.readFileSync(fullPath).toString().replace(/\r?\n|\r/g, "")
