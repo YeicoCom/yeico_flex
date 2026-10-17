@@ -42,6 +42,14 @@ function setFocus(el) {
     }
 }
 
+function runSafe(fun) {
+    try {
+        fun()
+    } catch (err) {
+        console.error(err);
+    }
+}
+
 // macos m1 disconnects the websocket after ~3m idle
 // and pheonix reconnects immediatelly but hook.mount
 // is not called, just the disconnected/reconnected
@@ -50,6 +58,13 @@ const hooks = {
     Focus: {
         mounted() {
             setFocus(this.el)
+        }
+    },
+    Clipboard: {
+        mounted() {
+            this.handleEvent("clipboard:copy", ({ text }) => {
+                runSafe(() => { navigator.clipboard.writeText(text) })
+            })
         }
     },
     Resize: {

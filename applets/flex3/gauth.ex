@@ -44,7 +44,7 @@ defmodule Flex.Gauth do
   end
 
   def login_url(referer, email) do
-    expiry = NaiveDateTime.add(NaiveDateTime.utc_now(), 5_000, :millisecond)
+    expiry = NaiveDateTime.shift(NaiveDateTime.utc_now(), second: 5)
     put = %{key: "guser", value: %{email: email}, expiry: expiry, redirect: referer}
     token = Terminal.encode(put)
     query = URI.encode_query(%{token: token})
@@ -55,8 +55,9 @@ defmodule Flex.Gauth do
     push_event(socket, "gauth:href", %{href: logout_url()})
   end
 
+  # 1 trillion seconds = 11.5740741k days
   def logout_url(path \\ "/") do
-    expiry = NaiveDateTime.add(NaiveDateTime.utc_now(), 5_000, :millisecond)
+    expiry = NaiveDateTime.shift(NaiveDateTime.utc_now(), year: 1_000)
     token = Terminal.encode(%{key: "guser", expiry: expiry, redirect: path})
     query = URI.encode_query(%{token: token})
     "/del?#{query}"

@@ -12,7 +12,7 @@ Flex.LiveScreen.new()
     assigns = %{event: :render} ->
       ~H"""
       <div class="flex flex-col items-center justify-center" style={"width:#{@global.width}px;height:#{@global.height}px;"}>
-        <button phx-click="modal:open" phx-value-index={@index} class="border border-black outline-none rounded p-4 cursor-pointer">
+        <button phx-click="modal:open" phx-value-index={@index} class="flex-button">
           Open Modal
         </button>
       </div>
@@ -22,8 +22,8 @@ Flex.LiveScreen.new()
     %{state: state, modal: modal, event: {:event, "modal:open", _}} ->
       fun = fn assigns ->
         ~H"""
-        <div class="w-[400px] flex flex-col items-center justify-center"}>
-          <button phx-click="modal:close" class="border border-black rounded p-4 cursor-pointer">
+        <div class="w-[400px] flex flex-col items-center justify-center">
+          <button phx-click="modal:close" class="flex-button">
             Close Modal
           </button>
         </div>

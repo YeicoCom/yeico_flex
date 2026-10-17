@@ -1,20 +1,26 @@
 use Terminal.Live
 
-Flex.LiveScreen.new()
-|> Flex.LiveScreen.set(path: "/form2")
-|> Flex.LiveScreen.set(title: "Form2")
-|> Flex.LiveScreen.set(width: 400)
-|> Flex.LiveScreen.set(height: 1000)
-|> Flex.LiveScreen.add(
-  {0, 0},
-  fn
-    assigns = %{event: :render} ->
-      render.(assigns)
+handler = fn
+  {:mount, socket, state} ->
+    socket = assign(socket, applet_css: "/applets/flex3.css")
+    socket = assign(socket, applet_js: "/applets/flex3.js")
+    socket = assign(socket, page_title: "Form2")
+    {socket, state}
 
-    %{state: state} ->
-      state
-  end
-)
-|> Flex.LiveScreen.run()
+  {:params, socket, state, _params, _uri} ->
+    {socket, state}
 
-:ok
+  {:render, _assigns, state} ->
+    render.(state)
+
+  {:event, socket, state, _event, _params} ->
+    {socket, state}
+
+  {:info, socket, state, _event} ->
+    {socket, state}
+
+  {:close, _socket, _state, _reason} ->
+    :ok
+end
+
+Terminal.view(path, handler)

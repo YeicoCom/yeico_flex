@@ -77,6 +77,12 @@ Modbus.Session.exec(pid, "s=1,a=0,c=rri,d=1,e=f32be")
 - [ ] Live screen login customizable style
 - [ ] Live screen dark/light themes
 - [ ] Wrapper for logging from render for module defined widget fun
+- [x] ui: modal
+- [x] ui: hero link
+- [x] ui: div link
+- [x] ui: a link
+- [x] ui: a button
+- [x] Non expiring logout url (1000 years)
 - [x] Apply inert when modal
 - [x] Live screen google auth
 - [x] Modal close callback event in same widget fun
