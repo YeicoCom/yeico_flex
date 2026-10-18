@@ -12,7 +12,8 @@ module.exports = {
     "./**/*.ex"
   ],
   plugins: [
-    require("@tailwindcss/forms"),
+    // https://v4.daisyui.com/
+    require("daisyui"),
     // Embeds Heroicons (https://heroicons.com) into your app.css bundle
     plugin(function ({ matchComponents, theme }) {
       let iconsDir = path.join(__dirname, "node_modules/heroicons")

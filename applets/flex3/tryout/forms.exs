@@ -2,8 +2,8 @@ use Terminal.Live
 
 render = fn assigns ->
   ~H"""
-  <form id="form_id" phx-submit="form:submit" class="p-4 flex gap-1 bg-neutral-200 text-neutral-500" phx-hook="Form">
-    <div class="flex flex-col gap-1">
+  <form id="form_id" data-theme="light" phx-submit="form:submit" class="p-4 flex gap-1 bg-neutral-200 text-neutral-500" phx-hook="Form">
+    <div class="w-1/2 flex flex-col gap-1">
       <button class="flex-button">Click me</button>
       <button class="flex-button" disabled>Click me</button>
       <input type="text" class="flex-input" value="Form Input">
@@ -34,16 +34,30 @@ render = fn assigns ->
           <label for="r3">Radio3</label>
         </div>
       </div>
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1">
+          <input type="checkbox" name="c1" id="c1" class="flex-checkbox">
+          <label for="c1">Checkbox1</label>
+        </div>
+        <div class="flex items-center gap-1">
+          <input type="checkbox" name="c2" id="c2" class="flex-checkbox" checked>
+          <label for="c2">Checkbox2</label>
+        </div>
+        <div class="flex items-center gap-1">
+          <input type="checkbox" name="rc" id="c3" class="flex-checkbox" disabled>
+          <label for="c3">Checkbox3</label>
+        </div>
+      </div>
       <a class="flex-button"><span class="hero-check"/>Link A Button</a>
       <a class="flex-link"><span class="hero-check"/>Link A</a>
       <div class="flex-link"><span class="hero-check"/>Link Div</div>
     </div>
-    <div class="flex flex-col gap-1">
-      <select size="4" class="flex-select">
+    <div class="w-1/2 flex flex-col gap-1">
+      <select size="4" class="flex-select bg-none">
         <option value="1">One</option>
         <option value="2">Two</option>
       </select>
-      <select size="4" class="flex-select" disabled>
+      <select size="4" class="flex-select bg-none" disabled>
         <option value="1">One</option>
         <option value="2">Two</option>
       </select>
