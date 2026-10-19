@@ -36,6 +36,7 @@ setup() {
         q cp -f applets/$applet/flex3/css/* applets/$applet/css/
         q cp -f applets/$applet/flex3/js/* applets/$applet/js/
         q cp -f applets/$applet/flex3/static/vapid.js applets/$applet/static/
+        q cp -f applets/$applet/flex3/static/gauth.svg applets/$applet/static/
         q cp -f applets/$applet/flex3/code.exs applets/$applet/
         q cp -f applets/$applet/flex3/make.exs applets/$applet/
         q cp -f applets/$applet/flex3/package.json applets/$applet/

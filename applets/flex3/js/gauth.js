@@ -34,10 +34,19 @@ window.gauthLoadClient = function () {
     script.async = true
     script.defer = true
     script.onload = () => {
-        window.google.accounts.id.renderButton(
-            document.getElementById("gauth_button_container"),
-            { theme: "outline", shape: "pill" }
-        )
+        // all this because the g-button conflicts with daisyui and paints
+        // an ugly background around it when user already signed in the browser
+        // https://developers.google.com/identity/sign-in/web/build-button
+
+        // google.accounts.id.prompt()
+        // shows top-rigth corner login popup once
+        // wont show again if closed with log: FedCM was disabled
+        // reenable here chrome://settings/content/federatedIdentityApi
+
+        // confirmed to work in chrome / firefox in macos m1
+        // it gets moved around if initially visible
+        const layers = document.getElementById("gauth_button_layers")
+        layers.classList.remove("hidden")
     }
     document.head.appendChild(script);
 }
