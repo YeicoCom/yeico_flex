@@ -4,12 +4,12 @@ view = fn assigns ->
   ~H"""
   <div id="main_view" inert={!!@modal} phx-window-keydown="modal:close" phx-key="Escape"
     class="h-screen flex flex-col items-center justify-center">
-    <button phx-click="modal:open" class="flex-button">Modal</button>
+    <button phx-click="modal:open" class="daisy-btn">Open Modal 2</button>
   </div>
   <.fui id="modal" fun={&Flex.Modal.render/1} :if={@modal} {@modal}>
-    <div class="w-[400px] flex flex-col items-center justify-center">
-      <button phx-click="modal:close" class="flex-button">
-        Close Modal
+    <div class="flex flex-col items-center justify-center">
+      <button phx-click="modal:close" class="daisy-btn">
+        Close Modal 2
       </button>
     </div>
   </.fui>

@@ -2,14 +2,14 @@ use Terminal.Live
 
 view = fn assigns ->
   ~H"""
-  <div id="gauth_main" phx-hook="Gauth" class="flex flex-col items-center justify-center h-screen gap-2 bg-stone-700">
-    <div id="gauth_panel" class="flex flex-col items-center justify-center px-24 py-8 rounded bg-neutral-200 text-neutral-500">
+  <div id="gauth_main" phx-hook="Gauth" class="flex flex-col items-center justify-center h-screen gap-2 bg-base-300">
+    <div id="gauth_panel" class="flex flex-col items-center justify-center px-24 py-8 rounded bg-base-100 text-base-content">
       <image :if={@logo} src={@logo} class="w-[4em] grayscale"/>
       <div :if={@label} class="text-3xl">{@label}</div>
       <div id="gauth_button_panel" class="flex flex-col items-center justify-center pt-2">
         <div id="g_id_onload" data-auto_prompt="false" data-callback="gauthHandleResponse" data-client_id={@client_id}/>
-        <%!-- data-theme="outline" conflicts with daisyui --%>
-        <div id="gauth_button_container" phx-update="ignore" class="g_id_signin" data-shape="pill"/>
+        <%!-- data-theme="outline" conflicts with daisyui unless bg-base-100 is used --%>
+        <div id="gauth_button_container" phx-update="ignore" class="g_id_signin" data-theme="outline" data-shape="pill"/>
       </div>
     </div>
   </div>

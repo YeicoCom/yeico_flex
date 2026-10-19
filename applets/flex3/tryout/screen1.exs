@@ -52,7 +52,7 @@ Flex.LiveScreen.new()
   fn
     assigns = %{event: :render} ->
       ~H"""
-      <div class="text-[24px] w-[300px] p-2 bg-neutral-300 rounded cursor-pointer"
+      <div class="text-[24px] w-[300px] p-2 bg-base-300 cursor-pointer"
         phx-click="click" phx-value-index={@index}>
         Click me count: {@shared.count}
       </div>
@@ -73,7 +73,7 @@ Flex.LiveScreen.new()
   fn
     assigns = %{event: :render} ->
       ~H"""
-      <div class="text-[24px] w-[300px] p-2 bg-neutral-300 rounded">
+      <div class="text-[24px] w-[300px] p-2 bg-base-300">
         Shared click count: {@shared[:count]}
       </div>
       """
@@ -92,7 +92,7 @@ Flex.LiveScreen.new()
   fn
     assigns = %{event: :render} ->
       ~H"""
-      <div class="text-[24px] w-[12em] p-2 bg-neutral-300 rounded">
+      <div class="text-[24px] w-[12em] p-2 bg-base-300">
         <div>Calculated: {@state.value}</div>
       </div>
       """

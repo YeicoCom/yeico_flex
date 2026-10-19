@@ -6,6 +6,7 @@ Flex.LiveScreen.new()
 |> Flex.LiveScreen.set(title: "HMI1")
 |> Flex.LiveScreen.set(width: 800)
 |> Flex.LiveScreen.set(height: 480)
+|> Flex.LiveScreen.set(theme: "light")
 |> Flex.LiveScreen.set(shared: %{menu: 0})
 |> Flex.LiveScreen.add(
   {0, 0},
@@ -13,7 +14,7 @@ Flex.LiveScreen.new()
   fn
     assigns = %{event: :render} ->
       ~H"""
-      <div class="bg-neutral-300 w-[800px] h-[40px] px-[6px] flex flex-cols items-center">
+      <div class="bg-base-200 w-[800px] h-[40px] px-[6px] flex flex-cols items-center">
         <div class="w-full text-[20px] flex items-center gap-[4px]">
           <div>Screen Title</div>
           <div class="grow"/>
@@ -22,10 +23,10 @@ Flex.LiveScreen.new()
         </div>
       </div>
       <div class="h-[400px]"/>
-      <div class="bg-neutral-300 w-[800px] h-[40px] px-[6px] flex flex-cols items-center">
+      <div class="bg-base-200 w-[800px] h-[40px] px-[6px] flex flex-cols items-center">
         <div class="w-full text-[20px] flex items-center">
           <img src="/applets/logo.svg" class="h-[28px] pe-4 grayscale">
-          <div :for={menu <- 0..2} class={["px-3 py-1 cursor-pointer rounded", @shared.menu==menu && "bg-neutral-500 text-white"]}
+          <div :for={menu <- 0..2} class={["px-3 py-1 cursor-pointer rounded", @shared.menu==menu && "bg-base-300"]}
             phx-click="click:menu" phx-value-index={@index} phx-value-menu={menu}>{"Menu#{menu}"}</div>
           <div class="grow"/>
           <div>{@state.time}</div>

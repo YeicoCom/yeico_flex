@@ -2,7 +2,7 @@ use Terminal.Live
 
 render = fn assigns ->
   ~H"""
-  <form id="form_id" data-theme="light" phx-submit="form:submit" class="p-4 flex gap-1 bg-neutral-200 text-neutral-500" phx-hook="Form">
+  <form id="form_id" phx-submit="form:submit" class="p-4 flex gap-1" phx-hook="Form">
     <div class="w-1/2 flex flex-col gap-1">
       <button class="flex-button">Click me</button>
       <button class="flex-button" disabled>Click me</button>

@@ -16,6 +16,7 @@ defmodule Flex.LiveScreen do
       global: %{},
       shared: %{},
       favicon: nil,
+      theme: nil,
       applet: "flex3",
       suffix: " · Flex",
       keypad: fn _ -> false end,
@@ -32,6 +33,7 @@ defmodule Flex.LiveScreen do
       shared: :map,
       path: :binary,
       title: :binary,
+      theme: :binary?,
       applet: :binary,
       style: :binary?,
       suffix: :binary?,
@@ -90,7 +92,7 @@ defmodule Flex.LiveScreen do
       {:mount, socket = %{assigns: assigns}, state} ->
         %{connected?: connected?, tzoffset: tzoffset, localhost?: localhost?} = assigns
         %{title: title, style: style, width: width, height: height, keypad: keypad} = config
-        %{class: class, pass: pass, suffix: suffix, favicon: favicon} = config
+        %{class: class, pass: pass, suffix: suffix, favicon: favicon, theme: theme} = config
         %{global: global, shared: shared, barco: barco} = config
         socket = assign(socket, applet_css: "/applets/#{applet}.css")
         socket = assign(socket, applet_js: "/applets/#{applet}.js")
@@ -99,6 +101,7 @@ defmodule Flex.LiveScreen do
         socket = assign(socket, page_suffix: suffix)
         socket = assign(socket, page_title: title)
         state = Map.put(state, :style, style)
+        state = Map.put(state, :theme, theme)
         state = Map.put(state, :pass, pass)
         state = Map.put(state, :size, nil)
         global = Map.put(global, :keypad?, keypad.(localhost?))
@@ -275,28 +278,25 @@ defmodule Flex.LiveScreen do
 
   defp login(assigns) do
     ~H"""
-    <div id="ll_login" data-theme="light" class="h-screen w-screen flex flex-col items-center justify-center bg-stone-700">
+    <div id="ls_main" data-theme={@theme} class="h-screen w-screen bg-base-300"/>
+    <.fui id="ls_modal" fun={&Flex.Modal.render/1} theme={@theme}>
       <form id="ll_form" phx-submit="login:pass" phx-update="ignore"
-        class="flex flex-col p-4 gap-2 items-center justify-center rounded bg-neutral-200">
-        <label id="ll_label" for="ll_input">Password</label>
+        class="flex flex-col p-4 gap-2 items-center justify-center rounded">
+        <div id="ll_label" class="select-none">Password</div>
         <input id="ll_input" name="pass" type="password" size="24" phx-hook="Focus"
-          class="daisy-input w-full text-center">
+          class="daisy-input daisy-input-bordered w-full text-center">
         <.fui :if={@global.keypad?} fun={&Flex.Keypad.render/1} input="ll_input"/>
       </form>
-    </div>
+    </.fui>
     <style :if={@style}><%= raw(@style) %></style>
     """
   end
 
-  # fixme: identify sensible style defaults
-  # [&_*]:cursor-default takes precedence over children cursor-pointer
-  # select-none text-base text-white bg-black outline-none border-box leading-none text-nowrap
-  # #e6e6e6 (high performace hmi) closely matches neutral-200 #e5e5e5
   defp render(assigns) do
     ~H"""
-    <div id="ls_main" inert={!!@modal} phx-hook="Resize" phx-window-keydown="modal:close" phx-key="Escape" phx-value-index={@modal[:index]}
-      class="relative h-screen w-screen select-none text-base outline-none border-box leading-none text-nowrap bg-stone-700">
-      <div :if={@size} id="ls_panel" class="absolute bg-neutral-200 text-neutral-500" style={"left:#{@x}px;top:#{@y}px;width:#{@w}px;height:#{@h}px;"}>
+    <div id="ls_main" data-theme={@theme} inert={!!@modal} phx-hook="Resize" phx-window-keydown="modal:close" phx-key="Escape" phx-value-index={@modal[:index]}
+      class="relative h-screen w-screen select-none text-base outline-none border-box leading-none text-nowrap bg-base-300">
+      <div :if={@size} id="ls_panel" class="absolute bg-base-100 text-base-content" style={"left:#{@x}px;top:#{@y}px;width:#{@w}px;height:#{@h}px;"}>
         <div class="absolute" style={"scale:#{@s};"}>
           <div :for={{index, {fun, ctx = %{pos: {x, y}}}} <- @index} id={"ls_fun#{index}"} class="ls_fun absolute" style={"left:#{x}px;top:#{y}px;"}>
             <.fui fun={fn _ -> call(%{global: @global, shared: @shared}, fun, Map.put(ctx, :event, :render)) end}/>
@@ -304,7 +304,7 @@ defmodule Flex.LiveScreen do
         </div>
       </div>
     </div>
-    <.fui id="ls_modal" fun={&Flex.Modal.render/1} :if={@modal} {@modal.props} index={@modal.index}>
+    <.fui id="ls_modal" fun={&Flex.Modal.render/1} :if={@modal} {@modal.props} index={@modal.index} theme={@theme}>
         <.fui fun={@modal.fun} {%{index: @modal.index, global: @global, shared: @shared}}/>
     </.fui>
     <style :if={@style}><%= raw(@style) %></style>
