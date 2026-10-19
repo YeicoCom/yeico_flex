@@ -2,9 +2,9 @@ config = """
 import Config
 
 config :web_push_elixir,
-  vapid_public_key: System.get_env("WEBPUSH_PUBKEY"),
-  vapid_private_key: System.get_env("WEBPUSH_PRIVKEY"),
-  vapid_subject: "mailto:rinnai@yeico.com"
+  vapid_public_key: System.get_env("VAPID_PUBKEY"),
+  vapid_private_key: System.get_env("VAPID_PRIVKEY"),
+  vapid_subject: "mailto:flex@yeico.com"
 """
 
 Config.Reader.eval!("config.exs", config) |> Application.put_all_env()
@@ -14,13 +14,13 @@ Mix.install([{:jason, "1.4.4"}, {:web_push_elixir, "0.4.0"}, {:exqlite, "0.33.1"
   system_env: %{ID: __ENV__.file}
 )
 
-path = Path.join(System.get_env("TERMINAL_HOME"), "rinnai.db")
+path = Path.join(System.get_env("TERMINAL_HOME"), "flex3_vapid.db")
 {:ok, conn} = Exqlite.Basic.open(path)
 
 {:ok, _, _, _} =
   Exqlite.Basic.exec(conn, "create table if not exists subs (sub text primary key)")
 
-true = Process.register(self(), :webpush)
+true = Process.register(self(), :vapid)
 terminal = System.get_env("TERMINAL_NODE") |> String.to_atom()
 Node.connect(terminal)
 
@@ -71,6 +71,6 @@ loop = fn loop ->
   loop.(loop)
 end
 
-:rpc.call(terminal, Applet.Api, :putcast!, ["backend:webpush", true])
+:rpc.call(terminal, Applet.Api, :putcast!, ["backend:vapid", true])
 
 loop.(loop)

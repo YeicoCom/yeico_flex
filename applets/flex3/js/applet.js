@@ -185,18 +185,18 @@ const hooks = {
             setTimeout(gauthLoadClient, 100)
         }
     },
-    WebPush: {
+    Vapid: {
         mounted() {
-            const subscribe_to_webpush = (pubkey) => {
+            const subscribe_to_vapid = (pubkey) => {
                 consoleLog("App requesting permission")
                 Notification.requestPermission((result) => {
                     consoleLog("App permission", result)
                     if (result != "granted") return
                     const channel = new MessageChannel()
                     channel.port1.onmessage = (event) => {
-                        localStorage.setItem("webpush:subscription", event.data)
+                        localStorage.setItem("vapid:subscription", event.data)
                         consoleLog("App subscription upload", JSON.parse(event.data))
-                        this.pushEvent("hook:webpush", JSON.parse(event.data))
+                        this.pushEvent("hook:vapid", JSON.parse(event.data))
                     }
                     navigator.serviceWorker
                         .register(`${args.static}/sw.js`).then((reg) => {
@@ -222,13 +222,13 @@ const hooks = {
                 })
             }
             // server side triggering from gesture for safari
-            this.handleEvent("enable_webpush", (params) => {
-                localStorage.removeItem("webpush:subscription")
-                subscribe_to_webpush(params.pubkey)
+            this.handleEvent("vapid:enable", (params) => {
+                localStorage.removeItem("vapid:subscription")
+                subscribe_to_vapid(params.pubkey)
             })
-            this.handleEvent("disable_webpush", (params) => {
+            this.handleEvent("vapid:disable", (params) => {
                 consoleLog("App sw unregistering...")
-                localStorage.removeItem("webpush:subscription")
+                localStorage.removeItem("vapid:subscription")
                 // reg.pushManager.getSubscription().then((subscription) => { subscription.unsubscribe() })
                 // in some cases unregistering the whole service worker is requiered
                 // and such actions is only possible from the devtools
@@ -242,12 +242,12 @@ const hooks = {
                     }
                 })
             })
-            const data = localStorage.getItem("webpush:subscription")
-            if (data) this.pushEvent("hook:webpush", JSON.parse(data))
+            const data = localStorage.getItem("vapid:subscription")
+            if (data) this.pushEvent("hook:vapid", JSON.parse(data))
         },
         reconnected() {
-            const data = localStorage.getItem("webpush:subscription")
-            if (data) this.pushEvent("hook:webpush", JSON.parse(data))
+            const data = localStorage.getItem("vapid:subscription")
+            if (data) this.pushEvent("hook:vapid", JSON.parse(data))
         }
     }
 }
