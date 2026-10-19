@@ -55,6 +55,7 @@ run = fn {route, opts} ->
   end
 
   env = [
+    {"TERMINAL_NAME", name},
     {"TERMINAL_COOKIE", cookie},
     {"TERMINAL_NODE", Node.self() |> to_string()},
     {"TERMINAL_TMP", Terminal.tmp()},

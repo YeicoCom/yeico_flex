@@ -9,9 +9,12 @@ config :web_push_elixir,
 
 Config.Reader.eval!("config.exs", config) |> Application.put_all_env()
 
+name = System.get_env("TERMINAL_NAME")
+
 # https://github.com/elixir-lang/elixir/issues/13326 Waiting for lock on the build directory
+# __ENV__.file -> ~/yeico_flex/applets/flex3/backends/vapid.exs
 Mix.install([{:jason, "1.4.4"}, {:web_push_elixir, "0.4.0"}, {:exqlite, "0.33.1"}],
-  system_env: %{ID: __ENV__.file}
+  system_env: %{ID: "#{__ENV__.file}/#{name}"}
 )
 
 path = Path.join(System.get_env("TERMINAL_HOME"), "flex3_vapid.db")
@@ -71,6 +74,6 @@ loop = fn loop ->
   loop.(loop)
 end
 
-:rpc.call(terminal, Applet.Api, :putcast!, ["backend:vapid", true])
+:rpc.call(terminal, Applet.Api, :putcast!, ["backend:#{name}", true])
 
 loop.(loop)

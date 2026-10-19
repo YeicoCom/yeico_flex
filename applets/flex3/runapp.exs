@@ -79,6 +79,7 @@ run = fn name ->
   # your shell) or set the ELIXIR_ERL_OPTIONS="+fnu" environment variable
   env = [
     {"ERL_LIBS", libs},
+    {"TERMINAL_NAME", name},
     {"TERMINAL_COOKIE", cookie},
     {"TERMINAL_NODE", Node.self() |> to_string()},
     {"TERMINAL_TMP", Terminal.tmp()},
