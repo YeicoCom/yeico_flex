@@ -1,19 +1,23 @@
 use Terminal.Live
 
-# w-fit to avoid initial slide to the left and final uncentered position
-# bottom:-50% to match the top to make the container parent fit the real new heigth
+# both nowraps came from absolute position approach and left to reflect intent but not needed under grid layout
+# google button layout problems become evident when running on flex.yeico.com as opposed to localhost:4080
+# grid layout with both divs in same cell fixes the absolute positioning failing to calculate parent height
+# working with opacity instead of hidded minimizes relayout flickers
+# make the overlapping button large enough to minimize relayout flickers
+# see notices in gauth.js
 view = fn assigns ->
   ~H"""
   <div id="gauth_main" phx-hook="Gauth" class="flex flex-col items-center justify-center h-screen gap-2 bg-base-300">
     <div id="gauth_panel" class="flex flex-col items-center justify-center px-24 py-8 rounded bg-base-100 text-base-content">
       <image :if={@logo} src={@logo} class="w-[4em] grayscale"/>
       <div :if={@label} class="text-3xl">{@label}</div>
-      <div id="gauth_button_panel" class="flex flex-col items-center justify-center pt-2">
+      <div id="gauth_button_panel" phx-update="ignore" class="flex flex-col items-center justify-center pt-2">
         <div id="g_id_onload" data-auto_prompt="false" data-callback="gauthHandleResponse" data-client_id={@client_id}/>
-        <div id="gauth_button_layers" class="hidden w-fit">
-          <div id="gauth_button_container" phx-update="ignore" class="g_id_signin opacity-0"/>
-          <div id="gauth_button_rendered" phx-update="ignore" style="top:-50%;"
-            class="relative pointer-events-none daisy-btn daisy-btn-bordered daisy-btn-neutral p-2 flex flex-nowrap items-center gap-1">
+        <div id="gauth_button_layers" class="opacity-0 grid grid-cols-1">
+          <div id="gauth_button_container" class="g_id_signin opacity-0 col-start-1 row-start-1"/>
+          <div id="gauth_button_custom"
+            class="opacity-0 col-start-1 row-start-1 pointer-events-none daisy-btn daisy-btn-bordered daisy-btn-neutral py-8 px-12 flex flex-nowrap items-center gap-1">
             <image :if={@glogo} src={@glogo} class="w-[2em] grayscale"/>
             <div class="text-nowrap">Sign in with Google</div>
           </div>

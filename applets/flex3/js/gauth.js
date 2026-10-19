@@ -43,10 +43,28 @@ window.gauthLoadClient = function () {
         // wont show again if closed with log: FedCM was disabled
         // reenable here chrome://settings/content/federatedIdentityApi
 
+        // not needed after the wait for iframe below
+        // google.accounts.id.renderButton(
+        //     document.getElementById("gauth_button_container"),
+        //     {
+        //         theme: "outline",
+        //         shape: "pill"
+        //     }
+        // )
+
         // confirmed to work in chrome / firefox in macos m1
-        // it gets moved around if initially visible
-        const layers = document.getElementById("gauth_button_layers")
-        layers.classList.remove("hidden")
+        // with absolute positioning: it gets moved around if initially visible
+        // with same grid cell: gbutton shows for an instant when relayout is triggered by hidden removal
+        // waiting for iframe to restore opacity completely prevents the gbutton showing for an instant
+        // working with opacity instead of hidded minimizes relayout flickers
+        // make the overlapping button large enough to minimize relayout flickers
+        const timer = setInterval(() => {
+            if (document.getElementById("gauth_button_container").querySelector('iframe')) {
+                document.getElementById("gauth_button_layers").style.opacity = "1"
+                document.getElementById("gauth_button_custom").style.opacity = "1"
+                clearInterval(timer)
+            }
+        }, 1000)
     }
     document.head.appendChild(script);
 }
