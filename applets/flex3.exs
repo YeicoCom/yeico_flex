@@ -30,6 +30,7 @@ Api.evalf("flex3/tryout/modal2.exs", path: "/modal2")
 Api.evalf("flex3/tryout/hmi1.exs")
 Api.evalf("flex3/tryout/gauth1.exs")
 Api.evalf("flex3/tryout/forms.exs")
+Api.evalf("flex3/tryout/webpush.exs", path: "/webpush")
 
 Api.evalf("flex3/login.exs", path: "/login", props: %{})
 
