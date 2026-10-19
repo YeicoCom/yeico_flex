@@ -1,5 +1,7 @@
 use Terminal.Live
 
+# w-fit to avoid initial slide to the left and final uncentered position
+# bottom:-50% to match the top to make the container parent fit the real new heigth
 view = fn assigns ->
   ~H"""
   <div id="gauth_main" phx-hook="Gauth" class="flex flex-col items-center justify-center h-screen gap-2 bg-base-300">
@@ -8,10 +10,10 @@ view = fn assigns ->
       <div :if={@label} class="text-3xl">{@label}</div>
       <div id="gauth_button_panel" class="flex flex-col items-center justify-center pt-2">
         <div id="g_id_onload" data-auto_prompt="false" data-callback="gauthHandleResponse" data-client_id={@client_id}/>
-        <div id="gauth_button_layers" class="relative hidden">
+        <div id="gauth_button_layers" class="hidden w-fit">
           <div id="gauth_button_container" phx-update="ignore" class="g_id_signin opacity-0"/>
-          <div id="gauth_button_rendered" phx-update="ignore" style="left:0px;top:0px;"
-            class="pointer-events-none absolute daisy-btn daisy-btn-bordered w-fit h-fit daisy-btn-neutral p-2 flex flex-nowrap items-center gap-1">
+          <div id="gauth_button_rendered" phx-update="ignore" style="top:-50%;"
+            class="relative pointer-events-none daisy-btn daisy-btn-bordered daisy-btn-neutral p-2 flex flex-nowrap items-center gap-1">
             <image :if={@glogo} src={@glogo} class="w-[2em] grayscale"/>
             <div class="text-nowrap">Sign in with Google</div>
           </div>
