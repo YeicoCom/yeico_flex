@@ -1,30 +1,13 @@
 use Terminal.Live
 
-vapid_config = Api.path("secret/vapid.json") |> File.read!() |> Jason.decode!()
-
-vapid_vars = [
-  {"VAPID_PUBKEY", vapid_config["publicKey"]},
-  {"VAPID_PRIVKEY", vapid_config["privateKey"]}
-]
-
+vapid_config = Flex.Vapid.load_config("secret/vapid.json")
+vapid_vars = Flex.Vapid.build_vars(vapid_config)
 pubkey = vapid_config["publicKey"]
 
 {runexs, _} = Api.evalf("flex3/runexs.exs")
 Api.async(fn -> runexs.({"flex3/backends/vapid.exs", name: "vapid", env: vapid_vars}) end)
 node = "vapid@#{Api.hostname()}.local" |> String.to_atom()
-
-pusher = fn
-  {:all, title, color} ->
-    msg = %{title: title, options: %{icon: "/applets/flex3/#{color}.png"}}
-    send({:vapid, node}, {:all, msg})
-
-  {:one, sub, title} ->
-    msg = %{title: title, options: %{icon: "/applets/flex3/gray.png"}}
-    send({:vapid, node}, {:one, sub, msg})
-
-  message ->
-    send({:vapid, node}, message)
-end
+pusher = Flex.Vapid.get_pusher(node, "/applets/flex3")
 
 view = fn assigns ->
   ~H"""
@@ -62,7 +45,7 @@ handler = fn
 
   {:event, socket, state = %{sub: sub}, event = "click:test", params} ->
     Log.trace(event: path, event: event, params: params)
-    pusher.({:one, sub, "Testing 1,2,3"})
+    pusher.({:one, sub, "Testing 1,2,3", "gray"})
     {socket, state}
 
   {:event, socket, state, event = "click:enable", params} ->
