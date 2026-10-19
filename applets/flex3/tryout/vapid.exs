@@ -14,9 +14,9 @@ view = fn assigns ->
   <div id="main-view" data-theme="light" phx-hook="Vapid"
     class="flex flex-col h-screen items-center justify-center bg-base-100 text-base-content">
     <div id="main-panel" class="flex flex-col px-8 py-4 gap-4">
-      <button phx-click="click:test" disabled={!@backend} class="daisy-btn daisy-btn-neutral">Test Notification</button>
-      <button phx-click="click:enable" disabled={!@backend} class="daisy-btn daisy-btn-neutral">Enable Notification</button>
-      <button phx-click="click:disable" disabled={!@backend} class="daisy-btn daisy-btn-neutral">Disable Notification</button>
+      <button phx-click="click:test" disabled={!@backend} class="daisy-btn daisy-btn-outline">Test Notification</button>
+      <button phx-click="click:enable" disabled={!@backend} class="daisy-btn daisy-btn-outline">Enable Notification</button>
+      <button phx-click="click:disable" disabled={!@backend} class="daisy-btn daisy-btn-outline">Disable Notification</button>
     </div>
   </div>
   """

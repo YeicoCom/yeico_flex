@@ -17,7 +17,7 @@ view = fn assigns ->
         <div id="gauth_button_layers" class="opacity-0 grid grid-cols-1 place-items-center">
           <div id="gauth_button_original" class="g_id_signin opacity-0 col-start-1 row-start-1"/>
           <div id="gauth_button_custom"
-            class="opacity-0 w-full h-full col-start-1 row-start-1 pointer-events-none daisy-btn daisy-btn-neutral daisy-btn-sm flex flex-nowrap items-center gap-1">
+            class="opacity-0 w-full h-full col-start-1 row-start-1 pointer-events-none daisy-btn daisy-btn-outline daisy-btn-sm flex flex-nowrap items-center gap-1">
             <image :if={@glogo} src={@glogo} class="w-[1.5em] grayscale"/>
             <div class="text-nowrap text-sm">Sign in with Google</div>
           </div>
