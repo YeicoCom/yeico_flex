@@ -41,14 +41,15 @@ push = fn sub, msg ->
   try do
     msg = Jason.encode!(msg)
 
-    with jsub <- Jason.encode!(sub),
+    with false <- is_nil(sub),
+         jsub <- Jason.encode!(sub),
          {:ok, %{status_code: 410}} <- WebPushElixir.send_notification(jsub, msg) do
       del.(sub)
     end
   rescue
-    error -> IO.inspect(error)
+    error -> IO.inspect(error: error, stack: __STACKTRACE__)
   catch
-    error -> IO.inspect(error)
+    error -> IO.inspect(error: error, stack: __STACKTRACE__)
   end
 end
 
