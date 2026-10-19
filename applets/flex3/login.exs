@@ -14,12 +14,12 @@ view = fn assigns ->
       <div :if={@label} class="text-3xl">{@label}</div>
       <div id="gauth_button_panel" phx-update="ignore" class="flex flex-col items-center justify-center pt-2">
         <div id="g_id_onload" data-auto_prompt="false" data-callback="gauthHandleResponse" data-client_id={@client_id}/>
-        <div id="gauth_button_layers" class="opacity-0 grid grid-cols-1">
-          <div id="gauth_button_container" class="g_id_signin opacity-0 col-start-1 row-start-1"/>
+        <div id="gauth_button_layers" class="opacity-0 grid grid-cols-1 place-items-center">
+          <div id="gauth_button_original" class="g_id_signin opacity-0 col-start-1 row-start-1"/>
           <div id="gauth_button_custom"
-            class="opacity-0 col-start-1 row-start-1 pointer-events-none daisy-btn daisy-btn-bordered daisy-btn-neutral py-8 px-12 flex flex-nowrap items-center gap-1">
-            <image :if={@glogo} src={@glogo} class="w-[2em] grayscale"/>
-            <div class="text-nowrap">Sign in with Google</div>
+            class="opacity-0 w-full h-full col-start-1 row-start-1 pointer-events-none daisy-btn daisy-btn-neutral daisy-btn-sm flex flex-nowrap items-center gap-1">
+            <image :if={@glogo} src={@glogo} class="w-[1.5em] grayscale"/>
+            <div class="text-nowrap text-sm">Sign in with Google</div>
           </div>
         </div>
       </div>

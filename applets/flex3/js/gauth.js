@@ -45,7 +45,7 @@ window.gauthLoadClient = function () {
 
         // not needed after the wait for iframe below
         // google.accounts.id.renderButton(
-        //     document.getElementById("gauth_button_container"),
+        //     document.getElementById("gauth_button_original"),
         //     {
         //         theme: "outline",
         //         shape: "pill"
@@ -59,7 +59,7 @@ window.gauthLoadClient = function () {
         // working with opacity instead of hidded minimizes relayout flickers
         // make the overlapping button large enough to minimize relayout flickers
         const timer = setInterval(() => {
-            if (document.getElementById("gauth_button_container").querySelector('iframe')) {
+            if (document.getElementById("gauth_button_original").querySelector('iframe')) {
                 document.getElementById("gauth_button_layers").style.opacity = "1"
                 document.getElementById("gauth_button_custom").style.opacity = "1"
                 clearInterval(timer)
