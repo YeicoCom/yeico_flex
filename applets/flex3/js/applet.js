@@ -8,6 +8,17 @@ if (!navigator.userAgent.includes('YeicoTerminal')) {
     document.body.style.animation = 'none'
 }
 
+function decodeArgs() {
+    const script = document.getElementById("applet.js")
+    if (!script) return {}
+    const args64 = script.dataset.args
+    if (!args64) return {}
+    const argsJson = atob(args64)
+    return JSON.parse(argsJson)
+}
+
+const args = decodeArgs()
+
 function initialParams() {
     return {
         width: window.innerWidth,
@@ -28,7 +39,7 @@ const resizeObserver = new ResizeObserver((entries) => {
     }
 })
 
-// set focus a move caret to end
+// set focus and move caret to end
 function setFocus(el) {
     el.focus()
     // number input does not support selection
@@ -83,6 +94,10 @@ function enterNavigate(el) {
             el.addEventListener("keydown", listener)
         }
     }
+}
+
+function consoleLog(...args) {
+    console.log(args)
 }
 
 // macos m1 disconnects the websocket after ~3m idle
@@ -170,18 +185,73 @@ const hooks = {
             setTimeout(gauthLoadClient, 100)
         }
     },
+    WebPush: {
+        mounted() {
+            const subscribe_to_webpush = (pubkey) => {
+                consoleLog("App requesting permission")
+                Notification.requestPermission((result) => {
+                    consoleLog("App permission", result)
+                    if (result != "granted") return
+                    const channel = new MessageChannel()
+                    channel.port1.onmessage = (event) => {
+                        localStorage.setItem("webpush:subscription", event.data)
+                        consoleLog("App subscription upload", JSON.parse(event.data))
+                        this.pushEvent("hook:webpush", JSON.parse(event.data))
+                    }
+                    navigator.serviceWorker
+                        .register(`${args.static}/sw.js`).then((reg) => {
+                            consoleLog("App sw register OK")
+                            //safari null exception on first registration
+                            const retry = (self, toms, check, success) => {
+                                if (toms <= 0) {
+                                    consoleLog("App retry failure")
+                                    return
+                                }
+                                consoleLog("App retry...")
+                                if (check()) success()
+                                else setTimeout(() => {
+                                    self(self, toms - 100, check, success)
+                                }, 100)
+                            }
+                            retry(retry, 2000, () => { return reg.active }, () => {
+                                reg.active.postMessage(`subscribe:${pubkey}`, [channel.port2])
+                            })
+                        }).catch((err) => {
+                            consoleLog("App sw register ERROR", err)
+                        });
+                })
+            }
+            // server side triggering from gesture for safari
+            this.handleEvent("enable_webpush", (params) => {
+                localStorage.removeItem("webpush:subscription")
+                subscribe_to_webpush(params.pubkey)
+            })
+            this.handleEvent("disable_webpush", (params) => {
+                consoleLog("App sw unregistering...")
+                localStorage.removeItem("webpush:subscription")
+                // reg.pushManager.getSubscription().then((subscription) => { subscription.unsubscribe() })
+                // in some cases unregistering the whole service worker is requiered
+                // and such actions is only possible from the devtools
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    for (const registration of registrations) {
+                        // prevent cross contamination with another applet
+                        const url = new URL(registration.scope)
+                        if (url.pathname == args.static) {
+                            registration.unregister()
+                        }
+                    }
+                })
+            })
+            const data = localStorage.getItem("webpush:subscription")
+            if (data) this.pushEvent("hook:webpush", JSON.parse(data))
+        },
+        reconnected() {
+            const data = localStorage.getItem("webpush:subscription")
+            if (data) this.pushEvent("hook:webpush", JSON.parse(data))
+        }
+    }
 }
 
-function decodeArgs() {
-    const script = document.getElementById("applet.js")
-    if (!script) return {}
-    const args64 = script.dataset.args
-    if (!args64) return {}
-    const argsJson = atob(args64)
-    return JSON.parse(argsJson)
-}
-
-const args = decodeArgs()
 const barco = args.barco || "#84cc16"
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute('content')
 const params = { _csrf_token: csrfToken, ...initialParams() }

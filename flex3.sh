@@ -26,10 +26,14 @@ setup() {
     q mkdir -p deps
     checkout deps/yeico_flex git@github.com:YeicoCom/yeico_flex.git $1
     for route in applets/*.exs; do
-        applet=$(basename ${route%.*})    
+        applet=$(basename ${route%.*})
         q rsync -avr --delete deps/yeico_flex/applets/flex3 applets/$applet/
+        q mkdir -p applets/$applet/css/
+        q mkdir -p applets/$applet/js/
+        q mkdir -p applets/$applet/static/
         q cp -f applets/$applet/flex3/css/* applets/$applet/css/
         q cp -f applets/$applet/flex3/js/* applets/$applet/js/
+        q cp -f applets/$applet/flex3/static/sw.js applets/$applet/static/
         q cp -f applets/$applet/flex3/code.exs applets/$applet/
         q cp -f applets/$applet/flex3/make.exs applets/$applet/
         q cp -f applets/$applet/flex3/package.json applets/$applet/
