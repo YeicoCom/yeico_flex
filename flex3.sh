@@ -18,22 +18,24 @@ checkout() {
     [ -d $1 ] && q git -C $1 reset --hard origin/main
     [ -d $1 ] || q git -C deps clone $2
     q git -C $1 checkout $3 || true
-    git -C $1 rev-parse HEAD > ./.flex3
-    echo Using flex $(cat ./.flex3)
+    git -C $1 rev-parse HEAD > .flex3/commit
+    echo Using flex $(cat .flex3/commit)
 }
 
 setup() {
     q mkdir -p deps
+    q mkdir -p .flex3
     checkout deps/yeico_flex git@github.com:YeicoCom/yeico_flex.git $1
     for route in applets/*.exs; do
         applet=$(basename ${route%.*})
+        [ -f .flex3/skip/$applet ] && continue
         q rsync -avr --delete deps/yeico_flex/applets/flex3 applets/$applet/
         q mkdir -p applets/$applet/css/
         q mkdir -p applets/$applet/js/
         q mkdir -p applets/$applet/static/
         q cp -f applets/$applet/flex3/css/* applets/$applet/css/
         q cp -f applets/$applet/flex3/js/* applets/$applet/js/
-        q cp -f applets/$applet/flex3/static/sw.js applets/$applet/static/
+        q cp -f applets/$applet/flex3/static/vapid.js applets/$applet/static/
         q cp -f applets/$applet/flex3/code.exs applets/$applet/
         q cp -f applets/$applet/flex3/make.exs applets/$applet/
         q cp -f applets/$applet/flex3/package.json applets/$applet/
@@ -48,7 +50,7 @@ update() {
 }
 
 install() {
-    commit=$(cat ./.flex3 2>/dev/null || echo main)
+    commit=$(cat .flex3/commit 2>/dev/null || echo main)
     setup $commit
 }
 

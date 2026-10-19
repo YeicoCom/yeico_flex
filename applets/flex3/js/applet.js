@@ -199,7 +199,7 @@ const hooks = {
                         this.pushEvent("hook:vapid", JSON.parse(event.data))
                     }
                     navigator.serviceWorker
-                        .register(`${args.static}/sw.js`).then((reg) => {
+                        .register(`${args.static}/vapid.js`).then((reg) => {
                             consoleLog("App sw register OK")
                             //safari null exception on first registration
                             const retry = (self, toms, check, success) => {
