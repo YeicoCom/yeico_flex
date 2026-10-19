@@ -26,11 +26,11 @@ control view wraps the render function with a <div data-phx-main ...
 
 @layer components {
     .flex-input {
-        @apply input input-bordered;
+        @apply daisy-input daisy-input-bordered;
     }
 
     .flex-select {
-        @apply select select-bordered;
+        @apply daisy-select daisy-select-bordered;
     }
 
     .flex-select[size]:not([size="1"]) {
@@ -38,22 +38,22 @@ control view wraps the render function with a <div data-phx-main ...
     }
 
     .flex-textarea {
-        @apply textarea textarea-bordered;
+        @apply daisy-textarea daisy-textarea-bordered;
     }
 
     .flex-radio {
-        @apply radio;
+        @apply daisy-radio;
     }
 
     .flex-checkbox {
-        @apply checkbox;
+        @apply daisy-checkbox;
     }
 
     .flex-button {
-        @apply btn;
+        @apply daisy-btn;
     }
 
     .flex-link {
-        @apply link link-hover inline-flex items-center;
+        @apply daisy-link daisy-link-hover inline-flex items-center;
     }
 }

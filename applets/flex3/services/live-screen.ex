@@ -18,6 +18,7 @@ defmodule Flex.LiveScreen do
       favicon: nil,
       applet: "flex3",
       suffix: " · Flex",
+      keypad: fn _ -> false end,
       funs: []
     }
 
@@ -35,6 +36,7 @@ defmodule Flex.LiveScreen do
       style: :binary?,
       suffix: :binary?,
       favicon: :binary?,
+      keypad: {:fun, 1},
       width: {:integer, 1, 65_535},
       height: {:integer, 1, 65_535},
       funs: {:list, nil, &check(&1, &2, :fun)}
@@ -87,7 +89,7 @@ defmodule Flex.LiveScreen do
     fn
       {:mount, socket = %{assigns: assigns}, state} ->
         %{connected?: connected?, tzoffset: tzoffset, localhost?: localhost?} = assigns
-        %{title: title, style: style, width: width, height: height} = config
+        %{title: title, style: style, width: width, height: height, keypad: keypad} = config
         %{class: class, pass: pass, suffix: suffix, favicon: favicon} = config
         %{global: global, shared: shared, barco: barco} = config
         socket = assign(socket, applet_css: "/applets/#{applet}.css")
@@ -96,14 +98,13 @@ defmodule Flex.LiveScreen do
         socket = assign(socket, favicon_url: favicon)
         socket = assign(socket, page_suffix: suffix)
         socket = assign(socket, page_title: title)
-        keypad? = localhost? && Terminal.device?()
         state = Map.put(state, :style, style)
         state = Map.put(state, :pass, pass)
         state = Map.put(state, :size, nil)
+        global = Map.put(global, :keypad?, keypad.(localhost?))
         global = Map.put(global, :localhost?, localhost?)
         global = Map.put(global, :connected?, connected?)
         global = Map.put(global, :tzoffset, tzoffset)
-        global = Map.put(global, :keypad?, keypad?)
         global = Map.put(global, :title, title)
         global = Map.put(global, :width, width)
         global = Map.put(global, :height, height)
@@ -274,12 +275,12 @@ defmodule Flex.LiveScreen do
 
   defp login(assigns) do
     ~H"""
-    <div id="ll_login" class="h-screen w-screen flex flex-col items-center justify-center bg-stone-700">
+    <div id="ll_login" data-theme="light" class="h-screen w-screen flex flex-col items-center justify-center bg-stone-700">
       <form id="ll_form" phx-submit="login:pass" phx-update="ignore"
-        class="flex flex-col p-4 gap-2 items-center justify-center rounded bg-neutral-200 text-neutral-500">
+        class="flex flex-col p-4 gap-2 items-center justify-center rounded bg-neutral-200">
         <label id="ll_label" for="ll_input">Password</label>
         <input id="ll_input" name="pass" type="password" size="24" phx-hook="Focus"
-          class="w-full text-center outline-none border-0 ring-0 rounded-lg focus:ring-neutral-500">
+          class="daisy-input w-full text-center">
         <.fui :if={@global.keypad?} fun={&Flex.Keypad.render/1} input="ll_input"/>
       </form>
     </div>

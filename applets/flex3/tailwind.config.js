@@ -53,5 +53,8 @@ module.exports = {
         }
       }, { values })
     })
-  ]
+  ],
+  daisyui: {
+    prefix: "daisy-",
+  }
 }

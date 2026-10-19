@@ -30,7 +30,7 @@ defmodule Flex.Keypad do
     assigns = Map.put_new(assigns, :type, "button")
 
     ~H"""
-    <button id={"kpb_#{@key}"} type={@type} tabindex="-1" class={["px-6 py-4 border border-neutral-400 rounded outline-none", @class]}
+    <button id={"kpb_#{@key}"} type={@type} tabindex="-1" class={["daisy-btn daisy-btn-bordered", @class]}
       phx-hook={@hook} data-key={@key} data-input={@input}>
       {render_slot(@inner_block)}
     </button>
