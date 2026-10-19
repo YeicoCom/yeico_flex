@@ -8,8 +8,7 @@ view = fn assigns ->
       <div :if={@label} class="text-3xl">{@label}</div>
       <div id="gauth_button_panel" class="flex flex-col items-center justify-center pt-2">
         <div id="g_id_onload" data-auto_prompt="false" data-callback="gauthHandleResponse" data-client_id={@client_id}/>
-        <%!-- data-theme="outline" conflicts with daisyui unless bg-base-100 is used --%>
-        <div id="gauth_button_container" phx-update="ignore" class="g_id_signin" data-theme="outline" data-shape="pill"/>
+        <div id="gauth_button_container" phx-update="ignore"/>
       </div>
     </div>
   </div>

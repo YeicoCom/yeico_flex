@@ -31,5 +31,13 @@ window.gauthLoadClient = function () {
     var script = document.createElement("script")
     script.id = "g_gsi_script_loader"
     script.src = "https://accounts.google.com/gsi/client"
+    script.async = true
+    script.defer = true
+    script.onload = () => {
+        window.google.accounts.id.renderButton(
+            document.getElementById("gauth_button_container"),
+            { theme: "outline", shape: "pill" }
+        )
+    }
     document.head.appendChild(script);
 }
