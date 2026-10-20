@@ -1,5 +1,6 @@
 use Terminal.Live
 
+path = "/"
 vapid_config = Flex.Vapid.load_config("secret/vapid.json")
 vapid_vars = Flex.Vapid.build_vars(vapid_config)
 pubkey = vapid_config["publicKey"]
@@ -11,7 +12,7 @@ pusher = Flex.Vapid.get_pusher(node, "/applets/flex3")
 
 view = fn assigns ->
   ~H"""
-  <div id="main-view" data-theme="light" phx-hook="Vapid"
+  <div id="main-view" phx-hook="Vapid"
     class="flex flex-col h-screen items-center justify-center bg-base-100 text-base-content">
     <div id="main-panel" class="flex flex-col px-8 py-4 gap-4">
       <button phx-click="click:test" disabled={!@backend} class="daisy-btn daisy-btn-outline">Test Notification</button>
@@ -27,6 +28,7 @@ handler = fn
     socket = assign(socket, applet_css: "/applets/flex3.css")
     socket = assign(socket, applet_js: "/applets/flex3.js")
     socket = assign(socket, applet_args: %{static: "/applets/flex3"})
+    socket = assign(socket, page_suffix: " · Flex")
     socket = assign(socket, page_title: "Vapid")
     state = Map.put(state, :backend, Api.subget!("backend:vapid"))
     {socket, state}

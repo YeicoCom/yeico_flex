@@ -1,5 +1,5 @@
 defmodule Flex.EchoServer do
-  use Flex.Service
+  use Flex.ServiceOld
   use Terminal
 
   defp initial,

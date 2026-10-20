@@ -2,77 +2,42 @@ defmodule Flex.LiveScreen do
   use Flex.Service
   use Terminal.Live
 
-  defp initial(),
+  # Adb is the global transient state
+  # @shared is immutable state merging screen environ and screen config
+  # widgets don't perform logic
+  # widgets don't actively share screen wide state
+  # widgets share global state through Api.putcast!
+  # screen pools points and timers together
+  # valid sources are:
+  #   {const_name, {:const, fixed_value}}
+  #   {point_name, {:point, adb_point_key}}
+  #   {timer_name, {:timer, period_in_ms}}
+  #   {shared_name, {:shared, shared_key}}
+
+  defp specs(),
     do: %{
-      auth: nil,
-      pass: nil,
-      path: nil,
-      barco: nil,
-      title: nil,
-      width: nil,
-      height: nil,
-      style: nil,
-      class: %{},
-      global: %{},
-      shared: %{},
-      favicon: nil,
-      theme: nil,
-      applet: "flex3",
-      suffix: " · Flex",
-      keypad: fn _ -> false end,
-      funs: []
+      auth: %{initial: nil, check: :map?},
+      pass: %{initial: nil, check: {:fun?, 0}},
+      path: %{initial: nil, check: :binary},
+      barco: %{initial: nil, check: :binary?},
+      title: %{initial: nil, check: :binary},
+      theme: %{initial: nil, check: :binary?},
+      width: %{initial: nil, check: {:integer, 1, 65_535}},
+      height: %{initial: nil, check: {:integer, 1, 65_535}},
+      style: %{initial: nil, check: :binary?},
+      class: %{initial: %{}, check: :map},
+      shared: %{initial: %{}, check: :map},
+      favicon: %{initial: nil, check: :binary?},
+      applet: %{initial: "flex3", check: :binary},
+      suffix: %{initial: " · Flex", check: :binary?},
+      keypad: %{initial: fn _ -> false end, check: {:fun, 1}},
+      widgets: %{initial: [], check: {:list, nil, &check(&1, &2, :widget)}}
     }
 
-  defp checks(),
-    do: %{
-      auth: :map?,
-      pass: {:fun?, 0},
-      barco: :binary?,
-      class: :map,
-      global: :map,
-      shared: :map,
-      path: :binary,
-      title: :binary,
-      theme: :binary?,
-      applet: :binary,
-      style: :binary?,
-      suffix: :binary?,
-      favicon: :binary?,
-      keypad: {:fun, 1},
-      width: {:integer, 1, 65_535},
-      height: {:integer, 1, 65_535},
-      funs: {:list, nil, &check(&1, &2, :fun)}
-    }
-
-  def add(config = %{class: class}, :class, key, value)
-      when is_binary(key) and is_binary(value) do
-    Check.check("add:class:key", key, :binary)
-    Check.check("class[#{key}]", value, :binary)
-    put_in(config, [:class, key], [class[key] || [], value] |> List.flatten())
-  end
-
-  def add(config = %{funs: funs}, pos, args, fun)
-      when is_tuple(pos) and is_list(args) and is_function(fun, 1) do
-    check("add:fun", {pos, args, fun}, :fun)
-    fun = wrap(fun, Function.info(fun, :module))
-    funs = [funs, {pos, args, fun}] |> List.flatten()
-    Map.put(config, :funs, funs)
-  end
-
-  def add(config, pos, mod, opts) when is_tuple(pos) and is_atom(mod) and is_list(opts),
-    do: add(config, {pos, opts |> mod.new() |> mod.fun()})
-
-  def add(config, pos, mod) when is_tuple(pos) and is_atom(mod), do: add(config, pos, mod, [])
-
-  def add(config, pos, fun) when is_tuple(pos) and is_function(fun, 1),
-    do: add(config, pos, [], fun)
-
-  def add(config, {pos, {args, fun}}), do: add(config, pos, args, fun)
-
-  def reduce(config, enum, fun) when is_function(fun, 2) do
-    for e <- enum, reduce: config do
-      config -> fun.(config, e)
-    end
+  def add(config = %{widgets: widgets}, pos, mod, opts \\ [])
+      when is_tuple(pos) and is_atom(mod) and is_list(opts) do
+    widgets = [widgets, {pos, mod, mod.new(opts), Api.wrapper()}] |> List.flatten()
+    %{config | widgets: widgets}
   end
 
   defp name(%{path: path}),
@@ -87,50 +52,60 @@ defmodule Flex.LiveScreen do
     exit(:kill)
   end
 
-  defp handler(sid, config = %{applet: applet}) do
+  defp handler(sid, config = %{widgets: widgets}) do
+    widgets =
+      for {{pos, mod, config, wrapper}, index} <- widgets |> Enum.with_index(), into: %{} do
+        %{handler: handler, inputs: inputs} = mod.build(config)
+        handler = wrap(handler, wrapper, Function.info(handler, :module))
+        {index, %{pos: pos, handler: handler, inputs: inputs}}
+      end
+
     fn
       {:mount, socket = %{assigns: assigns}, state} ->
         %{connected?: connected?, tzoffset: tzoffset, localhost?: localhost?} = assigns
-        %{title: title, style: style, width: width, height: height, keypad: keypad} = config
-        %{class: class, pass: pass, suffix: suffix, favicon: favicon, theme: theme} = config
-        %{global: global, shared: shared, barco: barco} = config
+        %{title: title, style: style, width: width, height: height, applet: applet} = config
+        %{class: class, pass: pass, suffix: suffix, favicon: favicon} = config
+        %{shared: shared, barco: barco, keypad: keypad, theme: theme} = config
+        keypad? = keypad.(localhost?)
         socket = assign(socket, applet_css: "/applets/#{applet}.css")
         socket = assign(socket, applet_js: "/applets/#{applet}.js")
         socket = assign(socket, applet_args: %{barco: barco})
         socket = assign(socket, favicon_url: favicon)
         socket = assign(socket, page_suffix: suffix)
         socket = assign(socket, page_title: title)
+        shared = Map.put_new(shared, :keypad?, keypad?)
+        shared = Map.put_new(shared, :localhost?, localhost?)
+        shared = Map.put_new(shared, :connected?, connected?)
+        shared = Map.put_new(shared, :tzoffset, tzoffset)
+        shared = Map.put_new(shared, :title, title)
+        shared = Map.put_new(shared, :width, width)
+        shared = Map.put_new(shared, :height, height)
+        shared = Map.put_new(shared, :class, class)
+        shared = Map.put_new(shared, :pass, pass)
+        state = Map.put(state, :keypad?, keypad?)
         state = Map.put(state, :style, style)
         state = Map.put(state, :theme, theme)
         state = Map.put(state, :pass, pass)
         state = Map.put(state, :size, nil)
-        global = Map.put(global, :keypad?, keypad.(localhost?))
-        global = Map.put(global, :localhost?, localhost?)
-        global = Map.put(global, :connected?, connected?)
-        global = Map.put(global, :tzoffset, tzoffset)
-        global = Map.put(global, :title, title)
-        global = Map.put(global, :width, width)
-        global = Map.put(global, :height, height)
-        global = Map.put(global, :class, class)
-        global = Map.put(global, :pass, pass)
-        state = Map.put(state, :global, global)
-        state = Map.put(state, :shared, shared)
+        state = Map.put(state, :width, width)
+        state = Map.put(state, :height, height)
         state = Map.put(state, :modal, nil)
-        state = mount(state, sid, config)
+        state = Map.put(state, :count, map_size(widgets))
+        state = mount(sid, state, shared, widgets)
         {socket, state}
 
       {:params, socket, state, _params, _uri} ->
         {socket, state}
 
       {:render, _assigns, state = %{pass: nil}} ->
-        %{map: map, count: count, size: size, global: global} = state
+        %{widgets: widgets, count: count, size: size} = state
 
         index =
           for i <- 0..(count - 1)//1 do
-            {i, map[i]}
+            {i, widgets[i]}
           end
 
-        %{width: ew, height: eh} = global
+        %{width: ew, height: eh} = state
 
         {x, y, w, h, s} =
           case size do
@@ -177,6 +152,7 @@ defmodule Flex.LiveScreen do
         state = Map.put(state, :pass, if(pass.() == params["pass"], do: nil, else: pass))
         {socket, state}
 
+      # for phx-click and the like
       {:event, socket, state, event, params = %{"index" => index}} ->
         index = String.to_integer(index)
         state = call(state, index, fn ctx -> Map.put(ctx, :event, {:event, event, params}) end)
@@ -185,45 +161,30 @@ defmodule Flex.LiveScreen do
       {:event, socket, state, _event, _params} ->
         {socket, state}
 
-      {:info, socket, state, {:timer, index, arg, ms}} ->
-        Process.send_after(self(), {:timer, index, arg, ms}, ms)
+      {:info, socket, state, {:timer, index, name, ms}} ->
+        Process.send_after(self(), {:timer, index, name, ms}, ms)
 
         state =
           call(state, index, fn ctx = %{inputs: inputs} ->
             ctx
-            |> Map.put(:inputs, Map.update(inputs, arg, 1, &(&1 + 1)))
-            |> Map.put(:event, {:timer, arg})
+            |> Map.put(:inputs, Map.update(inputs, name, 1, &(&1 + 1)))
+            |> Map.put(:event, {:timer, name})
           end)
 
         {socket, state}
 
-      {:info, socket, state, {_point, {:point, index, arg}, val}} ->
+      {:info, socket, state, {_point, {:point, index, name}, val}} ->
         state =
           call(state, index, fn ctx = %{inputs: inputs} ->
             ctx
-            |> Map.put(:inputs, Map.put(inputs, arg, val))
-            |> Map.put(:event, {:point, arg})
+            |> Map.put(:inputs, Map.put(inputs, name, val))
+            |> Map.put(:event, {:point, name})
           end)
 
         {socket, state}
 
-      {:info, socket, state = %{map: map, count: count, shared: shared}, {:shared, event, fun}}
-      when is_function(fun, 1) ->
-        {changed?, shared} = update(shared, fun)
-        state = Map.put(state, :shared, shared)
-        count = if(changed?, do: count, else: 0)
-
-        map =
-          for index <- 0..(count - 1)//1, reduce: map do
-            map ->
-              call(state, map, index, fn ctx -> Map.put(ctx, :event, {:shared, event}) end)
-          end
-
-        state = Map.put(state, :map, map)
-        {socket, state}
-
-      {:info, socket, state, {:modal, modal = %{fun: fun, props: props, index: index}}}
-      when is_function(fun, 1) and is_map(props) and is_integer(index) ->
+      {:info, socket, state, {:modal, modal = %{handler: handler, props: props, index: index}}}
+      when is_function(handler, 1) and is_map(props) and is_integer(index) ->
         state = Map.put(state, :modal, modal)
         {socket, state}
 
@@ -239,53 +200,47 @@ defmodule Flex.LiveScreen do
     end
   end
 
-  defp mount(state, sid, %{funs: funs}) do
+  defp mount(sid, state, shared, widgets) do
     self = self()
 
-    map =
-      for {{pos, args, fun}, index} <- Enum.with_index(funs), into: %{} do
-        fid = "#{sid}:fun:#{index}"
+    widgets =
+      for {index, %{pos: pos, handler: handler, inputs: inputs}} <- widgets, into: %{} do
+        wid = "#{sid}:widget:#{index}"
 
         log = fn level, term ->
-          Api.log(level, "#{fid} #{Api.inspect?(term)}")
+          Api.log(level, "#{wid} #{Api.inspect?(term)}")
         end
 
+        # to access shared declare an input
         ctx =
           %{
-            fid: fid,
+            log: log,
+            wid: wid,
             pos: pos,
+            state: %{},
             index: index,
             event: :mount,
-            inputs: init(index, args),
-            state: %{index: index},
-            trace: &log.(:trace, &1),
-            debug: &log.(:debug, &1),
-            info: &log.(:info, &1),
-            warn: &log.(:warn, &1),
-            error: &log.(:error, &1),
-            modal: &send(self, {:modal, if(&1, do: Map.put(&1, :index, index), else: &1)}),
-            share: &send(self, {:shared, {&1, &2}, fn shared -> Map.put(shared, &1, &2) end})
+            inputs: Flex.Reactor.init(index, inputs, shared),
+            modal: &send(self, {:modal, if(&1, do: Map.put(&1, :index, index), else: &1)})
           }
 
-        ctx = Map.put(ctx, :state, call(state, fun, ctx))
-        {index, {fun, ctx}}
+        ctx = Map.put(ctx, :state, handler.(ctx))
+        {index, %{handler: handler, ctx: ctx}}
       end
 
-    state = Map.put(state, :count, length(funs))
-    state = Map.put(state, :map, map)
-    state
+    Map.put(state, :widgets, widgets)
   end
 
   defp login(assigns) do
     ~H"""
-    <div id="ls_main" data-theme={@theme} class="h-screen w-screen bg-base-300"/>
-    <.fui id="ls_modal" fun={&Flex.Modal.render/1} theme={@theme}>
+    <div id="ll_main" data-theme={@theme} class="h-screen w-screen bg-base-300"/>
+    <.fui id="ll_modal" fun={&Flex.Modal.render/1} theme={@theme}>
       <form id="ll_form" phx-submit="login:pass" phx-update="ignore"
         class="flex flex-col p-4 gap-2 items-center justify-center rounded">
         <div id="ll_label" class="select-none">Password</div>
         <input id="ll_input" name="pass" type="password" size="24" phx-hook="Focus"
           class="daisy-input daisy-input-bordered w-full text-center">
-        <.fui :if={@global.keypad?} fun={&Flex.Keypad.render/1} input="ll_input"/>
+        <.fui :if={@keypad?} fun={&Flex.Keypad.render/1} input="ll_input"/>
       </form>
     </.fui>
     <style :if={@style}><%= raw(@style) %></style>
@@ -298,32 +253,28 @@ defmodule Flex.LiveScreen do
       class="relative h-screen w-screen overflow-hidden select-none text-base outline-none border-box leading-none text-nowrap bg-base-300">
       <div :if={@size} id="ls_panel" class="absolute bg-base-100 text-base-content" style={"left:#{@x}px;top:#{@y}px;width:#{@w}px;height:#{@h}px;"}>
         <div class="absolute" style={"scale:#{@s};"}>
-          <div :for={{index, {fun, ctx = %{pos: {x, y}}}} <- @index} id={"ls_fun#{index}"} class="ls_fun absolute" style={"left:#{x}px;top:#{y}px;"}>
-            <.fui fun={fn _ -> call(%{global: @global, shared: @shared}, fun, Map.put(ctx, :event, :render)) end}/>
+          <div :for={{index, %{handler: handler, ctx: ctx = %{pos: {x, y}}}} <- @index} id={"ls_fun#{index}"} class="ls_fun absolute" style={"left:#{x}px;top:#{y}px;"}>
+            <.fui fun={fn _ -> handler.(Map.put(ctx, :event, :render)) end}/>
           </div>
         </div>
       </div>
     </div>
     <.fui id="ls_modal" fun={&Flex.Modal.render/1} :if={@modal} {@modal.props} index={@modal.index} theme={@theme}>
-        <.fui fun={@modal.fun} {%{index: @modal.index, global: @global, shared: @shared}}/>
+        <.fui fun={@modal.handler} index={@modal.index}/>
     </.fui>
     <style :if={@style}><%= raw(@style) %></style>
     """
   end
 
-  defp call(%{global: global, shared: shared}, fun, ctx) when is_function(fun, 1) do
-    fun.(Map.merge(ctx, %{global: global, shared: shared}))
+  defp call(state = %{widgets: widgets}, index, mutate) when is_function(mutate, 1) do
+    Map.put(state, :widgets, call(widgets, index, mutate))
   end
 
-  defp call(state = %{map: map}, index, mutate) when is_function(mutate, 1) do
-    Map.put(state, :map, call(state, map, index, mutate))
-  end
-
-  defp call(state, map, index, mutate) when is_function(mutate, 1) do
-    {fun, ctx} = map[index]
+  defp call(widgets, index, mutate) when is_function(mutate, 1) do
+    %{handler: handler, ctx: ctx} = widgets[index]
     ctx = mutate.(ctx)
-    ctx = Map.put(ctx, :state, call(state, fun, ctx))
-    Map.put(map, index, {fun, ctx})
+    ctx = Map.put(ctx, :state, handler.(ctx))
+    put_in(widgets, [index, :ctx], ctx)
   end
 
   # logging and stacktraces confirmed to work with tryout/screen1.exs
@@ -332,77 +283,32 @@ defmodule Flex.LiveScreen do
   # wrap required for logs and stacktraces
   # Api.wrap logs unhandled exceptions
   # Flex.wrap / Api.wrapper() does not
-  defp wrap(fun, type) do
+  defp wrap(handler, wrapper, type) do
     # Log.warn requires wrapped environment as well
-    fun = fn ctx ->
-      case Applet.Utils.safe(fun, ctx) do
+    handler = fn ctx ->
+      case Applet.Utils.safe(handler, ctx) do
         {:ok, result} ->
           result
 
         {:error, error} ->
-          %{global: global, shared: shared} = ctx
-          %{fid: fid, event: event, inputs: inputs, state: state} = ctx
-          environ = [event: event, inputs: inputs, state: state, global: global, shared: shared]
-          Log.warn("#{fid} #{Api.inspect?(environ)} rescue: #{Api.inspect?(error)}")
+          %{wid: wid, event: event, inputs: inputs, state: state} = ctx
+          environ = [event: event, inputs: inputs, state: state]
+          Log.warn("#{wid} #{Api.inspect?(environ)} rescue: #{Api.inspect?(error)}")
           exit(:kill)
       end
     end
 
     case type do
-      {:module, :erl_eval} -> Flex.wrap(fun)
-      _ -> fun
+      {:module, :erl_eval} -> Flex.wrap(handler, wrapper)
+      _ -> handler
     end
   end
 
-  defp update(shared, fun) do
-    new = fun.(shared)
-    {new != shared, new}
-  end
-
-  defp init(index, args) do
-    for {arg, spec} <- args, reduce: %{} do
-      inputs ->
-        case spec do
-          {:const, const} ->
-            Map.put(inputs, arg, const)
-
-          {:point, key} ->
-            val = Api.subget!(key, sarg: {:point, index, arg}, defv: nil)
-            Map.put(inputs, arg, val)
-
-          {:timer, ms} ->
-            Process.send_after(self(), {:timer, index, arg, ms}, ms)
-            Map.put(inputs, arg, 0)
-        end
-    end
-  end
-
-  defp check(name, value, :fun) do
-    case value do
-      {pos, args, fun} ->
-        Check.check("#{name}.pos", pos, {:tuple, 2, {:integer, 0, 65_535}})
-        Check.check("#{name}.args", args, {:list, nil, &check(&1, &2, :arg)})
-        Check.check("#{name}.fun", fun, {:fun, 1})
-
-      _ ->
-        Check.abort(name, value, "invalid fun")
-    end
-  end
-
-  defp check(name, value, :arg) do
-    case value do
-      {key, value} ->
-        Check.check(name, key, :atom)
-
-        case value do
-          {:timer, ms} -> Check.check("#{name}.timer", ms, {:integer, 1, 65_535})
-          {:point, key} -> Check.check("#{name}.point", key, :any)
-          {:const, _value} -> :ok
-          _ -> Check.abort(name, value, "invalid arg")
-        end
-
-      _ ->
-        Check.abort(name, value, "invalid arg")
-    end
+  defp check(path, value, :widget) do
+    Flex.Check.check(path, value, {:tuple, 4})
+    {pos, mod, config, wrapper} = value
+    Flex.Check.check("#{path}.pos", pos, {:tuple, 2, {:integer, 0, 65_535}})
+    Flex.Reactor.check("#{path}.reactor", {mod, config})
+    Flex.Check.check("#{path}.wrapper", wrapper, {:fun, 1})
   end
 end

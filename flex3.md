@@ -55,6 +55,10 @@ Modbus.Session.exec(pid, "s=1,a=0,c=rri,d=1,e=f32be")
 
 ## Fixme
 
+- [ ] livescreen: widget must not perform logic and must change global state through Adb
+- [ ] livescreen: do not compared the whole shared map on each share event
+- [ ] livescreen: support dynamic shares (const, timer, point)
+
 - [ ] UI toolkit
 - [ ] ISA101 widgets
 - [ ] OPC-UA server/client service

@@ -1,5 +1,8 @@
 use Terminal.Live
 
+# should not be really needed since serial export cleans on setup
+System.shell("sudo killall socat", stderr_to_stdout: true)
+
 Flex.ShellCommand.new()
 |> Flex.ShellCommand.set(id: "socat_pair")
 |> Flex.ShellCommand.set(

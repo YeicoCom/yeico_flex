@@ -1,5 +1,5 @@
 defmodule Flex.ShellCommand do
-  use Flex.Service
+  use Flex.ServiceOld
   use Terminal
 
   defp initial,

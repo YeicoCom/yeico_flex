@@ -1,5 +1,5 @@
 defmodule Flex.ModbusSlave do
-  use Flex.Service
+  use Flex.ServiceOld
   use Terminal
 
   defp initial,

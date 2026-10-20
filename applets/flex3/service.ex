@@ -1,26 +1,22 @@
 defmodule Flex.Service do
   defmacro __using__(_) do
     quote do
-      alias Flex.Check
       alias Applet.Api
       alias Applet.Api.Mdb
 
-      def new(opts \\ []), do: set(initial(), opts)
+      def new(opts \\ []) do
+        specs()
+        |> Flex.Config.initial()
+        |> Flex.Config.merge(opts)
+      end
 
       def set(config, opts) do
-        for {name, value} <- opts, reduce: config do
-          config ->
-            params = checks()[name]
-            if !params, do: Check.abort(name, value, "not found")
-            Check.check(name, value, params)
-            Map.put(config, name, value)
-        end
+        Flex.Config.merge(config, opts)
       end
 
       # opts: rdms \\ 0, level, tag
       def run(config, opts \\ []) do
-        config = Map.merge(initial(), config)
-        config = set(initial(), config)
+        config = Flex.Config.compile(__MODULE__, specs(), config)
         opts = Keyword.put_new(opts, :tag, name(config))
 
         setup = fn config ->
@@ -65,7 +61,7 @@ defmodule Flex.Service do
 
   # for testing loop respawn
   # tag from Flex.Print.tasks or Flex.Print.mdb
-  # Flex.Service.kill "modbus-slave:4031:127.0.0.1:TCP:setup"
+  # Flex.ServiceOld.kill "modbus-slave:4031:127.0.0.1:TCP:setup"
   def kill(tag) when is_binary(tag) do
     for {pid, _} <- Mdb.lookup({:setup, tag}) do
       Api.kill(pid)
