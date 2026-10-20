@@ -295,7 +295,7 @@ defmodule Flex.LiveScreen do
   defp render(assigns) do
     ~H"""
     <div id="ls_main" data-theme={@theme} inert={!!@modal} phx-hook="Resize" phx-window-keydown="modal:close" phx-key="Escape" phx-value-index={@modal[:index]}
-      class="relative h-screen w-screen select-none text-base outline-none border-box leading-none text-nowrap bg-base-300">
+      class="relative h-screen w-screen overflow-hidden select-none text-base outline-none border-box leading-none text-nowrap bg-base-300">
       <div :if={@size} id="ls_panel" class="absolute bg-base-100 text-base-content" style={"left:#{@x}px;top:#{@y}px;width:#{@w}px;height:#{@h}px;"}>
         <div class="absolute" style={"scale:#{@s};"}>
           <div :for={{index, {fun, ctx = %{pos: {x, y}}}} <- @index} id={"ls_fun#{index}"} class="ls_fun absolute" style={"left:#{x}px;top:#{y}px;"}>
