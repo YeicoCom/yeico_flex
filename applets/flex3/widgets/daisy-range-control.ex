@@ -3,7 +3,7 @@ defmodule Flex.DaisyRangeControl do
 
   defp render(assigns) do
     ~H"""
-    <form id={@id} phx-change="value:change" phx-value-index={@index}>
+    <form id={@id} :if={@visible?} phx-change="value:change" phx-value-index={@index}>
       <input name="value" type="range" min={@props.min} max={@props.max} step={@props.step} class={["daisy-range", @class]} value={@value} />
     </form>
     """

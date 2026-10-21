@@ -28,6 +28,13 @@ Flex.LiveScreen.new()
   class: "daisy-toggle-accent",
   calc: fn value -> rem(value, 2) == 0 end
 )
+|> Flex.LiveScreen.add({110, 10}, Flex.DaisyToggleIndicator,
+  source: {:timer, 500},
+  visible: {:timer, 500},
+  visible?: fn value -> rem(value, 3) == 0 end,
+  class: "daisy-toggle-accent",
+  calc: fn value -> rem(value, 2) == 0 end
+)
 |> Flex.LiveScreen.add({10, 40}, Flex.DaisyToggleIndicator,
   source: {:point, "logic1:timer1"},
   class: "daisy-toggle-accent",
@@ -35,6 +42,13 @@ Flex.LiveScreen.new()
 )
 |> Flex.LiveScreen.add({60, 40}, Flex.DaisyToggleIndicator,
   source: {:point, "logic1:timer1"},
+  class: "daisy-toggle-accent",
+  calc: fn value -> rem(value, 2) == 0 end
+)
+|> Flex.LiveScreen.add({110, 40}, Flex.DaisyToggleIndicator,
+  source: {:point, "logic1:timer1"},
+  visible: {:point, "logic1:timer1"},
+  visible?: fn value -> rem(value, 3) == 0 end,
   class: "daisy-toggle-accent",
   calc: fn value -> rem(value, 2) == 0 end
 )
@@ -47,6 +61,11 @@ Flex.LiveScreen.new()
   source: {:shared, :toggle},
   class: "daisy-toggle-accent"
 )
+|> Flex.LiveScreen.add({110, 70}, Flex.DaisyToggleIndicator,
+  source: {:shared, :toggle},
+  visible: {:shared, :toggle},
+  class: "daisy-toggle-accent"
+)
 |> Flex.LiveScreen.add({10, 100}, Flex.DaisyToggleControl,
   sink: {:point, "screen1:toggle1"},
   class: "daisy-toggle-accent",
@@ -54,6 +73,11 @@ Flex.LiveScreen.new()
 )
 |> Flex.LiveScreen.add({60, 100}, Flex.DaisyToggleIndicator,
   source: {:point, "screen1:toggle1"},
+  class: "daisy-toggle-accent"
+)
+|> Flex.LiveScreen.add({110, 100}, Flex.DaisyToggleIndicator,
+  source: {:point, "screen1:toggle1"},
+  visible: {:point, "screen1:toggle1"},
   class: "daisy-toggle-accent"
 )
 |> Flex.LiveScreen.add({200, 10}, Flex.DaisyRangeIndicator,

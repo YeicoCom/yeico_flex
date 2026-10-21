@@ -14,17 +14,28 @@ defmodule Flex.ValueIndicator do
   def specs,
     do: %{
       source: %{initial: nil, check: &Flex.Check.check(&1, &2, :source)},
+      visible: %{initial: nil, check: &Flex.Check.check(&1, &2, :source?)},
+      visible?: %{initial: nil, check: {:fun?, 1}},
       class: %{initial: nil, check: :binary?},
       calc: %{initial: nil, check: {:fun?, 1}},
       props: %{initial: %{}, check: :map}
     }
 
-  def inputs(%{source: nil}), do: []
-  def inputs(%{source: source}), do: [{:value, source}]
+  def inputs(%{source: nil, visible: nil}), do: []
+  def inputs(%{source: source, visible: nil}), do: [{:value, source}]
+  def inputs(%{source: nil, visible: visible}), do: [{:visible, visible}]
+  def inputs(%{source: source, visible: visible}), do: [{:value, source}, {:visible, visible}]
 
-  def handler(%{class: class, source: source, calc: calc, props: props}, render, id) do
+  def handler(config, render, id) do
+    %{visible: visible, visible?: visible?} = config
+    %{class: class, source: source} = config
+    %{calc: calc, props: props} = config
+
     fn
-      %{state: state, event: :render} ->
+      %{state: state, inputs: inputs, event: :render} ->
+        visible = Flex.Reactor.input(inputs, :visible, visible)
+        visible? = visible?(visible?, visible)
+        state = Map.put(state, :visible?, visible?)
         render.(state)
 
       %{state: state, inputs: inputs, index: index, event: :mount} ->
@@ -42,15 +53,11 @@ defmodule Flex.ValueIndicator do
   end
 
   def calc(inputs, source, calc) do
-    value =
-      case source do
-        nil -> nil
-        {:const, value} -> value
-        {:timer, _ms} -> inputs[:value]
-        {:point, _point} -> inputs[:value]
-        {:shared, _shared} -> inputs[:value]
-      end
-
+    value = Flex.Reactor.input(inputs, :value, source)
     if calc, do: calc.(value), else: value
   end
+
+  defp visible?(nil, visible) when is_boolean(visible), do: visible
+  defp visible?(nil, _), do: true
+  defp visible?(visible?, visible), do: visible?.(visible)
 end

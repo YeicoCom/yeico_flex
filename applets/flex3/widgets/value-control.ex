@@ -16,17 +16,26 @@ defmodule Flex.ValueControl do
   def specs,
     do: %{
       sink: %{initial: nil, check: &Flex.Check.check(&1, &2, :sink)},
+      visible: %{initial: nil, check: &Flex.Check.check(&1, &2, :source?)},
+      visible?: %{initial: nil, check: {:fun?, 1}},
       class: %{initial: nil, check: :binary?},
       calc: %{initial: nil, check: {:fun?, 1}},
       initial: %{initial: nil, check: :binary?},
       props: %{initial: %{}, check: :map}
     }
 
-  def inputs(_), do: []
+  def inputs(%{visible: nil}), do: []
+  def inputs(%{visible: visible}), do: [{:visible, visible}]
 
-  def handler(config = %{initial: initial, class: class, props: props}, render, id) do
+  def handler(config, render, id) do
+    %{visible: visible, visible?: visible?} = config
+    %{class: class, initial: initial, props: props} = config
+
     fn
-      %{state: state, event: :render} ->
+      %{state: state, inputs: inputs, event: :render} ->
+        visible = Flex.Reactor.input(inputs, :visible, visible)
+        visible? = visible?(visible?, visible)
+        state = Map.put(state, :visible?, visible?)
         render.(state)
 
       ctx = %{index: index, event: :mount} ->
@@ -55,4 +64,8 @@ defmodule Flex.ValueControl do
 
     Map.put(state, :value, value)
   end
+
+  defp visible?(nil, visible) when is_boolean(visible), do: visible
+  defp visible?(nil, _), do: true
+  defp visible?(visible?, visible), do: visible?.(visible)
 end
