@@ -1,17 +1,11 @@
 defmodule Flex.EchoServer do
-  use Flex.ServiceOld
+  use Flex.Service
   use Terminal
 
-  defp initial,
+  defp specs,
     do: %{
-      ip: "127.0.0.1",
-      port: 0
-    }
-
-  defp checks,
-    do: %{
-      port: {:integer, 0, 65_535},
-      ip: {:in, ["127.0.0.1", "0.0.0.0"]}
+      ip: %{initial: "127.0.0.1", check: {:in, ["127.0.0.1", "0.0.0.0"]}},
+      port: %{initial: 0, check: {:integer, 0, 65_535}}
     }
 
   defp name(%{port: port, ip: ip}), do: "echo-server:#{port}:#{ip}"

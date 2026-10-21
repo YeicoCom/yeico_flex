@@ -69,7 +69,77 @@ render = fn assigns ->
   """
 end
 
-Api.evalf("flex3/tryout/form1.exs", render: render)
-Api.evalf("flex3/tryout/form2.exs", render: render, path: "/form2")
+Flex.LiveScreen.new()
+|> Flex.LiveScreen.set(path: "/form1")
+|> Flex.LiveScreen.set(title: "Form1")
+|> Flex.LiveScreen.set(width: 600)
+|> Flex.LiveScreen.set(height: 800)
+|> Flex.LiveScreen.add(
+  {0, 0},
+  Flex.ReactorWrapper,
+  handler: fn
+    assigns = %{event: :render} ->
+      render.(assigns)
+
+    %{state: state} ->
+      state
+  end
+)
+|> Flex.LiveScreen.run()
+
+handler = fn
+  {:mount, socket, state} ->
+    socket = assign(socket, applet_css: "/applets/flex3.css")
+    socket = assign(socket, applet_js: "/applets/flex3.js")
+    socket = assign(socket, page_title: "Form2")
+    {socket, state}
+
+  {:params, socket, state, _params, _uri} ->
+    {socket, state}
+
+  {:render, _assigns, state} ->
+    render.(state)
+
+  {:event, socket, state, _event, _params} ->
+    {socket, state}
+
+  {:info, socket, state, _event} ->
+    {socket, state}
+
+  {:close, _socket, _state, _reason} ->
+    :ok
+end
+
+Terminal.view("/form2", handler)
+
+handler = fn
+  {:mount, socket, state} ->
+    socket = assign(socket, applet_css: "/applets/flex3.css")
+    socket = assign(socket, applet_js: "/applets/flex3.js")
+    socket = assign(socket, page_title: "Forms")
+    {socket, state}
+
+  {:params, socket, state, _params, _uri} ->
+    {socket, state}
+
+  {:render, _assigns, assigns} ->
+    ~H"""
+    <div class="flex h-screen w-full">
+      <iframe src="/form1" class="w-1/2 h-full border-none"></iframe>
+      <iframe src="/form2" class="w-1/2 h-full border-none"></iframe>
+    </div>
+    """
+
+  {:event, socket, state, _event, _params} ->
+    {socket, state}
+
+  {:info, socket, state, _event} ->
+    {socket, state}
+
+  {:close, _socket, _state, _reason} ->
+    :ok
+end
+
+Terminal.view("/", handler)
 
 :ok

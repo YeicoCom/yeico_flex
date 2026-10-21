@@ -1,28 +1,18 @@
 defmodule Flex.ModbusDevice do
-  use Flex.ServiceOld
+  use Flex.Service
   use Terminal
 
   @types ["RDI", "RDO", "WDO", "RRI", "RRO", "WRO"]
   @encodings ["NONE", "U16BE", "U16LE", "S16BE", "S16LE", "F32BE", "F32LE"]
 
-  defp initial,
+  defp specs,
     do: %{
-      name: nil,
-      ip: "127.0.0.1",
-      port: 0,
-      proto: "TCP",
-      delay: 0,
-      points: []
-    }
-
-  defp checks,
-    do: %{
-      name: :binary,
-      ip: :binary,
-      port: {:integer, 0, 65_535},
-      proto: {:in, ["TCP", "RTU"]},
-      delay: {:integer, 0, nil},
-      points: {:list, nil, &check/2}
+      name: %{initial: nil, check: :binary},
+      ip: %{initial: "127.0.0.1", check: :binary},
+      port: %{initial: 0, check: {:integer, 0, 65_535}},
+      proto: %{initial: "TCP", check: {:in, ["TCP", "RTU"]}},
+      delay: %{initial: 0, check: {:integer, 0, nil}},
+      points: %{initial: [], check: {:list, nil, &check/2}}
     }
 
   def add(config = %{points: points}, point) do
