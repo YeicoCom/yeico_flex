@@ -6,7 +6,7 @@ defmodule Flex.MovingAnalogIndicator do
     do: %{
       value: %{initial: nil, check: &Flex.Check.check(&1, &2, :source?)},
       visible: %{initial: nil, check: &Flex.Check.check(&1, &2, :source?)},
-      bar: %{initial: {20, 120}, check: {:tuple, 2, {:integer, 0, 65_535}}},
+      bar: %{initial: {40, 120}, check: {:tuple, 2, {:integer, 0, 65_535}}},
       range: %{initial: {0.0, 10.0}, check: {:tuple, 2, :number}},
       warn: %{initial: {2.0, 6.0}, check: {:tuple, 2, :number?}},
       error: %{initial: {1.0, 8.0}, check: {:tuple, 2, :number?}},
@@ -62,7 +62,7 @@ defmodule Flex.MovingAnalogIndicator do
       }
     }
 
-    assigns = %{bw: bw, bh: bh, px: px}
+    assigns = %{bw: bw / 2.0, bh: bh, px: px}
 
     # trace needs wrapping at the bottom |> Flex.wrap()
     fn
