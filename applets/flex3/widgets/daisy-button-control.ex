@@ -6,7 +6,7 @@ defmodule Flex.DaisyButtonControl do
     <button id={@id} :if={@visible?} phx-click="value:change"
       phx-value-index={@index}  phx-value-payload={@value}
       class={["daisy-btn", @class]}>
-      {@props.text}
+      {@props[:text]}
     </button>
     """
   end

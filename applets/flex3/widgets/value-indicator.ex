@@ -13,10 +13,9 @@ defmodule Flex.ValueIndicator do
 
   def specs,
     do: %{
-      source: %{initial: nil, check: &Flex.Check.check(&1, &2, :source)},
+      source: %{initial: nil, check: &Flex.Check.check(&1, &2, :source?)},
       visible: %{initial: nil, check: &Flex.Check.check(&1, &2, :source?)},
       visible?: %{initial: nil, check: {:fun?, 1}},
-      text: %{initial: nil, check: :binary?},
       class: %{initial: nil, check: :binary?},
       cast: %{initial: nil, check: {:fun?, 1}},
       props: %{initial: %{}, check: :map}
@@ -28,8 +27,8 @@ defmodule Flex.ValueIndicator do
   def inputs(%{source: source, visible: visible}), do: [{:value, source}, {:visible, visible}]
 
   def handler(config, render, id) do
-    %{class: class, source: source, text: text} = config
     %{visible: visible, visible?: visible?} = config
+    %{class: class, source: source} = config
     %{cast: cast, props: props} = config
 
     fn
@@ -43,7 +42,6 @@ defmodule Flex.ValueIndicator do
         |> Map.put(:index, index)
         |> Map.put(:class, class)
         |> Map.put(:props, props)
-        |> Map.put(:text, text)
         |> Map.put(:value, cast(inputs, source, cast))
         |> Map.put(:id, id.(index))
 
