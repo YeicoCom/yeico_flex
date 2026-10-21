@@ -1,25 +1,31 @@
 defmodule Flex.Reactor do
   defmacro __using__(_) do
     quote do
-      alias Flex.Check
-
-      def new(opts \\ []), do: set(initial(), opts)
-
-      def set(config, opts) do
-        for {name, value} <- opts, reduce: config do
-          config ->
-            params = checks()[name]
-            if !params, do: Check.abort(name, value, "not found")
-            Check.check(name, value, params)
-            Map.put(config, name, value)
-        end
+      def new(opts \\ []) do
+        specs()
+        |> Flex.Config.initial()
+        |> Flex.Config.merge(opts)
       end
 
-      def fun(config) do
-        config = Map.merge(initial(), config)
-        config = set(initial(), config)
-        {args(config), handler(config)}
+      def build(config) do
+        config = Flex.Config.compile(__MODULE__, specs(), config)
+        %{handler: handler(config), inputs: inputs(config)}
       end
     end
   end
+
+  use Terminal
+
+  def check(path, value) do
+    Flex.Check.check(path, value, {:tuple, 2})
+    {mod, config} = value
+    Flex.Check.check("#{path}.mod", mod, :atom)
+    Flex.Check.check("#{path}.config", config, :map)
+  end
+
+  def input(_inputs, _name, nil), do: nil
+  def input(_inputs, _name, {:const, value}), do: value
+  def input(inputs, name, {:timer, _ms}), do: inputs[name]
+  def input(inputs, name, {:point, _point}), do: inputs[name]
+  def input(inputs, name, {:shared, _key}), do: inputs[name]
 end

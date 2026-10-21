@@ -18,4 +18,11 @@ Flex.ModbusDevice.new()
 |> Flex.ModbusDevice.add(%{type: "RRI", slave: 1, address: 0, encoding: "NONE", names: "R0,R1"})
 |> Flex.ModbusDevice.run(rdms: 1000)
 
+Flex.ModbusSlave.new()
+|> Flex.ModbusSlave.set(key: "modbus:slave:tcp")
+|> Flex.ModbusSlave.set(proto: "TCP")
+|> Flex.ModbusSlave.set(ip: "127.0.0.1")
+|> Flex.ModbusSlave.set(port: 4031)
+|> Flex.ModbusSlave.run()
+
 :ok

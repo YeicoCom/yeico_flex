@@ -2,20 +2,12 @@ defmodule Flex.ModbusSlave do
   use Flex.Service
   use Terminal
 
-  defp initial,
+  defp specs,
     do: %{
-      key: nil,
-      proto: "TCP",
-      ip: "127.0.0.1",
-      port: 0
-    }
-
-  defp checks,
-    do: %{
-      key: :binary,
-      proto: {:in, ["TCP", "RTU"]},
-      port: {:integer, 0, 65_535},
-      ip: {:in, ["127.0.0.1", "0.0.0.0"]}
+      key: %{initial: nil, check: :binary},
+      port: %{initial: 0, check: {:integer, 0, 65_535}},
+      proto: %{initial: "TCP", check: {:in, ["TCP", "RTU"]}},
+      ip: %{initial: "127.0.0.1", check: {:in, ["127.0.0.1", "0.0.0.0"]}}
     }
 
   defp name(%{port: port, ip: ip, proto: proto}), do: "modbus-slave:#{port}:#{ip}:#{proto}"

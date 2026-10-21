@@ -1,5 +1,7 @@
 use Terminal.Live
 
+path = "/"
+
 view = fn assigns ->
   ~H"""
   <div id="main_view" inert={!!@modal} phx-window-keydown="modal:close" phx-key="Escape"
@@ -20,6 +22,7 @@ handler = fn
   {:mount, socket, state} ->
     socket = assign(socket, applet_css: "/applets/flex3.css")
     socket = assign(socket, applet_js: "/applets/flex3.js")
+    socket = assign(socket, page_suffix: " · Flex")
     socket = assign(socket, page_title: "Modal2")
     state = Map.put(state, :modal, nil)
     {socket, state}

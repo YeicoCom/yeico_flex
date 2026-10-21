@@ -5,42 +5,32 @@ defmodule Flex.ModbusDevice do
   @types ["RDI", "RDO", "WDO", "RRI", "RRO", "WRO"]
   @encodings ["NONE", "U16BE", "U16LE", "S16BE", "S16LE", "F32BE", "F32LE"]
 
-  defp initial,
+  defp specs,
     do: %{
-      name: nil,
-      ip: "127.0.0.1",
-      port: 0,
-      proto: "TCP",
-      delay: 0,
-      points: []
-    }
-
-  defp checks,
-    do: %{
-      name: :binary,
-      ip: :binary,
-      port: {:integer, 0, 65_535},
-      proto: {:in, ["TCP", "RTU"]},
-      delay: {:integer, 0, nil},
-      points: {:list, nil, &check/2}
+      name: %{initial: nil, check: :binary},
+      ip: %{initial: "127.0.0.1", check: :binary},
+      port: %{initial: 0, check: {:integer, 0, 65_535}},
+      proto: %{initial: "TCP", check: {:in, ["TCP", "RTU"]}},
+      delay: %{initial: 0, check: {:integer, 0, nil}},
+      points: %{initial: [], check: {:list, nil, &check/2}}
     }
 
   def add(config = %{points: points}, point) do
     index = length(points)
-    Check.check("points[#{index}]", point, &check/2)
+    Flex.Check.check("points[#{index}]", point, &check/2)
     points = [points, point] |> List.flatten()
     Map.put(config, :points, points)
   end
 
-  defp check(name, value) do
-    Check.check(name, value, :map)
-    Check.check("#{name}.type", value[:type], {:in, @types})
-    Check.check("#{name}.slave", value[:slave], {:integer, 0, 255})
-    Check.check("#{name}.address", value[:address], {:integer, 0, 65_535})
-    Check.check("#{name}.encoding", value[:encoding], {:in, @encodings})
-    Check.check("#{name}.names", value[:names], :binary)
+  defp check(path, value) do
+    Flex.Check.check(path, value, :map)
+    Flex.Check.check("#{path}.type", value[:type], {:in, @types})
+    Flex.Check.check("#{path}.slave", value[:slave], {:integer, 0, 255})
+    Flex.Check.check("#{path}.address", value[:address], {:integer, 0, 65_535})
+    Flex.Check.check("#{path}.encoding", value[:encoding], {:in, @encodings})
+    Flex.Check.check("#{path}.names", value[:names], :binary)
     length = value[:names] |> String.trim() |> String.length()
-    Check.check("#{name}.names.length", length, {:integer, 1, nil})
+    Flex.Check.check("#{path}.names.length", length, {:integer, 1, nil})
   end
 
   defp name(%{port: port, ip: ip, proto: proto, name: name}),
@@ -65,7 +55,7 @@ defmodule Flex.ModbusDevice do
           loop(%{rts: rts, config: config, conn: conn, sid: sid})
         end)
 
-      # Flex.Service.kill "modbus-slave:4031:127.0.0.1:TCP:setup"
+      # Flex.ServiceOld.kill "modbus-slave:4031:127.0.0.1:TCP:setup"
       # test with invalid point, proto, or disconnection
       Log.warn("#{sid} #{Api.inspect?(error)}")
       status(name, "error")

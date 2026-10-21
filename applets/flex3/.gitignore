@@ -1,4 +1,6 @@
 package-lock.json
+tryout/disabled/
+tryout/enabled/
 node_modules/
 .DS_Store
 _build

@@ -2,45 +2,40 @@ defmodule Flex.ReactiveLogic do
   use Flex.Service
   use Terminal
 
-  defp initial(),
+  # Confirmed that script defined functions log and stacktrace
+  # accurately without explicit wrapper (due to async wrapper)
+
+  # Adb is the global transient state
+  # reactors share global state through Api.putcast!
+  # valid sources are:
+  #   {const_name, {:const, fixed_value}}
+  #   {point_name, {:point, adb_point_key}}
+  #   {timer_name, {:timer, period_in_ms}}
+  #   {shared_name, {:shared, shared_key}}
+
+  defp specs(),
     do: %{
-      id: nil,
-      funs: []
+      id: %{initial: nil, check: :binary},
+      shared: %{initial: %{}, check: :map},
+      reactors: %{initial: [], check: {:list, nil, &Flex.Reactor.check(&1, &2)}}
     }
 
-  defp checks(),
-    do: %{
-      id: :binary,
-      funs: {:list, nil, &check(&1, &2, :fun)}
-    }
-
-  def add(config, {args, fun}), do: add(config, args, fun)
-  def add(config, fun) when is_function(fun, 1), do: add(config, [], fun)
-
-  def add(config, mod) when is_atom(mod), do: add(config, mod, [])
-
-  def add(config, mod, opts) when is_atom(mod) and is_list(opts),
-    do: add(config, opts |> mod.new() |> mod.fun())
-
-  # wrapping not needed since reactor runs in an applet async
-  # logging and stacktraces confirmed to work with tryout/logic1.exs
-  def add(config = %{funs: funs}, args, fun) when is_list(args) and is_function(fun, 1) do
-    Check.check("fun", fun, {:fun, 1})
-    Check.check("args", args, {:list, nil, &check(&1, &2, :arg)})
-    funs = [funs, {fun, args}] |> List.flatten()
-    Map.put(config, :funs, funs)
+  def add(config = %{reactors: reactors}, mod, opts \\ []) when is_atom(mod) and is_list(opts) do
+    reactors = [reactors, {mod, mod.new(opts)}] |> List.flatten()
+    %{config | reactors: reactors}
   end
 
   defp name(%{id: id}),
     do: "reactive-logic:#{id}"
 
-  defp setup(config = %{funs: funs}) do
+  defp setup(config = %{reactors: reactors, shared: shared}) do
     sid = name(config)
     Log.debug("#{sid} run")
 
-    for {{fun, args}, index} <- funs |> Enum.with_index() do
-      tag = "#{sid}:fun:#{index}"
-      async = fn -> setup(sid, index, fun, args) end
+    for {{mod, config}, index} <- reactors |> Enum.with_index() do
+      tag = "#{sid}:reactor:#{index}"
+      %{handler: handler, inputs: inputs} = mod.build(config)
+      async = fn -> setup(tag, index, handler, inputs, shared) end
       Api.async(async, tag: tag)
     end
 
@@ -48,103 +43,70 @@ defmodule Flex.ReactiveLogic do
     exit(:kill)
   end
 
-  defp setup(sid, index, fun, args) do
-    fid = "#{sid}:fun:#{index}"
-
+  defp setup(rid, index, handler, inputs, shared) do
     log = fn level, term ->
-      Api.log(level, "#{fid} #{Api.inspect?(term)}")
+      Api.log(level, "#{rid} #{Api.inspect?(term)}")
     end
 
+    # to access shared declare an input
     ctx =
       %{
-        fid: fid,
+        log: log,
+        rid: rid,
         state: %{},
         index: index,
         event: :mount,
-        inputs: init(index, args),
-        trace: &log.(:trace, &1),
-        debug: &log.(:debug, &1),
-        info: &log.(:info, &1),
-        warn: &log.(:warn, &1),
-        error: &log.(:error, &1)
+        inputs: init(index, inputs, shared)
       }
 
-    {:error, error} = Api.safe(fn -> first(fun, ctx) end)
-    Log.warn("#{fid} #{Api.inspect?(Process.get(:__environ__))} #{Api.inspect?(error)}")
+    {:error, error} = Api.safe(fn -> first(handler, ctx) end)
+    Log.warn("#{rid} #{Api.inspect?(Process.get(:__environ__))} #{Api.inspect?(error)}")
   end
 
-  defp first(fun, ctx = %{event: event, inputs: inputs, state: state}) do
+  defp first(handler, ctx = %{event: event, inputs: inputs, state: state}) do
     Process.put(:__environ__, event: event, inputs: inputs, state: state)
-    loop(fun, ctx)
+    loop(handler, ctx)
   end
 
-  defp loop(fun, ctx = %{index: index, event: event, inputs: inputs}) do
-    state = fun.(ctx)
+  defp loop(handler, ctx = %{index: index, event: event, inputs: inputs}) do
+    state = handler.(ctx)
     ctx = Map.merge(ctx, %{state: state})
     Process.put(:__environ__, event: event, inputs: inputs, state: state)
 
     receive do
-      {:timer, {^index, arg}, ms} ->
-        Process.send_after(self(), {:timer, {index, arg}, ms}, ms)
-        inputs = Map.update(inputs, arg, 1, &(&1 + 1))
-        ctx = Map.merge(ctx, %{inputs: inputs, event: {:timer, arg}})
-        loop(fun, ctx)
+      {:timer, ^index, name, ms} ->
+        Process.send_after(self(), {:timer, index, name, ms}, ms)
+        inputs = Map.update(inputs, name, 1, &(&1 + 1))
+        ctx = Map.merge(ctx, %{inputs: inputs, event: {:timer, name}})
+        loop(handler, ctx)
 
-      {_point, {:point, ^index, arg}, val} ->
-        inputs = Map.put(inputs, arg, val)
-        ctx = Map.merge(ctx, %{inputs: inputs, event: {:point, arg}})
-        loop(fun, ctx)
+      {_point, {:point, ^index, name}, val} ->
+        inputs = Map.put(inputs, name, val)
+        ctx = Map.merge(ctx, %{inputs: inputs, event: {:point, name}})
+        loop(handler, ctx)
 
       unexpected ->
-        # single fun crash kills the whole flow logic
+        # single handler crash kills the whole service
         throw(unexpected: unexpected)
     end
   end
 
-  defp init(index, args) do
-    for {arg, spec} <- args, reduce: %{} do
-      inputs ->
-        case spec do
-          {:const, const} ->
-            Map.put(inputs, arg, const)
+  def init(index, inputs, shared) do
+    for {name, spec} <- inputs, into: %{} do
+      case spec do
+        {:const, const} ->
+          {name, const}
 
-          {:point, key} ->
-            val = Api.subget!(key, sarg: {:point, index, arg}, defv: nil)
-            Map.put(inputs, arg, val)
+        {:point, point} ->
+          {name, Api.subget!(point, sarg: {:point, index, name}, defv: nil)}
 
-          {:timer, ms} ->
-            Process.send_after(self(), {:timer, {index, arg}, ms}, ms)
-            Map.put(inputs, arg, 0)
-        end
-    end
-  end
+        {:timer, ms} ->
+          Process.send_after(self(), {:timer, index, name, ms}, ms)
+          {name, 0}
 
-  defp check(name, value, :fun) do
-    case value do
-      {fun, args} ->
-        Check.check("#{name}.fun", fun, {:fun, 1})
-        Check.check("#{name}.args", args, {:list, nil, &check(&1, &2, :arg)})
-
-      _ ->
-        Check.abort(name, value, "invalid fun")
-    end
-  end
-
-  # keep in sync with reactor-wrapper check
-  defp check(name, value, :arg) do
-    case value do
-      {key, value} ->
-        Check.check(name, key, :atom)
-
-        case value do
-          {:timer, ms} -> Check.check("#{name}.timer", ms, {:integer, 1, 65_535})
-          {:point, key} -> Check.check("#{name}.point", key, :any)
-          {:const, _value} -> :ok
-          _ -> Check.abort(name, value, "invalid arg")
-        end
-
-      _ ->
-        Check.abort(name, value, "invalid arg")
+        {:shared, key} ->
+          {name, shared[key]}
+      end
     end
   end
 end
