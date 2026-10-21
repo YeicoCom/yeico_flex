@@ -9,6 +9,7 @@ defmodule Flex.DaisyWidgets do
     """
   end
 
+  # buttons and selects should have fixed text for POLA
   def button(assigns) do
     ~H"""
     <button id={@id} :if={@visible?} phx-click="value:change"
@@ -19,6 +20,7 @@ defmodule Flex.DaisyWidgets do
     """
   end
 
+  # buttons and selects should have fixed text for POLA
   # size > 1 to workaround select closing on each phx update
   # select requires a source/@ivalue to stay in sync
   def select(assigns) do
@@ -41,6 +43,7 @@ defmodule Flex.DaisyWidgets do
     """
   end
 
+  # range should have fixed max for POLA
   def range(assigns) do
     ~H"""
     <form id={@id} :if={@visible? and @sink?} phx-change="value:change" phx-value-index={@index}>
