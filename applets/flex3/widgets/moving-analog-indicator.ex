@@ -11,7 +11,7 @@ defmodule Flex.MovingAnalogIndicator do
       warn: %{initial: {2.0, 6.0}, check: {:tuple, 2, :number?}},
       error: %{initial: {1.0, 8.0}, check: {:tuple, 2, :number?}},
       visible?: %{initial: nil, check: {:fun?, 1}},
-      calc: %{initial: nil, check: {:fun?, 1}}
+      cast: %{initial: nil, check: {:fun?, 1}}
     }
 
   defp inputs(%{value: nil, visible: nil}), do: []
@@ -27,7 +27,7 @@ defmodule Flex.MovingAnalogIndicator do
          value: value,
          visible: visible,
          visible?: visible?,
-         calc: calc
+         cast: cast
        }) do
     ol = wl || el || rl
     ou = wu || eu || ru
@@ -68,7 +68,7 @@ defmodule Flex.MovingAnalogIndicator do
     fn
       %{index: index, inputs: inputs, event: :render} ->
         v = Flex.Reactor.input(inputs, :value, value)
-        v = if calc, do: calc.(v), else: v
+        v = if cast, do: cast.(v), else: v
 
         el? = v && v < wl
         eu? = v && v > wu

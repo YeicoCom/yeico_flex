@@ -19,7 +19,7 @@ defmodule Flex.ValueControl do
       visible: %{initial: nil, check: &Flex.Check.check(&1, &2, :source?)},
       visible?: %{initial: nil, check: {:fun?, 1}},
       class: %{initial: nil, check: :binary?},
-      calc: %{initial: nil, check: {:fun?, 1}},
+      cast: %{initial: nil, check: {:fun?, 1}},
       initial?: %{initial: false, check: :boolean},
       initial: %{initial: nil, check: :any?},
       props: %{initial: %{}, check: :map}
@@ -56,8 +56,8 @@ defmodule Flex.ValueControl do
     |> Flex.wrap()
   end
 
-  defp update(%{state: state, share: share}, %{calc: calc, sink: sink}, value, initial?) do
-    value = if calc, do: calc.(value), else: value
+  defp update(%{state: state, share: share}, %{cast: cast, sink: sink}, value, initial?) do
+    value = if cast, do: cast.(value), else: value
 
     if initial? do
       case sink do

@@ -18,7 +18,7 @@ defmodule Flex.ValueIndicator do
       visible?: %{initial: nil, check: {:fun?, 1}},
       text: %{initial: nil, check: :binary?},
       class: %{initial: nil, check: :binary?},
-      calc: %{initial: nil, check: {:fun?, 1}},
+      cast: %{initial: nil, check: {:fun?, 1}},
       props: %{initial: %{}, check: :map}
     }
 
@@ -30,7 +30,7 @@ defmodule Flex.ValueIndicator do
   def handler(config, render, id) do
     %{class: class, source: source, text: text} = config
     %{visible: visible, visible?: visible?} = config
-    %{calc: calc, props: props} = config
+    %{cast: cast, props: props} = config
 
     fn
       %{state: state, inputs: inputs, event: :render} ->
@@ -44,18 +44,18 @@ defmodule Flex.ValueIndicator do
         |> Map.put(:class, class)
         |> Map.put(:props, props)
         |> Map.put(:text, text)
-        |> Map.put(:value, calc(inputs, source, calc))
+        |> Map.put(:value, cast(inputs, source, cast))
         |> Map.put(:id, id.(index))
 
       %{state: state, inputs: inputs} ->
         state
-        |> Map.put(:value, calc(inputs, source, calc))
+        |> Map.put(:value, cast(inputs, source, cast))
     end
   end
 
-  def calc(inputs, source, calc) do
+  def cast(inputs, source, cast) do
     value = Flex.Reactor.input(inputs, :value, source)
-    if calc, do: calc.(value), else: value
+    if cast, do: cast.(value), else: value
   end
 
   defp visible?(nil, visible) when is_boolean(visible), do: visible
