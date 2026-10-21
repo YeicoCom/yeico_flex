@@ -3,6 +3,7 @@
     "daisyui": "^4.12.24",
     "heroicons": "^2.2.0",
     "install": "^0.13.0",
+    "tiny-spark": "^1.2.3",
     "topbar": "^3.0.0"
   }
 }

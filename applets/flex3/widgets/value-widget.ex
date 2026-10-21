@@ -70,7 +70,6 @@ defmodule Flex.ValueWidget do
       ctx = %{state: %{ovalue: ovalue}} ->
         update.(ctx, ovalue, false, false)
     end
-    |> Flex.wrap()
   end
 
   defp id(index, nil), do: "#{inspect(__MODULE__)}_#{index}"

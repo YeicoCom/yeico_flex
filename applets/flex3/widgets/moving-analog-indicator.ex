@@ -36,7 +36,6 @@ defmodule Flex.MovingAnalogIndicator do
     ol = wl || el || rl
     ou = wu || eu || ru
     oc = (ol + ou) / 2.0
-    os = (ou - ol) / 2.0
 
     wl = el || ol
     wu = eu || ou

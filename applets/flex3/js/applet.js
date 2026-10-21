@@ -1,8 +1,11 @@
 import 'phoenix_html'
 import { Socket } from 'phoenix'
 import { LiveSocket } from 'phoenix_live_view'
+import { render } from "tiny-spark"
 import topbar from 'topbar'
 import "./gauth"
+
+const globals = {}
 
 if (!navigator.userAgent.includes('YeicoTerminal')) {
     document.body.style.animation = 'none'
@@ -117,6 +120,23 @@ const hooks = {
         updated() {
             enterNavigate(this.el)
         }
+    },
+    Spark: {
+        mounted() {
+            render()
+            // JSON.parse returns object and push method is not found
+            console.log("SET", this.el.dataset.set)
+            const data = Array.from(JSON.parse(this.el.dataset.set))
+            const maxlen = parseInt(this.el.dataset.maxlen)
+            const sindex = parseInt(this.el.dataset.index)
+            this.handleEvent("spark:add", ({ index, chunk }) => {
+                if (index != sindex) return;
+                data.push(...chunk)
+                while (data.length > maxlen) data.shift()
+                this.el.dataset.set = JSON.stringify(data)
+                console.log("SET", data, this.el.dataset.set)
+            })
+        },
     },
     Clipboard: {
         mounted() {
@@ -274,4 +294,5 @@ let liveSocket = new LiveSocket('/live', Socket, { hooks, params })
 topbar.config({ barColors: { 0: barco }, shadowColor: 'rgba(0, 0, 0, .3)' })
 window.addEventListener('phx:page-loading-start', _info => topbar.show(300))
 window.addEventListener('phx:page-loading-stop', _info => topbar.hide())
+//liveSocket.enableDebug()
 liveSocket.connect()

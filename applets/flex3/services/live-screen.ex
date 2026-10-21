@@ -56,7 +56,7 @@ defmodule Flex.LiveScreen do
     widgets =
       for {{pos, mod, config, wrapper}, index} <- widgets |> Enum.with_index(), into: %{} do
         %{handler: handler, inputs: inputs} = mod.build(config)
-        handler = wrap(handler, wrapper, Function.info(handler, :module))
+        handler = wrap(handler, wrapper)
         {index, %{pos: pos, handler: handler, inputs: inputs}}
       end
 
@@ -194,6 +194,10 @@ defmodule Flex.LiveScreen do
         state = Map.put(state, :widgets, widgets)
         {socket, state}
 
+      {:info, socket, state, {:push, event, params}} ->
+        socket = push_event(socket, event, params)
+        {socket, state}
+
       {:info, socket, state = %{widgets: widgets, events: events},
        {_point, spec = {:point, _name}, val}} ->
         widgets =
@@ -283,6 +287,7 @@ defmodule Flex.LiveScreen do
             index: index,
             event: :mount,
             inputs: inputs[index],
+            push: &send(self, {:push, &1, &2}),
             share: &send(self, {:share, &1, &2}),
             modal: &send(self, {:modal, if(&1, do: Map.put(&1, :index, index), else: &1)})
           }
@@ -348,24 +353,26 @@ defmodule Flex.LiveScreen do
   # wrap required for logs and stacktraces
   # Api.wrap logs unhandled exceptions
   # Flex.wrap / Api.wrapper() does not
-  defp wrap(handler, wrapper, type) do
-    # Log.warn requires wrapped environment as well
-    handler = fn ctx ->
+  defp wrap(handler, wrapper) do
+    fn ctx ->
+      # fixme: implement wrap only if needed api call
+      # dynamic wrapping required for render event in module defined handlers
+      handler = if Process.get(:__api__), do: handler, else: wrapper.(handler)
+
       case Applet.Utils.safe(handler, ctx) do
         {:ok, result} ->
           result
 
+        # distriguish between module defined handlers and script handlers
+        # errors inside ~H, like invalid @varname, seem to be catched inside
+        # for render, only assigns manipulating errors before ~H get here
+        # event those errors in the render event require explicit wrapping below
         {:error, error} ->
+          # Applet.broadcast!("flex3.exs", :warn, Api.inspect?(ctx))
           %{wid: wid, event: event, inputs: inputs, state: state} = ctx
           environ = [event: event, inputs: inputs, state: state]
           Log.warn("#{wid} #{Api.inspect?(environ)} rescue: #{Api.inspect?(error)}")
-          exit(:kill)
       end
-    end
-
-    case type do
-      {:module, :erl_eval} -> Flex.wrap(handler, wrapper)
-      _ -> handler
     end
   end
 
