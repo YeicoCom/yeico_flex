@@ -158,6 +158,24 @@ defmodule Flex.LiveScreen do
         state = call(state, index, fn ctx -> Map.put(ctx, :event, {:event, event, params}) end)
         {socket, state}
 
+      {:event, socket, state = %{widgets: widgets, events: events}, "hook:theme",
+       %{"theme" => theme}} ->
+        spec = {:shared, :theme}
+
+        # share maybe called on spec not required by another widget
+        widgets =
+          for {index, name} <- events[spec] || [], reduce: widgets do
+            widgets ->
+              call(widgets, index, fn ctx = %{inputs: inputs} ->
+                ctx
+                |> Map.put(:inputs, Map.update!(inputs, name, fn _ -> theme end))
+                |> Map.put(:event, {:shared, name})
+              end)
+          end
+
+        state = Map.put(state, :widgets, widgets)
+        {socket, state}
+
       {:event, socket, state, _event, _params} ->
         {socket, state}
 
@@ -314,6 +332,7 @@ defmodule Flex.LiveScreen do
 
   defp render(assigns) do
     ~H"""
+    <div id="ls_theme" phx-hook="Theme" class="hidden"/>
     <div id="ls_main" data-theme={@theme} inert={!!@modal} phx-hook="Resize" phx-window-keydown="modal:close" phx-key="Escape" phx-value-index={@modal[:index]}
       class="relative h-screen w-screen overflow-hidden select-none text-base outline-none border-box leading-none text-nowrap bg-base-300">
       <div :if={@size} id="ls_panel" class="absolute bg-base-100 text-base-content" style={"left:#{@x}px;top:#{@y}px;width:#{@w}px;height:#{@h}px;"}>

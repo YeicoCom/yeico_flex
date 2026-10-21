@@ -154,6 +154,9 @@ defmodule Flex.Check do
   def check(_path, value, {:fun?, n}) when is_function(value, n), do: :ok
   def check(path, value, {:fun?, n}), do: abort(path, value, "fun#{n}? required")
 
+  def check(_path, nil, :sink?), do: :ok
+  def check(path, value, :sink?), do: check(path, value, :sink)
+
   def check(path, value, :sink) do
     check(path, value, {:tuple, 2})
 

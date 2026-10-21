@@ -15,7 +15,8 @@ defmodule Flex.ValueControl do
 
   def specs,
     do: %{
-      sink: %{initial: nil, check: &Flex.Check.check(&1, &2, :sink)},
+      source: %{initial: nil, check: &Flex.Check.check(&1, &2, :source?)},
+      sink: %{initial: nil, check: &Flex.Check.check(&1, &2, :sink?)},
       visible: %{initial: nil, check: &Flex.Check.check(&1, &2, :source?)},
       visible?: %{initial: nil, check: {:fun?, 1}},
       class: %{initial: nil, check: :binary?},
@@ -25,17 +26,20 @@ defmodule Flex.ValueControl do
       props: %{initial: %{}, check: :map}
     }
 
-  def inputs(%{visible: nil}), do: []
-  def inputs(%{visible: visible}), do: [{:visible, visible}]
+  def inputs(%{source: nil, visible: nil}), do: []
+  def inputs(%{source: source, visible: nil}), do: [{:value, source}]
+  def inputs(%{source: nil, visible: visible}), do: [{:visible, visible}]
+  def inputs(%{source: source, visible: visible}), do: [{:value, source}, {:visible, visible}]
 
   def handler(config, render, id) do
     %{initial?: initial?, visible: visible, visible?: visible?} = config
-    %{class: class, initial: initial, props: props} = config
+    %{class: class, initial: initial, props: props, source: source} = config
 
     fn
       %{state: state, inputs: inputs, event: :render} ->
         visible = Flex.Reactor.input(inputs, :visible, visible)
         state = Map.put(state, :visible?, visible?(visible?, visible))
+        state = Map.put(state, :input, Flex.Reactor.input(inputs, :value, source))
         render.(state)
 
       ctx = %{index: index, event: :mount} ->
@@ -59,7 +63,7 @@ defmodule Flex.ValueControl do
   defp update(%{state: state, share: share}, %{cast: cast, sink: sink}, value, initial?) do
     value = if cast, do: cast.(value), else: value
 
-    if initial? do
+    if sink && initial? do
       case sink do
         {:shared, name} -> share.(name, value)
         {:point, point} -> Api.putcast!(point, value)
