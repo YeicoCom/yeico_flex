@@ -18,25 +18,38 @@ Flex.LiveScreen.new()
 |> Flex.LiveScreen.set(title: "Widgets")
 |> Flex.LiveScreen.set(width: 800)
 |> Flex.LiveScreen.set(height: 480)
-|> Flex.LiveScreen.add({10, 10}, Flex.DaisyToggleInput,
+|> Flex.LiveScreen.add({10, 10}, Flex.DaisyToggleIndicator,
   source: {:timer, 1000},
   class: "daisy-toggle-accent",
-  calc: fn _ctx, value -> rem(value, 2) == 0 end
+  calc: fn value -> rem(value, 2) == 0 end
 )
-|> Flex.LiveScreen.add({60, 10}, Flex.DaisyToggleInput,
+|> Flex.LiveScreen.add({60, 10}, Flex.DaisyToggleIndicator,
   source: {:timer, 1000},
   class: "daisy-toggle-accent",
-  calc: fn _ctx, value -> rem(value, 2) == 0 end
+  calc: fn value -> rem(value, 2) == 0 end
 )
-|> Flex.LiveScreen.add({10, 40}, Flex.DaisyToggleInput,
+|> Flex.LiveScreen.add({10, 40}, Flex.DaisyToggleIndicator,
   source: {:point, "logic1:timer1"},
   class: "daisy-toggle-accent",
-  calc: fn _ctx, value -> rem(value, 2) == 0 end
+  calc: fn value -> rem(value, 2) == 0 end
 )
-|> Flex.LiveScreen.add({60, 40}, Flex.DaisyToggleInput,
+|> Flex.LiveScreen.add({60, 40}, Flex.DaisyToggleIndicator,
   source: {:point, "logic1:timer1"},
   class: "daisy-toggle-accent",
-  calc: fn _ctx, value -> rem(value, 2) == 0 end
+  calc: fn value -> rem(value, 2) == 0 end
+)
+|> Flex.LiveScreen.add({10, 70}, Flex.DaisyToggleControl,
+  sink: {:shared, :toggle},
+  class: "daisy-toggle-accent",
+  calc: fn v -> v == "on" end
+)
+|> Flex.LiveScreen.add({60, 70}, Flex.DaisyToggleIndicator,
+  source: {:shared, :toggle},
+  class: "daisy-toggle-accent"
+)
+|> Flex.LiveScreen.add({110, 70}, Flex.DaisyToggleIndicator,
+  source: {:shared, :toggle},
+  class: "daisy-toggle-accent"
 )
 |> Flex.LiveScreen.run()
 

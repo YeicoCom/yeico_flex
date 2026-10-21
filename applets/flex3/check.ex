@@ -154,6 +154,16 @@ defmodule Flex.Check do
   def check(_path, value, {:fun?, n}) when is_function(value, n), do: :ok
   def check(path, value, {:fun?, n}), do: abort(path, value, "fun#{n}? required")
 
+  def check(path, value, :sink) do
+    check(path, value, {:tuple, 2})
+
+    case value do
+      {:shared, name} -> check("#{path}.shared", name, :atom)
+      {:point, name} -> check("#{path}.point", name, :any)
+      _ -> abort(path, value, "invalid sink")
+    end
+  end
+
   def check(path, value, :source) do
     check(path, value, {:tuple, 2})
 

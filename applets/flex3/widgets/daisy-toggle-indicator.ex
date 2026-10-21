@@ -1,5 +1,5 @@
-defmodule Flex.DaisyToggleInput do
-  use Flex.ValueWidget
+defmodule Flex.DaisyToggleIndicator do
+  use Flex.ValueIndicator
 
   defp render(assigns) do
     ~H"""

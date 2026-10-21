@@ -12,8 +12,8 @@ defmodule Flex.MovingAnalogIndicator do
       visible?: %{initial: nil, check: {:fun?, 1}}
     }
 
+  defp inputs(%{value: nil}), do: []
   defp inputs(%{value: source}), do: [{:value, source}]
-  defp inputs(_), do: []
 
   defp handler(%{
          bar: {bw, bh},

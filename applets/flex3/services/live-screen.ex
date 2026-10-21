@@ -177,6 +177,22 @@ defmodule Flex.LiveScreen do
         state = Map.put(state, :widgets, widgets)
         {socket, state}
 
+      {:info, socket, state = %{widgets: widgets, events: events}, {:share, name, value}} ->
+        spec = {:shared, name}
+
+        widgets =
+          for {index, name} <- events[spec], reduce: widgets do
+            widgets ->
+              call(widgets, index, fn ctx = %{inputs: inputs} ->
+                ctx
+                |> Map.put(:inputs, Map.update!(inputs, name, fn _ -> value end))
+                |> Map.put(:event, {:shared, name})
+              end)
+          end
+
+        state = Map.put(state, :widgets, widgets)
+        {socket, state}
+
       {:info, socket, state = %{widgets: widgets, events: events},
        {_point, spec = {:point, _name}, val}} ->
         widgets =
@@ -266,6 +282,7 @@ defmodule Flex.LiveScreen do
             index: index,
             event: :mount,
             inputs: inputs[index],
+            share: &send(self, {:share, &1, &2}),
             modal: &send(self, {:modal, if(&1, do: Map.put(&1, :index, index), else: &1)})
           }
 
@@ -300,7 +317,7 @@ defmodule Flex.LiveScreen do
       class="relative h-screen w-screen overflow-hidden select-none text-base outline-none border-box leading-none text-nowrap bg-base-300">
       <div :if={@size} id="ls_panel" class="absolute bg-base-100 text-base-content" style={"left:#{@x}px;top:#{@y}px;width:#{@w}px;height:#{@h}px;"}>
         <div class="absolute" style={"scale:#{@s};"}>
-          <div :for={{index, %{handler: handler, ctx: ctx = %{pos: {x, y}}}} <- @index} id={"ls_fun#{index}"} class="ls_fun absolute" style={"left:#{x}px;top:#{y}px;"}>
+          <div :for={{index, %{handler: handler, ctx: ctx = %{pos: {x, y}}}} <- @index} id={"ls_widget_#{index}"} class="ls_widget absolute" style={"left:#{x}px;top:#{y}px;"}>
             <.fui fun={fn _ -> handler.(Map.put(ctx, :event, :render)) end}/>
           </div>
         </div>

@@ -174,6 +174,12 @@ check.([:path, fn -> nil end, {:fun?, 0}], nil)
 
 check.([:path, nil, fn _, _ -> nil end], nil)
 
+check.([:path, nil, :sink], error: "tuple2 required")
+check.([:path, {:other, nil}, :sink], error: "invalid sink")
+check.([:path, {:shared, "key"}, :sink], error: "atom required")
+check.([:path, {:point, "point"}, :sink], nil)
+check.([:path, {:shared, :key}, :sink], nil)
+
 check.([:path, nil, :source], error: "tuple2 required")
 check.([:path, {:other, nil}, :source], error: "invalid source")
 check.([:path, {:shared, "key"}, :source], error: "atom required")
