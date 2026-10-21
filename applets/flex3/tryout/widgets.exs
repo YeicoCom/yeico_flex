@@ -59,49 +59,59 @@ Flex.LiveScreen.new()
 |> Flex.LiveScreen.add({200, 10}, Flex.DaisyRangeIndicator,
   source: {:timer, 500},
   class: "daisy-range-accent w-24",
-  props: %{min: 0, max: 9, step: 1},
-  calc: fn v -> rem(v, 10) end
+  props: %{min: 0, max: 10, step: 1},
+  calc: fn v -> rem(v, 11) end
 )
 |> Flex.LiveScreen.add({300, 10}, Flex.DaisyRangeIndicator,
   source: {:timer, 500},
   class: "daisy-range-accent w-24",
-  props: %{min: 0, max: 9, step: 1},
-  calc: fn v -> rem(v, 10) end
+  props: %{min: 0, max: 10, step: 1},
+  calc: fn v -> rem(v, 11) end
 )
 |> Flex.LiveScreen.add({200, 40}, Flex.DaisyRangeIndicator,
   source: {:point, "logic1:timer1"},
   class: "daisy-range-accent w-24",
-  props: %{min: 0, max: 9, step: 1},
-  calc: fn v -> rem(v, 10) end
+  props: %{min: 0, max: 10, step: 1},
+  calc: fn v -> rem(v, 11) end
 )
 |> Flex.LiveScreen.add({300, 40}, Flex.DaisyRangeIndicator,
   source: {:point, "logic1:timer1"},
   class: "daisy-range-accent w-24",
-  props: %{min: 0, max: 9, step: 1},
-  calc: fn v -> rem(v, 10) end
+  props: %{min: 0, max: 10, step: 0.5},
+  calc: fn v -> rem(v, 11) end
 )
 |> Flex.LiveScreen.add({200, 70}, Flex.DaisyRangeControl,
   sink: {:shared, :range},
   class: "daisy-range-accent w-24",
-  props: %{min: 0, max: 9, step: 1},
-  calc: fn v -> v || "0" end
+  props: %{min: 0, max: 10, step: 0.5},
+  calc: fn v -> Flex.Parse.float!(v || "0") end
 )
 |> Flex.LiveScreen.add({300, 70}, Flex.DaisyRangeIndicator,
   source: {:shared, :range},
   class: "daisy-range-accent w-24",
-  props: %{min: 0, max: 9, step: 1}
+  props: %{min: 0, max: 10, step: 0.5}
 )
 |> Flex.LiveScreen.add({200, 100}, Flex.DaisyRangeControl,
   sink: {:point, "screen1:range1"},
   class: "daisy-range-accent w-24",
-  props: %{min: 0, max: 9, step: 1},
+  props: %{min: 0, max: 10, step: 0.5},
   calc: fn v -> Flex.Parse.float!(v || "0") end
 )
 |> Flex.LiveScreen.add({300, 100}, Flex.DaisyRangeIndicator,
   source: {:point, "screen1:range1"},
   class: "daisy-range-accent w-24",
-  props: %{min: 0, max: 9, step: 1}
+  props: %{min: 0, max: 10, step: 1}
 )
+|> Flex.LiveScreen.add({450, 10}, Flex.MovingAnalogIndicator,
+  value: {:timer, 500},
+  calc: fn v -> rem(v, 11) end
+)
+|> Flex.LiveScreen.add({500, 10}, Flex.MovingAnalogIndicator,
+  value: {:point, "logic1:timer1"},
+  calc: fn v -> rem(v, 11) end
+)
+|> Flex.LiveScreen.add({550, 10}, Flex.MovingAnalogIndicator, value: {:shared, :range})
+|> Flex.LiveScreen.add({600, 10}, Flex.MovingAnalogIndicator, value: {:point, "screen1:range1"})
 |> Flex.LiveScreen.run()
 
 :ok

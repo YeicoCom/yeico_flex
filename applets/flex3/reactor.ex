@@ -22,4 +22,10 @@ defmodule Flex.Reactor do
     Flex.Check.check("#{path}.mod", mod, :atom)
     Flex.Check.check("#{path}.config", config, :map)
   end
+
+  def input(_inputs, _name, nil), do: nil
+  def input(_inputs, _name, {:const, value}), do: value
+  def input(inputs, name, {:timer, _ms}), do: inputs[name]
+  def input(inputs, name, {:point, _point}), do: inputs[name]
+  def input(inputs, name, {:shared, _key}), do: inputs[name]
 end

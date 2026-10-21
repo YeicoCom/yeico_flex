@@ -26,7 +26,7 @@ defmodule Flex.Parse do
       {_, _} ->
         {:error, string}
 
-      :error ->
+      _ ->
         case Integer.parse(string) do
           {value, ""} ->
             {:ok, 1.0 * value}

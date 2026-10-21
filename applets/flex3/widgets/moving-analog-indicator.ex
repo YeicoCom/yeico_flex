@@ -5,15 +5,19 @@ defmodule Flex.MovingAnalogIndicator do
   defp specs,
     do: %{
       value: %{initial: nil, check: &Flex.Check.check(&1, &2, :source?)},
-      bar: %{initial: {10, 200}, check: {:tuple, 2, {:integer, 0, 65_535}}},
+      visible: %{initial: nil, check: &Flex.Check.check(&1, &2, :source?)},
+      bar: %{initial: {20, 120}, check: {:tuple, 2, {:integer, 0, 65_535}}},
       range: %{initial: {0.0, 10.0}, check: {:tuple, 2, :number}},
       warn: %{initial: {2.0, 6.0}, check: {:tuple, 2, :number?}},
       error: %{initial: {1.0, 8.0}, check: {:tuple, 2, :number?}},
-      visible?: %{initial: nil, check: {:fun?, 1}}
+      visible?: %{initial: nil, check: {:fun?, 1}},
+      calc: %{initial: nil, check: {:fun?, 1}}
     }
 
-  defp inputs(%{value: nil}), do: []
-  defp inputs(%{value: source}), do: [{:value, source}]
+  defp inputs(%{value: nil, visible: nil}), do: []
+  defp inputs(%{value: value, visible: nil}), do: [{:value, value}]
+  defp inputs(%{value: nil, visible: visible}), do: [{:visible, visible}]
+  defp inputs(%{value: value, visible: visible}), do: [{:value, value}, {:visible, visible}]
 
   defp handler(%{
          bar: {bw, bh},
@@ -21,7 +25,9 @@ defmodule Flex.MovingAnalogIndicator do
          warn: {wl, wu},
          error: {el, eu},
          value: value,
-         visible?: visible?
+         visible: visible,
+         visible?: visible?,
+         calc: calc
        }) do
     ol = wl || el || rl
     ou = wu || eu || ru
@@ -60,14 +66,9 @@ defmodule Flex.MovingAnalogIndicator do
 
     # trace needs wrapping at the bottom |> Flex.wrap()
     fn
-      %{inputs: inputs, shared: shared, event: :render} ->
-        v =
-          case value do
-            nil -> nil
-            {:const, value} -> value
-            {:point, _point} -> inputs[:value]
-            {:shared, key} -> shared[key]
-          end
+      %{index: index, inputs: inputs, event: :render} ->
+        v = Flex.Reactor.input(inputs, :value, value)
+        v = if calc, do: calc.(v), else: v
 
         el? = v && v < wl
         eu? = v && v > wu
@@ -79,10 +80,13 @@ defmodule Flex.MovingAnalogIndicator do
         vr = if v, do: min(max(v, rl), ru)
         vy = if vr, do: bh * (vr - rl) / (ru - rl)
 
-        vis? = visible?(visible?, shared)
+        vis = Flex.Reactor.input(inputs, :visible, visible)
+        vis? = visible?(visible?, vis)
+        id = id(index)
 
         assigns =
           Map.merge(assigns, %{
+            id: id,
             vy: vy,
             el?: el?,
             eu?: eu?,
@@ -93,7 +97,7 @@ defmodule Flex.MovingAnalogIndicator do
           })
 
         ~H"""
-        <div :if={@vis?} class="absolute" style={"width:#{2*@bw}px;height:#{@bh}px;"}>
+        <div :if={@vis?} id={@id} class="absolute" style={"width:#{2*@bw}px;height:#{@bh}px;"}>
           <div class="absolute h-full" style={"left:0px;width:#{@bw}px;"}>
             <svg :if={@vy} class="absolute" viewBox="0 0 16 16" overflow="visible" width={@bw} height={@bw} style={"bottom:#{@vy-@bw/2.0}px;"}>
               <polygon vector-effect="non-scaling-stroke" points="0,0 16,8 0,16" fill={if(@oor?, do: "#ff0000", else: "#999999")} stroke="#15395b" stroke-width="1"/>
@@ -118,6 +122,9 @@ defmodule Flex.MovingAnalogIndicator do
     end
   end
 
+  defp id(index), do: "#{inspect(__MODULE__)}_#{index}"
+
+  defp visible?(nil, visible) when is_boolean(visible), do: visible
   defp visible?(nil, _), do: true
-  defp visible?(fun, shared), do: fun.(shared)
+  defp visible?(visible?, visible), do: visible?.(visible)
 end
