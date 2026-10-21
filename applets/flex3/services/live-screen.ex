@@ -161,26 +161,35 @@ defmodule Flex.LiveScreen do
       {:event, socket, state, _event, _params} ->
         {socket, state}
 
-      {:info, socket, state, {:timer, index, name, ms}} ->
-        Process.send_after(self(), {:timer, index, name, ms}, ms)
+      {:info, socket, state = %{widgets: widgets, events: events}, spec = {:timer, ms}} ->
+        Process.send_after(self(), spec, ms)
 
-        state =
-          call(state, index, fn ctx = %{inputs: inputs} ->
-            ctx
-            |> Map.put(:inputs, Map.update(inputs, name, 1, &(&1 + 1)))
-            |> Map.put(:event, {:timer, name})
-          end)
+        widgets =
+          for {index, name} <- events[spec], reduce: widgets do
+            widgets ->
+              call(widgets, index, fn ctx = %{inputs: inputs} ->
+                ctx
+                |> Map.put(:inputs, Map.update!(inputs, name, &(&1 + 1)))
+                |> Map.put(:event, {:timer, name})
+              end)
+          end
 
+        state = Map.put(state, :widgets, widgets)
         {socket, state}
 
-      {:info, socket, state, {_point, {:point, index, name}, val}} ->
-        state =
-          call(state, index, fn ctx = %{inputs: inputs} ->
-            ctx
-            |> Map.put(:inputs, Map.put(inputs, name, val))
-            |> Map.put(:event, {:point, name})
-          end)
+      {:info, socket, state = %{widgets: widgets, events: events},
+       {_point, spec = {:point, _name}, val}} ->
+        widgets =
+          for {index, name} <- events[spec], reduce: widgets do
+            widgets ->
+              call(widgets, index, fn ctx = %{inputs: inputs} ->
+                ctx
+                |> Map.put(:inputs, Map.update!(inputs, name, fn _ -> val end))
+                |> Map.put(:event, {:point, name})
+              end)
+          end
 
+        state = Map.put(state, :widgets, widgets)
         {socket, state}
 
       {:info, socket, state, {:modal, modal = %{handler: handler, props: props, index: index}}}
@@ -203,8 +212,44 @@ defmodule Flex.LiveScreen do
   defp mount(sid, state, shared, widgets) do
     self = self()
 
+    events =
+      for {index, %{inputs: inputs}} <- widgets, {name, spec} <- inputs, reduce: %{} do
+        events ->
+          Map.update(events, spec, [{index, name}], &[{index, name} | &1])
+      end
+
+    values =
+      for {spec, _indexes} <- events, reduce: %{} do
+        values ->
+          case spec do
+            {:const, const} ->
+              Map.put(values, spec, const)
+
+            {:point, point} ->
+              get = fn -> Api.subget!(point, sarg: spec, defv: nil) end
+              Map.put_new_lazy(values, spec, get)
+
+            {:timer, ms} ->
+              get = fn ->
+                Process.send_after(self(), spec, ms)
+                0
+              end
+
+              Map.put_new_lazy(values, spec, get)
+
+            {:shared, key} ->
+              Map.put(values, spec, shared[key])
+          end
+      end
+
+    inputs =
+      for {index, %{inputs: inputs}} <- widgets, into: %{} do
+        inputs = for {name, spec} <- inputs, into: %{}, do: {name, values[spec]}
+        {index, inputs}
+      end
+
     widgets =
-      for {index, %{pos: pos, handler: handler, inputs: inputs}} <- widgets, into: %{} do
+      for {index, %{pos: pos, handler: handler}} <- widgets, into: %{} do
         wid = "#{sid}:widget:#{index}"
 
         log = fn level, term ->
@@ -220,7 +265,7 @@ defmodule Flex.LiveScreen do
             state: %{},
             index: index,
             event: :mount,
-            inputs: Flex.Reactor.init(index, inputs, shared),
+            inputs: inputs[index],
             modal: &send(self, {:modal, if(&1, do: Map.put(&1, :index, index), else: &1)})
           }
 
@@ -228,7 +273,9 @@ defmodule Flex.LiveScreen do
         {index, %{handler: handler, ctx: ctx}}
       end
 
-    Map.put(state, :widgets, widgets)
+    state = Map.put(state, :widgets, widgets)
+    state = Map.put(state, :events, events)
+    state
   end
 
   defp login(assigns) do
