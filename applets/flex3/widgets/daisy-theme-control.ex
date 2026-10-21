@@ -12,7 +12,7 @@ defmodule Flex.DaisyThemeControl do
         <summary class="daisy-btn daisy-btn-sm">Theme</summary>
         <ul>
           <li :for={{value, label} <- [{"default", "Default"}, {"dark", "Dark"}, {"light", "Light"}]}>
-            <input type="radio" name="payload" value={value} aria-label={label} checked={value == (@value || @input)}
+            <input type="radio" name="payload" value={value} aria-label={label}
               class="daisy-btn daisy-btn-sm theme-controller w-full">
           </li>
         </ul>

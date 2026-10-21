@@ -149,11 +149,16 @@ Flex.LiveScreen.new()
   initial: "2"
 )
 |> Flex.LiveScreen.add({200, 200}, Flex.DaisyLabelIndicator,
+  source: {:point, "screen1:button1"},
+  cast: fn v -> "Button #{v}" end,
+  class: "text-success"
+)
+|> Flex.LiveScreen.add({200, 230}, Flex.DaisyLabelIndicator,
   source: {:point, "logic1:timer1"},
   cast: fn v -> "Timer1 #{v}" end,
-  class: "text-xl text-success"
+  class: "text-success"
 )
-|> Flex.LiveScreen.add({700, 10}, Flex.DaisyThemeControl, source: {:shared, :theme})
+|> Flex.LiveScreen.add({700, 10}, Flex.DaisyThemeControl)
 |> Flex.LiveScreen.add({550, 10}, Flex.MovingAnalogIndicator, value: {:shared, :range})
 |> Flex.LiveScreen.add({600, 10}, Flex.MovingAnalogIndicator, value: {:point, "screen1:range1"})
 |> Flex.LiveScreen.run()
