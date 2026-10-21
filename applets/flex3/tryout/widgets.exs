@@ -138,15 +138,23 @@ Flex.LiveScreen.new()
   cast: fn v -> String.to_integer(v) end,
   sink: {:point, "screen1:button1"},
   class: "daisy-btn-outline",
-  props: %{text: "Send 1"},
+  props: %{text: "Select 1"},
   initial: "1"
 )
 |> Flex.LiveScreen.add({100, 200}, Flex.DaisyButtonControl,
   cast: fn v -> String.to_integer(v) end,
   sink: {:point, "screen1:button1"},
   class: "daisy-btn-outline",
-  props: %{text: "Send 2"},
+  props: %{text: "Select 2"},
   initial: "2"
+)
+|> Flex.LiveScreen.add({10, 280}, Flex.DaisySelectControl,
+  cast: fn v -> String.to_integer(v) end,
+  source: {:point, "screen1:button1"},
+  sink: {:point, "screen1:button1"},
+  class: "daisy-select-bordered h-auto py-1",
+  props: %{size: 2, class: "p-1", options: [{1, "Select 1"}, {2, "Select 2"}]},
+  initial: "0"
 )
 |> Flex.LiveScreen.add({200, 200}, Flex.DaisyLabelIndicator,
   source: {:point, "screen1:button1"},
