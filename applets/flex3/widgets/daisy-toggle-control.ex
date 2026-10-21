@@ -3,7 +3,7 @@ defmodule Flex.DaisyToggleControl do
 
   defp render(assigns) do
     ~H"""
-    <form id={"widget_#{@index}"} phx-change="value:change" phx-value-index={@index}>
+    <form id={@id} phx-change="value:change" phx-value-index={@index}>
       <input type="checkbox" name="value" class={["daisy-toggle", @class]} checked={!!@value} />
     </form>
     """

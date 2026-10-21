@@ -6,7 +6,8 @@ defmodule Flex.ValueControl do
 
       defp specs, do: Flex.ValueControl.specs()
       defp inputs(config), do: Flex.ValueControl.inputs(config)
-      defp handler(config), do: Flex.ValueControl.handler(config, &render/1)
+      defp handler(config), do: Flex.ValueControl.handler(config, &render/1, &id/1)
+      defp id(index), do: "#{inspect(__MODULE__)}_#{index}"
     end
   end
 
@@ -17,12 +18,13 @@ defmodule Flex.ValueControl do
       sink: %{initial: nil, check: &Flex.Check.check(&1, &2, :sink)},
       class: %{initial: nil, check: :binary?},
       calc: %{initial: nil, check: {:fun?, 1}},
-      initial: %{initial: nil, check: :binary?}
+      initial: %{initial: nil, check: :binary?},
+      props: %{initial: %{}, check: :map}
     }
 
   def inputs(_), do: []
 
-  def handler(config = %{initial: initial, class: class}, render) do
+  def handler(config = %{initial: initial, class: class, props: props}, render, id) do
     fn
       %{state: state, event: :render} ->
         render.(state)
@@ -31,6 +33,8 @@ defmodule Flex.ValueControl do
         update(ctx, config, initial)
         |> Map.put(:index, index)
         |> Map.put(:class, class)
+        |> Map.put(:props, props)
+        |> Map.put(:id, id.(index))
 
       # checkbox wont send value param
       ctx = %{event: {:event, "value:change", params}} ->

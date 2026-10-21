@@ -6,7 +6,8 @@ defmodule Flex.ValueIndicator do
 
       defp specs, do: Flex.ValueIndicator.specs()
       defp inputs(config), do: Flex.ValueIndicator.inputs(config)
-      defp handler(config), do: Flex.ValueIndicator.handler(config, &render/1)
+      defp handler(config), do: Flex.ValueIndicator.handler(config, &render/1, &id/1)
+      defp id(index), do: "#{inspect(__MODULE__)}_#{index}"
     end
   end
 
@@ -14,13 +15,14 @@ defmodule Flex.ValueIndicator do
     do: %{
       source: %{initial: nil, check: &Flex.Check.check(&1, &2, :source)},
       class: %{initial: nil, check: :binary?},
-      calc: %{initial: nil, check: {:fun?, 1}}
+      calc: %{initial: nil, check: {:fun?, 1}},
+      props: %{initial: %{}, check: :map}
     }
 
   def inputs(%{source: nil}), do: []
   def inputs(%{source: source}), do: [{:value, source}]
 
-  def handler(%{class: class, source: source, calc: calc}, render) do
+  def handler(%{class: class, source: source, calc: calc, props: props}, render, id) do
     fn
       %{state: state, event: :render} ->
         render.(state)
@@ -29,7 +31,9 @@ defmodule Flex.ValueIndicator do
         state
         |> Map.put(:index, index)
         |> Map.put(:class, class)
+        |> Map.put(:props, props)
         |> Map.put(:value, calc(inputs, source, calc))
+        |> Map.put(:id, id.(index))
 
       %{state: state, inputs: inputs} ->
         state

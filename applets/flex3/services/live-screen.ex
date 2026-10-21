@@ -180,8 +180,9 @@ defmodule Flex.LiveScreen do
       {:info, socket, state = %{widgets: widgets, events: events}, {:share, name, value}} ->
         spec = {:shared, name}
 
+        # share maybe called on spec not required by another widget
         widgets =
-          for {index, name} <- events[spec], reduce: widgets do
+          for {index, name} <- events[spec] || [], reduce: widgets do
             widgets ->
               call(widgets, index, fn ctx = %{inputs: inputs} ->
                 ctx
