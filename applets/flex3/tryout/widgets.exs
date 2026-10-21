@@ -195,6 +195,60 @@ Flex.LiveScreen.new()
   props: %{rclass: "daisy-btn-sm"},
   class: "daisy-btn-outline daisy-btn-sm"
 )
+|> Flex.LiveScreen.add({300, 200}, Flex.ValueWidget,
+  render: &Flex.DaisyWidgets.progress/1,
+  source: {:timer, 500},
+  icast: fn v -> rem(v || 0, 11) end,
+  class: "w-24",
+  props: %{max: 10}
+)
+|> Flex.LiveScreen.add({300, 220}, Flex.ValueWidget,
+  render: &Flex.DaisyWidgets.progress/1,
+  source: {:point, "logic1:timer1"},
+  icast: fn v -> rem(v || 0, 11) end,
+  class: "w-24",
+  props: %{max: 10}
+)
+|> Flex.LiveScreen.add({300, 240}, Flex.ValueWidget,
+  render: &Flex.DaisyWidgets.progress/1,
+  source: {:shared, :range},
+  class: "w-24",
+  props: %{max: 10}
+)
+|> Flex.LiveScreen.add({300, 260}, Flex.ValueWidget,
+  render: &Flex.DaisyWidgets.progress/1,
+  source: {:point, "screen1:range1"},
+  class: "w-24",
+  props: %{max: 10}
+)
+|> Flex.LiveScreen.add({420, 200}, Flex.ValueWidget,
+  render: &Flex.DaisyWidgets.progress/1,
+  source: {:timer, 500},
+  icast: fn v -> rem(v || 0, 101) end,
+  class: "text-xs text-success",
+  props: %{type: :radial, size: "6em"}
+)
+|> Flex.LiveScreen.add({500, 200}, Flex.ValueWidget,
+  render: &Flex.DaisyWidgets.progress/1,
+  source: {:point, "logic1:timer1"},
+  icast: fn v -> rem(v || 0, 101) end,
+  class: "text-xs text-success",
+  props: %{type: :radial, size: "6em", thickness: "1px"}
+)
+|> Flex.LiveScreen.add({580, 200}, Flex.ValueWidget,
+  render: &Flex.DaisyWidgets.progress/1,
+  source: {:shared, :range},
+  icast: fn v -> 10 * (v || 0) end,
+  class: "text-xs text-success",
+  props: %{type: :radial, size: "6em"}
+)
+|> Flex.LiveScreen.add({660, 200}, Flex.ValueWidget,
+  render: &Flex.DaisyWidgets.progress/1,
+  source: {:point, "screen1:range1"},
+  icast: fn v -> 10 * (v || 0) end,
+  class: "text-xs text-success",
+  props: %{type: :radial, size: "6em"}
+)
 |> Flex.LiveScreen.add({550, 10}, Flex.MovingAnalogIndicator, value: {:shared, :range})
 |> Flex.LiveScreen.add({600, 10}, Flex.MovingAnalogIndicator, value: {:point, "screen1:range1"})
 |> Flex.LiveScreen.run()

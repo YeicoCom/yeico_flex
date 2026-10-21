@@ -35,9 +35,9 @@ defmodule Flex.DaisyWidgets do
   def toggle(assigns) do
     ~H"""
     <form id={@id} :if={@visible? and @sink?} phx-change="value:change" phx-value-index={@index}>
-      <input type="checkbox" name="ovalue" class={["daisy-toggle", @class]} checked={@ovalue} />
+      <input type="checkbox" name="ovalue" class={["daisy-toggle", @class]} checked={@ovalue}/>
     </form>
-    <input id={@id} :if={@visible? and !@sink?} type="checkbox" tabindex="-1" class={["pointer-events-none daisy-toggle", @class]} checked={@ivalue} />
+    <input id={@id} :if={@visible? and !@sink?} type="checkbox" tabindex="-1" class={["pointer-events-none daisy-toggle", @class]} checked={@ivalue}/>
     """
   end
 
@@ -45,10 +45,21 @@ defmodule Flex.DaisyWidgets do
     ~H"""
     <form id={@id} :if={@visible? and @sink?} phx-change="value:change" phx-value-index={@index}>
       <input name="ovalue" type="range" min={@props.min} max={@props.max} step={@props.step}
-        class={["daisy-range", @class]} value={@ovalue} />
+        class={["daisy-range", @class]} value={@ovalue}/>
     </form>
     <input id={@id} :if={@visible? and !@sink?} type="range" min={@props.min} max={@props.max} step={@props.step}
-      tabindex="-1" class={["pointer-events-none daisy-range", @class]} value={@ivalue} />
+      tabindex="-1" class={["pointer-events-none daisy-range", @class]} value={@ivalue}/>
+    """
+  end
+
+  def progress(assigns) do
+    ~H"""
+    <progress id={@id} :if={@visible? and @props[:type] != :radial} tabindex="-1" max={@props.max}
+      class={["pointer-events-none daisy-progress", @class]} value={@ivalue}/>
+    <div id={@id} :if={@visible? and @props[:type] == :radial}  class={["pointer-events-none daisy-radial-progress", @class]}
+      style={["--value:#{@ivalue};", @props[:size] && "--size:#{@props[:size]};", @props[:thickness] && "--thickness:#{@props[:thickness]};"]
+        |> Enum.filter(& &1 != nil) |> Enum.join("")}
+      >{@ivalue}%</div>
     """
   end
 
