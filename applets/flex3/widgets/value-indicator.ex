@@ -16,6 +16,7 @@ defmodule Flex.ValueIndicator do
       source: %{initial: nil, check: &Flex.Check.check(&1, &2, :source)},
       visible: %{initial: nil, check: &Flex.Check.check(&1, &2, :source?)},
       visible?: %{initial: nil, check: {:fun?, 1}},
+      text: %{initial: nil, check: :binary?},
       class: %{initial: nil, check: :binary?},
       calc: %{initial: nil, check: {:fun?, 1}},
       props: %{initial: %{}, check: :map}
@@ -27,15 +28,14 @@ defmodule Flex.ValueIndicator do
   def inputs(%{source: source, visible: visible}), do: [{:value, source}, {:visible, visible}]
 
   def handler(config, render, id) do
+    %{class: class, source: source, text: text} = config
     %{visible: visible, visible?: visible?} = config
-    %{class: class, source: source} = config
     %{calc: calc, props: props} = config
 
     fn
       %{state: state, inputs: inputs, event: :render} ->
         visible = Flex.Reactor.input(inputs, :visible, visible)
-        visible? = visible?(visible?, visible)
-        state = Map.put(state, :visible?, visible?)
+        state = Map.put(state, :visible?, visible?(visible?, visible))
         render.(state)
 
       %{state: state, inputs: inputs, index: index, event: :mount} ->
@@ -43,6 +43,7 @@ defmodule Flex.ValueIndicator do
         |> Map.put(:index, index)
         |> Map.put(:class, class)
         |> Map.put(:props, props)
+        |> Map.put(:text, text)
         |> Map.put(:value, calc(inputs, source, calc))
         |> Map.put(:id, id.(index))
 

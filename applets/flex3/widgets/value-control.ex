@@ -20,7 +20,8 @@ defmodule Flex.ValueControl do
       visible?: %{initial: nil, check: {:fun?, 1}},
       class: %{initial: nil, check: :binary?},
       calc: %{initial: nil, check: {:fun?, 1}},
-      initial: %{initial: nil, check: :binary?},
+      initial?: %{initial: false, check: :boolean},
+      initial: %{initial: nil, check: :any?},
       props: %{initial: %{}, check: :map}
     }
 
@@ -28,38 +29,41 @@ defmodule Flex.ValueControl do
   def inputs(%{visible: visible}), do: [{:visible, visible}]
 
   def handler(config, render, id) do
-    %{visible: visible, visible?: visible?} = config
+    %{initial?: initial?, visible: visible, visible?: visible?} = config
     %{class: class, initial: initial, props: props} = config
 
     fn
       %{state: state, inputs: inputs, event: :render} ->
         visible = Flex.Reactor.input(inputs, :visible, visible)
-        visible? = visible?(visible?, visible)
-        state = Map.put(state, :visible?, visible?)
+        state = Map.put(state, :visible?, visible?(visible?, visible))
         render.(state)
 
       ctx = %{index: index, event: :mount} ->
-        update(ctx, config, initial)
+        update(ctx, config, initial, initial?)
         |> Map.put(:index, index)
         |> Map.put(:class, class)
         |> Map.put(:props, props)
         |> Map.put(:id, id.(index))
 
-      # checkbox wont send value param
+      # checkbox wont send value param when unchecked
+      # phx-value-value is special and wont get sent
       ctx = %{event: {:event, "value:change", params}} ->
-        update(ctx, config, params["value"])
+        update(ctx, config, params["payload"], true)
 
       %{state: state} ->
         state
     end
+    |> Flex.wrap()
   end
 
-  defp update(%{state: state, share: share}, %{calc: calc, sink: sink}, value) do
+  defp update(%{state: state, share: share}, %{calc: calc, sink: sink}, value, initial?) do
     value = if calc, do: calc.(value), else: value
 
-    case sink do
-      {:shared, name} -> share.(name, value)
-      {:point, point} -> Api.putcast!(point, value)
+    if initial? do
+      case sink do
+        {:shared, name} -> share.(name, value)
+        {:point, point} -> Api.putcast!(point, value)
+      end
     end
 
     Map.put(state, :value, value)

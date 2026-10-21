@@ -134,6 +134,20 @@ Flex.LiveScreen.new()
   value: {:point, "logic1:timer1"},
   calc: fn v -> rem(v, 11) end
 )
+|> Flex.LiveScreen.add({10, 200}, Flex.DaisyButtonControl,
+  calc: fn v -> String.to_integer(v) end,
+  sink: {:point, "screen1:button1"},
+  class: "daisy-btn-outline",
+  props: %{text: "Send 1"},
+  initial: "1"
+)
+|> Flex.LiveScreen.add({100, 200}, Flex.DaisyButtonControl,
+  calc: fn v -> String.to_integer(v) end,
+  sink: {:point, "screen1:button1"},
+  class: "daisy-btn-outline",
+  props: %{text: "Send 2"},
+  initial: "2"
+)
 |> Flex.LiveScreen.add({550, 10}, Flex.MovingAnalogIndicator, value: {:shared, :range})
 |> Flex.LiveScreen.add({600, 10}, Flex.MovingAnalogIndicator, value: {:point, "screen1:range1"})
 |> Flex.LiveScreen.run()
