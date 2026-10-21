@@ -11,6 +11,8 @@ defmodule Flex.MovingAnalogIndicator do
       warn: %{initial: {2.0, 6.0}, check: {:tuple, 2, :number?}},
       error: %{initial: {1.0, 8.0}, check: {:tuple, 2, :number?}},
       visible?: %{initial: nil, check: {:fun?, 1}},
+      rounded?: %{initial: false, check: :boolean},
+      border?: %{initial: false, check: :boolean},
       cast: %{initial: nil, check: {:fun?, 1}}
     }
 
@@ -27,10 +29,14 @@ defmodule Flex.MovingAnalogIndicator do
          value: value,
          visible: visible,
          visible?: visible?,
+         rounded?: rounded?,
+         border?: border?,
          cast: cast
        }) do
     ol = wl || el || rl
     ou = wu || eu || ru
+    oc = (ol + ou) / 2.0
+    os = (ou - ol) / 2.0
 
     wl = el || ol
     wu = eu || ou
@@ -46,19 +52,19 @@ defmodule Flex.MovingAnalogIndicator do
       },
       wl: %{
         y: bh * (wl - rl) / (ru - rl),
-        h: bh * (ol - wl) / (ru - rl)
+        h: bh * (oc - wl) / (ru - rl)
       },
       wu: %{
-        y: bh * ou / (ru - rl),
-        h: bh * (wu - ou) / (ru - rl)
+        y: bh * oc / (ru - rl),
+        h: bh * (wu - oc) / (ru - rl)
       },
       el: %{
         y: bh * rl / (ru - rl),
-        h: bh * (wl - rl) / (ru - rl)
+        h: bh * (oc - rl) / (ru - rl)
       },
       eu: %{
-        y: bh * wu / (ru - rl),
-        h: bh * (ru - wu) / (ru - rl)
+        y: bh * oc / (ru - rl),
+        h: bh * (ru - oc) / (ru - rl)
       }
     }
 
@@ -93,25 +99,27 @@ defmodule Flex.MovingAnalogIndicator do
             wl?: wl?,
             wu?: wu?,
             oor?: oor?,
-            vis?: vis?
+            vis?: vis?,
+            sw: if(border?, do: 1, else: 0),
+            rc: if(rounded?, do: bw / 10.0)
           })
 
         ~H"""
         <div :if={@vis?} id={@id} class="absolute" style={"width:#{2*@bw}px;height:#{@bh}px;"}>
           <div class="absolute h-full" style={"left:0px;width:#{@bw}px;"}>
             <svg :if={@vy} class="absolute" viewBox="0 0 16 16" overflow="visible" width={@bw} height={@bw} style={"bottom:#{@vy-@bw/2.0}px;"}>
-              <polygon vector-effect="non-scaling-stroke" points="0,0 16,8 0,16" fill={if(@oor?, do: "#ff0000", else: "#999999")} stroke="#15395b" stroke-width="1"/>
+              <polygon vector-effect="non-scaling-stroke" points="0,0 16,8 0,16" fill={if(@oor?, do: "#ff0000", else: "#999999")} stroke="#15395b" stroke-width={@sw}/>
             </svg>
           </div>
           <svg class="absolute h-full" viewBox={"0 0 #{@bw} #{@bh}"} overflow="visible" width={@bw} height={@bh} style={"left:#{@bw}px;width:#{@bw}px;"}>
             <g transform={"translate(0, #{@bh}) scale(1, -1)"}>
-              <rect vector-effect="non-scaling-stroke" x="0" y="0" width={@bw} height={@bh} stroke="#15395b" stroke-width="1" fill="#999999"/>
-              <rect vector-effect="non-scaling-stroke" x="0" y={@px.w.y} width={@bw} height={@px.w.h} stroke="#15395b" stroke-width="1" fill="#bdbdbd"/>
-              <rect vector-effect="non-scaling-stroke" x="0" y={@px.o.y} width={@bw} height={@px.o.h} stroke="#15395b" stroke-width="1" fill="#c2d9f4"/>
-              <rect :if={@wl?} vector-effect="non-scaling-stroke" x="0" y={@px.wl.y} width={@bw} height={@px.wl.h} stroke="#15395b" stroke-width="1" fill="#fff000"/>
-              <rect :if={@wu?} vector-effect="non-scaling-stroke" x="0" y={@px.wu.y} width={@bw} height={@px.wu.h} stroke="#15395b" stroke-width="1" fill="#fff000"/>
-              <rect :if={@el?} vector-effect="non-scaling-stroke" x="0" y={@px.el.y} width={@bw} height={@px.el.h} stroke="#15395b" stroke-width="1" fill="#ff0000"/>
-              <rect :if={@eu?} vector-effect="non-scaling-stroke" x="0" y={@px.eu.y} width={@bw} height={@px.eu.h} stroke="#15395b" stroke-width="1" fill="#ff0000"/>
+              <rect rx={@rc} ry={@rc} vector-effect="non-scaling-stroke" x="0" y="0" width={@bw} height={@bh} stroke="#15395b" stroke-width={@sw} fill="#999999"/>
+              <rect rx={@rc} ry={@rc} :if={@el?} vector-effect="non-scaling-stroke" x="0" y={@px.el.y} width={@bw} height={@px.el.h} stroke="#15395b" stroke-width={@sw} fill="#ff0000"/>
+              <rect rx={@rc} ry={@rc} :if={@eu?} vector-effect="non-scaling-stroke" x="0" y={@px.eu.y} width={@bw} height={@px.eu.h} stroke="#15395b" stroke-width={@sw} fill="#ff0000"/>
+              <rect rx={@rc} ry={@rc} vector-effect="non-scaling-stroke" x="0" y={@px.w.y} width={@bw} height={@px.w.h} stroke="#15395b" stroke-width={@sw} fill="#bdbdbd"/>
+              <rect rx={@rc} ry={@rc} :if={@wl?} vector-effect="non-scaling-stroke" x="0" y={@px.wl.y} width={@bw} height={@px.wl.h} stroke="#15395b" stroke-width={@sw} fill="#fff000"/>
+              <rect rx={@rc} ry={@rc} :if={@wu?} vector-effect="non-scaling-stroke" x="0" y={@px.wu.y} width={@bw} height={@px.wu.h} stroke="#15395b" stroke-width={@sw} fill="#fff000"/>
+              <rect rx={@rc} ry={@rc} vector-effect="non-scaling-stroke" x="0" y={@px.o.y} width={@bw} height={@px.o.h} stroke="#15395b" stroke-width={@sw} fill="#c2d9f4"/>
             </g>
           </svg>
         </div>

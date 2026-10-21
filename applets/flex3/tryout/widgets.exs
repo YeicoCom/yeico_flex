@@ -152,7 +152,8 @@ Flex.LiveScreen.new()
 )
 |> Flex.LiveScreen.add({500, 10}, Flex.MovingAnalogIndicator,
   value: {:point, "logic1:timer1"},
-  cast: fn v -> rem(v || 0, 11) end
+  cast: fn v -> rem(v || 0, 11) end,
+  border?: true
 )
 |> Flex.LiveScreen.add({10, 200}, Flex.ValueWidget,
   render: &Flex.DaisyWidgets.button/1,
@@ -249,8 +250,27 @@ Flex.LiveScreen.new()
   class: "text-xs text-success",
   props: %{type: :radial, size: "6em"}
 )
-|> Flex.LiveScreen.add({550, 10}, Flex.MovingAnalogIndicator, value: {:shared, :range})
+|> Flex.LiveScreen.add({550, 10}, Flex.MovingAnalogIndicator,
+  value: {:shared, :range},
+  rounded?: true
+)
 |> Flex.LiveScreen.add({600, 10}, Flex.MovingAnalogIndicator, value: {:point, "screen1:range1"})
+|> Flex.LiveScreen.add({150, 300}, Flex.MovingAnalogIndicator,
+  value: {:point, "screen1:range1"},
+  error: {0.0, 8.0}
+)
+|> Flex.LiveScreen.add({200, 300}, Flex.MovingAnalogIndicator,
+  value: {:point, "screen1:range1"},
+  warn: {0.0, 6.0}
+)
+|> Flex.LiveScreen.add({250, 300}, Flex.MovingAnalogIndicator,
+  value: {:point, "screen1:range1"},
+  error: {1.0, 10.0}
+)
+|> Flex.LiveScreen.add({300, 300}, Flex.MovingAnalogIndicator,
+  value: {:point, "screen1:range1"},
+  warn: {2.0, 10.0}
+)
 |> Flex.LiveScreen.run()
 
 :ok
