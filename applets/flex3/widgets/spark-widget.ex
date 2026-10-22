@@ -77,14 +77,14 @@ defmodule Flex.SparkWidget do
   defp id(index), do: "#{inspect(__MODULE__)}_#{index}"
 
   # prevent ~c charlists
-  defp inspect?(term),
-    do:
-      inspect(term,
-        limit: :infinity,
-        width: :infinity,
-        charlists: :as_lists,
-        printable_limit: :infinity
-      )
+  defp inspect?(term) do
+    inspect(term,
+      limit: :infinity,
+      width: :infinity,
+      charlists: :as_lists,
+      printable_limit: :infinity
+    )
+  end
 
   defp visible?(nil, visible) when is_boolean(visible), do: visible
   defp visible?(nil, _), do: true

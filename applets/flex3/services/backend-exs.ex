@@ -32,26 +32,31 @@ defmodule Flex.BackendExs do
     end
 
     env = [
-      {"TERMINAL_NAME", name},
-      {"TERMINAL_COOKIE", cookie},
-      {"TERMINAL_NODE", Node.self() |> to_string()},
-      {"TERMINAL_TMP", Terminal.tmp()},
-      {"TERMINAL_ROOT", Terminal.root()},
-      {"TERMINAL_HOME", Terminal.home()},
-      {"TERMINAL_DEV", inspect(Terminal.dev?())},
-      {"TERMINAL_DEVICE", inspect(Terminal.device?())},
-      {"TERMINAL_APPLETS", Api.path()}
+      {"BACKEND_NAME", name},
+      {"BACKEND_COOKIE", cookie},
+      {"BACKEND_ROUTE", route},
+      {"BACKEND_ENTRY", Api.entry()},
+      {"BACKEND_NODE", Node.self() |> to_string()},
+      {"BACKEND_TMP", Terminal.tmp()},
+      {"BACKEND_ROOT", Terminal.root()},
+      {"BACKEND_HOME", Terminal.home()},
+      {"BACKEND_DEV", inspect(Terminal.dev?())},
+      {"BACKEND_DEVICE", inspect(Terminal.device?())},
+      {"BACKEND_APPLETS", Api.path()}
       | env
     ]
 
-    args = [
-      "--cookie",
-      cookie,
-      "--name",
-      "#{name}@#{hostname}.local",
-      Api.path(route)
-      | args
-    ]
+    args =
+      [
+        "-pa",
+        Flex.build(),
+        "--cookie",
+        cookie,
+        "--name",
+        "#{name}@#{hostname}.local",
+        Api.path(route)
+        | args
+      ]
 
     wait(name, :pang)
     into = IO.binstream(self(), :line)

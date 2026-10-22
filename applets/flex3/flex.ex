@@ -11,4 +11,14 @@ defmodule Flex do
   def wrap(fun) when is_function(fun) do
     Api.wrapper().(fun)
   end
+
+  def dir() do
+    Api.entry()
+    |> Path.basename(".exs")
+    |> Api.path()
+  end
+
+  def build() do
+    dir() |> Path.join("_build")
+  end
 end
