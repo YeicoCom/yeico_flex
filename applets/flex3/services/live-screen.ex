@@ -36,7 +36,8 @@ defmodule Flex.LiveScreen do
 
   def add(config = %{widgets: widgets}, pos, mod, opts \\ [])
       when is_tuple(pos) and is_atom(mod) and is_list(opts) do
-    widgets = [widgets, {pos, mod, mod.new(opts), Api.wrapper()}] |> List.flatten()
+    capture = %{api: Process.get(:__api__), wrap: Api.wrapper()}
+    widgets = [widgets, {pos, mod, mod.new(opts), capture}] |> List.flatten()
     %{config | widgets: widgets}
   end
 
@@ -54,9 +55,9 @@ defmodule Flex.LiveScreen do
 
   defp handler(sid, config = %{widgets: widgets}) do
     widgets =
-      for {{pos, mod, config, wrapper}, index} <- widgets |> Enum.with_index(), into: %{} do
+      for {{pos, mod, config, capture}, index} <- widgets |> Enum.with_index(), into: %{} do
         %{handler: handler, inputs: inputs} = mod.build(config)
-        handler = wrap(handler, wrapper)
+        handler = wrap(handler, capture)
         {index, %{pos: pos, handler: handler, inputs: inputs}}
       end
 
@@ -180,7 +181,8 @@ defmodule Flex.LiveScreen do
       {:info, socket, state = %{widgets: widgets, events: events}, {:share, name, value}} ->
         spec = {:shared, name}
 
-        # share maybe called on spec not required by another widget
+        # share event gets called even if there is no change against current value
+        # share maybe called on a spec not required by any widget (nil list below)
         widgets =
           for {index, name} <- events[spec] || [], reduce: widgets do
             widgets ->
@@ -273,14 +275,9 @@ defmodule Flex.LiveScreen do
       for {index, %{pos: pos, handler: handler}} <- widgets, into: %{} do
         wid = "#{sid}:widget:#{index}"
 
-        log = fn level, term ->
-          Api.log(level, "#{wid} #{Api.inspect?(term)}")
-        end
-
         # to access shared declare an input
         ctx =
           %{
-            log: log,
             wid: wid,
             pos: pos,
             state: %{},
@@ -347,40 +344,39 @@ defmodule Flex.LiveScreen do
     put_in(widgets, [index, :ctx], ctx)
   end
 
-  # logging and stacktraces confirmed to work with tryout/screen1.exs
-  # capture wrapper at fun definition for proper stacktraces
-  # it is imposible to anticipated from what context fun will be called
-  # wrap required for logs and stacktraces
-  # Api.wrap logs unhandled exceptions
-  # Flex.wrap / Api.wrapper() does not
-  defp wrap(handler, wrapper) do
-    fn ctx ->
-      # fixme: implement wrap only if needed api call
-      # dynamic wrapping required for render event in module defined handlers
-      handler = if Process.get(:__api__), do: handler, else: wrapper.(handler)
+  # see Flex.wrap
+  defp wrap(handler, %{api: api}) do
+    fn ctx = %{event: event} ->
+      # both module and script defined handlers need this
+      if event == :render, do: Process.put(:__api__, api)
 
       case Applet.Utils.safe(handler, ctx) do
         {:ok, result} ->
           result
 
-        # distriguish between module defined handlers and script handlers
-        # errors inside ~H, like invalid @varname, seem to be catched inside
-        # for render, only assigns manipulating errors before ~H get here
-        # event those errors in the render event require explicit wrapping below
-        {:error, error} ->
-          # Applet.broadcast!("flex3.exs", :warn, Api.inspect?(ctx))
+        # - errors inside ~H, like invalid @varname, seem to be catched inside
+        # - during render only assigns manipulating errors before ~H get here
+        # - wrapping ~H/Phoenix.LiveView.Rendered.dynamic does not help
+        {:error, %{error: error, type: type, stack: stack}} ->
           %{wid: wid, event: event, inputs: inputs, state: state} = ctx
           environ = [event: event, inputs: inputs, state: state]
-          Log.warn("#{wid} #{Api.inspect?(environ)} rescue: #{Api.inspect?(error)}")
+          msg = "#{wid} #{type} #{Api.inspect?(error)}"
+
+          # expect inaccurate file in stacktraces for script defined functions
+          Log.warn(
+            [msg, Api.inspect?(environ) | stack]
+            |> Enum.map(&Api.inspect?/1)
+            |> Enum.join("\n\t")
+          )
       end
     end
   end
 
   defp check(path, value, :widget) do
     Flex.Check.check(path, value, {:tuple, 4})
-    {pos, mod, config, wrapper} = value
+    {pos, mod, config, capture} = value
     Flex.Check.check("#{path}.pos", pos, {:tuple, 2, {:integer, 0, 65_535}})
     Flex.Reactor.check("#{path}.reactor", {mod, config})
-    Flex.Check.check("#{path}.wrapper", wrapper, {:fun, 1})
+    Flex.Check.check("#{path}.capture", capture, :map)
   end
 end

@@ -44,14 +44,8 @@ defmodule Flex.ReactiveLogic do
   end
 
   defp setup(rid, index, handler, inputs, shared) do
-    log = fn level, term ->
-      Api.log(level, "#{rid} #{Api.inspect?(term)}")
-    end
-
-    # to access shared declare an input
     ctx =
       %{
-        log: log,
         rid: rid,
         state: %{},
         index: index,
@@ -60,7 +54,16 @@ defmodule Flex.ReactiveLogic do
       }
 
     {:error, error} = Api.safe(fn -> first(handler, ctx) end)
-    Log.warn("#{rid} #{Api.inspect?(Process.get(:__environ__))} #{Api.inspect?(error)}")
+    %{error: error, type: type, stack: stack} = error
+    environ = Process.get(:__environ__)
+    msg = "#{rid} #{type} #{Api.inspect?(error)}"
+
+    # expect inaccurate file in stacktraces for script defined functions
+    Log.warn(
+      [msg, Api.inspect?(environ) | stack]
+      |> Enum.map(&Api.inspect?/1)
+      |> Enum.join("\n\t")
+    )
   end
 
   defp first(handler, ctx = %{event: event, inputs: inputs, state: state}) do

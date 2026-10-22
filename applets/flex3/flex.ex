@@ -1,18 +1,14 @@
 defmodule Flex do
   use Terminal
 
-  # wrap only required from non applet processes like render
-  # wrap required for logs and stacktraces
+  # logging requires __api__ for entry and route for both script and module functions
+  # script functions require on definition wrapping for accurante stacktraces no matter the execution point
+  # unwrapped script functions generate accurate stacktraces only when executed during the evaluation of their script file
+  # liveview rendering process is not an applet managed process and __api__ is not present and stdio is suppresed
+  #
   # Api.wrap logs unhandled exceptions
   # Api.wrapper() does not
-  def wrap(fun, wrapper \\ nil) do
-    wrapper = wrapper || Api.wrapper()
-    wrapper.(fun)
+  def wrap(fun) when is_function(fun) do
+    Api.wrapper().(fun)
   end
-
-  def trace(%{log: log}, term), do: log.(:trace, term)
-  def debug(%{log: log}, term), do: log.(:debug, term)
-  def info(%{log: log}, term), do: log.(:info, term)
-  def warn(%{log: log}, term), do: log.(:warn, term)
-  def error(%{log: log}, term), do: log.(:error, term)
 end
