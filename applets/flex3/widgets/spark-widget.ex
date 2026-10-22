@@ -2,6 +2,8 @@ defmodule Flex.SparkWidget do
   use Flex.Reactor
   use Terminal.Live
 
+  # https://github.com/mariusGundersen/sparkline
+  # https://github.com/mariusGundersen/sparkline/blob/909da5007d1c46a35b17a4911dbfb40dc0f8ca3b/source/sparkline.js#L40
   def specs,
     do: %{
       visible: %{initial: nil, check: &Flex.Check.check(&1, &2, :source?)},
@@ -9,7 +11,6 @@ defmodule Flex.SparkWidget do
       visible?: %{initial: nil, check: {:fun?, 1}},
       icast: %{initial: nil, check: {:fun?, 1}},
       maxlen: %{initial: 25, check: :integer},
-      dotlen: %{initial: 0, check: :integer},
       class: %{initial: nil, check: :binary?},
       props: %{initial: %{}, check: :map}
     }
@@ -19,7 +20,7 @@ defmodule Flex.SparkWidget do
 
   def handler(config) do
     %{props: props, class: class, visible?: visible?} = config
-    %{maxlen: maxlen, dotlen: dotlen, icast: icast} = config
+    %{maxlen: maxlen, icast: icast} = config
     [{_, {type, _}}] = inputs(config)
 
     fn
@@ -28,9 +29,9 @@ defmodule Flex.SparkWidget do
         assigns = Map.put(state, :visible?, visible?)
         # https://tiny-spark.graphieros.com/
         ~H"""
-          <div id={@id} :if={@visible?} {@props} data-index={@index} data-maxlen={@maxlen} data-id={"#{@id}_svg"}
-            phx-hook="Spark" tabindex="-1" class={["pointer-events-none tiny-spark", @class]}
-            phx-update="ignore" data-plot-radius={@dotlen} data-set={inspect?(@ivalue)}/>
+          <div id={@id} :if={@visible?} {@props} data-index={@index} data-maxlen={@maxlen}
+            phx-hook="Spark" tabindex="-1" class={["pointer-events-none", @class]}
+            phx-update="ignore" data-set={inspect?(@ivalue)}/>
         """
 
       %{state: state, inputs: %{ivalue: ivalue}, event: :mount, index: index} ->
@@ -54,7 +55,6 @@ defmodule Flex.SparkWidget do
         |> Map.put(:class, class)
         |> Map.put(:props, props)
         |> Map.put(:maxlen, maxlen)
-        |> Map.put(:dotlen, dotlen)
         |> Map.put(:ivalue, ivalue)
 
       # do not accumulate server side

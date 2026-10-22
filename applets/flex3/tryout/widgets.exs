@@ -272,12 +272,15 @@ Flex.LiveScreen.new()
   warn: {2.0, 10.0}
 )
 |> Flex.LiveScreen.add({400, 300}, Flex.SparkWidget,
-  # props: %{"data-show-last-value" => "true"},
+  props: %{
+    "data-dot-radius" => "3",
+    "data-min-value" => "0",
+    "data-max-value" => "10"
+  },
   source: {:point, "logic1:timer1"},
   icast: fn v -> rem(v || 0, 11) end,
   class: "w-64 h-36",
-  maxlen: 50,
-  dotlen: 5
+  maxlen: 50
 )
 |> Flex.LiveScreen.run()
 
