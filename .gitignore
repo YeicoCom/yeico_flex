@@ -10,5 +10,6 @@ applets/secret
 applets/static/upload
 
 applets/*/_build
+applets/*.app
 
 .DS_Store
