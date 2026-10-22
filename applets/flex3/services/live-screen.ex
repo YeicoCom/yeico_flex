@@ -3,9 +3,9 @@ defmodule Flex.LiveScreen do
   use Terminal.Live
 
   # Adb is the global transient state
-  # @shared is immutable state merging screen environ and screen config
+  # @shared initially is merges screen environ and screen config
   # widgets don't perform logic
-  # widgets don't actively share screen wide state
+  # widgets share screen state through ctx.share
   # widgets share global state through Api.putcast!
   # screen pools points and timers together
   # valid sources are:
@@ -317,7 +317,7 @@ defmodule Flex.LiveScreen do
   defp render(assigns) do
     ~H"""
     <div id="ls_main" data-theme={@theme} inert={!!@modal} phx-hook="Resize" phx-window-keydown="modal:close" phx-key="Escape" phx-value-index={@modal[:index]}
-      class="relative h-screen w-screen overflow-hidden select-none text-base outline-none border-box leading-none text-nowrap bg-base-300">
+      class="relative h-screen w-screen overflow-hidden select-none text-base outline-none border-box leading-none text-nowrap bg-neutral-800">
       <div :if={@size} id="ls_panel" class="absolute bg-base-100 text-base-content" style={"left:#{@x}px;top:#{@y}px;width:#{@w}px;height:#{@h}px;"}>
         <div class="absolute" style={"scale:#{@s};"}>
           <div :for={{index, %{handler: handler, ctx: ctx = %{pos: {x, y}}}} <- @index} id={"ls_widget_#{index}"} class="ls_widget absolute" style={"left:#{x}px;top:#{y}px;"}>
