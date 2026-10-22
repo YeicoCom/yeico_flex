@@ -55,7 +55,6 @@ defmodule Flex.Gauth do
     push_event(socket, "gauth:href", %{href: logout_url()})
   end
 
-  # 1 trillion seconds = 11.5740741k days
   def logout_url(path \\ "/") do
     expiry = NaiveDateTime.shift(NaiveDateTime.utc_now(), year: 1_000)
     token = Terminal.encode(%{key: "guser", expiry: expiry, redirect: path})

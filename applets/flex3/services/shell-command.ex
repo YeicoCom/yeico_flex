@@ -24,7 +24,7 @@ defmodule Flex.ShellCommand do
   # System.shell waits for background processes with trailing &
   # next shell script lines get executed but System.shell wont return
   # test with: System.shell("sleep 10 &")
-  # nohup is required to fully disowns and detaches
+  # nohup is required to fully disown and detach
   defp exec(cmd, e2o?, o2l?, dir, header) do
     Log.debug(header)
     opts = [stderr_to_stdout: e2o?, env: [{"FLEX_RUN", dir}], close_stdin: true]

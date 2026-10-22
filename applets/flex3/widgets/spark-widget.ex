@@ -6,8 +6,8 @@ defmodule Flex.SparkWidget do
   # https://github.com/mariusGundersen/sparkline/blob/909da5007d1c46a35b17a4911dbfb40dc0f8ca3b/source/sparkline.js#L40
   def specs,
     do: %{
-      visible: %{initial: nil, check: &Flex.Check.check(&1, &2, :source?)},
-      source: %{initial: nil, check: &Flex.Check.check(&1, &2, :source?)},
+      visible: %{initial: nil, check: :source?},
+      source: %{initial: nil, check: :source?},
       visible?: %{initial: nil, check: {:fun?, 1}},
       icast: %{initial: nil, check: {:fun?, 1}},
       maxlen: %{initial: 25, check: :integer},
@@ -27,7 +27,7 @@ defmodule Flex.SparkWidget do
       %{state: state, inputs: inputs, event: :render} ->
         visible? = visible?(visible?, inputs[:visible])
         assigns = Map.put(state, :visible?, visible?)
-        # https://tiny-spark.graphieros.com/
+
         ~H"""
           <div id={@id} :if={@visible?} {@props} data-index={@index} data-maxlen={@maxlen}
             phx-hook="Spark" tabindex="-1" class={["pointer-events-none", @class]}
@@ -76,13 +76,14 @@ defmodule Flex.SparkWidget do
 
   defp id(index), do: "#{inspect(__MODULE__)}_#{index}"
 
+  # prevent ~c charlists
   defp inspect?(term),
     do:
       inspect(term,
         limit: :infinity,
-        printable_limit: :infinity,
         width: :infinity,
-        charlists: :as_lists
+        charlists: :as_lists,
+        printable_limit: :infinity
       )
 
   defp visible?(nil, visible) when is_boolean(visible), do: visible

@@ -4,8 +4,8 @@ defmodule Flex.MovingAnalogIndicator do
 
   defp specs,
     do: %{
-      value: %{initial: nil, check: &Flex.Check.check(&1, &2, :source?)},
-      visible: %{initial: nil, check: &Flex.Check.check(&1, &2, :source?)},
+      value: %{initial: nil, check: :source?},
+      visible: %{initial: nil, check: :source?},
       bar: %{initial: {40, 120}, check: {:tuple, 2, {:integer, 0, 65_535}}},
       range: %{initial: {0.0, 10.0}, check: {:tuple, 2, :number}},
       warn: %{initial: {2.0, 6.0}, check: {:tuple, 2, :number?}},

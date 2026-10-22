@@ -4,9 +4,9 @@ defmodule Flex.ValueWidget do
 
   def specs,
     do: %{
-      visible: %{initial: nil, check: &Flex.Check.check(&1, &2, :source?)},
-      source: %{initial: nil, check: &Flex.Check.check(&1, &2, :source?)},
-      sink: %{initial: nil, check: &Flex.Check.check(&1, &2, :sink?)},
+      visible: %{initial: nil, check: :source?},
+      source: %{initial: nil, check: :source?},
+      sink: %{initial: nil, check: :sink?},
       visible?: %{initial: nil, check: {:fun?, 1}},
       render: %{initial: nil, check: {:fun, 1}},
       class: %{initial: nil, check: :binary?},

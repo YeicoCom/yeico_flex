@@ -40,6 +40,7 @@ defmodule Flex.ModbusDevice do
     sid = name(config)
     Log.debug("#{sid} run")
     status(name, "starting")
+    clean(fn -> status(name, "error") end)
     protom = Modbus.Protocol.by_name(proto)
 
     with {:ok, conn} <- Modbus.Master.open(ip: ip, port: port, proto: protom) do
@@ -55,15 +56,13 @@ defmodule Flex.ModbusDevice do
           loop(%{rts: rts, config: config, conn: conn, sid: sid})
         end)
 
-      # Flex.ServiceOld.kill "modbus-slave:4031:127.0.0.1:TCP:setup"
+      # Flex.Service.kill "modbus-slave:4031:127.0.0.1:TCP:setup"
       # test with invalid point, proto, or disconnection
       Log.warn("#{sid} #{Api.inspect?(error)}")
-      status(name, "error")
     else
       {:error, error} ->
         # test with invalid endpoint
         Log.warn("#{sid} #{Api.inspect?(error)}")
-        status(name, "error")
     end
   end
 
