@@ -347,6 +347,21 @@ defmodule Flex.LiveScreen do
   # see Flex.wrap
   defp wrap(handler, %{api: api}) do
     fn ctx = %{event: event} ->
+      # first mount/render called from a different process
+      # 1) HTTP request-response (controller/router pipeline)
+      # 2) Phoenix.Channel infrastructure
+      # 2026-10-22T13:28:09.534 WARN flex3/tryout/vapid.exs #PID<0.2064.0> :mount
+      # 2026-10-22T13:28:09.534 WARN flex3/tryout/vapid.exs #PID<0.2064.0> :render
+      # 2026-10-22T13:28:09.557 WARN flex3/tryout/vapid.exs #PID<0.2705.0> :mount
+      # 2026-10-22T13:28:09.557 WARN flex3/tryout/vapid.exs #PID<0.2705.0> :render
+      # this is only called: mount, mount, render because of the size hook flag
+
+      # if first render enabled with size {800, 480} render gets nil for both
+      # :__api__/{:elixir, :eval_env} which suggest previous mount call nilled
+      # them when the wrapper restored the captured environment, the question is
+      # why all events after render do get the proper environment?
+      # testeable with: if event != :render, do: Log.warn(event)
+
       # both module and script defined handlers need this
       if event == :render, do: Process.put(:__api__, api)
 
