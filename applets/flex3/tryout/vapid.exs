@@ -1,14 +1,13 @@
 use Terminal.Live
 
 path = "/"
-vapid_config = Flex.Vapid.load_config("secret/vapid.json")
-vapid_vars = Flex.Vapid.build_vars(vapid_config)
-pubkey = vapid_config["publicKey"]
+vapid = Flex.Vapid.build()
 
-{runexs, _} = Api.evalf("flex3/runexs.exs")
-Api.async(fn -> runexs.({"flex3/backends/vapid.exs", name: "vapid", env: vapid_vars}) end)
-node = "vapid@#{Api.hostname()}.local" |> String.to_atom()
-pusher = Flex.Vapid.get_pusher(node, "/applets/flex3")
+Flex.BackendExs.new()
+|> Flex.BackendExs.set(route: "flex3/backends/vapid.exs")
+|> Flex.BackendExs.set(name: vapid.name)
+|> Flex.BackendExs.set(env: vapid.vars)
+|> Flex.BackendExs.run()
 
 view = fn assigns ->
   ~H"""
@@ -41,25 +40,25 @@ handler = fn
 
   {:event, socket, state, event = "hook:vapid", params} ->
     Log.trace(event: path, event: event, params: params)
-    pusher.({:add, params})
+    vapid.pusher.({:add, params})
     state = Map.put(state, :sub, params)
     {socket, state}
 
   {:event, socket, state = %{sub: sub}, event = "click:test", params} ->
     Log.trace(event: path, event: event, params: params)
-    pusher.({:one, sub, "Testing 1,2,3", "gray"})
+    vapid.pusher.({:one, sub, "Testing 1,2,3", "gray"})
     {socket, state}
 
   {:event, socket, state, event = "click:enable", params} ->
     Log.trace(event: path, event: event, params: params)
-    socket = push_event(socket, "vapid:enable", %{pubkey: pubkey})
+    socket = push_event(socket, "vapid:enable", %{pubkey: vapid.pubkey})
     {socket, state}
 
   {:event, socket, state = %{sub: sub}, event = "click:disable", params} ->
     Log.trace(event: path, event: event, params: params)
     socket = push_event(socket, "vapid:disable", %{})
     state = Map.put(state, :sub, nil)
-    if sub, do: pusher.({:del, sub})
+    if sub, do: vapid.pusher.({:del, sub})
     {socket, state}
 
   {:event, socket, state, event, params} ->
