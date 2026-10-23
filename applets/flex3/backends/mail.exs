@@ -6,32 +6,37 @@ Mix.install([{:gen_smtp, "1.3.0"}, {:castore, "~> 1.0"}],
 
 Api.var("MAIL_CERTS", CAStore.file_path())
 
-# fixme load this from secret/mail.exs
-opts = [
-  relay: "smtp.yeico.com",
-  port: 465,
-  username: "root@yeico.com",
-  password: Api.var("MAIL_PASS"),
-  auth: :always,
-  ssl: true,
-  tls: :never,
-  retries: 3,
-  no_mx_lookups: true,
-  # fallback confirmed to work
-  # sockopts: [verify: :verify_none]
-  # verified confirmed to work
-  sockopts: [
-    # >=3 works
-    depth: 3,
-    cacertfile: Api.var("MAIL_CERTS")
-  ]
-  # uncomment for debugging
-  # trace_fun: fn format, args -> :io.format(format, args) end
-]
+# sample secret/mail.exs
+# [
+#   relay: "smtp.yeico.com",
+#   port: 465,
+#   username: "root@yeico.com",
+#   password: var.("MAIL_PASS"),
+#   auth: :always,
+#   ssl: true,
+#   tls: :never,
+#   retries: 3,
+#   no_mx_lookups: true,
+#   # fallback confirmed to work
+#   # sockopts: [verify: :verify_none]
+#   # verified confirmed to work
+#   sockopts: [
+#     # >=3 works
+#     depth: 3,
+#     cacertfile: var.("MAIL_CERTS")
+#   ]
+#   # uncomment for debugging
+#   # trace_fun: fn format, args -> :io.format(format, args) end
+# ]
+
+{opts, _} =
+  Api.var("MAIL_CONF")
+  |> File.read!()
+  |> Code.eval_string(var: &Api.var/1)
 
 true = Process.register(self(), :mail)
 
-send = fn mail = %{from: from, to: to, subject: subject, body: body} ->
+send = fn %{from: from, to: to, subject: subject, body: body} ->
   res =
     :gen_smtp_client.send_blocking(
       {~c"#{from}", [~c"#{to}"],
@@ -43,7 +48,7 @@ send = fn mail = %{from: from, to: to, subject: subject, body: body} ->
       opts
     )
 
-  IO.inspect(mail: mail, res: res)
+  IO.inspect(res: res)
 end
 
 loop = fn loop ->
