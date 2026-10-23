@@ -7,7 +7,7 @@ Flex.BackendExs.new()
 |> Flex.BackendExs.set(route: "flex3/backends/mail.exs")
 |> Flex.BackendExs.set(name: mail.name)
 |> Flex.BackendExs.set(env: mail.env)
-|> Flex.BackendExs.run()
+|> Flex.BackendExs.run(rdms: 1000)
 
 view = fn assigns ->
   ~H"""

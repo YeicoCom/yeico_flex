@@ -83,6 +83,7 @@ defmodule Flex.LiveScreen do
         shared = Map.put_new(shared, :height, height)
         shared = Map.put_new(shared, :class, class)
         shared = Map.put_new(shared, :pass, pass)
+        state = Map.put(state, :shared, shared)
         state = Map.put(state, :keypad?, keypad?)
         state = Map.put(state, :style, style)
         state = Map.put(state, :theme, theme)
@@ -178,13 +179,17 @@ defmodule Flex.LiveScreen do
         state = Map.put(state, :widgets, widgets)
         {socket, state}
 
-      {:info, socket, state = %{widgets: widgets, events: events}, {:share, name, value}} ->
-        spec = {:shared, name}
+      {:info, socket, state = %{widgets: widgets, events: events, shared: shared},
+       {:share, name, value}} ->
+        {prev, shared} = Map.get_and_update(shared, name, fn prev -> {prev, value} end)
+        state = Map.put(state, :shared, shared)
+        list = if prev != value, do: events[{:shared, name}]
+        # test with shared menu in hmi tryout
+        # Api.debug({:share, name, value, list})
 
-        # share event gets called even if there is no change against current value
         # share maybe called on a spec not required by any widget (nil list below)
         widgets =
-          for {index, name} <- events[spec] || [], reduce: widgets do
+          for {index, name} <- list || [], reduce: widgets do
             widgets ->
               call(widgets, index, fn ctx = %{inputs: inputs} ->
                 ctx

@@ -9,12 +9,11 @@ defmodule Flex.Backend do
   defmodule Api do
     def var(name), do: System.get_env(name)
     def var(name, value), do: System.put_env(name, value)
-    def bvar(name), do: System.get_env("BACKEND_#{name}")
-    def name(), do: bvar("NAME")
-    def master(), do: bvar("NODE")
-    def entry(), do: bvar("ENTRY")
-    def route(), do: bvar("ROUTE")
-    def home(), do: bvar("HOME")
+    def name(), do: var("BACKEND_NAME")
+    def master(), do: var("BACKEND_NODE")
+    def entry(), do: var("BACKEND_ENTRY")
+    def route(), do: var("BACKEND_ROUTE")
+    def home(), do: var("BACKEND_HOME")
 
     def connect() do
       master = master() |> String.to_atom()
