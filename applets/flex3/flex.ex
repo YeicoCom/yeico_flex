@@ -11,13 +11,14 @@ defmodule Flex do
     Api.wrapper().(fun)
   end
 
-  def dir() do
+  def dir(:entry) do
     Api.entry()
     |> Path.basename(".exs")
     |> Api.path()
   end
 
   def build() do
-    dir() |> Path.join("_build")
+    :code.which(__MODULE__)
+    |> Path.dirname()
   end
 end
