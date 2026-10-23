@@ -16,7 +16,7 @@ build
 |> Enum.each(fn m ->
   :code.delete(m)
   :code.purge(m)
-  :code.load_file(m)
+  # :code.load_file(m)
 end)
 
 :ok
