@@ -13,18 +13,17 @@ function decodeJWT(token) {
     return JSON.parse(jsonPayload)
 }
 
-let gauthGlobals = {}
+const gauthGlobals = {}
 
-window.gauthRegisterHook = function (hook) {
-    gauthGlobals.hook = hook
-}
-
+// declared as data-callback at login/g_id_onload
+// requires to be globally visible
 window.gauthHandleResponse = function (response) {
     const profile = decodeJWT(response.credential)
     if (gauthGlobals.hook) gauthGlobals.hook(response, profile)
 }
 
-window.gauthLoadClient = function () {
+// entry point at mount
+function gauthLoadClient() {
     // just checking existance wont make the button reapear
     var prev = document.getElementById("g_gsi_script_loader")
     if (prev) prev.remove()
@@ -67,4 +66,19 @@ window.gauthLoadClient = function () {
         }, 1000)
     }
     document.head.appendChild(script);
+}
+
+export default {
+    mounted() {
+        // redirect somewhere else
+        this.handleEvent("gauth:href", ({ href }) => {
+            location.href = href
+        })
+        // receive user credentials
+        gauthGlobals.hook = (response, profile) => {
+            this.pushEvent("gauth:auth", { ...profile, ...response })
+        }
+        // trigger button loading
+        setTimeout(gauthLoadClient, 100)
+    }
 }
