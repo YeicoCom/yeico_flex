@@ -8,8 +8,10 @@ import Copy from "./copy"
 import Focus from "./focus"
 import Form from "./form"
 import Gauth from "./gauth"
+import History from "./history"
 import Keypad from "./keypad"
 import Resize from "./resize"
+import Scroll from "./scroll"
 import Spark from "./spark"
 import Theme from "./theme"
 import Vapid from "./vapid"
@@ -23,8 +25,10 @@ const hooks = {
     Focus,
     Form,
     Gauth,
+    History,
     Keypad,
     Resize,
+    Scroll,
     Spark,
     Theme,
     Vapid

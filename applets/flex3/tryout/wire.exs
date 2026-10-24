@@ -1,4 +1,4 @@
-use Terminal.Live
+use Terminal
 
 Flex.Gauth.db_init()
 Flex.Gauth.db_put("samuel.ventura@yeico.com")
