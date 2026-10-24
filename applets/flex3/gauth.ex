@@ -1,7 +1,7 @@
 defmodule Flex.Gauth do
   use Terminal.Live
 
-  @dbname :flex_google_auth_db
+  @dbname :gauth_cubdb
 
   def db_init() do
     case Process.whereis(@dbname) do
