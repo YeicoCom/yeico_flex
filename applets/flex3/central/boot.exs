@@ -14,4 +14,6 @@ Api.evalf("flex3/central/shell.exs",
   auth: Flex.Gauth.get_spec(:db)
 )
 
+Api.evalf("flex3/central/master.exs")
+
 :ok

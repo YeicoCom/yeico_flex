@@ -10,8 +10,8 @@ render = fn assigns ->
     </div>
     <div class="flex flex-col gap-2 font-mono">
       <div :for={{host, %{stamp: stamp, name: name, build: build}} <- @slaves} class="flex flex-col gap-1">
-          <div class="flex items-center justify-between">
-            <div class={[@selected==host && "text-primary", "flex gap-2 daisy-link daisy-link-hover"]}
+          <div class={[@selected==host && "bg-neutral rounded", "flex p-1 items-center justify-between"]}>
+            <div class="flex gap-2 daisy-link daisy-link-hover"
               phx-click="select" phx-value-host={host}
               title={build}>
               <div>{stamp |> NaiveDateTime.truncate(:second)}</div>
@@ -23,7 +23,7 @@ render = fn assigns ->
               <div class="daisy-link daisy-link-hover hover:text-warning" phx-click="reboot" phx-value-host={host}>Reboot</div>
             </div>
           </div>
-          <form :if={@selected == host} id="config_form" phx-hook="Form" class="grid grid-cols-[200px_1fr] gap-2 py-1" phx-change="input:change" phx-submit="input:save">
+          <form :if={@selected == host} id="config_form" phx-hook="Form" class="grid grid-cols-[200px_1fr] gap-2 p-1" phx-change="input:change" phx-submit="input:save">
             <div>Device Name</div>
             <input name="name" type="text" autocomplete="off"
               id="config_name" phx-hook="Focus"

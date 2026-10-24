@@ -2,48 +2,36 @@ use Terminal.Live
 
 view = fn assigns ->
   ~H"""
-  <div class="flex flex-col items-center justify-center h-screen gap-4">
+  <div data-theme={@theme} class="flex flex-col items-center justify-center h-screen gap-4">
     <image src="/images/logo.svg" class="w-[8em]"/>
-    <div class="text-3xl text-gray">{@hostname}</div>
-    <form class="grid grid-cols-[120px_1fr] gap-2 items-center text-xs text-gray-200" phx-change="input:change" phx-submit="input:save">
+    <div class="text-3xl">{@hostname}</div>
+    <form id="setup_form" class="grid grid-cols-[120px_1fr] gap-2 items-center" phx-hook="Form" phx-submit="form:submit">
       <div>Device Name</div>
-      <input id="name" phx-hook="AutoFocus" name="name" type="text" autocomplete="off" title="Press Enter to Save"
-        class={[
-          "grow text-base p-1.5 rounded-lg bg-zinc-600 text-neutral-400",
-          "focus:border-2 focus:outline-none focus:ring-0 focus:border-lime-500",
-        ]} value={@input[:name]}
-      />
+      <input id="name" phx-hook="Focus" name="name" type="text" autocomplete="off"
+        class="grow daisy-input daisy-input-bordered"
+        value={@name}/>
       <div>Owner Email</div>
-      <input name="owner" type="email" autocomplete="off" title="Press Enter to Save"
-        class={[
-          "grow text-base p-1.5 rounded-lg bg-zinc-600 text-neutral-400",
-          "focus:border-2 focus:outline-none focus:ring-0 focus:border-lime-500",
-        ]} value={@input[:owner]}
-      />
-      <button type="submit" class={[
-        "col-span-2 py-4",
-        "p-1.5 rounded-lg bg-zinc-700 text-neutral-400",
-        "hover:bg-lime-500 hover:text-white hover:cursor-pointer",
-        ]}>Save</button>
+      <input name="owner" type="email" autocomplete="off"
+        class="grow daisy-input daisy-input-bordered"
+        value={@owner}/>
+      <div/>
+      <button type="submit"
+        class="grow daisy-btn daisy-btn-outline"
+        >Save</button>
     </form>
-    <style>body {background-image: url("/images/waves.jpg"); background-position: center; background-size: cover;}</style>
   </div>
   """
 end
 
 handler = fn
-  {:mount, socket, state} ->
-    socket = assign(socket, applet_css: "/applets/setup.css")
-    socket = assign(socket, applet_js: "/applets/setup.js")
+  {:mount, socket = %{assigns: assigns}, state} ->
+    socket = assign(socket, applet_css: props[:applet_css] || "/applets/setup.css")
+    socket = assign(socket, applet_js: props[:applet_js] || "/applets/setup.js")
     socket = assign(socket, page_title: "Setup")
-    state = Map.put(state, :hostname, socket.assigns.hostname)
-
-    state =
-      Map.put(state, :input, %{
-        name: Terminal.rconfig("name"),
-        owner: Terminal.rconfig("owner")
-      })
-
+    state = Map.put(state, :theme, props[:theme])
+    state = Map.put(state, :hostname, assigns.hostname)
+    state = Map.put(state, :name, Terminal.rconfig("name"))
+    state = Map.put(state, :owner, Terminal.rconfig("owner"))
     {socket, state}
 
   {:render, _assigns, state} ->
@@ -53,13 +41,10 @@ handler = fn
     Log.trace(view: path, params: params, uri: uri)
     {socket, state}
 
-  {:event, socket, state, event = "input:change", params = %{"_target" => [target]}} ->
+  {:event, socket, state, event = "form:submit", params = %{"name" => name, "owner" => owner}} ->
     Log.trace(view: path, event: event, params: params)
-    state = put_in(state, [:input, String.to_atom(target)], params[target])
-    {socket, state}
-
-  {:event, socket, state, event = "input:save", params = %{"name" => name, "owner" => owner}} ->
-    Log.trace(view: path, event: event, params: params)
+    state = Map.put(state, :name, name)
+    state = Map.put(state, :owner, owner)
 
     spawn(fn ->
       Terminal.uconfig!("owner", owner)

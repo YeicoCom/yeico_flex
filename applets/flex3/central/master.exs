@@ -13,9 +13,9 @@ File.write!(Api.path("static/setup.css"), css)
 Applet.start!("setup.exs")
 """
 
-setup = File.read!(Api.path("flex/central/slave/setup.exs"))
-view = File.read!(Api.path("flex/central/slave/view.exs"))
-browser = File.read!(Api.path("flex/browser.exs"))
+setup = File.read!(Api.path("flex3/central/slave/setup.exs"))
+view = File.read!(Api.path("flex3/central/slave/view.exs"))
+browser = File.read!(Api.path("flex3/browser.exs"))
 css = File.read!(Api.path("static/flex3.css"))
 js = File.read!(Api.path("static/flex3.js"))
 req = %{script: script, argv: [setup, view, browser, css, js]}
