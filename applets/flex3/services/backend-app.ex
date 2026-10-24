@@ -9,11 +9,8 @@ defmodule Flex.BackendApp do
       env: %{initial: [], check: {:list, nil, {:tuple, 2, :binary}}}
     }
 
-  defp name(%{route: route, name: name}),
-    do: "backend-app:#{route}:#{name || Path.basename(route, ".exs")}"
-
-  defp setup(config = %{route: route, name: name, env: env}) do
-    sid = name(config)
+  defp setup(%{route: route, name: name, env: env}) do
+    sid = Process.get(:__sid__)
     Log.debug("#{sid} starting")
     name = name || Path.basename(route, ".exs")
     {"", 0} = System.cmd("epmd", ["-daemon"])

@@ -23,6 +23,6 @@ Flex.ModbusSlave.new()
 |> Flex.ModbusSlave.set(proto: "TCP")
 |> Flex.ModbusSlave.set(ip: "127.0.0.1")
 |> Flex.ModbusSlave.set(port: 4031)
-|> Flex.ModbusSlave.run()
+|> Flex.ModbusSlave.run(name: "tcp:4031")
 
 :ok

@@ -10,22 +10,21 @@ defmodule Flex.ModbusSlave do
       ip: %{initial: "127.0.0.1", check: {:in, ["127.0.0.1", "0.0.0.0"]}}
     }
 
-  defp name(%{port: port, ip: ip, proto: proto}), do: "modbus-slave:#{port}:#{ip}:#{proto}"
-
   defp setup(%{port: port, ip: ip, proto: proto, key: key}) do
+    sid = Process.get(:__sid__)
     protom = Modbus.Protocol.by_name(proto)
     apply = fn data -> Modbus.Slave.apply(protom, key, data) end
-    {:ok, socket = %{port: port}} = Tcp.listen(ip, port, active: true)
+    {:ok, socket} = Tcp.listen(ip, port, active: true)
     clean(fn -> Tcp.close(socket) end)
-    sid = "modbus-slave:#{port}:#{ip}:#{proto}"
     Log.debug("#{sid} started")
     accept(socket, apply)
   end
 
-  defp accept(socket = %{port: port}, apply) do
+  defp accept(socket, apply) do
     Api.flush(toms: 0)
     {:ok, conn = %{peer: peer}} = Tcp.accept(socket)
-    cid = "modbus-slave:#{port}:#{peer.ip}:#{peer.port}"
+    sid = Process.get(:__sid__)
+    cid = "#{sid}:#{peer.ip}:#{peer.port}"
     Log.trace("#{cid} accepted")
     conn = Map.put(conn, :cid, cid)
     conn = Map.put(conn, :apply, apply)

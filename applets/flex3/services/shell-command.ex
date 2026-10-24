@@ -4,17 +4,14 @@ defmodule Flex.ShellCommand do
 
   defp specs,
     do: %{
-      id: %{initial: nil, check: :binary},
       run: %{initial: nil, check: :binary},
       kill: %{initial: nil, check: :binary?},
       e2o?: %{initial: true, check: :boolean},
       o2l?: %{initial: false, check: :boolean}
     }
 
-  defp name(%{id: id}), do: "shell-command:#{id}"
-
-  defp setup(config = %{run: run, kill: kill, e2o?: e2o?, o2l?: o2l?}) do
-    sid = name(config)
+  defp setup(%{run: run, kill: kill, e2o?: e2o?, o2l?: o2l?}) do
+    sid = Process.get(:__sid__)
     dir = Terminal.dpath("@tmp/shell-command")
     clean(fn -> if kill, do: exec(kill, e2o?, o2l?, dir, "#{sid} kill") end)
     exec(run, e2o?, o2l?, dir, "#{sid} run")

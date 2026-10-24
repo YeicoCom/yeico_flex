@@ -11,12 +11,10 @@ defmodule Flex.SerialExport do
       ip: %{initial: "127.0.0.1", check: {:in, ["127.0.0.1", "0.0.0.0"]}}
     }
 
-  defp name(%{tty: tty, port: port, ip: ip}), do: "serial-export:#{tty}:#{port}:#{ip}"
-
   # pid on $! does not depend on sudo/socat success
   # do not use -9 or sudo wont kill child socat process
   defp setup(config) do
-    sid = name(config)
+    sid = Process.get(:__sid__)
     Api.debug("#{sid} run")
 
     pidf = pid_file(config)

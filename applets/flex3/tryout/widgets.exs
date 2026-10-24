@@ -1,7 +1,6 @@
 use Terminal.Live
 
 Flex.ReactiveLogic.new()
-|> Flex.ReactiveLogic.set(id: "logic1")
 |> Flex.ReactiveLogic.add(Flex.ReactorWrapper,
   inputs: [
     {:timer1, {:timer, 500}}

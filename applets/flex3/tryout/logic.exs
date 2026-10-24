@@ -7,7 +7,6 @@ use Terminal
 # generate an arithmetic error
 # Api.putcast!("logic1:point1", true)
 Flex.ReactiveLogic.new()
-|> Flex.ReactiveLogic.set(id: "logic1")
 |> Flex.ReactiveLogic.add(Flex.ReactorWrapper,
   inputs: [
     {:const1, {:const, -1}},

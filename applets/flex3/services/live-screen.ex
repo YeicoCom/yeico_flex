@@ -41,11 +41,8 @@ defmodule Flex.LiveScreen do
     %{config | widgets: widgets}
   end
 
-  defp name(%{path: path}),
-    do: "live-screen:#{path}"
-
   defp setup(config = %{path: path, auth: auth}) do
-    sid = name(config)
+    sid = Process.get(:__sid__)
     Log.debug("#{sid} run")
     # handler gets auto wrapped
     Terminal.view(path, handler(sid, config), auth: auth)

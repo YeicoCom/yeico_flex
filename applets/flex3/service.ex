@@ -15,19 +15,21 @@ defmodule Flex.Service do
       end
 
       # opts:
-      #   loop -> rdms \\ 0, level, tag
+      #   loop -> rdms \\ 0, level
       #   service -> name, deps
       def run(config, opts \\ []) do
-        {deps, opts} = Keyword.pop(opts, :deps)
         {name, opts} = Keyword.pop(opts, :name)
-        opts = Keyword.put_new(opts, :tag, name(config))
+        {deps, opts} = Keyword.pop(opts, :deps)
+        tag = "#{inspect(__MODULE__)}/#{name}"
+        opts = Keyword.put_new(opts, :tag, tag)
         config = Flex.Config.compile(__MODULE__, specs(), config)
 
         setup = fn config ->
           par = Process.get(:__par__)
-          Api.await(fn -> [] == Mdb.lookup({:clean, par}) end)
-          if length(deps) > 0, do: Api.await(fn -> wait(deps) end)
           Process.put(:__name__, name)
+          Process.put(:__sid__, tag)
+          Api.await(fn -> [] == Mdb.lookup({:clean, par}) end)
+          if length(deps || []) > 0, do: Api.await(fn -> wait(deps) end)
           setup(config)
         end
 
@@ -36,11 +38,10 @@ defmodule Flex.Service do
 
       defp wait(deps) do
         self = self()
-        tag = Process.get(:__tag__)
+        sid = Process.get(:__sid__)
         pids = for name <- deps, do: Mdb.lookup({:service, name})
 
         if Enum.all?(pids, fn list -> length(list) > 0 end) do
-          tag = String.trim_trailing(tag, ":setup")
           pids = List.flatten(pids)
 
           Api.async(
@@ -49,7 +50,7 @@ defmodule Flex.Service do
               Api.receive()
               Api.kill(self)
             end,
-            tag: "#{tag}:deps"
+            tag: "#{sid}:deps"
           )
 
           true

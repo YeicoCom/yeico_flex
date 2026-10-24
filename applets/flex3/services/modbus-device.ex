@@ -33,11 +33,8 @@ defmodule Flex.ModbusDevice do
     Flex.Check.check("#{path}.names.length", length, {:integer, 1, nil})
   end
 
-  defp name(%{port: port, ip: ip, proto: proto, name: name}),
-    do: "modbus-device:#{port}:#{ip}:#{proto}:#{name}"
-
   defp setup(config = %{ip: ip, port: port, proto: proto, points: points, name: name}) do
-    sid = name(config)
+    sid = Process.get(:__sid__)
     Log.debug("#{sid} run")
     status(name, "starting")
     clean(fn -> status(name, "error") end)

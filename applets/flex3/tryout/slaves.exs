@@ -9,7 +9,7 @@ Flex.ModbusSlave.new()
 |> Flex.ModbusSlave.set(proto: "TCP")
 |> Flex.ModbusSlave.set(ip: "127.0.0.1")
 |> Flex.ModbusSlave.set(port: 4031)
-|> Flex.ModbusSlave.run()
+|> Flex.ModbusSlave.run(name: "tcp:4031")
 
 # test with
 # {:ok, pid} = Modbus.Session.open(ip: "127.0.0.1", port: 4032, proto: Modbus.RtuProtocol)
@@ -20,6 +20,6 @@ Flex.ModbusSlave.new()
 |> Flex.ModbusSlave.set(proto: "RTU")
 |> Flex.ModbusSlave.set(ip: "127.0.0.1")
 |> Flex.ModbusSlave.set(port: 4032)
-|> Flex.ModbusSlave.run()
+|> Flex.ModbusSlave.run(name: "rtu:4032")
 
 :ok

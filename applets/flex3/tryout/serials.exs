@@ -4,7 +4,6 @@ use Terminal.Live
 System.shell("sudo killall socat", stderr_to_stdout: true)
 
 Flex.ShellCommand.new()
-|> Flex.ShellCommand.set(id: "socat_pair")
 |> Flex.ShellCommand.set(
   run: """
   # do not use -9 or sudo wont kill child socat process
@@ -20,7 +19,7 @@ Flex.ShellCommand.new()
   [ -f $FLEX_RUN/socat_pair.pid ] && sudo kill $(cat $FLEX_RUN/socat_pair.pid)
   """
 )
-|> Flex.ShellCommand.run(rdms: 1000)
+|> Flex.ShellCommand.run(rdms: 1000, name: "socat:pair")
 
 # test with
 # nc 127.0.0.1 4041
@@ -28,11 +27,11 @@ Flex.ShellCommand.new()
 Flex.SerialExport.new()
 |> Flex.SerialExport.set(tty: "/tmp/tty.socat.A")
 |> Flex.SerialExport.set(port: 4041)
-|> Flex.SerialExport.run(rdms: 1000)
+|> Flex.SerialExport.run(rdms: 1000, name: "socatA")
 
 Flex.SerialExport.new()
 |> Flex.SerialExport.set(tty: "/tmp/tty.socat.B")
 |> Flex.SerialExport.set(port: 4042)
-|> Flex.SerialExport.run(rdms: 1000)
+|> Flex.SerialExport.run(rdms: 1000, name: "socatB")
 
 :ok

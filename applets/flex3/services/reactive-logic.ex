@@ -15,7 +15,6 @@ defmodule Flex.ReactiveLogic do
 
   defp specs(),
     do: %{
-      id: %{initial: nil, check: :binary},
       shared: %{initial: %{}, check: :map},
       reactors: %{initial: [], check: {:list, nil, &Flex.Reactor.check(&1, &2)}}
     }
@@ -25,11 +24,8 @@ defmodule Flex.ReactiveLogic do
     %{config | reactors: reactors}
   end
 
-  defp name(%{id: id}),
-    do: "reactive-logic:#{id}"
-
-  defp setup(config = %{reactors: reactors, shared: shared}) do
-    sid = name(config)
+  defp setup(%{reactors: reactors, shared: shared}) do
+    sid = Process.get(:__sid__)
     Log.debug("#{sid} run")
 
     for {{mod, config}, index} <- reactors |> Enum.with_index() do

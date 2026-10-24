@@ -7,7 +7,7 @@ Flex.BackendExs.new()
 |> Flex.BackendExs.set(route: "flex3/backends/vapid.exs")
 |> Flex.BackendExs.set(name: vapid.name)
 |> Flex.BackendExs.set(env: vapid.vars)
-|> Flex.BackendExs.run(rdms: 1000)
+|> Flex.BackendExs.run(rdms: 1000, name: "vapid")
 
 view = fn assigns ->
   ~H"""

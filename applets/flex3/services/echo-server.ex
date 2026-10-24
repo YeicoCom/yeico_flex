@@ -8,20 +8,19 @@ defmodule Flex.EchoServer do
       port: %{initial: 0, check: {:integer, 0, 65_535}}
     }
 
-  defp name(%{port: port, ip: ip}), do: "echo-server:#{port}:#{ip}"
-
   defp setup(%{port: port, ip: ip}) do
-    {:ok, socket = %{port: port}} = Tcp.listen(ip, port, active: true)
+    sid = Process.get(:__sid__)
+    {:ok, socket} = Tcp.listen(ip, port, active: true)
     clean(fn -> Tcp.close(socket) end)
-    sid = "echo-server:#{port}:#{ip}"
     Log.debug("#{sid} started")
     accept(socket)
   end
 
-  defp accept(socket = %{port: port}) do
+  defp accept(socket) do
     Api.flush(toms: 0)
     {:ok, conn = %{peer: peer}} = Tcp.accept(socket)
-    cid = "echo-server:#{port}:#{peer.ip}:#{peer.port}"
+    sid = Process.get(:__sid__)
+    cid = "#{sid}:#{peer.ip}:#{peer.port}"
     Log.trace("#{cid} accepted")
     conn = Map.put(conn, :cid, cid)
     task = Api.async(&handle/1, conn, tag: cid)
