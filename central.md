@@ -7,7 +7,7 @@
 
 ## Shell
 
-- multiline string results are auto split be pre tag
+- multiline string results are auto split by pre tag
 - charlists are treated as strings if ascii_printable?
 
 ```elixir

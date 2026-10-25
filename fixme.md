@@ -1,0 +1,57 @@
+# Fixme
+
+- [ ] UI toolkit
+- [ ] ISA101 widgets
+- [ ] OPC-UA server/client service
+- [ ] Barcode/QR fonts
+- [ ] Service dependencies
+- [ ] Modbus integer 32 encodings
+- [ ] Live screen panel align prop
+- [ ] Live screen @scope styling
+- [ ] Live screen class vs style priority
+- [ ] Live screen on escape logout
+- [ ] Live screen tailwind @apply
+- [ ] Elixir backend service
+- [ ] Elixir script service
+- [ ] visible? beam hang/crash
+- [ ] custom exo/7segment fonts
+- [ ] extensible css (from parent project)
+- [ ] extensible js (from parent project)
+- [ ] Browser service
+- [ ] Live screen modal customizable style
+- [ ] Live screen login customizable style
+- [ ] Live screen dark/light themes
+- [ ] Wrapper for logging from render for module defined widget fun
+- [x] ui: modal
+- [x] ui: hero link
+- [x] ui: div link
+- [x] ui: a link
+- [x] ui: a button
+- [x] Non expiring logout url (1000 years)
+- [x] Apply inert when modal
+- [x] Live screen google auth
+- [x] Modal close callback event in same widget fun
+- [-] Global logger to avoid wrapping: wrap at the point of definition for accurate stacktraces
+- [x] Live screen modal
+- [x] Module based reactors
+- [x] Logic/screen any point key
+- [x] Live screen shared state between funs
+- [x] Live screen fixed password
+- [x] Live screen service
+- [-] Modbus device pulse point
+- [-] Observable map service
+- [x] Modbus device point add
+- [x] Reactive logic error handling
+- [x] Reactive logic service
+- [-] Modbus device point publish
+- [-] Modbus point value timestamp
+- [x] Modbus device point check
+- [x] Modbus device service
+- [x] Modbus session with command syntax
+- [x] Modbus master session
+- [x] Modbus slave service
+- [x] Recheck config before run
+- [x] Compiler gets stuck on macro errors
+- [x] Compiler loads stalled source code
+- [x] Wait for previous cleanup
+- [x] Check testing
