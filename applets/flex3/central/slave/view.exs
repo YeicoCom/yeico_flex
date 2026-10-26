@@ -37,12 +37,10 @@ handler = fn
   {:render, _assigns, state} ->
     view.(state)
 
-  {:params, socket, state, params, uri} ->
-    Log.trace(view: path, params: params, uri: uri)
+  {:params, socket, state, _params, _uri} ->
     {socket, state}
 
-  {:event, socket, state, event = "form:submit", params = %{"name" => name, "owner" => owner}} ->
-    Log.trace(view: path, event: event, params: params)
+  {:event, socket, state, "form:submit", %{"name" => name, "owner" => owner}} ->
     state = Map.put(state, :name, name)
     state = Map.put(state, :owner, owner)
 
@@ -53,16 +51,13 @@ handler = fn
 
     {socket, state}
 
-  {:event, socket, state, event, params} ->
-    Log.trace(view: path, event: event, params: params)
+  {:event, socket, state, _event, _params} ->
     {socket, state}
 
-  {:info, socket, state, event} ->
-    Log.trace(view: path, info: event)
+  {:info, socket, state, _event} ->
     {socket, state}
 
-  {:close, _socket, _state, reason} ->
-    Log.trace(view: path, close: reason)
+  {:close, _socket, _state, _reason} ->
     :ok
 end
 

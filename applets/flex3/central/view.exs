@@ -59,7 +59,7 @@ defmodule Central.View do
     """
   end
 
-  def handler(path, props, admin) do
+  def handler(_path, props, admin) do
     fn
       {:mount, socket = %{assigns: assigns}, state} ->
         applet = props[:applet_name] || "flex3"
@@ -152,8 +152,7 @@ defmodule Central.View do
         state = Map.put(state, :selected, nil)
         {socket, state}
 
-      {:event, socket, state, event, params} ->
-        Log.trace(event: path, event: event, params: params)
+      {:event, socket, state, _event, _params} ->
         {socket, state}
 
       {:info, socket, state = %{guser: %{email: ^admin}}, {{:slave, :owner, nil}, _, _}} ->
@@ -164,12 +163,10 @@ defmodule Central.View do
         state = Map.put(state, :slaves, Central.Utils.slaves(admin, email))
         {socket, state}
 
-      {:info, socket, state, event} ->
-        Log.trace(info: path, event: event)
+      {:info, socket, state, _event} ->
         {socket, state}
 
-      {:close, _socket, _state, reason} ->
-        Log.trace(close: path, reason: reason)
+      {:close, _socket, _state, _reason} ->
         :ok
     end
   end

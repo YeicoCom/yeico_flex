@@ -31,7 +31,7 @@ defmodule Central.Shell do
   defp style(:output), do: "text-info"
   defp style(:input), do: "text-accent"
 
-  def handler(path, props, admin) do
+  def handler(_path, props, admin) do
     fn
       {:mount, socket = %{assigns: assigns}, state} ->
         applet = props[:applet_name] || "flex3"
@@ -56,8 +56,7 @@ defmodule Central.Shell do
         state = Map.put(state, :streams, assigns.streams)
         render(state)
 
-      {:params, socket, state = %{connected?: connected?, host: host}, params, uri} ->
-        Log.trace(params: path, params: params, uri: uri)
+      {:params, socket, state = %{connected?: connected?, host: host}, _params, _uri} ->
         if connected?, do: Terminal.Publish.subscribe!({:slave, :host, host})
 
         case Terminal.Unique.lookup({:slave, host}) do
@@ -94,8 +93,7 @@ defmodule Central.Shell do
         Api.async(fn -> Terminal.run(host, cmd) end)
         {socket, state}
 
-      {:event, socket, state, event, params} ->
-        Log.trace(event: path, event: event, params: params)
+      {:event, socket, state, _event, _params} ->
         {socket, state}
 
       # test with:
@@ -146,12 +144,10 @@ defmodule Central.Shell do
         state = Map.merge(state, %{owner: owner, name: name, live: live})
         {socket, state}
 
-      {:info, socket, state, event} ->
-        Log.trace(info: path, event: event)
+      {:info, socket, state, _event} ->
         {socket, state}
 
-      {:close, _socket, _state, reason} ->
-        Log.trace(close: path, reason: reason)
+      {:close, _socket, _state, _reason} ->
         :ok
     end
   end
