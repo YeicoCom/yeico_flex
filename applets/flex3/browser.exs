@@ -22,6 +22,9 @@ defmodule Flex.Browser do
         Log.trace("#{cmd} #{encoding} #{String.trim(line)}")
         stdout(cmd)
 
+      {:done, res} ->
+        res
+
       unexpected ->
         [unexpected: unexpected]
     end
@@ -34,7 +37,7 @@ defmodule Flex.Browser do
     into = IO.binstream(task.pid, :line)
     opts = [into: into, stderr_to_stdout: true, env: env]
     res = System.cmd(cmd, args, opts)
-    send(task.pid, res)
+    send(task.pid, {:done, res})
     cmd
   end
 
@@ -194,5 +197,7 @@ end
 # Path.wildcard("/proc/*/exe") |> Enum.map(&File.read_link(&1)) |> Enum.any?(& &1=={:ok, "/usr/bin/weston"})
 # cmd "ls -l /proc/*/exe"
 # exec("cogctl", ["--system", "open", url], [])
+
+Flex.Browser.start(url, monitor)
 
 :ok
