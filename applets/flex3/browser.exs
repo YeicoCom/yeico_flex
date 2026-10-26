@@ -133,7 +133,7 @@ defmodule Flex.Browser do
       "--user-agent=CogWPEWebKit-YeicoTerminal",
       "--ignore-tls-errors",
       "--bg-color=black",
-      url
+      "https://127.0.0.1"
     ]
 
     # defer below gets ignored for System.cmd based exec
@@ -198,6 +198,6 @@ end
 # cmd "ls -l /proc/*/exe"
 # exec("cogctl", ["--system", "open", url], [])
 
-Flex.Browser.start(url, monitor)
+Flex.Browser.start(monitor)
 
 :ok
