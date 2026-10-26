@@ -79,7 +79,7 @@ defmodule Wire.Loop do
       shell("rm -f #{path}")
     end
 
-    nets = Wire.Db.list()
+    nets = Wire.Store.list()
     error = Wire.Valid.check(nets)
     Api.putcast!("wire:error", error)
     nets = Enum.filter(nets, fn {_, net} -> net.status == "Enabled" end)

@@ -1,4 +1,4 @@
-defmodule Wire.Db do
+defmodule Wire.Store do
   use Terminal
 
   @min "00000000-0000-0000-0000-000000000000"
