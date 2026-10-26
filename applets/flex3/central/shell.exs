@@ -98,20 +98,20 @@ defmodule Central.Shell do
         Log.trace(event: path, event: event, params: params)
         {socket, state}
 
-      # test with
-      # :os.cmd('find /root')
-      # :os.cmd('find ~/.terminal')
-      # :os.cmd('find ~/.terminal') |> to_string()
-      # multiline strings get auto split by the pre tag, multiline charlists do not
-      # [] should print as []
+      # test with:
+      # Applet.started()
+      # :os.cmd('wg') |> to_string()
+      # :os.cmd('find /root') |> to_string()
+      # bindings are lost on reconnection
+      # multiline strings get auto split by the pre tag
+      # charlists require explicit to_string() conversion
       {:info, socket, state = %{id: id}, {_ref, {:ok, {:ok, res}}}} ->
         stamp = NaiveDateTime.utc_now() |> NaiveDateTime.shift(hour: state.tzoffset)
 
         text =
           cond do
             is_binary(res) -> res
-            is_list(res) and length(res) > 0 and List.ascii_printable?(res) -> to_string(res)
-            true -> inspect(res, pretty: true, limit: :infinity)
+            true -> inspect(res, pretty: true, limit: :infinity, charlists: :as_lists)
           end
 
         events = [
