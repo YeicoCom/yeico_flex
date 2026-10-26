@@ -84,49 +84,64 @@ defmodule Wire.View do
         </div>
       </div>
     </div>
-    <.fui fun={&Wire.UI.modal/1} :if={@modal[:type] == :network}
+    <.fui fun={&Flex.Modal.render/1} :if={@modal[:type] == :network}
       title={@modal[:title]} class="min-w-[360px] flex flex-col gap-4">
-        <form id="modal_form" phx-submit="network:save" class="flex flex-col gap-4"
+        <form id="modal_form" phx-submit="network:save" class="pt-4 flex flex-col gap-4"
           phx-hook="Form" phx-update="ignore" autocomplete="off">
           <div class="grid grid-cols-2 gap-2 items-center min-w-[12em]">
             <input type="hidden" name="nid" value={@modal[:nid]}>
             <div>Name</div>
-            <.fui fun={&Wire.UI.input/1} name="name" value={@modal[:net][:name]} type="text" required id="modal_autofocus" phx-hook="Focus"/>
+            <input type="text" name="name" value={@modal[:net][:name]} type="text" required id="modal_autofocus" phx-hook="Focus"
+              class="daisy-input daisy-input-bordered"/>
             <div>Prefix</div>
-            <.fui fun={&Wire.UI.input/1} name="prefix" value={@modal[:net][:prefix]} type="text" required/>
+            <input type="text" name="prefix" value={@modal[:net][:prefix]} type="text" required
+              class="daisy-input daisy-input-bordered"/>
             <div>Port</div>
-            <.fui fun={&Wire.UI.input/1} name="port" value={@modal[:net][:port]} type="number" step="1" min="1" max="65535" required/>
+            <input type="text" name="port" value={@modal[:net][:port]} type="number" step="1" min="1" max="65535" required
+              class="daisy-input daisy-input-bordered"/>
             <div>Status</div>
-            <.fui fun={&Wire.UI.select/1} name="status" value={@modal[:net][:status]} values={["Enabled", "Disabled"]} required/>
+            <select name="status" required class="daisy-select daisy-select-bordered">
+              <option :for={value <- ["Enabled", "Disabled"]} value={value}
+              selected={value == @modal[:net][:status]} title={value}>{value}</option>
+            </select>
           </div>
           <div class="grid grid-cols-2 gap-2 items-center">
-            <.fui fun={&Wire.UI.link/1} type="danger" phx-click="network:delete" phx-value-nid={@modal[:nid]}>Delete</.fui>
-            <.fui fun={&Wire.UI.button/1} type="submit">Accept</.fui>
+            <div phx-click="network:delete" phx-value-nid={@modal[:nid]}
+              class="daisy-link daisy-link-hover hover:text-warning">Delete</div>
+            <button type="submit" class="daisy-btn daisy-btn-outline">Accept</button>
           </div>
         </form>
     </.fui>
-    <.fui fun={&Wire.UI.modal/1} :if={@modal[:type] == :node}
+    <.fui fun={&Flex.Modal.render/1} :if={@modal[:type] == :node}
       title={@modal[:title]} class="min-w-[360px] flex flex-col gap-4">
-        <form id="modal_form" phx-submit="node:save" class="flex flex-col gap-4"
+        <form id="modal_form" phx-submit="node:save" class="pt-4 flex flex-col gap-4"
           phx-hook="Form" phx-update="ignore" autocomplete="off">
           <div class="grid grid-cols-2 gap-2 items-center min-w-[12em]">
             <input type="hidden" name="index" value={@modal[:index]}>
             <div>Name</div>
-            <.fui fun={&Wire.UI.input/1} name="name" value={@modal[:node][:name]} type="text" required id="modal_autofocus" phx-hook="Focus"/>
+            <input type="text" name="name" value={@modal[:node][:name]} type="text" required id="modal_autofocus" phx-hook="Focus"
+              class="daisy-input daisy-input-bordered"/>
             <div>Suffix</div>
-            <.fui fun={&Wire.UI.input/1} name="suffix" value={@modal[:node][:suffix]} type="text" required/>
+            <input type="text" name="suffix" value={@modal[:node][:suffix]} type="text" required
+              class="daisy-input daisy-input-bordered"/>
             <div>Exports</div>
-            <.fui fun={&Wire.UI.input/1} name="exports" value={@modal[:node][:exports]} type="text"/>
+            <input type="text" name="exports" value={@modal[:node][:exports]} type="text"
+              class="daisy-input daisy-input-bordered"/>
             <div>Imports</div>
-            <.fui fun={&Wire.UI.input/1} name="imports" value={@modal[:node][:imports]} type="text"/>
+            <input type="text" name="imports" value={@modal[:node][:imports]} type="text"
+              class="daisy-input daisy-input-bordered"/>
             <div>Status</div>
-            <.fui fun={&Wire.UI.select/1} name="status" value={@modal[:node][:status]} values={["Enabled", "Disabled"]} required/>
+            <select name="status" required class="daisy-select daisy-select-bordered">
+              <option :for={value <- ["Enabled", "Disabled"]} value={value}
+              selected={value == @modal[:node][:status]} title={value}>{value}</option>
+            </select>
           </div>
           <div class="grid grid-cols-2 gap-2 items-center">
             <div>
-            <.fui fun={&Wire.UI.link/1} type="danger" phx-click="node:delete" phx-value-index={@modal[:index]}>Delete</.fui>
+            <div phx-click="node:delete" phx-value-index={@modal[:index]}
+              class="daisy-link daisy-link-hover hover:text-warning">Delete</div>
             </div>
-            <.fui fun={&Wire.UI.button/1} type="submit">Accept</.fui>
+            <button type="submit" class="daisy-btn daisy-btn-outline">Accept</button>
           </div>
         </form>
     </.fui>
