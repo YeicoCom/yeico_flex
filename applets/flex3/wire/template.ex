@@ -57,10 +57,6 @@ defmodule Wire.Template do
   Masquerade: [<%= node.nats %>]
   """
 
-  @proxy """
-  https://<%= hostname %>:8443/proxy/<%= token %>/<%= node.ip %>/
-  """
-
   @hosts """
   <%= for {_, node} <- net.nodes do %>
   <%= node.ip %>\t<%= node.host %>.<%= net.nic %>
@@ -84,10 +80,10 @@ defmodule Wire.Template do
     eval(@yaml, net: net, node: node)
   end
 
-  def proxy(net, index, hostname, token) do
+  def ip(net, index) do
     net = calculate(net)
     node = net.nodes[index]
-    eval(@proxy, net: net, node: node, hostname: hostname, token: token)
+    node.ip
   end
 
   def hosts(net) do

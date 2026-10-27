@@ -292,16 +292,18 @@ defmodule Wire.View do
         {socket, state}
 
       {:event, socket, state = %{net: net}, "node:proxy", %{"index" => index}} ->
-        hostname = Api.hostname_f()
+        # generate from bash if special expiration needed
+        deathline = System.system_time(:second) + 60 * 5
+        ip = Wire.Template.ip(net, index)
+        content = "#{ip}\n#{deathline}"
         token = UUID.uuid1()
-        url = Wire.Template.proxy(net, index, hostname, token)
-        now = System.system_time(:second)
-        timestamp = Integer.to_string(now + 30)
         dir = Terminal.dpath("/var/run/wire-nginx-proxy")
-        write = fn -> Path.join(dir, token) |> File.write!(timestamp) end
+        write = fn -> Path.join(dir, token) |> File.write!(content) end
         chown = fn -> System.shell("chmod -R www-data:www-data #{dir}") end
         Applet.Utils.safe(write)
         Applet.Utils.safe(chown)
+        hostname = Api.hostname_f()
+        url = "https://#{hostname}:8443/proxy/#{token}"
         socket = push_event(socket, "copy:text", %{text: url})
         {socket, state}
 
