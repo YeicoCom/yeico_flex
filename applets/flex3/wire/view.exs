@@ -297,7 +297,7 @@ defmodule Wire.View do
         url = Wire.Template.proxy(net, index, hostname, token)
         now = System.system_time(:second)
         timestamp = Integer.to_string(now + 30)
-        dir = Terminal.dpath("/var/www/proxy")
+        dir = Terminal.dpath("/var/run/wire-nginx-proxy")
         write = fn -> Path.join(dir, token) |> File.write!(timestamp) end
         chown = fn -> System.shell("chmod -R www-data:www-data #{dir}") end
         Applet.Utils.safe(write)
