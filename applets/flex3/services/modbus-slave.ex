@@ -2,7 +2,7 @@ defmodule Flex.ModbusSlave do
   use Flex.Service
   use Terminal
 
-  defp specs,
+  defp specs(),
     do: %{
       key: %{initial: nil, check: :binary},
       port: %{initial: 0, check: {:integer, 0, 65_535}},

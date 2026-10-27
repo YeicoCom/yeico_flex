@@ -4,7 +4,7 @@ defmodule Flex.SparkWidget do
 
   # https://github.com/mariusGundersen/sparkline
   # https://github.com/mariusGundersen/sparkline/blob/909da5007d1c46a35b17a4911dbfb40dc0f8ca3b/source/sparkline.js#L40
-  defp specs,
+  defp specs(),
     do: %{
       visible: %{initial: nil, check: :source?},
       source: %{initial: nil, check: :source?},

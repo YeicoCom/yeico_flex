@@ -5,7 +5,7 @@ defmodule Flex.ModbusDevice do
   @types ["RDI", "RDO", "WDO", "RRI", "RRO", "WRO"]
   @encodings ["NONE", "U16BE", "U16LE", "S16BE", "S16LE", "F32BE", "F32LE"]
 
-  defp specs,
+  defp specs(),
     do: %{
       name: %{initial: nil, check: :binary},
       ip: %{initial: "127.0.0.1", check: :binary},

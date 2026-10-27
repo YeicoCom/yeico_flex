@@ -2,7 +2,7 @@ defmodule Flex.ShellCommand do
   use Flex.Service
   use Terminal
 
-  defp specs,
+  defp specs(),
     do: %{
       run: %{initial: nil, check: :binary},
       kill: %{initial: nil, check: :binary?},

@@ -2,7 +2,7 @@ defmodule Flex.BackendExs do
   use Flex.Service
   use Terminal
 
-  defp specs,
+  defp specs(),
     do: %{
       route: %{initial: nil, check: :binary},
       name: %{initial: nil, check: :binary?},

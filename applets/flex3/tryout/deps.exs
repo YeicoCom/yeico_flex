@@ -4,7 +4,7 @@ defmodule Flex.TryoutService do
   use Flex.Service
   use Terminal
 
-  defp specs, do: %{}
+  defp specs(), do: %{}
 
   defp setup(_) do
     name = Process.get(:__name__)

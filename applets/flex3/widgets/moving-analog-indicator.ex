@@ -2,7 +2,7 @@ defmodule Flex.MovingAnalogIndicator do
   use Flex.Reactor
   use Terminal.Live
 
-  defp specs,
+  defp specs(),
     do: %{
       value: %{initial: nil, check: :source?},
       visible: %{initial: nil, check: :source?},

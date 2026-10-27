@@ -2,7 +2,7 @@ defmodule Flex.SerialExport do
   use Flex.Service
   use Terminal
 
-  defp specs,
+  defp specs(),
     do: %{
       tty: %{initial: nil, check: :binary},
       bits: %{initial: "8n1", check: {:in, ["8n1"]}},

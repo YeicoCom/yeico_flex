@@ -2,7 +2,7 @@ defmodule Flex.ValueWidget do
   use Flex.Reactor
   use Terminal.Live
 
-  defp specs,
+  defp specs(),
     do: %{
       visible: %{initial: nil, check: :source?},
       source: %{initial: nil, check: :source?},
