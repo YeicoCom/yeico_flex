@@ -7,6 +7,9 @@ const fs = require("fs")
 module.exports = {
   content: [
     `../${path.basename(__dirname)}.exs`,
+    "../../.flex3/twscan/**/*.exs",
+    "../../.flex3/twscan/**/*.ex",
+    "../../.flex3/twscan/**/*.js",
     "./js/**/*.js",
     "./**/*.exs",
     "./**/*.ex"
