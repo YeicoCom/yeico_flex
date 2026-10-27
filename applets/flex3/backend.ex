@@ -15,6 +15,10 @@ defmodule Flex.Backend do
     def route(), do: var("BACKEND_ROUTE")
     def home(), do: var("BACKEND_HOME")
 
+    def path(), do: var("BACKEND_APPLETS")
+    def path(route), do: Path.join(path(), route)
+    def dev?(), do: var("BACKEND_DEV") == "true"
+
     def connect() do
       master = master() |> String.to_atom()
       true = master |> Node.connect()
