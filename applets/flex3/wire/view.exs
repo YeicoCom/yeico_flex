@@ -50,7 +50,7 @@ defmodule Wire.View do
             </div>
           </div>
           <div class="grow flex flex-col gap-1 overflow-hidden">
-            <div class="px-4 grid grid-cols-[3em_8em_4em_1fr_1fr_1fr_7em]">
+            <div class="px-4 grid grid-cols-[3em_8em_4em_1fr_1fr_1fr_9em]">
               <div/>
               <div>Name</div>
               <div>Suffix</div>
@@ -60,7 +60,7 @@ defmodule Wire.View do
               <div>Actions</div>
             </div>
             <div class="grow flex flex-col gap-1 overflow-y-auto">
-              <div :for={{index, n} <- @nodes} class="px-4 grid grid-cols-[3em_8em_4em_1fr_1fr_1fr_7em] hover:bg-base-300 cursor-pointer"
+              <div :for={{index, n} <- @nodes} class="px-4 grid grid-cols-[3em_8em_4em_1fr_1fr_1fr_9em] hover:bg-base-300 cursor-pointer"
                   phx-click="node:edit" phx-value-index={index} title="Edit Node">
                 <div class={[
                     (@error[@nid][:nodes][index][:error?] == nil) && "hero-question-mark-circle",
@@ -75,8 +75,9 @@ defmodule Wire.View do
                 <div class="flex gap-2">
                     <div class="hero-document-duplicate" title="Copy Conf" phx-click="node:conf" phx-value-index={index}/>
                     <div class="hero-document-duplicate" title="Copy Yaml" phx-click="node:yaml" phx-value-index={index}/>
-                    <div class="hero-arrow-path" title="Regenerate Keys" phx-click="node:regen" phx-value-index={index}/>
+                    <div class="hero-document-duplicate" title="Copy Proxy" phx-click="node:proxy" phx-value-index={index}/>
                     <div class="hero-arrow-path" title="Reset Peer" phx-click="node:reset" phx-value-index={index}/>
+                    <div class="hero-arrow-path" title="Regenerate Keys" phx-click="node:regen" phx-value-index={index}/>
                 </div>
               </div>
             </div>
@@ -148,7 +149,7 @@ defmodule Wire.View do
     """
   end
 
-  def handler(path, props) do
+  def handler(_path, props) do
     fn
       {:mount, socket = %{assigns: %{session: session, tzoffset: tzoffset}}, state} ->
         applet = props[:applet_name] || "flex3"
@@ -167,8 +168,7 @@ defmodule Wire.View do
         state = Map.put(state, :nid, nil)
         {socket, state}
 
-      {:params, socket, state, params, uri} ->
-        Log.trace(view: path, params: params, uri: uri)
+      {:params, socket, state, _params, _uri} ->
         {socket, state}
 
       {:render, _assigns, state = %{nets: nets, net: net}} ->
@@ -180,18 +180,15 @@ defmodule Wire.View do
         state = Map.put(state, :nodes, nodes)
         render(state)
 
-      {:event, socket, state, event = "modal:close", params} ->
-        Log.trace(view: path, event: event, params: params)
+      {:event, socket, state, "modal:close", _params} ->
         state = Map.put(state, :modal, nil)
         {socket, state}
 
-      {:event, socket, state, event = "network:add", params} ->
-        Log.trace(view: path, event: event, params: params)
+      {:event, socket, state, "network:add", _params} ->
         state = Map.put(state, :modal, %{type: :network, title: "Add Network"})
         {socket, state}
 
-      {:event, socket, state = %{nets: nets}, event = "network:edit", params = %{"nid" => nid}} ->
-        Log.trace(view: path, event: event, params: params)
+      {:event, socket, state = %{nets: nets}, "network:edit", %{"nid" => nid}} ->
         state = %{net: net} = Map.put(state, :net, nets[nid])
         state = Map.put(state, :nid, nid)
 
@@ -205,15 +202,14 @@ defmodule Wire.View do
 
         {socket, state}
 
-      {:event, socket, state = %{net: net, nets: nets}, event = "network:save",
-       params = %{
+      {:event, socket, state = %{net: net, nets: nets}, "network:save",
+       %{
          "nid" => nid,
          "name" => name,
          "prefix" => prefix,
          "port" => port,
          "status" => status
        }} ->
-        Log.trace(view: path, event: event, params: params)
         name = String.trim(name)
         prefix = String.trim(prefix)
         port = String.trim(port)
@@ -227,14 +223,12 @@ defmodule Wire.View do
         state = Map.put(state, :modal, nil)
         {socket, state}
 
-      {:event, socket, state = %{nets: nets}, event = "network:select", params = %{"nid" => nid}} ->
-        Log.trace(view: path, event: event, params: params)
+      {:event, socket, state = %{nets: nets}, "network:select", %{"nid" => nid}} ->
         state = Map.put(state, :net, nets[nid])
         state = Map.put(state, :nid, nid)
         {socket, state}
 
-      {:event, socket, state = %{nets: nets}, event = "network:delete", params = %{"nid" => nid}} ->
-        Log.trace(view: path, event: event, params: params)
+      {:event, socket, state = %{nets: nets}, "network:delete", %{"nid" => nid}} ->
         :ok = Wire.Store.delete(:net, nid)
         state = Map.put(state, :nets, Map.delete(nets, nid))
         state = Map.put(state, :net, nil)
@@ -242,13 +236,11 @@ defmodule Wire.View do
         state = Map.put(state, :modal, nil)
         {socket, state}
 
-      {:event, socket, state, event = "node:add", params} ->
-        Log.trace(view: path, event: event, params: params)
+      {:event, socket, state, "node:add", _params} ->
         state = Map.put(state, :modal, %{type: :node, title: "Add Node"})
         {socket, state}
 
-      {:event, socket, state = %{net: net}, event = "node:edit", params = %{"index" => index}} ->
-        Log.trace(view: path, event: event, params: params)
+      {:event, socket, state = %{net: net}, "node:edit", %{"index" => index}} ->
         node = net.nodes[index]
 
         state =
@@ -256,8 +248,8 @@ defmodule Wire.View do
 
         {socket, state}
 
-      {:event, socket, state = %{nid: nid, net: net, nets: nets}, event = "node:save",
-       params = %{
+      {:event, socket, state = %{nid: nid, net: net, nets: nets}, "node:save",
+       %{
          "index" => index,
          "name" => name,
          "suffix" => suffix,
@@ -265,7 +257,6 @@ defmodule Wire.View do
          "exports" => exports,
          "status" => status
        }} ->
-        Log.trace(view: path, event: event, params: params)
         name = String.trim(name)
         suffix = String.trim(suffix)
         imports = String.trim(imports)
@@ -279,9 +270,8 @@ defmodule Wire.View do
         state = Map.put(state, :modal, nil)
         {socket, state}
 
-      {:event, socket, state = %{nid: nid, net: net, nets: nets}, event = "node:delete",
-       params = %{"index" => index}} ->
-        Log.trace(view: path, event: event, params: params)
+      {:event, socket, state = %{nid: nid, net: net, nets: nets}, "node:delete",
+       %{"index" => index}} ->
         {_, net} = pop_in(net, [:nodes, index])
         {^nid, net} = Wire.Store.save(:net, nid, net)
         state = Map.put(state, :nets, Map.put(nets, nid, net))
@@ -289,24 +279,34 @@ defmodule Wire.View do
         state = Map.put(state, :modal, nil)
         {socket, state}
 
-      {:event, socket, state = %{net: net}, event = "net:hosts", params} ->
-        Log.trace(view: path, event: event, params: params)
+      {:event, socket, state = %{net: net}, "net:hosts", _params} ->
         socket = push_event(socket, "copy:text", %{text: Wire.Template.hosts(net)})
         {socket, state}
 
-      {:event, socket, state = %{net: net}, event = "node:conf", params = %{"index" => index}} ->
-        Log.trace(view: path, event: event, params: params)
+      {:event, socket, state = %{net: net}, "node:conf", %{"index" => index}} ->
         socket = push_event(socket, "copy:text", %{text: Wire.Template.node(net, index)})
         {socket, state}
 
-      {:event, socket, state = %{net: net}, event = "node:yaml", params = %{"index" => index}} ->
-        Log.trace(view: path, event: event, params: params)
+      {:event, socket, state = %{net: net}, "node:yaml", %{"index" => index}} ->
         socket = push_event(socket, "copy:text", %{text: Wire.Template.yaml(net, index)})
         {socket, state}
 
-      {:event, socket, state = %{nets: nets, nid: nid, net: net}, event = "node:regen",
-       params = %{"index" => index}} ->
-        Log.trace(view: path, event: event, params: params)
+      {:event, socket, state = %{net: net}, "node:proxy", %{"index" => index}} ->
+        hostname = Api.hostname_f()
+        token = UUID.uuid1()
+        url = Wire.Template.proxy(net, index, hostname, token)
+        now = System.system_time(:second)
+        timestamp = Integer.to_string(now + 30)
+        dir = Terminal.dpath("/var/www/proxy")
+        write = fn -> Path.join(dir, token) |> File.write!(timestamp) end
+        chown = fn -> System.shell("chmod -R www-data:www-data #{dir}") end
+        Applet.Utils.safe(write)
+        Applet.Utils.safe(chown)
+        socket = push_event(socket, "copy:text", %{text: url})
+        {socket, state}
+
+      {:event, socket, state = %{nets: nets, nid: nid, net: net}, "node:regen",
+       %{"index" => index}} ->
         node = net.nodes[index]
         node = Wire.Store.regen(node)
         net = put_in(net, [:nodes, index], node)
@@ -315,32 +315,26 @@ defmodule Wire.View do
         state = Map.put(state, :net, net)
         {socket, state}
 
-      {:event, socket, state = %{net: net}, event = "node:reset", params = %{"index" => index}} ->
-        Log.trace(view: path, event: event, params: params)
+      {:event, socket, state = %{net: net}, "node:reset", %{"index" => index}} ->
         node = net.nodes[index]
         Bus.broadcast!("wire:reload", {net.name, node.suffix, node.pub})
         {socket, state}
 
-      {:event, socket, state, event, params} ->
-        Log.trace(view: path, event: event, params: params)
+      {:event, socket, state, _event, _params} ->
         {socket, state}
 
-      {:info, socket, state, event = {"wire:error", _, error}} ->
-        Log.trace(view: path, info: event)
+      {:info, socket, state, {"wire:error", _, error}} ->
         state = Map.put(state, :error, error)
         {socket, state}
 
-      {:info, socket, state, event = {"wire:status", _, status}} ->
-        Log.trace(view: path, info: event)
+      {:info, socket, state, {"wire:status", _, status}} ->
         state = Map.put(state, :status, status)
         {socket, state}
 
-      {:info, socket, state, event} ->
-        Log.trace(view: path, info: event)
+      {:info, socket, state, _event} ->
         {socket, state}
 
-      {:close, _socket, _state, reason} ->
-        Log.trace(view: path, close: reason)
+      {:close, _socket, _state, _reason} ->
         :ok
     end
   end
