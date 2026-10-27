@@ -4,7 +4,7 @@ defmodule Flex.SparkWidget do
 
   # https://github.com/mariusGundersen/sparkline
   # https://github.com/mariusGundersen/sparkline/blob/909da5007d1c46a35b17a4911dbfb40dc0f8ca3b/source/sparkline.js#L40
-  def specs,
+  defp specs,
     do: %{
       visible: %{initial: nil, check: :source?},
       source: %{initial: nil, check: :source?},
@@ -15,10 +15,10 @@ defmodule Flex.SparkWidget do
       props: %{initial: %{}, check: :map}
     }
 
-  def inputs(%{source: nil}), do: [{:ivalue, {:const, []}}]
-  def inputs(%{source: source}), do: [{:ivalue, source}]
+  defp inputs(%{source: nil}), do: [{:ivalue, {:const, []}}]
+  defp inputs(%{source: source}), do: [{:ivalue, source}]
 
-  def handler(config) do
+  defp handler(config) do
     %{props: props, class: class, visible?: visible?} = config
     %{maxlen: maxlen, icast: icast} = config
     [{_, {type, _}}] = inputs(config)

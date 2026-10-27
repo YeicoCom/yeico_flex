@@ -2,7 +2,7 @@ defmodule Flex.ValueWidget do
   use Flex.Reactor
   use Terminal.Live
 
-  def specs,
+  defp specs,
     do: %{
       visible: %{initial: nil, check: :source?},
       source: %{initial: nil, check: :source?},
@@ -17,12 +17,12 @@ defmodule Flex.ValueWidget do
       props: %{initial: %{}, check: :map}
     }
 
-  def inputs(%{source: source, sink: sink, visible: visible}) do
+  defp inputs(%{source: source, sink: sink, visible: visible}) do
     [{:ivalue, source || sink}, {:visible, visible}]
     |> Enum.filter(fn {_name, spec} -> !is_nil(spec) end)
   end
 
-  def handler(config) do
+  defp handler(config) do
     %{oinitial?: oinitial?, oinitial: oinitial, visible?: visible?} = config
     %{props: props, sink: sink, ocast: ocast, icast: icast} = config
     %{class: class, render: render} = config
