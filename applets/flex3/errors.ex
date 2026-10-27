@@ -12,7 +12,7 @@ defmodule Flex.Errors do
   # - yeico_terminal/sdk
   # - yeico_terminal/flex
 
-  def attach do
+  def attach() do
     api = Process.get(:__api__)
 
     hid = "live-view-crash-handler/#{Api.entry()}"

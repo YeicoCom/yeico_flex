@@ -328,8 +328,8 @@ defmodule Flex.LiveScreen do
         </div>
       </div>
     </div>
-    <.fui id="ls_modal" fun={&Flex.Modal.render/1} :if={@modal} index={@modal.index} title={@modal[:props][:title]} theme={@theme}>
-        <.fui {@modal[:props]} fun={@modal.handler} index={@modal.index}/>
+    <.fui id="ls_modal" fun={&Flex.Modal.render/1} :if={@modal} index={@modal.index} title={@modal.props[:title]} theme={@theme}>
+        <.fui {@modal.props} fun={@modal.handler} index={@modal.index}/>
     </.fui>
     <style :if={@style}><%= raw(@style) %></style>
     """
