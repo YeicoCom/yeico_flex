@@ -26,22 +26,7 @@ setup() {
     q mkdir -p deps
     q mkdir -p .flex3
     checkout deps/yeico_flex git@github.com:YeicoCom/yeico_flex.git $1
-    for route in applets/*.exs; do
-        applet=$(basename ${route%.*})
-        [ -f .flex3/skip/$applet ] && continue
-        q rsync -avr --delete deps/yeico_flex/applets/flex3 applets/$applet/
-        q mkdir -p applets/$applet/css/
-        q mkdir -p applets/$applet/js/
-        q mkdir -p applets/$applet/static/
-        q cp -f applets/$applet/flex3/css/* applets/$applet/css/
-        q cp -f applets/$applet/flex3/js/* applets/$applet/js/
-        q cp -f applets/$applet/flex3/static/vapid.js applets/$applet/static/
-        q cp -f applets/$applet/flex3/static/gauth.svg applets/$applet/static/
-        q cp -f applets/$applet/flex3/code.exs applets/$applet/
-        q cp -f applets/$applet/flex3/make.exs applets/$applet/
-        q cp -f applets/$applet/flex3/package.json applets/$applet/
-        q cp -f applets/$applet/flex3/tailwind.config.js applets/$applet/
-    done
+    q rsync -avr --delete deps/yeico_flex/applets/flex3 applets/
     q cp -f deps/yeico_flex/flex3.sh .
     q chmod a+x flex3.sh
 }
