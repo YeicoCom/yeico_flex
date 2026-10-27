@@ -194,10 +194,10 @@ defmodule Flex.Check do
 
   # required by extensions
   def abort(path, value, error) do
-    throw(%{
+    throw(
       path: path,
-      value: value,
-      error: error
-    })
+      error: error,
+      value: value
+    )
   end
 end
