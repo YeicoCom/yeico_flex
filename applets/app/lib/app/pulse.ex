@@ -12,10 +12,11 @@ defmodule App.Pulse do
 
   defp init() do
     # dynamic call to make the compiler happy
+    # or use app/make.exs to bring in backend.ex
 
     System.get_env()
     |> Enum.sort()
-    |> Enum.each(fn {k, v} -> apply(Flex.Backend.Log, :debug, ["#{k}=#{v}"]) end)
+    |> Enum.each(fn {k, v} -> Flex.Backend.Log.debug("#{k}=#{v}") end)
 
     # throw(:EXCEPTION)
 

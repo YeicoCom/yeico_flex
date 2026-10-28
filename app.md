@@ -31,7 +31,8 @@ terminal dev app.exs
 - fixed: application exists but app not restarted
 - node still pings back after application shutdown (if initial connection completed)
 - need to add a halt to the stop application callback
-- fixme: unable to compile with direct references to flex modules
+- fixed: unable to compile with direct references to flex modules
+- use app/make.exs to copy backend to app/lib/
 
 ```bash
 terminal ssh vm110.yeico

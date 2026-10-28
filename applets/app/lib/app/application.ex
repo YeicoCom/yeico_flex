@@ -19,6 +19,7 @@ defmodule App.Application do
     Supervisor.start_link(children, opts)
   end
 
+  @impl true
   def stop(state) do
     IO.inspect(stop: state)
     System.halt()
