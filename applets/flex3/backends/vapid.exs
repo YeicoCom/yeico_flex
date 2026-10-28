@@ -17,7 +17,7 @@ Mix.install([{:jason, "1.4.4"}, {:web_push_elixir, "0.4.0"}, {:exqlite, "0.33.1"
   system_env: %{ID: "#{__ENV__.file}/#{Api.name()}"}
 )
 
-{:ok, conn} = Exqlite.Basic.open(Api.fpath("@home/flex3_vapid.db") |> Log.debug())
+{:ok, conn} = Exqlite.Basic.open(Api.fpath("@home/vapid.db3") |> Log.debug())
 
 {:ok, _, _, _} =
   Exqlite.Basic.exec(conn, "create table if not exists subs (sub text primary key)")
