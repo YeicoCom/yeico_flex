@@ -70,7 +70,7 @@ defmodule Flex.Browser do
     Api.await(task)
   end
 
-  defp weston(url, monitor) do
+  defp weston(monitor) do
     # WESTON
     # /run/weston/wayland-1 (removed when weston exists)
     # /run/weston/wayland-1.lock (removed when weston exists)
@@ -169,7 +169,7 @@ defmodule Flex.Browser do
     loop(args)
   end
 
-  def start(url, monitor \\ nil) do
+  def start(monitor) do
     clean()
     Api.defer(&clean/0)
 
@@ -181,7 +181,7 @@ defmodule Flex.Browser do
     Api.sleep(400 + 200)
 
     # short period because it may need seveal tries on reboot
-    weston = fn -> weston(url, monitor) end
+    weston = fn -> weston(monitor) end
     Api.loop(&loop/1, %{call: weston, delay: 1_000}, rdms: 5_000, tag: "browser:weston")
     Api.loop(&loop/1, %{call: &monitor/0, delay: 2_000}, rdms: 5_000, tag: "browser:monitor")
   end
