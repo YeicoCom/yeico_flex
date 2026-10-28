@@ -11,6 +11,7 @@ defmodule Flex.BackendExs do
     }
 
   defp setup(%{route: route, name: name, args: args, env: env}) do
+    Flex.Backend.Api.lo_alias()
     sid = Process.get(:__sid__)
     Log.debug("#{sid} starting")
     name = name || Path.basename(route, ".exs")
@@ -20,13 +21,15 @@ defmodule Flex.BackendExs do
     init_args = :init.get_arguments()
     [lname] = Keyword.get(init_args, :name, [~c"terminal@#{hostname}.local"])
     lname = lname |> to_string() |> String.to_atom()
-    cookie = Node.get_cookie() |> to_string()
 
     case Node.start(lname) do
       {:error, {:already_started, _}} -> :ok
       {:ok, _} -> :ok
       unexpected -> throw(unexpected)
     end
+
+    # node start changes the :nocookie default
+    cookie = Node.get_cookie() |> to_string()
 
     env = [
       {"BACKEND_NAME", name},
@@ -80,10 +83,9 @@ defmodule Flex.BackendExs do
   # fake ping to leave connection optional
   defp wait(name, res) do
     name = name |> to_charlist()
-    local = ~c"127.0.0.1"
 
     fun = fn ->
-      {:ok, names} = :net_adm.names(local)
+      {:ok, names} = :net_adm.names()
       names = Enum.into(names, %{})
 
       res ==

@@ -6,26 +6,31 @@ defmodule Flex.BackendApp do
     do: %{
       route: %{initial: nil, check: :binary},
       name: %{initial: nil, check: :binary?},
+      app: %{initial: nil, check: :binary?},
       env: %{initial: [], check: {:list, nil, {:tuple, 2, :binary}}}
     }
 
-  defp setup(%{route: route, name: name, env: env}) do
+  defp setup(%{route: route, name: name, app: app, env: env}) do
+    Flex.Backend.Api.lo_alias()
     sid = Process.get(:__sid__)
     Log.debug("#{sid} starting")
     name = name || Path.basename(route, ".exs")
+    app = app || name
     {"", 0} = System.cmd("epmd", ["-daemon"])
 
     hostname = Api.hostname()
     init_args = :init.get_arguments()
     [lname] = Keyword.get(init_args, :name, [~c"terminal@#{hostname}.local"])
     lname = lname |> to_string() |> String.to_atom()
-    cookie = Node.get_cookie() |> to_string()
 
     case Node.start(lname) do
       {:error, {:already_started, _}} -> :ok
       {:ok, _} -> :ok
       unexpected -> throw(unexpected)
     end
+
+    # node start changes the :nocookie default
+    cookie = Node.get_cookie() |> to_string()
 
     # nerves fw erl misses dirname and other utils
     [progname] = Keyword.fetch!(init_args, :progname)
@@ -56,6 +61,7 @@ defmodule Flex.BackendApp do
     # your shell) or set the ELIXIR_ERL_OPTIONS="+fnu" environment variable
     env = [
       {"ERL_LIBS", libs},
+      {"BACKEND_APP", app},
       {"BACKEND_NAME", name},
       {"BACKEND_ROUTE", route},
       {"BACKEND_ENTRY", Api.entry()},
@@ -84,7 +90,7 @@ defmodule Flex.BackendApp do
       "-s",
       "application",
       "ensure_all_started",
-      name
+      app
     ]
 
     # required by nerves fw
@@ -122,10 +128,9 @@ defmodule Flex.BackendApp do
   # fake ping to leave connection optional
   defp wait(name, res) do
     name = name |> to_charlist()
-    local = ~c"127.0.0.1"
 
     fun = fn ->
-      {:ok, names} = :net_adm.names(local)
+      {:ok, names} = :net_adm.names()
       names = Enum.into(names, %{})
 
       res ==

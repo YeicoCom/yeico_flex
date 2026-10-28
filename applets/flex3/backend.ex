@@ -9,11 +9,13 @@ defmodule Flex.Backend do
   defmodule Api do
     def var(name), do: System.get_env(name)
     def var(name, value), do: System.put_env(name, value)
+    def app(), do: var("BACKEND_APP")
     def name(), do: var("BACKEND_NAME")
     def master(), do: var("BACKEND_NODE")
     def entry(), do: var("BACKEND_ENTRY")
     def route(), do: var("BACKEND_ROUTE")
     def home(), do: var("BACKEND_HOME")
+    def cookie(), do: var("BACKEND_COOKIE")
 
     def path(), do: var("BACKEND_APPLETS")
     def path(route), do: Path.join(path(), route)
@@ -21,9 +23,15 @@ defmodule Flex.Backend do
     def device?(), do: var("BACKEND_DEVICE") == "true"
 
     def connect() do
-      master = master() |> String.to_atom()
-      true = master |> Node.connect()
-      master
+      if !Process.get(:__master__) do
+        master = master() |> String.to_atom()
+        wait(&lo_alias/0, {:error, :already_registered})
+        # fails first time on just rebooted vm
+        wait(fn -> Node.connect(master) end, true)
+        Process.put(:__master__, master)
+      end
+
+      Process.get(:__master__)
     end
 
     def inspect?(term) when is_binary(term), do: term
@@ -50,6 +58,32 @@ defmodule Flex.Backend do
 
     def fpath(path) do
       call(Terminal, :fpath, [path])
+    end
+
+    def wait(fun, result, sms \\ 100) do
+      case fun.() do
+        ^result ->
+          :ok
+
+        _ ->
+          Process.sleep(sms)
+          wait(fun, result)
+      end
+    end
+
+    def lo_alias() do
+      {:ok, hostname} = :inet.gethostname()
+      localhost = ~c"#{hostname}.local"
+
+      case :inet.gethostbyname(localhost) do
+        {:ok, {:hostent, ^localhost, [], :inet, 4, [{127, 0, 0, 1}]}} ->
+          {:error, :already_registered}
+
+        _ ->
+          # inet_db has undocumented module status
+          # returns :ok every time
+          :inet_db.add_host({127, 0, 0, 1}, [localhost])
+      end
     end
   end
 

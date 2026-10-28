@@ -18,4 +18,9 @@ defmodule App.Application do
     opts = [strategy: :one_for_one, name: App.Supervisor]
     Supervisor.start_link(children, opts)
   end
+
+  def stop(state) do
+    IO.inspect(stop: state)
+    System.halt()
+  end
 end
