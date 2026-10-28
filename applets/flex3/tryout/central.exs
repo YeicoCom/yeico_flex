@@ -2,13 +2,26 @@ use Terminal
 
 Flex.Gauth.db_init()
 Flex.Gauth.db_put("samuel.ventura@yeico.com")
-admin = "samuel.ventura@yeico.com"
+admins = ["samuel.ventura@yeico.com"]
+admin? = fn email -> email in admins end
 
-view = %{path: "/", props: %{}}
-shell = %{path: "/shell", props: %{}}
+Api.evalf("flex3/login.exs", props: %{})
 
-Api.evalf("flex3/login.exs", path: "/login", props: %{})
-Api.evalf("flex3/central/boot.exs", view: view, shell: shell, props: %{}, admin: admin)
+Api.evalf("flex3/central/view.exs",
+  path: "/",
+  props: %{},
+  admin?: admin?,
+  auth: Flex.Gauth.get_spec(:db)
+)
+
+Api.evalf("flex3/central/shell.exs",
+  path: "/shell",
+  props: %{},
+  admin?: admin?,
+  auth: Flex.Gauth.get_spec(:db)
+)
+
+Api.evalf("flex3/central/master.exs")
 
 # test run setup locally
 props = %{applet_css: "/applets/flex3.css", applet_js: "/applets/flex3.js"}

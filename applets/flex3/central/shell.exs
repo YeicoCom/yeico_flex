@@ -17,7 +17,7 @@ defmodule Central.Shell do
         <div :for={{id, %{style: style, text: text}} <- @streams.events}
           id={id} class={style}>{text}</div>
       </div>
-      <form class="grid grid-cols-1 gap-2" phx-change="input:change" phx-submit="input:run">
+      <form :if={@guser} class="grid grid-cols-1 gap-2" phx-change="input:change" phx-submit="input:run">
         <input id="cmd" phx-hook="History" name="cmd" type="text" autocomplete="off" title="Press Enter to Run"
           class="grow daisy-input daisy-input-bordered"
           value={@input[:cmd]}/>
@@ -31,7 +31,7 @@ defmodule Central.Shell do
   defp style(:output), do: "text-info"
   defp style(:input), do: "text-accent"
 
-  def handler(_path, props, admin) do
+  def handler(_path, props, admin?) do
     fn
       {:mount, socket = %{assigns: assigns}, state} ->
         applet = props[:applet_name] || "flex3"
@@ -71,7 +71,7 @@ defmodule Central.Shell do
         state = put_in(state, [:input, String.to_atom(target)], params[target])
         {socket, state}
 
-      {:event, socket, state = %{id: id, host: host, guser: %{email: owner}, owner: owner},
+      {:event, socket, state = %{id: id, host: host, guser: %{email: email}, owner: owner},
        "input:run", %{"cmd" => cmd}} ->
         stamp = NaiveDateTime.utc_now() |> NaiveDateTime.shift(hour: state.tzoffset)
         event = %{id: id, style: style(:input), text: "#{stamp} #{cmd}"}
@@ -79,18 +79,8 @@ defmodule Central.Shell do
         state = Map.update!(state, :id, &(&1 + 1))
         state = put_in(state, [:input, :cmd], "")
         cmd = %{shell: true, script: cmd}
-        Api.async(fn -> Terminal.run(host, cmd) end)
-        {socket, state}
-
-      {:event, socket, state = %{id: id, host: host, guser: %{email: ^admin}, owner: nil},
-       "input:run", %{"cmd" => cmd}} ->
-        stamp = NaiveDateTime.utc_now() |> NaiveDateTime.shift(hour: state.tzoffset)
-        event = %{id: id, style: style(:input), text: "#{stamp} #{cmd}"}
-        socket = stream(socket, :events, [event])
-        state = Map.update!(state, :id, &(&1 + 1))
-        state = put_in(state, [:input, :cmd], "")
-        cmd = %{shell: true, script: cmd}
-        Api.async(fn -> Terminal.run(host, cmd) end)
+        auth? = email == owner or admin?.(email)
+        if auth?, do: Api.async(fn -> Terminal.run(host, cmd) end)
         {socket, state}
 
       {:event, socket, state, _event, _params} ->
@@ -153,4 +143,4 @@ defmodule Central.Shell do
   end
 end
 
-Terminal.view(path, Central.Shell.handler(path, props, admin), auth: auth)
+Terminal.view(path, Central.Shell.handler(path, props, admin?), auth: auth)

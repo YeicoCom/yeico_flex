@@ -59,7 +59,7 @@ defmodule Central.View do
     """
   end
 
-  def handler(_path, props, admin) do
+  def handler(_path, props, admin?) do
     fn
       {:mount, socket = %{assigns: assigns}, state} ->
         applet = props[:applet_name] || "flex3"
@@ -79,9 +79,10 @@ defmodule Central.View do
 
       {:params, socket, state = %{guser: %{email: email}, connected?: connected?}, _params, _uri} ->
         # nice place for after connect initialization
-        if connected? and email == admin, do: Terminal.Publish.subscribe!({:slave, :owner, nil})
+        admin = admin?.(email)
+        if connected? and admin, do: Terminal.Publish.subscribe!({:slave, :owner, nil})
         if connected?, do: Terminal.Publish.subscribe!({:slave, :owner, email})
-        state = Map.put(state, :slaves, Central.Utils.slaves(admin, email))
+        state = Map.put(state, :slaves, Central.Utils.slaves(email, admin))
         {socket, state}
 
       {:event, socket, state, "reboot", %{"host" => host}} ->
@@ -155,12 +156,12 @@ defmodule Central.View do
       {:event, socket, state, _event, _params} ->
         {socket, state}
 
-      {:info, socket, state = %{guser: %{email: ^admin}}, {{:slave, :owner, nil}, _, _}} ->
-        state = Map.put(state, :slaves, Central.Utils.slaves(admin, admin))
+      {:info, socket, state = %{guser: %{email: email}}, {{:slave, :owner, nil}, _, _}} ->
+        state = Map.put(state, :slaves, Central.Utils.slaves(email, true))
         {socket, state}
 
       {:info, socket, state = %{guser: %{email: email}}, {{:slave, :owner, email}, _, _}} ->
-        state = Map.put(state, :slaves, Central.Utils.slaves(admin, email))
+        state = Map.put(state, :slaves, Central.Utils.slaves(email, false))
         {socket, state}
 
       {:info, socket, state, _event} ->
@@ -172,4 +173,4 @@ defmodule Central.View do
   end
 end
 
-Terminal.view(path, Central.View.handler(path, props, admin), auth: auth)
+Terminal.view(path, Central.View.handler(path, props, admin?), auth: auth)
