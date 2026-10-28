@@ -5,14 +5,6 @@ defmodule Flex.ReactiveLogic do
   # Confirmed that script defined functions log and stacktrace
   # accurately without explicit wrapper (due to async wrapper)
 
-  # Adb is the global transient state
-  # reactors share global state through Api.putcast!
-  # valid sources are:
-  #   {const_name, {:const, fixed_value}}
-  #   {point_name, {:point, adb_point_key}}
-  #   {timer_name, {:timer, period_in_ms}}
-  #   {shared_name, {:shared, shared_key}}
-
   defp specs(),
     do: %{
       shared: %{initial: %{}, check: :map},

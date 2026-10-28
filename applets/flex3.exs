@@ -5,8 +5,6 @@ Adb.reset()
 # not needed in dev mode, left as reference
 Api.evalf("flex3/code.exs")
 
-Flex.Errors.attach()
-
 Api.path()
 |> Path.join("flex3/**/test/*.exs")
 |> Path.wildcard()
