@@ -69,7 +69,6 @@ defmodule Flex.MovingAnalogIndicator do
 
     assigns = %{bw: bw / 2.0, bh: bh, px: px}
 
-    # trace needs wrapping at the bottom |> Flex.wrap()
     fn
       %{index: index, inputs: inputs, event: :render} ->
         v = Flex.Reactor.input(inputs, :value, value)

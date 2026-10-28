@@ -18,6 +18,7 @@ defmodule Flex.Backend do
     def path(), do: var("BACKEND_APPLETS")
     def path(route), do: Path.join(path(), route)
     def dev?(), do: var("BACKEND_DEV") == "true"
+    def device?(), do: var("BACKEND_DEVICE") == "true"
 
     def connect() do
       master = master() |> String.to_atom()
