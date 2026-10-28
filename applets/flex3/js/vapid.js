@@ -18,7 +18,7 @@ export default {
                     this.pushEvent("hook:vapid", JSON.parse(event.data))
                 }
                 navigator.serviceWorker
-                    .register(`${Args.static}/vapid.js`).then((reg) => {
+                    .register("/applets/flex3/vapid.js").then((reg) => {
                         consoleLog("App sw register OK")
                         //safari null exception on first registration
                         const retry = (self, toms, check, success) => {
@@ -55,7 +55,7 @@ export default {
                 for (const registration of registrations) {
                     // prevent cross contamination with another applet
                     const url = new URL(registration.scope)
-                    if (url.pathname == Args.static) {
+                    if (url.pathname == "/applets/flex3") {
                         registration.unregister()
                     }
                 }

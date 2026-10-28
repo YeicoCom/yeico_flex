@@ -26,7 +26,6 @@ handler = fn
   {:mount, socket, state} ->
     socket = assign(socket, applet_css: "/applets/flex3.css")
     socket = assign(socket, applet_js: "/applets/flex3.js")
-    socket = assign(socket, applet_args: %{static: "/applets/flex3"})
     socket = assign(socket, page_suffix: " · Flex")
     socket = assign(socket, page_title: "Vapid")
     state = Map.put(state, :backend, Api.subget!("backend:vapid"))
