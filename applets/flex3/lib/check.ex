@@ -189,6 +189,18 @@ defmodule Flex.Check do
     check("#{path}.source", source, :source)
   end
 
+  def check(path, value, :ipv4) when is_binary(value) do
+    case :inet.parse_address(~c"#{value}") do
+      {:ok, _} -> :ok
+      _ -> abort(path, value, "invalid ipv4")
+    end
+  end
+
+  def check(path, value, :ipv4), do: abort(path, value, "invalid ipv4")
+
+  def check(_path, nil, :ipv4?), do: :ok
+  def check(path, value, :ipv4?), do: check(path, value, :ipv4)
+
   # extensions
   def check(path, value, fun) when is_function(fun, 2), do: fun.(path, value)
 

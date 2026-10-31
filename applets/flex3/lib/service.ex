@@ -96,7 +96,9 @@ defmodule Flex.Service do
   # for testing only: ignored while service restarting
   def stop(name) do
     for {_pid, opts} <- Mdb.lookup({:service, name}) do
-      Api.kill(Keyword.get(opts, :par))
+      par = Keyword.get(opts, :par)
+      Api.kill(par)
+      Api.await(fn -> [] == Mdb.lookup({:clean, par}) end)
     end
   end
 
@@ -105,6 +107,28 @@ defmodule Flex.Service do
   def kill(name) do
     for {pid, _} <- Mdb.lookup({:service, name}) do
       Api.kill(pid)
+    end
+  end
+
+  # generic request/response interface
+  def call(name, cmd, toms \\ 5_000) do
+    case Mdb.lookup({:service, name}) do
+      [] ->
+        {:error, "Service not found"}
+
+      [{pid, _}] ->
+        id = UUID.uuid1()
+        send(pid, {:req, self(), id, cmd})
+
+        receive do
+          {:res, ^id, res} -> res
+        after
+          toms ->
+            {:error, toms}
+        end
+
+      _ ->
+        {:error, "Multiple services found"}
     end
   end
 end

@@ -7,7 +7,7 @@ defmodule Flex.SerialExport do
       tty: %{initial: nil, check: :binary},
       bits: %{initial: "8n1", check: {:in, ["8n1"]}},
       port: %{initial: 0, check: {:integer, 0, 65_535}},
-      bauds: %{initial: 9600, check: {:in, [9600, 115_200]}},
+      bauds: %{initial: 9600, check: {:in, [9600, 57600, 115_200]}},
       ip: %{initial: "127.0.0.1", check: {:in, ["127.0.0.1", "0.0.0.0"]}}
     }
 
@@ -35,6 +35,7 @@ defmodule Flex.SerialExport do
     try do
       config
       |> check_tty()
+      |> set_ready()
       |> socat_cmd()
       |> prepend_sudo()
       |> append(" &\necho $! > #{pidf}")
@@ -42,6 +43,11 @@ defmodule Flex.SerialExport do
     rescue
       e in RuntimeError -> Log.warn("#{sid} #{e.message}")
     end
+  end
+
+  defp set_ready(config) do
+    ready()
+    config
   end
 
   defp socat_cmd(%{tty: tty, bauds: bauds, ip: ip, port: port}) do

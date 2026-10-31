@@ -211,4 +211,12 @@ check.([:path, {:name, {:timer, 1}}, :input], nil)
 check.([:path, {:name, {:point, "point"}}, :input], nil)
 check.([:path, {:name, {:shared, :key}}, :input], nil)
 
+check.([:path, nil, :ipv4?], nil)
+check.([:path, "1.2.3.4", :ipv4?], nil)
+check.([:path, "1.2.3.4", :ipv4], nil)
+
+check.([:path, nil, :ipv4], error: "invalid ipv4")
+check.([:path, "1.2.3.", :ipv4], error: "invalid ipv4")
+check.([:path, "1.2.3.", :ipv4?], error: "invalid ipv4")
+
 :ok
