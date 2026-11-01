@@ -2,6 +2,8 @@ defmodule Flex.SensorR307 do
   use Flex.Service
   use Terminal
 
+  # get sensor params
+  # Flex.Service.call("r307_sensor", "PS_ReadSysPara")
   # Capture image if finger present
   # Flex.Service.call("r307_sensor", "PS_GetImage")
   # {:error, "2 No finger on the sensor"}
@@ -21,6 +23,9 @@ defmodule Flex.SensorR307 do
   # Flex.Service.call("r307_sensor", {"PS_LoadAndUpChar", 0})
   # Flex.Service.call("r307_sensor", {"PS_LoadAndUpChar", 1})
 
+  # fixme: implement PS_DownChar / PS_DeletChar
+  # fixme: implement PS_Search
+
   defp specs(),
     do: %{
       port: %{initial: 0, check: {:integer, 0, 65_535}},
@@ -39,6 +44,9 @@ defmodule Flex.SensorR307 do
 
   defp loop(socket) do
     receive do
+      {:req, pid, id, "PS_ReadSysPara"} ->
+        send(pid, {:res, id, ps_readsyspara(socket)})
+
       {:req, pid, id, "PS_GetImage"} ->
         send(pid, {:res, id, ps_getimage(socket)})
 
@@ -110,6 +118,47 @@ defmodule Flex.SensorR307 do
   defp check_password(socket) do
     with :ok <- send_hexstr(socket, @prefix1 <> "01 00 07 13 00 00 00 00 00 1B") do
       read_response(socket)
+    end
+  end
+
+  defp ps_readsyspara(socket) do
+    with :ok <- send_hexstr(socket, @prefix1 <> "01 00 03 0F 00 13"),
+         {:ok, {res28 = <<_::binary-size(9)>> <> <<data::binary-size(17)>> <> _cs, <<>>}} <-
+           read_n(socket, 28),
+         :ok <- checksum(res28) do
+      <<
+        _::8,
+        status::16,
+        system_id::16,
+        library_size::16,
+        security_level::16,
+        device_address::binary-size(4),
+        packet_size_code::16,
+        baud_setting::16
+      >> = data
+
+      packet_size_bytes =
+        case packet_size_code do
+          0 -> 32
+          1 -> 64
+          2 -> 128
+          3 -> 256
+          _ -> :unknown
+        end
+
+      {:ok,
+       %{
+         status_register: status,
+         system_id: system_id,
+         library_size: library_size,
+         security_level: security_level,
+         device_address: device_address |> Base.encode16(),
+         baud_rate: baud_setting * 9600,
+         packet_size_code: packet_size_code,
+         packet_size_bytes: packet_size_bytes
+       }}
+    else
+      unexpected -> else_error(unexpected)
     end
   end
 
