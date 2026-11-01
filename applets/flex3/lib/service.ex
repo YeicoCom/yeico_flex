@@ -111,21 +111,28 @@ defmodule Flex.Service do
   end
 
   # generic request/response interface
-  # wontfix: may accumulate timed out messages (monitoring a spawned process creates same problem)
   def call(name, cmd, toms \\ 5_000) do
     case Mdb.lookup({:service, name}) do
       [] ->
         {:error, "Service not found"}
 
       [{pid, _}] ->
-        id = UUID.uuid1()
-        send(pid, {:req, self(), id, cmd})
+        caller = self()
+
+        slave =
+          spawn(fn ->
+            id = UUID.uuid1()
+            send(pid, {:req, self(), id, cmd})
+
+            receive do
+              {:res, ^id, res} -> send(caller, {self(), res})
+            after
+              toms -> send(caller, {self(), {:error, toms}})
+            end
+          end)
 
         receive do
-          {:res, ^id, res} -> res
-        after
-          toms ->
-            {:error, toms}
+          {^slave, res} -> res
         end
 
       _ ->
