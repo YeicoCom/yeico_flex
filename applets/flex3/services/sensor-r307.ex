@@ -15,15 +15,19 @@ defmodule Flex.SensorR307 do
   # Flex.Service.call("r307_sensor", {"PS_Image2Tz", 2})
   # Generate model from buffer 1 and 2
   # Flex.Service.call("r307_sensor", "PS_RegModel")
-  # Store model to flash at index n (0-999)
-  # Flex.Service.call("r307_sensor", {"PS_StoreChar", n})
+  # Store model to flash at index 0 (0-999)
   # Flex.Service.call("r307_sensor", {"PS_StoreChar", 0})
+  # Store model to flash at index 1 (0-999)
   # Flex.Service.call("r307_sensor", {"PS_StoreChar", 1})
-  # Load model from flash at index n (0-999)
-  # Flex.Service.call("r307_sensor", {"PS_LoadAndUpChar", 0})
+  # Upload model from flash at index 0 (0-999)
+  # {:ok, data} = Flex.Service.call("r307_sensor", {"PS_LoadAndUpChar", 0})
+  # Upload model from flash at index 1 (0-999)
   # Flex.Service.call("r307_sensor", {"PS_LoadAndUpChar", 1})
+  # Delete 2 models starting at index 1
+  # Flex.Service.call("r307_sensor", {"PS_DeletChar", 1, 2})
+  # Download model to flash at index 1 (0-999)
+  # Flex.Service.call("r307_sensor", {"PS_DownAndStoreChar", 1, data})
 
-  # fixme: implement PS_DownChar / PS_DeletChar
   # fixme: implement PS_Search
 
   defp specs(),
@@ -37,7 +41,7 @@ defmodule Flex.SensorR307 do
     Api.debug("#{sid} run")
     {:ok, socket} = Tcp.connect(ip, port)
     clean(fn -> Tcp.close(socket) end)
-    {:ok, 0} = check_password(socket)
+    :ok = check_password(socket)
     ready()
     loop(socket)
   end
@@ -59,18 +63,29 @@ defmodule Flex.SensorR307 do
       {:req, pid, id, "PS_RegModel"} ->
         send(pid, {:res, id, ps_regmodel(socket)})
 
-      {:req, pid, id, {"PS_StoreChar", n}} when is_integer(n) and n >= 0 and n <= 999 ->
-        send(pid, {:res, id, ps_storechar(socket, n)})
+      {:req, pid, id, {"PS_StoreChar", index}}
+      when is_integer(index) and index >= 0 and index <= 999 ->
+        send(pid, {:res, id, ps_storechar(socket, index)})
 
-      {:req, pid, id, {"PS_LoadAndUpChar", n}} when is_integer(n) and n >= 0 and n <= 999 ->
-        send(pid, {:res, id, ps_loadandupchar(socket, n)})
+      {:req, pid, id, {"PS_LoadAndUpChar", index}}
+      when is_integer(index) and index >= 0 and index <= 999 ->
+        send(pid, {:res, id, ps_loadandupchar(socket, index)})
+
+      {:req, pid, id, {"PS_DeletChar", start, count}}
+      when is_integer(start) and start >= 0 and start <= 999 and is_integer(count) and count >= 1 and
+             count <= 1000 ->
+        send(pid, {:res, id, ps_deletchar(socket, start, count)})
+
+      {:req, pid, id, {"PS_DownAndStoreChar", index, data}}
+      when is_integer(index) and index >= 0 and index <= 999 and is_binary(data) ->
+        send(pid, {:res, id, ps_downandstorechar(socket, index, data)})
 
       unexpected ->
         Log.trace(unexpected: unexpected)
     end
 
     # detect socket closed
-    {:ok, 0} = check_password(socket)
+    :ok = check_password(socket)
 
     loop(socket)
   end
@@ -186,9 +201,9 @@ defmodule Flex.SensorR307 do
     end
   end
 
-  defp ps_storechar(socket, n) do
-    cs = 14 + Bitwise.band(n, 0xFF) + Bitwise.bsr(n, 8)
-    hex1 = Base.encode16(<<n::16>>)
+  defp ps_storechar(socket, index) do
+    cs = 14 + Bitwise.band(index, 0xFF) + Bitwise.bsr(index, 8)
+    hex1 = Base.encode16(<<index::16>>)
     hex2 = Base.encode16(<<cs::16>>)
 
     with :ok <- send_hexstr(socket, @prefix1 <> "01 00 06 06 01" <> hex1 <> hex2) do
@@ -196,13 +211,62 @@ defmodule Flex.SensorR307 do
     end
   end
 
-  defp ps_loadandupchar(socket, n) do
-    cs = 15 + Bitwise.band(n, 0xFF) + Bitwise.bsr(n, 8)
-    hex1 = Base.encode16(<<n::16>>)
+  defp ps_deletchar(socket, start, count) do
+    cs =
+      20 + Bitwise.band(start, 0xFF) + Bitwise.bsr(start, 8) + Bitwise.band(count, 0xFF) +
+        Bitwise.bsr(count, 8)
+
+    hex1 = Base.encode16(<<start::16>>)
+    hex2 = Base.encode16(<<count::16>>)
+    hex3 = Base.encode16(<<cs::16>>)
+
+    with :ok <- send_hexstr(socket, @prefix1 <> "01 00 07 0C" <> hex1 <> hex2 <> hex3) do
+      read_response(socket)
+    end
+  end
+
+  defp ps_downandstorechar(socket, index, data) do
+    with {:ok, %{packet_size_bytes: size}} when is_integer(size) <- ps_readsyspara(socket),
+         :ok <- send_hexstr(socket, @prefix1 <> "01 00 04 09 01 00 0F"),
+         :ok <- read_response(socket),
+         n <- div(byte_size(data), size),
+         0 <- rem(byte_size(data), size),
+         {:ok, ""} <- send_block(socket, data, n, size),
+         :ok <- ps_storechar(socket, index) do
+      :ok
+    else
+      unexpected -> else_error(unexpected)
+    end
+  end
+
+  defp send_block(socket, data, n, size) do
+    for i <- 0..(n - 1)//1, reduce: {:ok, data} do
+      {:ok, data} ->
+        fid = if i < n - 1, do: 2, else: 8
+        <<frame::binary-size(size)>> <> tail = data
+        cs = fid + Bitwise.band(size + 2, 0xFF) + Bitwise.bsr(size + 2, 8)
+
+        cs =
+          for <<byte <- frame>>, reduce: cs do
+            acc -> acc + byte
+          end
+
+        cs = Bitwise.band(cs, 0xFFFF)
+        res = Tcp.write(socket, @prefix2 <> <<fid>> <> <<size + 2::16>> <> frame <> <<cs::16>>)
+        {res, tail}
+
+      unexpected ->
+        unexpected
+    end
+  end
+
+  defp ps_loadandupchar(socket, index) do
+    cs = 15 + Bitwise.band(index, 0xFF) + Bitwise.bsr(index, 8)
+    hex1 = Base.encode16(<<index::16>>)
     hex2 = Base.encode16(<<cs::16>>)
 
     with :ok <- send_hexstr(socket, @prefix1 <> "01 00 06 07 01" <> hex1 <> hex2),
-         {:ok, 0} <- read_response(socket),
+         :ok <- read_response(socket),
          :ok <- send_hexstr(socket, @prefix1 <> "01 00 04 08 01 00 0E") do
       read_block(socket)
     end
@@ -243,7 +307,7 @@ defmodule Flex.SensorR307 do
          :ok <- checksum(res12) do
       case res do
         0 ->
-          {:ok, res}
+          :ok
 
         _ ->
           err = @errors[res] || "Unknown error"

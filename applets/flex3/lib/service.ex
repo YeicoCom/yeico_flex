@@ -111,7 +111,7 @@ defmodule Flex.Service do
   end
 
   # generic request/response interface
-  # fixme: may accumulate timed out messages
+  # wontfix: may accumulate timed out messages (monitoring a spawned process creates same problem)
   def call(name, cmd, toms \\ 5_000) do
     case Mdb.lookup({:service, name}) do
       [] ->
