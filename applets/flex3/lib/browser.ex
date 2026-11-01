@@ -169,7 +169,7 @@ defmodule Flex.Browser do
     loop(args)
   end
 
-  def start(monitor) do
+  def start(monitor \\ nil) do
     clean()
     Api.defer(&clean/0)
 
@@ -197,7 +197,3 @@ end
 # Path.wildcard("/proc/*/exe") |> Enum.map(&File.read_link(&1)) |> Enum.any?(& &1=={:ok, "/usr/bin/weston"})
 # cmd "ls -l /proc/*/exe"
 # exec("cogctl", ["--system", "open", url], [])
-
-Flex.Browser.start(monitor)
-
-:ok

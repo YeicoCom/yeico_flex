@@ -66,7 +66,8 @@ defmodule Flex.Login do
         :ok
     end
   end
-end
 
-# gauth has fixed paths as well
-Terminal.view("/login", Flex.Login.handler("/login", props))
+  def register(path, props) do
+    Terminal.view(path, Flex.Login.handler(path, props))
+  end
+end

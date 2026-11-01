@@ -20,7 +20,7 @@ Api.path()
 |> Enum.map(&String.trim_leading(&1, Api.path()))
 |> Enum.map(&String.trim_leading(&1, "/"))
 |> Enum.map(&String.replace(&1, "/enabled/", "/"))
-|> Enum.filter(&(!File.exists?(&1)))
+|> Enum.filter(fn route -> File.exists?(Api.path(route)) end)
 |> Enum.each(&Api.evalf/1)
 
 :ok
