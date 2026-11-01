@@ -2,34 +2,6 @@ defmodule Flex.SensorR307 do
   use Flex.Service
   use Terminal
 
-  # get sensor params
-  # Flex.Service.call("r307_sensor", "PS_ReadSysPara")
-  # Capture image if finger present
-  # Flex.Service.call("r307_sensor", "PS_GetImage")
-  # {:error, "2 No finger on the sensor"}
-  # Store captured image in buffer 1
-  # Flex.Service.call("r307_sensor", {"PS_Image2Tz", 1})
-  # Capture image if finger present
-  # Flex.Service.call("r307_sensor", "PS_GetImage")
-  # Store captured image in buffer 2
-  # Flex.Service.call("r307_sensor", {"PS_Image2Tz", 2})
-  # Generate model from buffer 1 and 2
-  # Flex.Service.call("r307_sensor", "PS_RegModel")
-  # Store model to flash at index 0 (0-999)
-  # Flex.Service.call("r307_sensor", {"PS_StoreChar", 0})
-  # Store model to flash at index 1 (0-999)
-  # Flex.Service.call("r307_sensor", {"PS_StoreChar", 1})
-  # Upload model from flash at index 0 (0-999)
-  # {:ok, data} = Flex.Service.call("r307_sensor", {"PS_LoadAndUpChar", 0})
-  # Upload model from flash at index 1 (0-999)
-  # Flex.Service.call("r307_sensor", {"PS_LoadAndUpChar", 1})
-  # Delete 2 models starting at index 1
-  # Flex.Service.call("r307_sensor", {"PS_DeletChar", 1, 2})
-  # Download model to flash at index 1 (0-999)
-  # Flex.Service.call("r307_sensor", {"PS_DownAndStoreChar", 1, data})
-
-  # fixme: implement PS_Search
-
   defp specs(),
     do: %{
       port: %{initial: 0, check: {:integer, 0, 65_535}},
@@ -59,6 +31,11 @@ defmodule Flex.SensorR307 do
 
       {:req, pid, id, {"PS_Image2Tz", 2}} ->
         send(pid, {:res, id, ps_image2tz(socket, 2)})
+
+      {:req, pid, id, {"PS_Search", start, count}}
+      when is_integer(start) and start >= 0 and start <= 999 and is_integer(count) and count >= 1 and
+             count <= 1000 ->
+        send(pid, {:res, id, ps_search(socket, start, count)})
 
       {:req, pid, id, "PS_RegModel"} ->
         send(pid, {:res, id, ps_regmodel(socket)})
@@ -192,6 +169,33 @@ defmodule Flex.SensorR307 do
   defp ps_image2tz(socket, 2) do
     with :ok <- send_hexstr(socket, @prefix1 <> "01 00 04 02 02 00 09") do
       read_response(socket)
+    end
+  end
+
+  defp ps_search(socket, start, count) do
+    cs =
+      14 + Bitwise.band(start, 0xFF) + Bitwise.bsr(start, 8) + Bitwise.band(count, 0xFF) +
+        Bitwise.bsr(count, 8)
+
+    hex1 = Base.encode16(<<start::16>>)
+    hex2 = Base.encode16(<<count::16>>)
+    hex3 = Base.encode16(<<cs::16>>)
+
+    with :ok <- send_hexstr(socket, @prefix1 <> "01 00 08 04 01" <> hex1 <> hex2 <> hex3),
+         {:ok,
+          {res16 = @prefix2 <> <<7, 0, 7>> <> <<code>> <> <<page::16>> <> <<score::16>> <> _cs,
+           <<>>}} <- read_n(socket, 16),
+         :ok <- checksum(res16) do
+      case code do
+        0 ->
+          {:ok, %{page: page, score: score, pass: score >= 50, cond: ">= 50"}}
+
+        _ ->
+          err = @errors[code] || "Unknown error"
+          {:error, "#{code} #{err}"}
+      end
+    else
+      unexpected -> else_error(unexpected)
     end
   end
 
