@@ -68,8 +68,8 @@ defmodule Flex.SensorR307 do
   end
 
   # erlang binary pattern match is big endian by default
-  @prefix1 "EF 01 FF FF FF FF"
-  @prefix2 <<239, 1, 255, 255, 255, 255>>
+  @prefix <<239, 1, 255, 255, 255, 255>>
+
   @errors %{
     0x00 => "Command execution complete",
     0x01 => "Error when receiving data package",
@@ -108,13 +108,15 @@ defmodule Flex.SensorR307 do
   }
 
   defp check_password(socket) do
-    with :ok <- send_hexstr(socket, @prefix1 <> "01 00 07 13 00 00 00 00 00 1B") do
+    with :ok <- send_package(socket, <<0x13, 0x00, 0x00, 0x00, 0x00>>) do
       read_response(socket)
+    else
+      unexpected -> else_error(unexpected)
     end
   end
 
   defp ps_readsyspara(socket) do
-    with :ok <- send_hexstr(socket, @prefix1 <> "01 00 03 0F 00 13"),
+    with :ok <- send_package(socket, <<0x0F>>),
          {:ok, {res28 = <<_::binary-size(9)>> <> <<data::binary-size(17)>> <> _cs, <<>>}} <-
            read_n(socket, 28),
          :ok <- checksum(res28) do
@@ -155,44 +157,38 @@ defmodule Flex.SensorR307 do
   end
 
   defp ps_getimage(socket) do
-    with :ok <- send_hexstr(socket, @prefix1 <> "01 00 03 01 00 05") do
+    with :ok <- send_package(socket, <<0x01>>) do
       read_response(socket)
+    else
+      unexpected -> else_error(unexpected)
     end
   end
 
   defp ps_image2tz(socket, 1) do
-    with :ok <- send_hexstr(socket, @prefix1 <> "01 00 04 02 01 00 08") do
+    with :ok <- send_package(socket, <<0x02, 0x01>>) do
       read_response(socket)
+    else
+      unexpected -> else_error(unexpected)
     end
   end
 
   defp ps_image2tz(socket, 2) do
-    with :ok <- send_hexstr(socket, @prefix1 <> "01 00 04 02 02 00 09") do
+    with :ok <- send_package(socket, <<0x02, 0x02>>) do
       read_response(socket)
+    else
+      unexpected -> else_error(unexpected)
     end
   end
 
   defp ps_search(socket, start, count) do
-    cs =
-      14 + Bitwise.band(start, 0xFF) + Bitwise.bsr(start, 8) + Bitwise.band(count, 0xFF) +
-        Bitwise.bsr(count, 8)
-
-    hex1 = Base.encode16(<<start::16>>)
-    hex2 = Base.encode16(<<count::16>>)
-    hex3 = Base.encode16(<<cs::16>>)
-
-    with :ok <- send_hexstr(socket, @prefix1 <> "01 00 08 04 01" <> hex1 <> hex2 <> hex3),
+    with :ok <- send_package(socket, <<0x04, 0x01>> <> <<start::16>> <> <<count::16>>),
          {:ok,
-          {res16 = @prefix2 <> <<7, 0, 7>> <> <<code>> <> <<page::16>> <> <<score::16>> <> _cs,
+          {res16 = @prefix <> <<7, 0, 7>> <> <<code>> <> <<page::16>> <> <<score::16>> <> _cs,
            <<>>}} <- read_n(socket, 16),
          :ok <- checksum(res16) do
       case code do
-        0 ->
-          {:ok, %{page: page, score: score, pass: score >= 50, cond: ">= 50"}}
-
-        _ ->
-          err = @errors[code] || "Unknown error"
-          {:error, "#{code} #{err}"}
+        0 -> {:ok, %{page: page, score: score, pass: score >= 50, cond: ">= 50"}}
+        _ -> to_error(code)
       end
     else
       unexpected -> else_error(unexpected)
@@ -200,38 +196,32 @@ defmodule Flex.SensorR307 do
   end
 
   defp ps_regmodel(socket) do
-    with :ok <- send_hexstr(socket, @prefix1 <> "01 00 03 05 00 09") do
+    with :ok <- send_package(socket, <<0x05>>) do
       read_response(socket)
+    else
+      unexpected -> else_error(unexpected)
     end
   end
 
   defp ps_storechar(socket, index) do
-    cs = 14 + Bitwise.band(index, 0xFF) + Bitwise.bsr(index, 8)
-    hex1 = Base.encode16(<<index::16>>)
-    hex2 = Base.encode16(<<cs::16>>)
-
-    with :ok <- send_hexstr(socket, @prefix1 <> "01 00 06 06 01" <> hex1 <> hex2) do
+    with :ok <- send_package(socket, <<0x06, 0x01>> <> <<index::16>>) do
       read_response(socket)
+    else
+      unexpected -> else_error(unexpected)
     end
   end
 
   defp ps_deletchar(socket, start, count) do
-    cs =
-      20 + Bitwise.band(start, 0xFF) + Bitwise.bsr(start, 8) + Bitwise.band(count, 0xFF) +
-        Bitwise.bsr(count, 8)
-
-    hex1 = Base.encode16(<<start::16>>)
-    hex2 = Base.encode16(<<count::16>>)
-    hex3 = Base.encode16(<<cs::16>>)
-
-    with :ok <- send_hexstr(socket, @prefix1 <> "01 00 07 0C" <> hex1 <> hex2 <> hex3) do
+    with :ok <- send_package(socket, <<0x0C>> <> <<start::16>> <> <<count::16>>) do
       read_response(socket)
+    else
+      unexpected -> else_error(unexpected)
     end
   end
 
   defp ps_downandstorechar(socket, index, data) do
     with {:ok, %{packet_size_bytes: size}} when is_integer(size) <- ps_readsyspara(socket),
-         :ok <- send_hexstr(socket, @prefix1 <> "01 00 04 09 01 00 0F"),
+         :ok <- send_package(socket, <<0x09, 0x01>>),
          :ok <- read_response(socket),
          n <- div(byte_size(data), size),
          0 <- rem(byte_size(data), size),
@@ -243,36 +233,26 @@ defmodule Flex.SensorR307 do
     end
   end
 
+  defp ps_loadandupchar(socket, index) do
+    with :ok <- send_package(socket, <<0x07, 0x01>> <> <<index::16>>),
+         :ok <- read_response(socket),
+         :ok <- send_package(socket, <<0x08, 0x01>>) do
+      read_block(socket)
+    else
+      unexpected -> else_error(unexpected)
+    end
+  end
+
   defp send_block(socket, data, n, size) do
     for i <- 0..(n - 1)//1, reduce: {:ok, data} do
       {:ok, data} ->
         fid = if i < n - 1, do: 2, else: 8
         <<frame::binary-size(size)>> <> tail = data
-        cs = fid + Bitwise.band(size + 2, 0xFF) + Bitwise.bsr(size + 2, 8)
-
-        cs =
-          for <<byte <- frame>>, reduce: cs do
-            acc -> acc + byte
-          end
-
-        cs = Bitwise.band(cs, 0xFFFF)
-        res = Tcp.write(socket, @prefix2 <> <<fid>> <> <<size + 2::16>> <> frame <> <<cs::16>>)
+        res = send_package(socket, frame, fid)
         {res, tail}
 
       unexpected ->
         unexpected
-    end
-  end
-
-  defp ps_loadandupchar(socket, index) do
-    cs = 15 + Bitwise.band(index, 0xFF) + Bitwise.bsr(index, 8)
-    hex1 = Base.encode16(<<index::16>>)
-    hex2 = Base.encode16(<<cs::16>>)
-
-    with :ok <- send_hexstr(socket, @prefix1 <> "01 00 06 07 01" <> hex1 <> hex2),
-         :ok <- read_response(socket),
-         :ok <- send_hexstr(socket, @prefix1 <> "01 00 04 08 01 00 0E") do
-      read_block(socket)
     end
   end
 
@@ -288,42 +268,43 @@ defmodule Flex.SensorR307 do
     end
   end
 
-  defp read_block(socket, {res9 = @prefix2 <> <<02>> <> <<len::16>>, acc, tail}) do
+  defp read_block(socket, {res9 = @prefix <> <<02>> <> <<len::16>>, acc, tail}) do
     with {:ok, {data, tail}} <- read_n(socket, len, tail),
          :ok <- checksum(res9 <> data),
          {:ok, {res9, tail}} <- read_n(socket, 9, tail),
          <<data::binary-size(len - 2)>> <> _cs = data do
       read_block(socket, {res9, [acc, data], tail})
+    else
+      unexpected -> else_error(unexpected)
     end
   end
 
-  defp read_block(socket, {res9 = @prefix2 <> <<08>> <> <<len::16>>, acc, tail}) do
+  defp read_block(socket, {res9 = @prefix <> <<08>> <> <<len::16>>, acc, tail}) do
     with {:ok, {data, <<>>}} <- read_n(socket, len, tail),
          :ok <- checksum(res9 <> data),
          <<data::binary-size(len - 2)>> <> _cs = data do
       {:ok, [acc, data] |> IO.iodata_to_binary()}
+    else
+      unexpected -> else_error(unexpected)
     end
   end
 
   defp read_response(socket) do
     with {:ok, {res12, <<>>}} <- read_n(socket, 12),
-         @prefix2 <> <<07, 00, 03>> <> <<res>> <> _cs <- res12,
+         @prefix <> <<07, 00, 03>> <> <<res>> <> _cs <- res12,
          :ok <- checksum(res12) do
       case res do
-        0 ->
-          :ok
-
-        _ ->
-          err = @errors[res] || "Unknown error"
-          {:error, "#{res} #{err}"}
+        0 -> :ok
+        _ -> to_error(res)
       end
     else
       unexpected -> else_error(unexpected)
     end
   end
 
+  defp to_error(code), do: {:error, "#{code} #{@errors[code] || "Unknown error"}"}
+
   defp else_error({:error, error}), do: {:error, error}
-  defp else_error({:ok, unexpected}), do: {:error, unexpected: unexpected}
   defp else_error(unexpected), do: {:error, unexpected: unexpected}
 
   defp read_n(_socket, n, acc \\ <<>>)
@@ -336,32 +317,30 @@ defmodule Flex.SensorR307 do
   defp read_n(socket, n, acc) when byte_size(acc) < n do
     with {:ok, data} <- Tcp.read(socket, 2_000) do
       read_n(socket, n, acc <> data)
+    else
+      unexpected -> else_error(unexpected)
     end
   end
 
   defp checksum(data) do
     n = byte_size(data) - 6 - 2
 
-    with @prefix2 <> <<sumable::binary-size(n)>> <> <<csr::16>> <- data do
-      csc =
-        for <<byte <- sumable>>, reduce: 0 do
-          acc -> acc + byte
-        end
-
-      case csr == csc do
-        true -> :ok
-        _ -> {:error, "checksum mismatch"}
-      end
+    with @prefix <> <<bin::binary-size(n)>> <> <<csr::16>> <- data do
+      csc = for <<byte <- bin>>, reduce: 0, do: (cs -> cs + byte)
+      if csr == csc, do: :ok, else: {:error, "checksum mismatch"}
+    else
+      unexpected -> else_error(unexpected)
     end
   end
 
-  defp parse_hexstr(hexstr) do
-    hexstr
-    |> String.replace(" ", "")
-    |> Base.decode16!(case: :upper)
+  defp send_package(socket, bin, fid \\ 1) do
+    Tcp.write(socket, package(bin, fid))
   end
 
-  defp send_hexstr(socket, hexstr) do
-    Tcp.write(socket, parse_hexstr(hexstr))
+  defp package(bin, fid) do
+    len = byte_size(bin) + 2
+    cs = fid + Bitwise.band(len, 0xFF) + Bitwise.bsr(len, 8)
+    cs = for <<byte <- bin>>, reduce: cs, do: (cs -> cs + byte)
+    @prefix <> <<fid>> <> <<len::16>> <> bin <> <<cs::16>>
   end
 end

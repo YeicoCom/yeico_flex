@@ -111,7 +111,7 @@ defmodule Flex.Service do
   end
 
   # generic request/response interface
-  def call(name, cmd, toms \\ 5_000) do
+  def call(name, cmd, toms \\ 5_000) when is_integer(toms) and toms > 0 do
     case Mdb.lookup({:service, name}) do
       [] ->
         {:error, "Service not found"}
