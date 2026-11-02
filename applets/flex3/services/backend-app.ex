@@ -11,19 +11,18 @@ defmodule Flex.BackendApp do
     }
 
   defp setup(%{route: route, name: name, app: app, env: env}) do
-    Flex.Backend.Api.lo_alias()
     sid = Process.get(:__sid__)
     Log.debug("#{sid} starting")
     name = name || Path.basename(route, ".exs")
     app = app || name
-    {"", 0} = System.cmd("epmd", ["-daemon"])
+    {"", 0} = System.cmd("epmd", ["-daemon", "-address", "127.0.0.1"])
 
-    hostname = Api.hostname()
+    # neither name nor sname set in nerves
     init_args = :init.get_arguments()
-    [lname] = Keyword.get(init_args, :name, [~c"terminal@#{hostname}.local"])
-    lname = lname |> to_string() |> String.to_atom()
+    [sname] = Keyword.get(init_args, :sname, [~c"terminal@localhost"])
+    sname = sname |> to_string() |> String.to_atom()
 
-    case Node.start(lname) do
+    case Node.start(sname) do
       {:error, {:already_started, _}} -> :ok
       {:ok, _} -> :ok
       unexpected -> throw(unexpected)
@@ -85,8 +84,8 @@ defmodule Flex.BackendApp do
       "-noshell",
       "-setcookie",
       cookie,
-      "-name",
-      "#{name}@#{hostname}.local",
+      "-sname",
+      "#{name}@localhost",
       "-s",
       "application",
       "ensure_all_started",
@@ -130,7 +129,7 @@ defmodule Flex.BackendApp do
     name = name |> to_charlist()
 
     fun = fn ->
-      {:ok, names} = :net_adm.names()
+      {:ok, names} = :net_adm.names(~c"localhost")
       names = Enum.into(names, %{})
 
       res ==

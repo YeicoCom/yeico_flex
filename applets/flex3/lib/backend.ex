@@ -25,7 +25,6 @@ defmodule Flex.Backend do
     def connect() do
       if !Process.get(:__master__) do
         master = master() |> String.to_atom()
-        wait(&lo_alias/0, {:error, :already_registered})
         # fails first time on just rebooted vm
         wait(fn -> Node.connect(master) end, true)
         Process.put(:__master__, master)
@@ -68,21 +67,6 @@ defmodule Flex.Backend do
         _ ->
           Process.sleep(sms)
           wait(fun, result)
-      end
-    end
-
-    def lo_alias() do
-      {:ok, hostname} = :inet.gethostname()
-      localhost = ~c"#{hostname}.local"
-
-      case :inet.gethostbyname(localhost) do
-        {:ok, {:hostent, ^localhost, [], :inet, 4, [{127, 0, 0, 1}]}} ->
-          {:error, :already_registered}
-
-        _ ->
-          # inet_db has undocumented module status
-          # returns :ok every time
-          :inet_db.add_host({127, 0, 0, 1}, [localhost])
       end
     end
   end

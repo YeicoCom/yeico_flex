@@ -4,7 +4,7 @@ dest =
 
 assets
 |> Path.dirname()
-|> Path.join("flex3/backend.ex")
+|> Path.join("flex3/lib/backend.ex")
 |> File.cp(dest)
 
 :ok

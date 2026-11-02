@@ -15,6 +15,7 @@ defmodule App.Pulse do
     # or use app/make.exs to bring in backend.ex
 
     System.get_env()
+    |> Enum.filter(fn {k, _} -> String.starts_with?(k, "BACKEND_") end)
     |> Enum.sort()
     |> Enum.each(fn {k, v} -> Flex.Backend.Log.debug("#{k}=#{v}") end)
 

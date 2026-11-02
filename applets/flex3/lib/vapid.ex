@@ -8,7 +8,7 @@ defmodule Flex.Vapid do
     config = load_config(config)
     vars = build_vars(config)
     pubkey = config["publicKey"]
-    node = "#{name}@#{Api.hostname()}.local" |> String.to_atom()
+    node = "#{name}@localhost" |> String.to_atom()
     pusher = get_pusher(node, prefix)
     %{name: name, node: node, pusher: pusher, pubkey: pubkey, vars: vars}
   end
