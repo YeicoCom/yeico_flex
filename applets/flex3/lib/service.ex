@@ -122,12 +122,15 @@ defmodule Flex.Service do
         slave =
           spawn(fn ->
             id = UUID.uuid1()
+            ref = Process.monitor(pid)
             send(pid, {:req, self(), id, cmd})
 
             receive do
               {:res, ^id, res} -> send(caller, {self(), res})
+              {:DOWN, ^ref, _, ^pid, _} -> send(caller, {self(), {:error, "Service down"}})
+              unexpected -> send(caller, {self(), {:error, unexpected: unexpected}})
             after
-              toms -> send(caller, {self(), {:error, toms}})
+              toms -> send(caller, {self(), {:error, timeout: toms}})
             end
           end)
 
