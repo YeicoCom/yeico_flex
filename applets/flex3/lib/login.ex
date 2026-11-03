@@ -67,7 +67,7 @@ defmodule Flex.Login do
     end
   end
 
-  def register(path, props) do
-    Terminal.view(path, Flex.Login.handler(path, props))
+  def register(path, props \\ %{}) do
+    Terminal.view(path, handler(path, props))
   end
 end
