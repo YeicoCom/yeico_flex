@@ -11,6 +11,8 @@ config :web_push_elixir,
 
 Config.Reader.eval!("config.exs", config) |> Application.put_all_env()
 
+IO.puts("installing...")
+
 # https://github.com/elixir-lang/elixir/issues/13326 Waiting for lock on the build directory
 # __ENV__.file -> ~/yeico_flex/applets/flex3/backends/vapid.exs
 Mix.install([{:jason, "1.4.4"}, {:web_push_elixir, "0.4.0"}, {:exqlite, "0.33.1"}],
@@ -73,5 +75,6 @@ loop = fn loop ->
 end
 
 Api.putcast!("backend:#{Api.name()}", true)
+Log.debug("ready")
 
 loop.(loop)

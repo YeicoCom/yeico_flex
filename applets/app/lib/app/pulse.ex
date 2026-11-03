@@ -13,6 +13,7 @@ defmodule App.Pulse do
   defp init() do
     # dynamic call to make the compiler happy
     # or use app/make.exs to bring in backend.ex
+    IO.puts("init")
 
     System.get_env()
     |> Enum.filter(fn {k, _} -> String.starts_with?(k, "BACKEND_") end)

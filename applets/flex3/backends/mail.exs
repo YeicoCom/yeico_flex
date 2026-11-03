@@ -1,5 +1,7 @@
 use Flex.Backend
 
+IO.puts("installing...")
+
 Mix.install([{:gen_smtp, "1.3.0"}, {:castore, "~> 1.0"}],
   system_env: %{ID: __ENV__.file}
 )
@@ -61,5 +63,6 @@ loop = fn loop ->
 end
 
 Api.putcast!("backend:#{Api.name()}", true)
+Log.debug("ready")
 
 loop.(loop)
