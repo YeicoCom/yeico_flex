@@ -23,28 +23,33 @@ defmodule Flex.Backend do
     def device?(), do: var("BACKEND_DEVICE") == "true"
 
     def connect() do
-      if !Process.get(:__master__) do
-        master = master() |> String.to_atom()
-        # fails first time on just rebooted vm
-        wait(fn -> Node.connect(master) end, true)
-        Process.put(:__master__, master)
-      end
-
-      Process.get(:__master__)
+      master = master() |> String.to_atom()
+      # fails first time on just rebooted vm
+      await(fn -> Node.connect(master) end)
+      master
     end
 
-    def inspect?(term) when is_binary(term), do: term
+    def sleep(), do: Process.sleep(:infinity)
+    def sleep(millis), do: Process.sleep(millis)
+
+    def receive(), do: receive(do: (msg -> msg))
+    def receive(msg), do: receive(do: (^msg -> :ok))
+
+    @inspect [limit: :infinity, width: :infinity, printable_limit: :infinity]
 
     def inspect?(term) do
-      inspect(term,
-        limit: :infinity,
-        width: :infinity,
-        printable_limit: :infinity
-      )
+      case is_binary(term) and String.printable?(term) do
+        false -> inspect(term, @inspect)
+        true -> term
+      end
+    end
+
+    def printable(term) when is_binary(term) do
+      String.replace(term, ~r/\p{C}/u, "")
     end
 
     def call(mod, fun, args) do
-      Api.connect() |> :rpc.call(mod, fun, args)
+      connect() |> :rpc.call(mod, fun, args)
     end
 
     def putcast!(key, value) do
@@ -59,14 +64,14 @@ defmodule Flex.Backend do
       call(Terminal, :fpath, [path])
     end
 
-    def wait(fun, result, sms \\ 100) do
+    def await(fun, sms \\ 100) do
       case fun.() do
-        ^result ->
+        true ->
           :ok
 
         _ ->
           Process.sleep(sms)
-          wait(fun, result)
+          await(fun, sms)
       end
     end
   end
@@ -78,7 +83,7 @@ defmodule Flex.Backend do
       entry = Api.entry()
       route = Api.route()
       name = Api.name()
-      line = "#{route} #{Api.inspect?(name)}/#{Api.inspect?(self())} #{Api.inspect?(term)}"
+      line = "#{route} #{name}/#{Api.inspect?(self())} #{Api.inspect?(term)}"
       Api.call(Applet, :broadcast!, [entry, level, line])
       term
     end
