@@ -11,7 +11,7 @@ defmodule Flex.Login do
     ~H"""
     <div id="gauth_main" phx-hook="Gauth" class="flex flex-col items-center justify-center h-screen gap-2 bg-base-300">
       <div id="gauth_panel" class="flex flex-col items-center justify-center px-24 py-8 rounded bg-base-100 text-base-content">
-        <image :if={@logo} src={@logo} class="w-[4em] grayscale"/>
+        <img :if={@logo} src={@logo} class="w-[4em] grayscale"/>
         <div :if={@label} class="text-3xl">{@label}</div>
         <div id="gauth_button_panel" phx-update="ignore" class="flex flex-col items-center justify-center pt-2">
           <div id="g_id_onload" data-auto_prompt="false" data-callback="gauthHandleResponse" data-client_id={@client_id}/>
@@ -19,7 +19,7 @@ defmodule Flex.Login do
             <div id="gauth_button_original" class="g_id_signin opacity-0 col-start-1 row-start-1"/>
             <div id="gauth_button_custom"
               class="opacity-0 w-full h-full col-start-1 row-start-1 pointer-events-none daisy-btn daisy-btn-outline daisy-btn-sm flex flex-nowrap items-center gap-1">
-              <image :if={@glogo} src={@glogo} class="w-[1.5em] grayscale"/>
+              <img :if={@glogo} src={@glogo} class="w-[1.5em] grayscale"/>
               <div class="text-nowrap text-sm">Sign in with Google</div>
             </div>
           </div>

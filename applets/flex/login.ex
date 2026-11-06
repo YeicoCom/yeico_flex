@@ -4,7 +4,7 @@ defmodule Flex.Auth.Login do
   defp view(assigns) do
     ~H"""
     <div class="h-full flex flex-col gap-4 justify-center items-center">
-      <image src="/applets/logo.svg" class="h-20"/>
+      <img src="/applets/logo.svg" class="h-20"/>
       <div class="text-3xl text-white">Flex Login</div>
       <form id="login_view" phx-submit="submit:login" class="flex flex-col"
         phx-update="ignore" autocomplete="off" phx-hook="LoginView">

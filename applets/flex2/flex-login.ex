@@ -4,7 +4,7 @@ defmodule Flex.Login do
   defp view(assigns) do
     ~H"""
     <div id="login_view" class="flex flex-col items-center justify-center h-screen gap-4" phx-hook="Redirect">
-      <image src="/applets/logo.svg" class="h-20"/>
+      <img src="/applets/logo.svg" class="h-20"/>
       <div class="text-3xl text-white">Flex Login</div>
       <form id="login_form" phx-submit="submit:login" class="flex flex-col"
         phx-update="ignore" autocomplete="off">

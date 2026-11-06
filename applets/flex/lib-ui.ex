@@ -30,7 +30,7 @@ defmodule Flex.UI do
     <div id="main_frame" phx-window-keydown="modal:close" phx-key="Escape" phx-hook="AllPages"
       class="flex h-screen select-none text-base [&_*]:cursor-default">
       <div class="flex flex-col gap-2 p-2 text-white [&_*]:size-8">
-        <image src="/applets/logo.svg" class="h-8"/>
+        <img src="/applets/logo.svg" class="h-8"/>
         <a href="/flex" class="hover:bg-lime-500 hero-home" title="Flex Home"/>
         <a href="/flex/user-files" class="hover:bg-lime-500 hero-document" title="User Files"/>
         <a href="/flex/user-scripts" class="hover:bg-lime-500 hero-code-bracket" title="User Scripts"/>
