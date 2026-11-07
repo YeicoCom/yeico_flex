@@ -115,9 +115,8 @@ defmodule Flex.BackendApp do
       {:io_request, from, reply_as, {:put_chars, encoding, line}} ->
         send(from, {:io_reply, reply_as, :ok})
         line = :unicode.characters_to_binary(line, encoding, :utf8)
-        line = "#{name}.app #{encoding} #{String.trim(line)}"
-        line = if String.printable?(line), do: line, else: String.replace(line, ~r/\p{C}/u, "")
-        Log.trace(line)
+        line = line |> Api.printable() |> String.trim()
+        Log.trace("#{name}.app #{encoding} #{line}")
         loop(name)
 
       unexpected ->
