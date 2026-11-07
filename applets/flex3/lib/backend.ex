@@ -29,6 +29,8 @@ defmodule Flex.Backend do
       master
     end
 
+    def pid(%Task{pid: pid}), do: pid
+
     def sleep(), do: Process.sleep(:infinity)
     def sleep(millis), do: Process.sleep(millis)
 
@@ -37,15 +39,25 @@ defmodule Flex.Backend do
 
     @inspect [limit: :infinity, width: :infinity, printable_limit: :infinity]
 
+    def printable(term, replacement \\ "") do
+      case is_binary(term) do
+        true ->
+          case String.printable?(term) do
+            false -> String.replace(term, ~r/\p{C}/u, replacement)
+            true -> term
+          end
+
+        false ->
+          inspect(term, @inspect)
+      end
+    end
+
+    # IO.puts of non printable throws
     def inspect?(term) do
       case is_binary(term) and String.printable?(term) do
         false -> inspect(term, @inspect)
         true -> term
       end
-    end
-
-    def printable(term) when is_binary(term) do
-      String.replace(term, ~r/\p{C}/u, "")
     end
 
     def call(mod, fun, args) do
@@ -62,6 +74,91 @@ defmodule Flex.Backend do
 
     def fpath(path) do
       call(Terminal, :fpath, [path])
+    end
+
+    def hostname() do
+      {:ok, host} = :inet.gethostname()
+      to_string(host)
+    end
+
+    def hostname_f() do
+      {hostname, 0} = System.cmd("hostname", ["-f"])
+      hostname |> String.trim()
+    end
+
+    def resolve(host) do
+      with {:ok, {a, b, c, d}} <- :inet.getaddr(~c"#{host}", :inet) do
+        {:ok, "#{a}.#{b}.#{c}.#{d}"}
+      end
+    end
+
+    def defer(fun) when is_function(fun, 0), do: defer(self(), fun)
+
+    def defer(fun, arg) when is_function(fun, 1), do: defer(self(), fn -> fun.(arg) end)
+
+    def defer(pid, fun) when is_pid(pid) and is_function(fun, 0) do
+      # spawn to avoid sudden death
+      spawn(fn ->
+        ref = Process.monitor(pid)
+
+        receive do
+          {:DOWN, ^ref, _, ^pid, _} -> safe(fun)
+        end
+      end)
+    end
+
+    def defer(pid, fun, arg) when is_pid(pid) and is_function(fun, 1),
+      do: defer(pid, fn -> fun.(arg) end)
+
+    def safe(fun) when is_function(fun, 0) do
+      try do
+        {:ok, fun.()}
+      rescue
+        error -> {:error, %{type: :rescue, error: error, stack: __STACKTRACE__}}
+      catch
+        error -> {:error, %{type: :catch, error: error, stack: __STACKTRACE__}}
+      end
+    end
+
+    def safe(fun, arg) when is_function(fun, 1) do
+      try do
+        {:ok, fun.(arg)}
+      rescue
+        error -> {:error, %{type: :rescue, error: error, stack: __STACKTRACE__}}
+      catch
+        error -> {:error, %{type: :catch, error: error, stack: __STACKTRACE__}}
+      end
+    end
+
+    def kill(%Task{pid: pid}), do: kill(pid)
+
+    def kill(pid) when is_pid(pid) do
+      Process.unlink(pid)
+      Process.exit(pid, :kill)
+      ref = Process.monitor(pid)
+
+      receive do
+        {:DOWN, ^ref, _, ^pid, _} -> :ok
+      end
+
+      # not a reference
+      # Process.demonitor(pid)
+    end
+
+    # Task.await forwards exit signals making it not suitable for loops
+    def await(%Task{ref: ref, owner: owner} = task) do
+      if owner != self() do
+        raise ArgumentError, "#{inspect(self())} is not the owner of #{inspect(task)}"
+      end
+
+      receive do
+        {^ref, reply} ->
+          Process.demonitor(ref, [:flush])
+          {:ok, reply}
+
+        {:DOWN, ^ref, _, proc, reason} ->
+          {:error, %{error: :down, reason: reason, proc: proc, task: task}}
+      end
     end
 
     def await(fun, sms \\ 100) do
