@@ -11,6 +11,11 @@ q() {
     "$@" &>/dev/null
 }
 
+init() {
+    q mkdir -p deps
+    q mkdir -p .flex3    
+}
+
 checkout() {
     echo Getting flex $3
     [ -d $1 ] && q git -C $1 clean -fdx 
@@ -23,8 +28,6 @@ checkout() {
 }
 
 setup() {
-    q mkdir -p deps
-    q mkdir -p .flex3
     checkout deps/yeico_flex git@github.com:YeicoCom/yeico_flex.git $1
     q rsync -avr --delete deps/yeico_flex/applets/flex3 applets/
     q cp -f deps/yeico_flex/flex3.sh .
@@ -32,10 +35,12 @@ setup() {
 }
 
 update() {
+    init
     setup main
 }
 
 install() {
+    init
     commit=$(cat .flex3/commit 2>/dev/null || echo main)
     setup $commit
 }
